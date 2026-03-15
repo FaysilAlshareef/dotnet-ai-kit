@@ -113,7 +113,8 @@ dotnet-ai-kit/
 │   ├── concurrency-patterns.md
 │   └── documentation-standards.md
 │
-├── templates/                                   # Project scaffolding (for new services)
+├── templates/                                   # Project scaffolding (11 templates)
+│   │  # Microservice templates (7)
 │   ├── command/
 │   ├── query/
 │   ├── cosmos-query/
@@ -121,6 +122,11 @@ dotnet-ai-kit/
 │   ├── gateway-management/
 │   ├── gateway-consumer/
 │   ├── controlpanel-module/
+│   │  # Generic .NET templates (4)
+│   ├── generic-vsa/
+│   ├── generic-clean-arch/
+│   ├── generic-ddd/
+│   ├── generic-modular-monolith/
 │   ├── commands/                                # Command file templates per AI tool
 │   │   ├── specify.md                           # Template with $ARGUMENTS placeholder
 │   │   └── ...
@@ -152,7 +158,7 @@ dotnet-ai-kit/
     ├── 12-version-roadmap.md                    # Version releases (v1.0 → v2.0)
     ├── 13-handoff-schemas.md                    # Inter-agent file schemas
     ├── 14-generic-skills-spec.md                # Code patterns for 32 generic skills
-    ├── 15-template-content.md                   # 7 project template file structures
+    ├── 15-template-content.md                   # 11 project template file structures
     ├── 16-cli-implementation.md                 # CLI detection, config, extensions
     ├── 17-code-generation-flows.md              # 5 code generation command flows
     └── 18-microservice-skills-spec.md           # Code patterns for microservice skills
@@ -286,7 +292,7 @@ AGENT_CONFIG = {
 | Skills | 101 | 400 each |
 | Commands | 25 | 200 each |
 | Knowledge | 11 | Unlimited |
-| Templates | 7 | Project scaffolds |
+| Templates | 11 | Project scaffolds (7 microservice + 4 generic) |
 | Config | 4 | Permission templates |
 | CLI | 1 | Python package |
 

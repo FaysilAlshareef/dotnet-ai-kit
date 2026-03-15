@@ -16,7 +16,7 @@
 | 10 | Review System | review command + CodeRabbit + verify | High |
 | 11 | Code Gen | add-aggregate, add-entity, add-event, add-endpoint, add-page, add-crud | High |
 | 12 | PR & Session | pr, checkpoint, wrap-up commands | High |
-| 13 | Templates | 7 project templates (for new projects) | Medium |
+| 13 | Templates | 11 project templates (for new projects) | Medium |
 | 14 | Permissions | Permission configs | Medium |
 | 15 | Documentation System | 8 docs skills + docs-engineer agent + /dotnet-ai.docs command | Medium |
 
@@ -175,7 +175,7 @@ The most complex phase:
 
 - Phase 11: Code generation commands (add-aggregate, add-entity, add-event, add-endpoint, add-page, add-crud)
 - Phase 12: PR & session commands (pr, checkpoint, wrap-up)
-- Phase 13: 7 project templates for new projects
+- Phase 13: 11 project templates for new projects
 - Phase 14: Permission configs
 ### Phase 15: Documentation System
 
@@ -262,7 +262,7 @@ The most complex phase:
 | 12 | `12-version-roadmap.md` | Version releases (v1.0 → v2.0) |
 | 13 | `13-handoff-schemas.md` | Inter-agent file schemas (spec, plan, tasks, etc.) |
 | 14 | `14-generic-skills-spec.md` | Code patterns for 32 generic .NET skills |
-| 15 | `15-template-content.md` | 7 project template file structures |
+| 15 | `15-template-content.md` | 11 project template file structures |
 | 16 | `16-cli-implementation.md` | CLI detection, config, extension system |
 | 17 | `17-code-generation-flows.md` | 5 code generation command flows |
 | 18 | `18-microservice-skills-spec.md` | Code patterns for microservice skills |

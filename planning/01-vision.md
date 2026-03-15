@@ -69,13 +69,26 @@ Works with **any .NET project**: Vertical Slice Architecture, Clean Architecture
 
 | Tool | Status | Integration |
 |------|--------|-------------|
-| **Claude Code** | First target | Plugin system (.claude-plugin/) |
-| **Cursor** | Planned | Rules (.cursorrules), commands |
-| **GitHub Copilot** | Planned | Copilot Extensions |
-| **Codex CLI** | Planned | AGENTS.md, instructions |
-| **Antigravity** | Planned | TBD |
+| **Claude Code** | First target | Rules + Commands + Skills (read on demand) |
+| **Cursor** | Planned (v1.1) | Rules (.cursorrules), commands |
+| **GitHub Copilot** | Planned (v1.1) | Copilot Extensions |
+| **Codex CLI** | Planned (v1.1) | AGENTS.md, instructions |
+| **Antigravity** | Planned (v1.1) | TBD |
 
-The core knowledge (skills, rules, agents, commands) is designed to be **portable across AI dev tools**. The plugin manifest and integration layer will be adapted per tool, but the .NET patterns and workflows remain the same.
+### How It Works in Claude Code
+
+The tool uses Claude Code's native features — no custom plugin system:
+
+```
+.claude/
+├── commands/       ← 25 slash commands (each reads relevant skills on demand)
+├── rules/          ← 6 always-loaded coding conventions
+CLAUDE.md           ← Project context
+skills/             ← 101 skill files (read by commands when needed)
+knowledge/          ← 11 reference docs (read by commands when needed)
+```
+
+Each command includes routing logic: it detects the project type, reads the relevant skill files, and follows those patterns. The 13 "agents" from the planning docs become the routing logic inside commands — not separate files.
 
 ## Problem Statement
 

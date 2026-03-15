@@ -2,15 +2,402 @@
 
 ## Overview
 
-Defines the file structure and key file content for 7 project templates. Templates are used by `/dotnet-ai.implement` when creating new microservice projects (status: CREATE NEW in service map).
+Defines the file structure and key file content for 11 project templates — 7 for microservices, 4 for generic .NET.
+
+Templates are used by:
+- `/dotnet-ai.implement` when creating new microservice projects (status: CREATE NEW in service map)
+- `/dotnet-ai.init` when scaffolding a new generic .NET project
 
 All templates use placeholders:
 - `{Company}` — from config.yml (e.g., "Acme")
 - `{company}` — lowercase (e.g., "acme")
 - `{Domain}` — from feature spec (e.g., "Order")
 - `{domain}` — lowercase (e.g., "order")
+- `{ProjectName}` — project name (generic mode, e.g., "OrderApi")
 - `{Side}` — project side (Commands, Queries, Processor, etc.)
 - `{NetVersion}` — target framework (default: net10.0)
+
+---
+
+## Generic .NET Templates (4)
+
+### Template 8: generic-vsa/ — Vertical Slice Architecture
+
+```
+{Company}.{ProjectName}/
+├── {Company}.{ProjectName}.sln
+├── src/
+│   └── {Company}.{ProjectName}/
+│       ├── {Company}.{ProjectName}.csproj
+│       ├── Program.cs
+│       ├── Features/
+│       │   └── .gitkeep
+│       ├── Common/
+│       │   ├── Behaviors/
+│       │   │   ├── ValidationBehavior.cs
+│       │   │   └── LoggingBehavior.cs
+│       │   ├── Models/
+│       │   │   ├── Result.cs
+│       │   │   └── Paginated.cs
+│       │   └── Extensions/
+│       │       └── ServiceCollectionExtensions.cs
+│       ├── Data/
+│       │   ├── ApplicationDbContext.cs
+│       │   └── Migrations/
+│       ├── appsettings.json
+│       └── appsettings.Development.json
+├── tests/
+│   └── {Company}.{ProjectName}.Tests/
+│       ├── {Company}.{ProjectName}.Tests.csproj
+│       └── .gitkeep
+├── Directory.Build.props
+├── Directory.Packages.props
+├── .editorconfig
+├── .gitignore
+└── README.md
+```
+
+**Key Files:**
+
+**Program.cs:**
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddOpenApi();
+builder.Services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(Program).Assembly));
+builder.Services.AddValidatorsFromAssembly(typeof(Program).Assembly);
+builder.Services.AddDbContext<ApplicationDbContext>(options =>
+    options.UseSqlServer(builder.Configuration.GetConnectionString("Default")));
+
+var app = builder.Build();
+
+app.MapOpenApi();
+app.MapScalarApiReference();
+// Feature endpoints registered via IEndpointGroup discovery
+app.MapFeatureEndpoints();
+
+app.Run();
+```
+
+**Features/ pattern (one file per operation):**
+```csharp
+// Features/Orders/CreateOrder.cs
+public static class CreateOrder
+{
+    public sealed record Command(string CustomerName, decimal Total) : IRequest<Result<Guid>>;
+
+    public sealed class Validator : AbstractValidator<Command>
+    {
+        public Validator()
+        {
+            RuleFor(x => x.CustomerName).NotEmpty();
+            RuleFor(x => x.Total).GreaterThan(0);
+        }
+    }
+
+    public sealed class Handler(ApplicationDbContext db) : IRequestHandler<Command, Result<Guid>>
+    {
+        public async Task<Result<Guid>> Handle(Command request, CancellationToken ct)
+        {
+            var order = new Order { CustomerName = request.CustomerName, Total = request.Total };
+            db.Orders.Add(order);
+            await db.SaveChangesAsync(ct);
+            return Result<Guid>.Success(order.Id);
+        }
+    }
+}
+```
+
+**Packages:** MediatR, FluentValidation, EF Core, Scalar.AspNetCore
+
+---
+
+### Template 9: generic-clean-arch/ — Clean Architecture
+
+```
+{Company}.{ProjectName}/
+├── {Company}.{ProjectName}.sln
+├── src/
+│   ├── {Company}.{ProjectName}.Domain/
+│   │   ├── {Company}.{ProjectName}.Domain.csproj
+│   │   ├── Entities/
+│   │   │   └── .gitkeep
+│   │   ├── ValueObjects/
+│   │   │   └── .gitkeep
+│   │   ├── Events/
+│   │   │   └── .gitkeep
+│   │   ├── Exceptions/
+│   │   │   └── .gitkeep
+│   │   └── Interfaces/
+│   │       ├── IRepository.cs
+│   │       └── IUnitOfWork.cs
+│   ├── {Company}.{ProjectName}.Application/
+│   │   ├── {Company}.{ProjectName}.Application.csproj
+│   │   ├── Commands/
+│   │   │   └── .gitkeep
+│   │   ├── Queries/
+│   │   │   └── .gitkeep
+│   │   ├── Behaviors/
+│   │   │   ├── ValidationBehavior.cs
+│   │   │   └── LoggingBehavior.cs
+│   │   ├── Common/
+│   │   │   ├── Result.cs
+│   │   │   └── Paginated.cs
+│   │   └── DependencyInjection.cs
+│   ├── {Company}.{ProjectName}.Infrastructure/
+│   │   ├── {Company}.{ProjectName}.Infrastructure.csproj
+│   │   ├── Data/
+│   │   │   ├── ApplicationDbContext.cs
+│   │   │   ├── Configurations/
+│   │   │   │   └── .gitkeep
+│   │   │   └── Repositories/
+│   │   │       └── GenericRepository.cs
+│   │   └── DependencyInjection.cs
+│   └── {Company}.{ProjectName}.API/
+│       ├── {Company}.{ProjectName}.API.csproj
+│       ├── Program.cs
+│       ├── Endpoints/
+│       │   └── .gitkeep
+│       ├── Middleware/
+│       │   └── ExceptionHandlerMiddleware.cs
+│       ├── appsettings.json
+│       └── appsettings.Development.json
+├── tests/
+│   ├── {Company}.{ProjectName}.Domain.Tests/
+│   │   └── {Company}.{ProjectName}.Domain.Tests.csproj
+│   ├── {Company}.{ProjectName}.Application.Tests/
+│   │   └── {Company}.{ProjectName}.Application.Tests.csproj
+│   └── {Company}.{ProjectName}.Integration.Tests/
+│       └── {Company}.{ProjectName}.Integration.Tests.csproj
+├── Directory.Build.props
+├── Directory.Packages.props
+├── .editorconfig
+├── .gitignore
+└── README.md
+```
+
+**Key Files:**
+
+**Domain/Interfaces/IRepository.cs:**
+```csharp
+public interface IRepository<T> where T : class
+{
+    Task<T?> GetByIdAsync(Guid id, CancellationToken ct = default);
+    Task<List<T>> ListAsync(CancellationToken ct = default);
+    Task AddAsync(T entity, CancellationToken ct = default);
+    void Update(T entity);
+    void Remove(T entity);
+}
+```
+
+**API/Program.cs:**
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services
+    .AddApplication()        // MediatR, FluentValidation, behaviors
+    .AddInfrastructure(builder.Configuration);  // EF Core, repos
+
+builder.Services.AddOpenApi();
+
+var app = builder.Build();
+
+app.UseMiddleware<ExceptionHandlerMiddleware>();
+app.MapOpenApi();
+app.MapScalarApiReference();
+app.MapEndpoints();  // Auto-discover IEndpointGroup
+
+app.Run();
+```
+
+**Layer dependencies:** Domain → (none), Application → Domain, Infrastructure → Application + Domain, API → All
+
+**Packages:** MediatR, FluentValidation, EF Core, Scalar.AspNetCore
+
+---
+
+### Template 10: generic-ddd/ — Domain-Driven Design
+
+```
+{Company}.{ProjectName}/
+├── {Company}.{ProjectName}.sln
+├── src/
+│   ├── {Company}.{ProjectName}.Domain/
+│   │   ├── {Company}.{ProjectName}.Domain.csproj
+│   │   ├── Common/
+│   │   │   ├── Entity.cs
+│   │   │   ├── AggregateRoot.cs
+│   │   │   ├── ValueObject.cs
+│   │   │   ├── DomainEvent.cs
+│   │   │   └── StronglyTypedId.cs
+│   │   ├── Aggregates/
+│   │   │   └── .gitkeep
+│   │   ├── Events/
+│   │   │   └── .gitkeep
+│   │   └── Interfaces/
+│   │       └── IDomainEventDispatcher.cs
+│   ├── {Company}.{ProjectName}.Application/
+│   │   ├── {Company}.{ProjectName}.Application.csproj
+│   │   ├── Commands/
+│   │   ├── Queries/
+│   │   ├── Behaviors/
+│   │   │   └── DomainEventDispatchBehavior.cs
+│   │   └── DependencyInjection.cs
+│   ├── {Company}.{ProjectName}.Infrastructure/
+│   │   ├── {Company}.{ProjectName}.Infrastructure.csproj
+│   │   ├── Data/
+│   │   │   ├── ApplicationDbContext.cs
+│   │   │   └── DomainEventInterceptor.cs
+│   │   └── DependencyInjection.cs
+│   └── {Company}.{ProjectName}.API/
+│       ├── {Company}.{ProjectName}.API.csproj
+│       ├── Program.cs
+│       ├── Endpoints/
+│       ├── appsettings.json
+│       └── appsettings.Development.json
+├── tests/
+│   └── {Company}.{ProjectName}.Tests/
+│       └── {Company}.{ProjectName}.Tests.csproj
+├── Directory.Build.props
+├── Directory.Packages.props
+├── .editorconfig
+├── .gitignore
+└── README.md
+```
+
+**Key Files:**
+
+**Domain/Common/AggregateRoot.cs:**
+```csharp
+public abstract class AggregateRoot<TId> : Entity<TId> where TId : StronglyTypedId
+{
+    private readonly List<DomainEvent> _domainEvents = [];
+    public IReadOnlyList<DomainEvent> DomainEvents => _domainEvents;
+
+    protected void RaiseDomainEvent(DomainEvent @event) => _domainEvents.Add(@event);
+    public void ClearDomainEvents() => _domainEvents.Clear();
+}
+```
+
+**Domain/Common/StronglyTypedId.cs:**
+```csharp
+public abstract record StronglyTypedId(Guid Value)
+{
+    public override string ToString() => Value.ToString();
+}
+
+public sealed record OrderId(Guid Value) : StronglyTypedId(Value)
+{
+    public static OrderId New() => new(Guid.NewGuid());
+}
+```
+
+**Packages:** MediatR, FluentValidation, EF Core, Scalar.AspNetCore
+
+---
+
+### Template 11: generic-modular-monolith/ — Modular Monolith
+
+```
+{Company}.{ProjectName}/
+├── {Company}.{ProjectName}.sln
+├── src/
+│   ├── {Company}.{ProjectName}.Host/
+│   │   ├── {Company}.{ProjectName}.Host.csproj
+│   │   ├── Program.cs
+│   │   ├── appsettings.json
+│   │   └── appsettings.Development.json
+│   ├── Modules/
+│   │   └── {Company}.{ProjectName}.Module.Template/
+│   │       ├── {Company}.{ProjectName}.Module.Template.csproj
+│   │       ├── Domain/
+│   │       │   ├── Entities/
+│   │       │   └── Events/
+│   │       ├── Application/
+│   │       │   ├── Commands/
+│   │       │   └── Queries/
+│   │       ├── Infrastructure/
+│   │       │   └── Data/
+│   │       ├── Endpoints/
+│   │       │   └── .gitkeep
+│   │       └── ModuleExtensions.cs
+│   └── Shared/
+│       └── {Company}.{ProjectName}.Shared/
+│           ├── {Company}.{ProjectName}.Shared.csproj
+│           ├── Contracts/
+│           │   └── IModuleInitializer.cs
+│           ├── Common/
+│           │   ├── Result.cs
+│           │   └── Paginated.cs
+│           └── Events/
+│               └── IIntegrationEvent.cs
+├── tests/
+│   └── Modules/
+│       └── {Company}.{ProjectName}.Module.Template.Tests/
+│           └── {Company}.{ProjectName}.Module.Template.Tests.csproj
+├── Directory.Build.props
+├── Directory.Packages.props
+├── .editorconfig
+├── .gitignore
+└── README.md
+```
+
+**Key Files:**
+
+**Host/Program.cs:**
+```csharp
+var builder = WebApplication.CreateBuilder(args);
+
+builder.Services.AddOpenApi();
+
+// Auto-discover and register modules
+builder.Services.AddModules(builder.Configuration);
+
+var app = builder.Build();
+
+app.MapOpenApi();
+app.MapScalarApiReference();
+app.MapModuleEndpoints();
+
+app.Run();
+```
+
+**Shared/Contracts/IModuleInitializer.cs:**
+```csharp
+public interface IModuleInitializer
+{
+    void ConfigureServices(IServiceCollection services, IConfiguration configuration);
+    void MapEndpoints(IEndpointRouteBuilder endpoints);
+}
+```
+
+**Module/ModuleExtensions.cs:**
+```csharp
+public sealed class TemplateModule : IModuleInitializer
+{
+    public void ConfigureServices(IServiceCollection services, IConfiguration configuration)
+    {
+        services.AddMediatR(cfg => cfg.RegisterServicesFromAssembly(typeof(TemplateModule).Assembly));
+        services.AddDbContext<TemplateDbContext>(o =>
+            o.UseSqlServer(configuration.GetConnectionString("TemplateModule")));
+    }
+
+    public void MapEndpoints(IEndpointRouteBuilder endpoints)
+    {
+        // Module endpoints registered here
+    }
+}
+```
+
+**Cross-module communication:** Via integration events through MediatR INotification, NOT direct references.
+
+**Packages:** MediatR, FluentValidation, EF Core, Scalar.AspNetCore
+
+---
+
+## Microservice Templates (7)
+
+(Templates 1-7 below)
 
 ---
 

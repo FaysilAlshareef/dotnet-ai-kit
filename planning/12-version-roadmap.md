@@ -26,7 +26,7 @@ This document organizes the project's build phases into versioned releases and p
 | 10 | Review System (review + CodeRabbit + verify) | Planned |
 | 11 | Code Generation (add-aggregate, add-entity, add-event, etc.) | Planned |
 | 12 | PR & Session (pr, checkpoint, wrap-up) | Planned |
-| 13 | Templates (7 project scaffolds) | Planned |
+| 13 | Templates (11 project scaffolds: 7 microservice + 4 generic) | Planned |
 | 14 | Permissions (permission configs) | Planned |
 | 15 | Documentation System (8 docs skills + agent + command) | Planned |
 
@@ -39,7 +39,7 @@ This document organizes the project's build phases into versioned releases and p
 | Skills | 101 |
 | Commands | 25 |
 | Knowledge Docs | 11 |
-| Templates | 7 |
+| Templates | 11 |
 | Permission Configs | 4 |
 
 ### v1.0 Scope Boundaries
