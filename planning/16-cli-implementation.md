@@ -28,6 +28,33 @@ src/dotnet_ai_kit/
 - `jinja2` — template rendering (for {Company}, {Domain} placeholders)
 - `rich` — terminal output formatting
 
+### Cross-Platform Requirements
+
+The CLI runs on **Windows, macOS, and Linux**. All code must follow these rules:
+
+1. **File paths**: Always use `pathlib.Path` — never `os.path.join()` or string concatenation with `/` or `\\`
+2. **Path storage**: Config files store paths as OS-native format. When reading, normalize with `Path()`:
+   ```python
+   # Writing config
+   config["repos"]["command"] = str(Path(user_input))
+
+   # Reading config
+   repo_path = Path(config["repos"]["command"])
+   ```
+3. **Line endings**: All template files use `.gitattributes` (`* text=auto`). Python writes files in text mode (auto line-ending conversion)
+4. **Shell execution**: Use `subprocess.run()` with list args (not shell strings):
+   ```python
+   # Correct — cross-platform
+   subprocess.run(["dotnet", "build"], cwd=repo_path)
+
+   # Wrong — breaks on Windows
+   subprocess.run("dotnet build", shell=True, cwd=str(repo_path))
+   ```
+5. **Home directory**: Use `Path.home()` — never hardcode `~`, `$HOME`, or `%USERPROFILE%`
+6. **Environment variables**: Use `os.environ.get()` — never shell-specific expansion
+7. **Temp files**: Use `tempfile` module — never hardcode `/tmp` or `%TEMP%`
+8. **External tools**: Only invoke cross-platform commands: `dotnet`, `git`, `gh`, `docker`. No `bash`, `sh`, `cmd`, or `powershell` calls
+
 ---
 
 ## CLI Commands

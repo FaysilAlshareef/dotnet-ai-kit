@@ -122,13 +122,14 @@ An AI dev tool plugin (starting with Claude Code) that:
 2. **Any .NET Project** - Generic (VSA, Clean Arch, DDD) and Microservices (CQRS + Event Sourcing)
 3. **Existing Projects First** - Most work is on existing code, not greenfield
 4. **Multi-Repo When Needed** - Features can span repos. The tool thinks in distributed systems
-4. **Version Tolerant** - Works with .NET 8, 9, 10. Detects and respects what exists
-5. **Pattern Fidelity** - Generated code is indistinguishable from hand-written code
-6. **Company Agnostic** - No hardcoded company names. Everything is configurable
-7. **Token Conscious** - Skills max 400 lines, commands max 200 lines, rules max 100 lines
-8. **Tool Agnostic** - Core knowledge is portable. Start with Claude Code, expand to Cursor, Copilot, Codex, Antigravity
-9. **Best Practices First** - Clean code, SOLID, TDD (red-green-refactor). Always check official docs before using a package or framework
-10. **Latest .NET for New Projects** - New projects default to latest stable .NET (currently .NET 10). Existing projects keep their version
+5. **Version Tolerant** - Works with .NET 8, 9, 10. Detects and respects what exists
+6. **Pattern Fidelity** - Generated code is indistinguishable from hand-written code
+7. **Company Agnostic** - No hardcoded company names. Everything is configurable
+8. **Token Conscious** - Skills max 400 lines, commands max 200 lines, rules max 100 lines
+9. **Tool Agnostic** - Core knowledge is portable. Start with Claude Code, expand to Cursor, Copilot, Codex, Antigravity
+10. **Cross-Platform** - Works on Windows, macOS, and Linux. No OS-specific assumptions
+11. **Best Practices First** - Clean code, SOLID, TDD (red-green-refactor). Always check official docs before using a package or framework
+12. **Latest .NET for New Projects** - New projects default to latest stable .NET (currently .NET 10). Existing projects keep their version
 
 ## Architecture Overview
 
@@ -222,6 +223,26 @@ Full alias table in `04-commands-design.md` Section G.
 | Processor | Background event processor | Detect & work with | Scaffold from template |
 | Gateway | REST gateway with Scalar | Detect & work with | Scaffold from template |
 | Control Panel | Blazor WASM module | Detect & work with | Scaffold from template |
+
+## Cross-Platform Support
+
+| OS | Status | Notes |
+|----|--------|-------|
+| **Windows** | Supported | PowerShell and CMD |
+| **macOS** | Supported | zsh / bash |
+| **Linux** | Supported | bash / zsh |
+
+The CLI and all generated files work identically across operating systems:
+- **File paths**: CLI uses Python `pathlib.Path` everywhere — never string concatenation. Forward slashes in config, OS-native at runtime
+- **Line endings**: All templates include `.gitattributes` with `* text=auto` for consistent line ending normalization
+- **Config paths**: Stored as OS-native format in `.dotnet-ai-kit/config.yml`. Repo paths accept both `/` and `\`
+- **Shell commands**: Only calls cross-platform tools (`dotnet`, `git`, `gh`) — no OS-specific shell commands
+- **AI tool paths**: Each AI tool's config directory (`.claude/`, `.cursor/`, etc.) uses the same relative paths on all platforms
+
+Prerequisites (all cross-platform):
+- Python 3.10+ (for the CLI)
+- .NET SDK 8.0+ (for the projects)
+- Git (for version control and multi-repo)
 
 ## .NET Version Support
 

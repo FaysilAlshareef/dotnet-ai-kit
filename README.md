@@ -117,6 +117,12 @@ The core knowledge (rules, skills, agents, commands) is portable across AI tools
 
 All commands support short aliases: `/dai.do`, `/dai.spec`, `/dai.go`, `/dai.crud`, etc.
 
+## Platform Support
+
+Works on **Windows**, **macOS**, and **Linux** — anywhere .NET and Python run.
+
+**Prerequisites:** Python 3.10+, .NET SDK 8.0+, Git
+
 ## .NET Version Support
 
 The tool respects your existing .NET version. It:
