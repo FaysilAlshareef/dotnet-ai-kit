@@ -1,0 +1,41 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd \"C:\\\\Users\\\\libya\\\\source\\\\repos\\\\AI\\\\dotnet-ai-kit\" && pwsh -NoProfile -Command \".specify/scripts/powershell/create-new-feature.ps1 -Json -ShortName 'v1-foundation-release' 'Implement dotnet-ai-kit v1.0 Foundation Release - AI dev tool plugin for full .NET development lifecycle'\")",
+      "Bash(where powershell:*)",
+      "Bash(cd \"C:\\\\Users\\\\libya\\\\source\\\\repos\\\\AI\\\\dotnet-ai-kit\" && powershell.exe -NoProfile -ExecutionPolicy Bypass -File \".specify/scripts/powershell/create-new-feature.ps1\" -Json -ShortName \"v1-foundation-release\" \"Implement dotnet-ai-kit v1.0 Foundation Release - AI dev tool plugin for full .NET development lifecycle\")",
+      "Bash(cd \"C:\\\\Users\\\\libya\\\\source\\\\repos\\\\AI\\\\dotnet-ai-kit\" && powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"& '.specify/scripts/powershell/create-new-feature.ps1' -Json -ShortName 'v1-foundation-release' 'Implement dotnet-ai-kit v1.0 Foundation Release'\")",
+      "Bash(cd \"C:\\\\Users\\\\libya\\\\source\\\\repos\\\\AI\\\\dotnet-ai-kit\" && powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"& '.specify/scripts/powershell/create-new-feature.ps1' -Json -ShortName 'v1-foundation-release' -Number 0 'Implement dotnet-ai-kit v1.0 Foundation Release'\")",
+      "Bash(cd \"C:\\\\Users\\\\libya\\\\source\\\\repos\\\\AI\\\\dotnet-ai-kit\" && powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"& '.specify/scripts/powershell/check-prerequisites.ps1' -Json -PathsOnly\")",
+      "Bash(cd \"C:\\\\Users\\\\libya\\\\source\\\\repos\\\\AI\\\\dotnet-ai-kit\" && powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"& '.specify/scripts/powershell/setup-plan.ps1' -Json\")",
+      "Bash(cd \"C:\\\\Users\\\\libya\\\\source\\\\repos\\\\AI\\\\dotnet-ai-kit\" && powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"& '.specify/scripts/powershell/update-agent-context.ps1' -AgentType claude\")",
+      "Bash(cd \"C:\\\\Users\\\\libya\\\\source\\\\repos\\\\AI\\\\dotnet-ai-kit\" && powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"& '.specify/scripts/powershell/check-prerequisites.ps1' -Json\")",
+      "Bash(cd \"C:\\\\Users\\\\libya\\\\source\\\\repos\\\\AI\\\\dotnet-ai-kit\" && powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"& '.specify/scripts/powershell/check-prerequisites.ps1' -Json -RequireTasks -IncludeTasks\")",
+      "Bash(find /c/Users/libya/source/repos/AI/dotnet-ai-kit/templates/command -name \"*.md\" -o -name \"*.txt\" | xargs ls -lh)",
+      "Bash(find /c/Users/libya/source/repos/AI/dotnet-ai-kit -type d -name \"*control*\" -o -type d -name \"*anis*\" 2>/dev/null | head -20)",
+      "Bash(cd \"C:\\\\Users\\\\libya\\\\source\\\\repos\\\\AI\\\\dotnet-ai-kit\" && powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"& '.specify/scripts/powershell/create-new-feature.ps1' -Json -ShortName 'fix-microservice-patterns' -Number 0 'Fix microservice skill, command, knowledge, agent, and template content to match real production project patterns'\")",
+      "Bash(cd \"C:\\\\Users\\\\libya\\\\source\\\\repos\\\\AI\\\\dotnet-ai-kit\" && powershell.exe -NoProfile -ExecutionPolicy Bypass -Command \"& '.specify/scripts/powershell/create-new-feature.ps1' -Json -ShortName 'fix-missing-skills' -Number 0 'Fix 10 missing skills and naming.md production examples'\")",
+      "Bash(cd \"C:\\\\Users\\\\libya\\\\source\\\\repos\\\\AI\\\\dotnet-ai-kit\" && mkdir -p skills/core/coding-conventions skills/api/controllers skills/api/scalar skills/data/dapper skills/data/specification-pattern skills/data/audit-trail skills/cqrs/command-generator skills/cqrs/query-generator skills/architecture/advisor)",
+      "Bash(cd \"C:\\\\Users\\\\libya\\\\source\\\\repos\\\\AI\\\\dotnet-ai-kit\" && sed -i 's/- \\\\[ \\\\] T002 \\\\[P\\\\]/- [x] T002 [P]/' specs/003-fix-missing-skills/tasks.md && sed -i 's/- \\\\[ \\\\] T003 \\\\[P\\\\]/- [x] T003 [P]/' specs/003-fix-missing-skills/tasks.md && sed -i 's/- \\\\[ \\\\] T004 \\\\[P\\\\]/- [x] T004 [P]/' specs/003-fix-missing-skills/tasks.md && sed -i 's/- \\\\[ \\\\] T005 \\\\[P\\\\]/- [x] T005 [P]/' specs/003-fix-missing-skills/tasks.md && sed -i 's/- \\\\[ \\\\] T006 \\\\[P\\\\]/- [x] T006 [P]/' specs/003-fix-missing-skills/tasks.md && sed -i 's/- \\\\[ \\\\] T007 \\\\[P\\\\]/- [x] T007 [P]/' specs/003-fix-missing-skills/tasks.md && sed -i 's/- \\\\[ \\\\] T008 \\\\[P\\\\]/- [x] T008 [P]/' specs/003-fix-missing-skills/tasks.md && sed -i 's/- \\\\[ \\\\] T009 \\\\[P\\\\]/- [x] T009 [P]/' specs/003-fix-missing-skills/tasks.md && sed -i 's/- \\\\[ \\\\] T010 \\\\[P\\\\]/- [x] T010 [P]/' specs/003-fix-missing-skills/tasks.md && sed -i 's/- \\\\[ \\\\] T012/- [x] T012/' specs/003-fix-missing-skills/tasks.md && sed -i 's/- \\\\[ \\\\] T013/- [x] T013/' specs/003-fix-missing-skills/tasks.md && echo \"Done\")",
+      "Bash(ls rules/*.md 2>/dev/null | wc -l)",
+      "Bash(ls agents/*.md 2>/dev/null | wc -l)",
+      "Bash(ls commands/*.md 2>/dev/null | wc -l)",
+      "Bash(ls knowledge/*.md 2>/dev/null | wc -l)",
+      "Bash(ls -d templates/*/ 2>/dev/null | grep -v commands | wc -l)",
+      "Bash(ls config/*.json 2>/dev/null | wc -l)",
+      "Bash(ls src/dotnet_ai_kit/*.py 2>/dev/null | wc -l)",
+      "Bash(ls tests/*.py 2>/dev/null | wc -l)",
+      "Bash(find /c/Users/libya/source/repos/AI/dotnet-ai-kit/skills -name \"SKILL.md\" | shuf | head -10 | while read f; do echo \"$f: $\\(wc -l < \"$f\"\\) lines\"; done)",
+      "Bash(for f:*)",
+      "Bash(ls -1 commands/*.md | sed 's|commands/||;s|\\\\.md||' | sort)",
+      "Bash(ls -la src/dotnet_ai_kit/*.py 2>/dev/null)",
+      "Bash(ls -1 agents/*.md | sed 's|agents/||;s|\\\\.md||' | sort)",
+      "Bash(ls -1 knowledge/*.md | sed 's|knowledge/||;s|\\\\.md||' | sort)",
+      "Bash(ls /c/Users/libya/source/repos/AI/dotnet-ai-kit/rules/*.md 2>/dev/null | wc -l)",
+      "Bash(ls /c/Users/libya/source/repos/AI/dotnet-ai-kit/agents/*.md 2>/dev/null | wc -l)",
+      "Bash(ls /c/Users/libya/source/repos/AI/dotnet-ai-kit/commands/*.md 2>/dev/null | wc -l)",
+      "Bash(ls /c/Users/libya/source/repos/AI/dotnet-ai-kit/knowledge/*.md 2>/dev/null | wc -l)",
+      "Bash(ls -d /c/Users/libya/source/repos/AI/dotnet-ai-kit/templates/*/ 2>/dev/null | grep -v commands | wc -l)"
+    ]
+  }
+}

@@ -5,7 +5,7 @@
 ```
 dotnet-ai-kit/
 ├── planning/          # 18 planning documents (design specs)
-├── src/               # CLI tool (Python, coming soon)
+├── src/               # CLI tool (Python 3.10+, typer + pydantic + jinja2 + rich)
 ├── rules/             # 6 always-loaded convention files
 ├── agents/            # 13 specialist agents
 ├── skills/            # 101 skills by domain
