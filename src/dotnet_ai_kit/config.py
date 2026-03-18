@@ -13,7 +13,6 @@ from pydantic import ValidationError
 
 from dotnet_ai_kit.models import DetectedProject, DotnetAiConfig
 
-
 # Name of the configuration directory inside a project root
 _CONFIG_DIR_NAME = ".dotnet-ai-kit"
 

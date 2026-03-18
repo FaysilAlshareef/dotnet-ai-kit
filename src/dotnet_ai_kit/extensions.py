@@ -274,8 +274,6 @@ def _register_extension_files(
             commands_dir = project_root / commands_dir_rel
             if commands_dir.is_dir():
                 ext = tool_config.get("command_ext", ".md")
-                prefix = tool_config.get("command_prefix", "dotnet-ai")
-
                 for cmd in manifest.commands:
                     cmd_file = cmd.get("file", "")
                     cmd_name = cmd.get("name", "")

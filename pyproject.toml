@@ -31,17 +31,27 @@ dependencies = [
     "jinja2>=3.1.0",
     "rich>=13.0.0",
     "pyyaml>=6.0.0",
+    "questionary>=2.0.0",
 ]
 
 [project.scripts]
 dotnet-ai = "dotnet_ai_kit.cli:app"
 
 [project.urls]
-Homepage = "https://github.com/dotnet-ai-kit/dotnet-ai-kit"
-Repository = "https://github.com/dotnet-ai-kit/dotnet-ai-kit"
+Homepage = "https://github.com/FaysilAlshareef/dotnet-ai-kit"
+Repository = "https://github.com/FaysilAlshareef/dotnet-ai-kit"
 
 [tool.hatch.build.targets.wheel]
 packages = ["src/dotnet_ai_kit"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"commands" = "dotnet_ai_kit/bundled/commands"
+"rules" = "dotnet_ai_kit/bundled/rules"
+"agents" = "dotnet_ai_kit/bundled/agents"
+"skills" = "dotnet_ai_kit/bundled/skills"
+"knowledge" = "dotnet_ai_kit/bundled/knowledge"
+"templates" = "dotnet_ai_kit/bundled/templates"
+"config" = "dotnet_ai_kit/bundled/config"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -24,176 +24,68 @@ Flags: `--dry-run` (preview without writing), `--verbose` (diagnostic output)
 1. From config or spec content, determine: **generic** or **microservice**.
 2. Load skills on demand based on mode:
    - Always: `skills/workflow/sdd-lifecycle/SKILL.md`
-   - Generic: `skills/architecture/clean-architecture/SKILL.md` or `skills/architecture/vertical-slice/SKILL.md` (based on detected pattern)
+   - Generic: `skills/architecture/clean-architecture/SKILL.md` or VSA skill
    - Microservice: `skills/workflow/multi-repo-workflow/SKILL.md`
 
 ## Step 3: Constitution Check Gate
 
-Read `.specify/memory/constitution.md` and verify the plan will comply:
+Read `.specify/memory/constitution.md` and verify compliance:
 - Detect-First: plan must research existing code before proposing changes
 - Pattern Fidelity: plan must follow detected conventions
-- Architecture Agnostic: plan must match the project's architecture, not impose one
+- Architecture Agnostic: plan must match the project's architecture
 
-Document the check result in the plan under `## Constitution Check`.
-If violations found, document them in `## Complexity Tracking` with justification.
+Document result in `## Constitution Check`. Violations go to `## Complexity Tracking`.
 
-## Step 4: Research Phase
+## Step 4: Complexity Analysis
 
-Scan the existing codebase for patterns:
-- Folder structure and naming conventions
-- Existing entities, handlers, services (what patterns are already used)
-- NuGet packages and framework versions
-- DI registration patterns
-- Test project structure and frameworks
+Analyze spec for feature complexity:
 
-If `--verbose`, print discovered patterns.
+| Indicator | Threshold | Weight |
+|-----------|-----------|--------|
+| Entities / data models | >= 3 | High |
+| External service integrations | >= 1 | High |
+| Multi-repo (spans services) | Yes | High |
+| Functional requirements | >= 5 | Medium |
+| Data migrations / state transitions | Yes | Medium |
 
-## Step 5: Generate Plan (Mode-Specific)
+- **Complex** (any HIGH met): generate full artifacts (research.md, data-model.md, contracts/, quickstart.md)
+- **Simple** (no HIGH met): generate plan.md only
 
-### Generic .NET Mode
+## Step 5: Research Phase
 
-Create `plan.md` in the feature directory:
+Scan existing codebase for: folder structure, naming conventions, entities, handlers,
+NuGet packages, DI patterns, test frameworks. If `--verbose`, print discoveries.
 
-```markdown
-# Implementation Plan: {Feature Name}
+## Step 6: Generate Plan
 
-**Feature**: {NNN}-{short-name} | **Date**: {DATE} | **Mode**: Generic
-**Spec**: spec.md
+Load `skills/workflow/plan-templates/SKILL.md` for mode-specific plan structure.
 
-## Summary
-{1-2 sentence overview of what will be built}
+## Step 7: Generate Supporting Artifacts (Complex Only)
 
-## Constitution Check
-{PASS/FAIL with notes}
+Load `skills/workflow/plan-artifacts/SKILL.md` for research.md, data-model.md,
+contracts/, and quickstart.md generation guidance.
 
-## Technical Context
-**Framework**: .NET {version} | **Architecture**: {detected pattern}
-**Test Framework**: {detected} | **Key Packages**: {list}
-
-## Research Findings
-{Summary of existing patterns discovered in Step 4}
-
-## Layer Plan
-
-### Domain Layer
-- Entities: {list with file paths}
-- Value Objects: {list}
-- Domain Events: {list}
-
-### Application Layer
-- Commands: {list with handlers}
-- Queries: {list with handlers}
-- Validators: {list}
-- Interfaces: {list}
-
-### Infrastructure Layer
-- Repositories: {list}
-- Services: {list}
-- Configurations: {EF configs, DI registrations}
-
-### API Layer
-- Endpoints: {list with HTTP methods and paths}
-- DTOs: {request/response models}
-- Mapping: {profiles or extensions}
-
-## Complexity Tracking
-{Only if constitution violations need justification}
-```
-
-### Microservice Mode
-
-Create multiple artifacts in the feature directory:
-
-**plan.md** — overall plan with per-service breakdown:
-```markdown
-# Implementation Plan: {Feature Name}
-
-**Feature**: {NNN}-{short-name} | **Date**: {DATE} | **Mode**: Microservice
-
-## Summary
-## Constitution Check
-## Research Findings
-
-## Service Plan
-### {domain}-command
-- Aggregates: {list}
-- Events: {list with data schemas}
-- Commands: {list}
-
-### {domain}-query
-- Entities: {list}
-- Event Handlers: {list}
-- Queries: {list}
-
-### {domain}-processor (if applicable)
-- Listeners: {list}
-- Handlers: {list}
-
-### {domain}-gateway
-- Endpoints: {list}
-- Proto clients: {list}
-
-### {domain}-controlpanel (if applicable)
-- Pages: {list}
-- Facades: {list}
-
-## Dependency Order
-command → query/processor (parallel) → gateway → controlpanel
-```
-
-**service-map.md** — visual service dependency map:
-```markdown
-# Service Map: {Feature Name}
-{Mermaid diagram of service dependencies}
-{Per-service: repo URL, branch name, change summary}
-```
-
-**event-flow.md** — event flow documentation:
-```markdown
-# Event Flow: {Feature Name}
-{Mermaid sequence diagram}
-{Event catalogue: name, publisher, subscribers, data schema}
-```
-
-**contracts/** directory — proto definitions and API contracts:
-- Create `.proto` stubs or contract descriptions for new services
-- Reference existing protos that need updates
-
-Load additional skills for microservice artifacts:
-- `skills/microservice/command/event-design/SKILL.md` for event schemas
-- `skills/microservice/grpc/service-definition/SKILL.md` for proto contracts
-
-## Step 6: Report
+## Step 8: Report
 
 ```
 Plan generated for {NNN}-{short-name}.
-Mode: {generic|microservice}
+Mode: {generic|microservice} | Complexity: {simple|complex}
 Constitution: {PASS|FAIL with count}
 
 Artifacts created:
-- plan.md {lines}
-{if microservice:}
-- service-map.md
-- event-flow.md
-- contracts/ ({N} files)
+- plan.md
+{if complex:} research.md, data-model.md, quickstart.md, contracts/
+{if microservice:} service-map.md, event-flow.md
 
-{If unresolved clarifications:}
-WARNING: {N} [NEEDS CLARIFICATION] markers from spec carried into plan.
-
-Next: /dotnet-ai.tasks    (generate implementation tasks)
-      /dotnet-ai.analyze  (check consistency first)
+Next: /dotnet-ai.tasks or /dotnet-ai.analyze
 ```
 
 ## Dry-Run Behavior
 
-When `--dry-run` is active:
-- Print the full plan content to the terminal
-- Show all file paths that WOULD be created
-- Do NOT write any files
-- Prefix output with `[DRY-RUN]`
+When `--dry-run`: print plan content, show file paths, do NOT write files, prefix `[DRY-RUN]`.
 
 ## Error Handling
 
-- Missing spec: direct user to `/dotnet-ai.specify`
+- Missing spec: direct to `/dotnet-ai.specify`
 - Missing config: proceed with auto-detection, warn user
-- Constitution violations: document but do not block (user decides)
+- Constitution violations: document but do not block

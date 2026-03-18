@@ -4,9 +4,10 @@
 param(
     [switch]$Json,
     [string]$ShortName,
+    [Parameter(Mandatory = $false)]
     [int]$Number = 0,
     [switch]$Help,
-    [Parameter(ValueFromRemainingArguments = $true)]
+    [Parameter(ValueFromRemainingArguments = $true, Position = 0)]
     [string[]]$FeatureDescription
 )
 $ErrorActionPreference = 'Stop'

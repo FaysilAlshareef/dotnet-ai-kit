@@ -9,7 +9,6 @@ import yaml
 
 from dotnet_ai_kit.extensions import (
     ExtensionError,
-    ExtensionManifest,
     install_extension,
     list_extensions,
     load_manifest,
@@ -88,6 +87,7 @@ def _init_project(project_dir: Path) -> None:
 # load_manifest
 # ---------------------------------------------------------------------------
 
+
 def test_load_manifest_valid(tmp_path: Path) -> None:
     """load_manifest should parse a valid extension.yml."""
     ext_dir = tmp_path / "my-ext"
@@ -151,6 +151,7 @@ def test_load_manifest_missing_version(tmp_path: Path) -> None:
 # install_extension
 # ---------------------------------------------------------------------------
 
+
 def test_install_extension_dev_mode(tmp_path: Path) -> None:
     """install_extension with dev=True should copy from local path."""
     project_dir = tmp_path / "project"
@@ -206,6 +207,7 @@ def test_install_extension_catalog_not_supported(tmp_path: Path) -> None:
 # remove_extension
 # ---------------------------------------------------------------------------
 
+
 def test_remove_extension(tmp_path: Path) -> None:
     """remove_extension should remove all extension artifacts."""
     project_dir = tmp_path / "project"
@@ -240,6 +242,7 @@ def test_remove_extension_not_installed(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 # list_extensions
 # ---------------------------------------------------------------------------
+
 
 def test_list_extensions_empty(tmp_path: Path) -> None:
     """list_extensions should return empty list when no extensions installed."""

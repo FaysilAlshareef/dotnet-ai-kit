@@ -9,7 +9,6 @@ from __future__ import annotations
 from pathlib import Path
 from typing import Any
 
-
 # Agent configuration per supported AI tool.
 # Each entry describes where commands and rules live for that tool.
 AGENT_CONFIG: dict[str, dict[str, Any]] = {
@@ -74,9 +73,7 @@ def get_agent_config(tool: str) -> dict[str, Any]:
     key = tool.lower()
     if key not in AGENT_CONFIG:
         supported = ", ".join(sorted(AGENT_CONFIG.keys()))
-        raise ValueError(
-            f"Unknown AI tool '{tool}'. Supported tools: {supported}"
-        )
+        raise ValueError(f"Unknown AI tool '{tool}'. Supported tools: {supported}")
     return AGENT_CONFIG[key]
 
 

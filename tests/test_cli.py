@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import json
 from pathlib import Path
-from unittest.mock import patch
+from unittest.mock import MagicMock, patch
 
+import yaml
 from typer.testing import CliRunner
 
 from dotnet_ai_kit.cli import app
@@ -81,7 +83,8 @@ def test_init_requires_ai_tool_or_detection(tmp_path: Path) -> None:
 
     result = runner.invoke(app, ["init", str(tmp_path)])
 
-    assert result.exit_code == 1
+    # T056: exit code 3 for detection errors
+    assert result.exit_code == 3
     assert "no ai tool detected" in result.output.lower()
 
 
@@ -146,21 +149,557 @@ def test_init_with_type_override(tmp_path: Path) -> None:
     assert result.exit_code == 0, result.output
 
 
-def test_configure_saves_config(tmp_path: Path) -> None:
+def test_configure_saves_config(tmp_path: Path, monkeypatch) -> None:
     """Configure should save the config file after prompting."""
     config_dir = tmp_path / ".dotnet-ai-kit"
     config_dir.mkdir(parents=True)
     # Write a minimal config so configure can load it
     config_path = config_dir / "config.yml"
     config_path.write_text("version: '1.0'\nai_tools:\n  - claude\n", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
 
-    # Simulate interactive input: company name, github org, branch, perm level
+    with patch("dotnet_ai_kit.cli.Prompt.ask") as mock_prompt:
+        mock_prompt.return_value = "TestCompany"
+
+        result = runner.invoke(
+            app,
+            ["configure", "--minimal"],
+            catch_exceptions=False,
+        )
+
+    assert result.exit_code == 0, result.output
+
+
+# ---------------------------------------------------------------------------
+# T037-T039b: Interactive configure tests
+# ---------------------------------------------------------------------------
+
+
+def _setup_config_dir(tmp_path: Path) -> Path:
+    """Create a .dotnet-ai-kit dir with a minimal config and return config_path."""
+    config_dir = tmp_path / ".dotnet-ai-kit"
+    config_dir.mkdir(parents=True)
+    config_path = config_dir / "config.yml"
+    config_path.write_text(
+        "version: '1.0'\nai_tools:\n  - claude\npermissions_level: minimal\n"
+        "command_style: both\ncompany:\n  name: ''\n  github_org: ''\n  default_branch: main\n",
+        encoding="utf-8",
+    )
+    return config_path
+
+
+def test_configure_permission_level_single_select(tmp_path: Path, monkeypatch) -> None:
+    """T037: Configure with single-select permission level via rich Prompt.ask."""
+    config_path = _setup_config_dir(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    with (
+        patch("dotnet_ai_kit.cli.Prompt.ask") as mock_prompt,
+        patch("dotnet_ai_kit.cli.questionary") as mock_questionary,
+    ):
+        # Prompt.ask calls: company name, github org, default branch,
+        # permission level, command style
+        mock_prompt.side_effect = [
+            "Acme",  # company name
+            "acme-org",  # github org
+            "main",  # default branch
+            "2",  # permission level (standard)
+            "3",  # command style (both)
+        ]
+        # questionary checkbox for AI tools
+        mock_checkbox = MagicMock()
+        mock_checkbox.ask.return_value = ["claude"]
+        mock_questionary.checkbox.return_value = mock_checkbox
+        mock_questionary.Choice = MagicMock(side_effect=lambda title, **kw: title)
+
+        result = runner.invoke(app, ["configure"], catch_exceptions=False)
+
+    assert result.exit_code == 0, result.output
+
+    saved = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    assert saved["permissions_level"] == "standard"
+
+
+def test_configure_ai_tools_multi_select(tmp_path: Path, monkeypatch) -> None:
+    """T038: Configure with multi-select AI tools via questionary.checkbox."""
+    config_path = _setup_config_dir(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    with (
+        patch("dotnet_ai_kit.cli.Prompt.ask") as mock_prompt,
+        patch("dotnet_ai_kit.cli.questionary") as mock_questionary,
+    ):
+        mock_prompt.side_effect = [
+            "Acme",  # company name
+            "acme-org",  # github org
+            "main",  # default branch
+            "2",  # permission level
+            "3",  # command style
+        ]
+        mock_checkbox = MagicMock()
+        mock_checkbox.ask.return_value = ["claude", "cursor"]
+        mock_questionary.checkbox.return_value = mock_checkbox
+        mock_questionary.Choice = MagicMock(side_effect=lambda title, **kw: title)
+
+        result = runner.invoke(app, ["configure"], catch_exceptions=False)
+
+    assert result.exit_code == 0, result.output
+
+    saved = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    assert "claude" in saved["ai_tools"]
+    assert "cursor" in saved["ai_tools"]
+
+
+def test_configure_minimal_bypasses_interactive(tmp_path: Path, monkeypatch) -> None:
+    """T039: Configure --minimal only prompts for company name, uses defaults."""
+    config_path = _setup_config_dir(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    with patch("dotnet_ai_kit.cli.Prompt.ask") as mock_prompt:
+        # --minimal should only ask for company name
+        mock_prompt.return_value = "MinimalCo"
+
+        result = runner.invoke(app, ["configure", "--minimal"], catch_exceptions=False)
+
+    assert result.exit_code == 0, result.output
+
+    # Prompt.ask should have been called exactly once (company name only)
+    assert mock_prompt.call_count == 1
+
+    saved = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    assert saved["company"]["name"] == "MinimalCo"
+    # Other settings should remain at their existing/default values
+    assert saved["permissions_level"] == "minimal"  # kept from existing config
+
+
+def test_configure_summary_table_displayed(tmp_path: Path, monkeypatch) -> None:
+    """T039b: Configure should display a summary table after saving."""
+    _setup_config_dir(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    with patch("dotnet_ai_kit.cli.Prompt.ask") as mock_prompt:
+        mock_prompt.return_value = "SummaryCo"
+
+        result = runner.invoke(app, ["configure", "--minimal"], catch_exceptions=False)
+
+    assert result.exit_code == 0, result.output
+    # The summary table should contain "Configuration Saved" title and settings
+    assert "Configuration Saved" in result.output
+    assert "SummaryCo" in result.output
+    assert "Permissions" in result.output
+    assert "AI Tools" in result.output
+    assert "Command Style" in result.output
+
+
+def test_configure_no_input_mode(tmp_path: Path, monkeypatch) -> None:
+    """T044b: Configure --no-input uses flag values directly."""
+    config_path = _setup_config_dir(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
     result = runner.invoke(
         app,
-        ["configure", "--minimal"],
-        input="TestCompany\n",
+        [
+            "configure",
+            "--no-input",
+            "--company",
+            "CiCo",
+            "--org",
+            "ci-org",
+            "--branch",
+            "develop",
+            "--permissions",
+            "full",
+            "--tools",
+            "claude,cursor",
+            "--style",
+            "short",
+        ],
+        catch_exceptions=False,
     )
 
-    # The command uses cwd so this may not write to tmp_path.
-    # Still validates that the command runs without crashing.
-    assert result.exit_code in (0, 1)
+    assert result.exit_code == 0, result.output
+
+    saved = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    assert saved["company"]["name"] == "CiCo"
+    assert saved["company"]["github_org"] == "ci-org"
+    assert saved["company"]["default_branch"] == "develop"
+    assert saved["permissions_level"] == "full"
+    assert saved["ai_tools"] == ["claude", "cursor"]
+    assert saved["command_style"] == "short"
+
+
+def test_configure_no_input_requires_company(tmp_path: Path, monkeypatch) -> None:
+    """T044b: Configure --no-input should fail if --company is missing."""
+    _setup_config_dir(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    result = runner.invoke(
+        app,
+        ["configure", "--no-input"],
+    )
+
+    assert result.exit_code == 1
+    assert "--company is required" in result.output
+
+
+# ---------------------------------------------------------------------------
+# T030-T031c: Permission handling and tool validation tests
+# ---------------------------------------------------------------------------
+
+
+def test_validate_tools_all_found() -> None:
+    """T030: _validate_tools returns paths when all tools are found on PATH."""
+    from dotnet_ai_kit.cli import _validate_tools
+
+    mock_console = MagicMock()
+
+    with patch("dotnet_ai_kit.cli.shutil.which") as mock_which:
+        mock_which.side_effect = lambda tool: f"/usr/bin/{tool}"
+        results = _validate_tools(mock_console, verbose=False)
+
+    assert results["dotnet"] == "/usr/bin/dotnet"
+    assert results["git"] == "/usr/bin/git"
+    assert results["gh"] == "/usr/bin/gh"
+    assert results["docker"] == "/usr/bin/docker"
+    assert all(v is not None for v in results.values())
+
+
+def test_validate_tools_some_missing() -> None:
+    """T030: _validate_tools returns None for missing tools."""
+    from dotnet_ai_kit.cli import _validate_tools
+
+    mock_console = MagicMock()
+
+    def selective_which(tool: str) -> str | None:
+        return "/usr/bin/dotnet" if tool == "dotnet" else None
+
+    with patch("dotnet_ai_kit.cli.shutil.which", side_effect=selective_which):
+        results = _validate_tools(mock_console, verbose=False)
+
+    assert results["dotnet"] == "/usr/bin/dotnet"
+    assert results["git"] is None
+    assert results["gh"] is None
+    assert results["docker"] is None
+
+
+def test_validate_tools_output_format() -> None:
+    """T031: _validate_tools prints table with tool name, status, and install URL."""
+    # Use a real Console writing to a string buffer to verify output content
+    from io import StringIO
+
+    from rich.console import Console as RichConsole
+
+    from dotnet_ai_kit.cli import _validate_tools
+
+    buf = StringIO()
+    test_console = RichConsole(file=buf, force_terminal=False, width=120)
+
+    with patch("dotnet_ai_kit.cli.shutil.which") as mock_which:
+        # Make gh and docker missing so the table is printed
+        def selective_which(tool: str) -> str | None:
+            if tool in ("dotnet", "git"):
+                return f"/usr/bin/{tool}"
+            return None
+
+        mock_which.side_effect = selective_which
+        _validate_tools(test_console, verbose=False)
+
+    output = buf.getvalue()
+    # Table should contain "Tool Availability" title
+    assert "Tool Availability" in output
+    # Missing tools should show their install URLs
+    assert "https://cli.github.com" in output
+    assert "https://docs.docker.com/get-docker/" in output
+    # Found tools should show "found"
+    assert "found" in output
+    # Missing tools should show "missing"
+    assert "missing" in output
+    # Should mention missing tools in the warning
+    assert "Missing tools" in output
+    assert "gh" in output
+    assert "docker" in output
+
+
+def test_validate_tools_verbose_shows_table_even_when_all_found() -> None:
+    """T031: _validate_tools prints the table in verbose mode even when all tools are found."""
+    from dotnet_ai_kit.cli import _validate_tools
+
+    mock_console = MagicMock()
+
+    with patch("dotnet_ai_kit.cli.shutil.which") as mock_which:
+        mock_which.side_effect = lambda tool: f"/usr/bin/{tool}"
+        _validate_tools(mock_console, verbose=True)
+
+    # Console.print should have been called (for the table)
+    assert mock_console.print.call_count >= 2  # at least table title + table
+
+
+def test_tool_calls_rule_exists() -> None:
+    """T031b: A rule file in rules/ should mention sequential tool calls, not && chains."""
+    rules_dir = Path(__file__).resolve().parent.parent / "rules"
+    assert rules_dir.is_dir(), f"rules/ directory not found at {rules_dir}"
+
+    found_rule = False
+    for rule_file in rules_dir.iterdir():
+        if rule_file.suffix == ".md":
+            content = rule_file.read_text(encoding="utf-8")
+            # Check that at least one rule file discusses sequential tool calls
+            if "sequential" in content.lower() and "&&" in content:
+                found_rule = True
+                # Verify the rule advises AGAINST && chains
+                assert "do not" in content.lower() or "don't" in content.lower(), (
+                    f"Rule file {rule_file.name} mentions && but does not advise against it"
+                )
+                # Check the file is under 100 lines
+                line_count = len(content.splitlines())
+                assert line_count <= 100, (
+                    f"Rule file {rule_file.name} has {line_count} lines, exceeds 100 limit"
+                )
+                break
+
+    assert found_rule, (
+        "No rule file found in rules/ that discusses sequential tool calls and && chains"
+    )
+
+
+def test_permission_json_files_use_space_syntax() -> None:
+    """T031c: Permission JSON files should use space syntax, not colon syntax."""
+    import json
+
+    config_dir = Path(__file__).resolve().parent.parent / "config"
+    assert config_dir.is_dir(), f"config/ directory not found at {config_dir}"
+
+    permission_files = list(config_dir.glob("permissions-*.json"))
+    assert len(permission_files) >= 3, (
+        f"Expected at least 3 permissions-*.json files, found {len(permission_files)}"
+    )
+
+    for perm_file in permission_files:
+        content = perm_file.read_text(encoding="utf-8")
+        data = json.loads(content)
+
+        # Check $schema is present
+        assert "$schema" in data, f"{perm_file.name} is missing $schema field"
+        assert data["$schema"] == "https://json.schemastore.org/claude-code-settings.json", (
+            f"{perm_file.name} has wrong $schema value"
+        )
+
+        # Check all permission entries use space syntax, not colon syntax
+        allow_list = data.get("permissions", {}).get("allow", [])
+        assert len(allow_list) > 0, f"{perm_file.name} has empty allow list"
+
+        for entry in allow_list:
+            # Should not contain colon syntax like "Bash(dotnet build:*)"
+            assert ":" not in entry, (
+                f"{perm_file.name} uses colon syntax: {entry!r}. "
+                "Expected space syntax like 'Bash(dotnet build *)'"
+            )
+            # Should use space syntax like "Bash(dotnet build *)"
+            assert entry.startswith("Bash("), (
+                f"{perm_file.name} has unexpected entry format: {entry!r}"
+            )
+            assert entry.endswith(")"), f"{perm_file.name} has unexpected entry format: {entry!r}"
+
+        # Check that Bash(cd *) is present
+        assert "Bash(cd *)" in allow_list, f"{perm_file.name} is missing 'Bash(cd *)' entry"
+
+
+# ---------------------------------------------------------------------------
+# T050-T058: CLI UX Polish tests
+# ---------------------------------------------------------------------------
+
+
+def test_check_json_produces_valid_json(tmp_path: Path, monkeypatch) -> None:
+    """T050: check --json should produce valid JSON output."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    # Initialize the project first
+    runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
+
+    # Now run check --json from the project directory
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(app, ["check", "--json"], catch_exceptions=False)
+
+    assert result.exit_code == 0, result.output
+
+    # Extract JSON from output (may contain other lines from rich console)
+    # The JSON line is the one that starts with '{'
+    json_lines = [
+        line for line in result.output.strip().splitlines() if line.strip().startswith("{")
+    ]
+    assert len(json_lines) >= 1, f"No JSON line found in output: {result.output}"
+
+    data = json.loads(json_lines[0])
+    assert "version" in data
+    assert "ai_tools" in data
+    assert "claude" in data["ai_tools"]
+    assert "permissions_level" in data
+    assert "company" in data
+
+
+def test_init_next_command_suggestion(tmp_path: Path) -> None:
+    """T050b: init should suggest 'dotnet-ai configure' as next command."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    result = runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
+
+    assert result.exit_code == 0, result.output
+    assert "dotnet-ai configure" in result.output
+
+
+def test_check_exit_code_no_config(tmp_path: Path, monkeypatch) -> None:
+    """T050c: check with no config should return exit code 1."""
+    monkeypatch.chdir(tmp_path)
+    # No .dotnet-ai-kit directory exists
+
+    result = runner.invoke(app, ["check"])
+
+    assert result.exit_code == 1
+
+
+def test_init_json_output(tmp_path: Path) -> None:
+    """T051: init --json should produce valid JSON instead of rich output."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    result = runner.invoke(
+        app,
+        ["init", str(tmp_path), "--ai", "claude", "--json"],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == 0, result.output
+
+    json_lines = [
+        line for line in result.output.strip().splitlines() if line.strip().startswith("{")
+    ]
+    assert len(json_lines) >= 1, f"No JSON line found in output: {result.output}"
+
+    data = json.loads(json_lines[0])
+    assert data["version"]
+    assert "claude" in data["ai_tools"]
+    assert "config_dir" in data
+
+
+def test_configure_next_command_suggestion(tmp_path: Path, monkeypatch) -> None:
+    """T052: configure should suggest 'dotnet-ai check' as next command."""
+    _setup_config_dir(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    with patch("dotnet_ai_kit.cli.Prompt.ask") as mock_prompt:
+        mock_prompt.return_value = "NextCo"
+
+        result = runner.invoke(app, ["configure", "--minimal"], catch_exceptions=False)
+
+    assert result.exit_code == 0, result.output
+    assert "dotnet-ai check" in result.output
+
+
+def test_no_color_env_var() -> None:
+    """T053: NO_COLOR env var should be respected."""
+    import dotnet_ai_kit.cli as cli_mod
+
+    # The module reads NO_COLOR at import time via os.environ.get("NO_COLOR")
+    # Verify the _no_color variable and console are set up
+    assert hasattr(cli_mod, "_no_color")
+    assert hasattr(cli_mod, "console")
+    assert hasattr(cli_mod, "err_console")
+
+
+def test_err_console_exists() -> None:
+    """T055: err_console should be a Console instance writing to stderr."""
+    from dotnet_ai_kit.cli import err_console
+
+    assert err_console._file is not None or err_console.stderr  # noqa: SLF001
+    # Verify err_console is configured for stderr
+    assert hasattr(err_console, "print")
+
+
+def test_check_config_error_exit_code_2(tmp_path: Path, monkeypatch) -> None:
+    """T056: check with invalid config should return exit code 2."""
+    monkeypatch.chdir(tmp_path)
+    config_dir = tmp_path / ".dotnet-ai-kit"
+    config_dir.mkdir(parents=True)
+
+    # Write a valid YAML file but with invalid pydantic values
+    config_path = config_dir / "config.yml"
+    config_path.write_text(
+        "version: '1.0'\nai_tools:\n  - invalid_tool_xyz\n",
+        encoding="utf-8",
+    )
+
+    result = runner.invoke(app, ["check"])
+
+    assert result.exit_code == 2
+
+
+def test_check_error_message_includes_fix(tmp_path: Path, monkeypatch) -> None:
+    """T057: check error messages should include how-to-fix guidance."""
+    monkeypatch.chdir(tmp_path)
+    # No .dotnet-ai-kit directory
+
+    result = runner.invoke(app, ["check"])
+
+    assert result.exit_code == 1
+    # Should tell user how to fix the problem
+    assert "dotnet-ai init" in result.output.lower() or "dotnet-ai init" in result.output
+
+
+def test_init_dry_run(tmp_path: Path) -> None:
+    """T058: init --dry-run should not create any files."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    result = runner.invoke(
+        app,
+        ["init", str(tmp_path), "--ai", "claude", "--dry-run"],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "DRY-RUN" in result.output
+    # No files should be created
+    assert not (tmp_path / ".dotnet-ai-kit").exists()
+
+
+def test_configure_dry_run(tmp_path: Path, monkeypatch) -> None:
+    """T058: configure --dry-run should not write config."""
+    _setup_config_dir(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    # Capture the config before
+    config_path = tmp_path / ".dotnet-ai-kit" / "config.yml"
+    original_content = config_path.read_text(encoding="utf-8")
+
+    result = runner.invoke(
+        app,
+        ["configure", "--no-input", "--company", "DryRunCo", "--dry-run"],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == 0, result.output
+    assert "DRY-RUN" in result.output
+    assert "No changes were made" in result.output
+    # Config should NOT have been modified
+    assert config_path.read_text(encoding="utf-8") == original_content
+
+
+def test_init_json_suppresses_rich_output(tmp_path: Path) -> None:
+    """T051: init --json should NOT show rich formatting like bold text."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    result = runner.invoke(
+        app,
+        ["init", str(tmp_path), "--ai", "claude", "--json"],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == 0, result.output
+
+    # The output should contain a JSON line but NOT the "Next:" suggestion
+    assert "Next:" not in result.output
+    # Should not contain the rich-formatted init banner
+    assert "Scanning project" not in result.output

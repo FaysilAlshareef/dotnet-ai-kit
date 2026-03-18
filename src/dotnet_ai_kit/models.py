@@ -7,6 +7,50 @@ from typing import Optional
 
 from pydantic import BaseModel, Field, field_validator
 
+# ---------------------------------------------------------------------------
+# Detection signal models (used by signal-based detection pipeline)
+# ---------------------------------------------------------------------------
+
+_SIGNAL_TYPES = {"naming", "code-pattern", "structural", "build-config"}
+_CONFIDENCE_LEVELS = {"high", "medium", "low"}
+_CONFIDENCE_WEIGHTS = {"high": 3, "medium": 2, "low": 1}
+
+
+class DetectionSignal(BaseModel):
+    """A single indicator found during project analysis."""
+
+    pattern_name: str = Field(description="Human-readable name, e.g. 'AggregateRoot base class'.")
+    signal_type: str = Field(description="One of: naming, code-pattern, structural, build-config.")
+    target_project_type: str = Field(description="Project type this signal supports.")
+    confidence: str = Field(default="medium", description="high, medium, or low.")
+    weight: int = Field(default=2, description="Scoring weight derived from confidence level.")
+    evidence: str = Field(default="", description="File path + matched line.")
+    is_negative: bool = Field(default=False, description="If True, reduces confidence for target.")
+
+    @field_validator("signal_type")
+    @classmethod
+    def validate_signal_type(cls, v: str) -> str:
+        if v.lower() not in _SIGNAL_TYPES:
+            raise ValueError(f"signal_type must be one of {_SIGNAL_TYPES}, got '{v}'")
+        return v.lower()
+
+    @field_validator("confidence")
+    @classmethod
+    def validate_confidence(cls, v: str) -> str:
+        if v.lower() not in _CONFIDENCE_LEVELS:
+            raise ValueError(f"confidence must be one of {_CONFIDENCE_LEVELS}, got '{v}'")
+        return v.lower()
+
+
+class DetectionScoreCard(BaseModel):
+    """Internal scoring used to determine classification for a candidate project type."""
+
+    project_type: str = Field(description="The candidate project type.")
+    positive_score: float = Field(default=0.0, description="Sum of positive signal weights.")
+    negative_score: float = Field(default=0.0, description="Sum of negative signal weights.")
+    net_score: float = Field(default=0.0, description="positive_score - negative_score.")
+    signal_count: int = Field(default=0, description="Number of signals contributing.")
+
 
 # Valid C# identifier pattern: starts with letter or underscore, then letters/digits/underscores
 _CSHARP_IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
@@ -119,9 +163,7 @@ class CodeRabbitConfig(BaseModel):
     def validate_severity(cls, v: str) -> str:
         allowed = {"info", "warning", "error"}
         if v.lower() not in allowed:
-            raise ValueError(
-                f"severity_threshold must be one of {allowed}, got '{v}'"
-            )
+            raise ValueError(f"severity_threshold must be one of {allowed}, got '{v}'")
         return v.lower()
 
 
@@ -178,9 +220,7 @@ class DotnetAiConfig(BaseModel):
     def validate_permissions(cls, v: str) -> str:
         allowed = {"minimal", "standard", "full"}
         if v.lower() not in allowed:
-            raise ValueError(
-                f"permissions_level must be one of {allowed}, got '{v}'"
-            )
+            raise ValueError(f"permissions_level must be one of {allowed}, got '{v}'")
         return v.lower()
 
     @field_validator("command_style")
@@ -188,9 +228,7 @@ class DotnetAiConfig(BaseModel):
     def validate_command_style(cls, v: str) -> str:
         allowed = {"full", "short", "both"}
         if v.lower() not in allowed:
-            raise ValueError(
-                f"command_style must be one of {allowed}, got '{v}'"
-            )
+            raise ValueError(f"command_style must be one of {allowed}, got '{v}'")
         return v.lower()
 
     @field_validator("ai_tools")
@@ -199,9 +237,7 @@ class DotnetAiConfig(BaseModel):
         allowed = {"claude", "cursor", "copilot", "codex", "antigravity"}
         for tool in v:
             if tool.lower() not in allowed:
-                raise ValueError(
-                    f"Unknown AI tool '{tool}'. Must be one of {allowed}."
-                )
+                raise ValueError(f"Unknown AI tool '{tool}'. Must be one of {allowed}.")
         return [t.lower() for t in v]
 
 
@@ -238,6 +274,22 @@ class DetectedProject(BaseModel):
         default_factory=list,
         description="List of detected NuGet packages.",
     )
+    confidence: str = Field(
+        default="",
+        description="Detection confidence: high, medium, low, or empty if not scored.",
+    )
+    confidence_score: float = Field(
+        default=0.0,
+        description="Numeric confidence score between 0.0 and 1.0.",
+    )
+    user_override: Optional[str] = Field(
+        default=None,
+        description="User's manual override of the detected project type, or None.",
+    )
+    top_signals: list[dict] = Field(
+        default_factory=list,
+        description="Top 3 signals that contributed most to classification (serialized).",
+    )
 
     @field_validator("mode")
     @classmethod
@@ -257,6 +309,7 @@ class DetectedProject(BaseModel):
             "processor",
             "gateway",
             "controlpanel",
+            "hybrid",
             "vsa",
             "clean-arch",
             "ddd",
@@ -264,7 +317,19 @@ class DetectedProject(BaseModel):
             "generic",
         }
         if v.lower() not in allowed:
-            raise ValueError(
-                f"project_type must be one of {allowed}, got '{v}'"
-            )
+            raise ValueError(f"project_type must be one of {allowed}, got '{v}'")
         return v.lower()
+
+    @field_validator("confidence")
+    @classmethod
+    def validate_confidence_level(cls, v: str) -> str:
+        if v and v.lower() not in {"high", "medium", "low"}:
+            raise ValueError(f"confidence must be high, medium, low, or empty — got '{v}'")
+        return v.lower() if v else ""
+
+    @field_validator("confidence_score")
+    @classmethod
+    def validate_confidence_score(cls, v: float) -> float:
+        if v < 0.0 or v > 1.0:
+            raise ValueError(f"confidence_score must be between 0.0 and 1.0, got {v}")
+        return v

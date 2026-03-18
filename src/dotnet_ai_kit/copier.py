@@ -14,7 +14,6 @@ from typing import Any, Optional
 
 import jinja2
 
-from dotnet_ai_kit.agents import AGENT_CONFIG
 from dotnet_ai_kit.models import DotnetAiConfig
 
 

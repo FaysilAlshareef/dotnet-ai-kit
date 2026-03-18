@@ -7,13 +7,13 @@ from pathlib import Path
 import pytest
 
 from dotnet_ai_kit.copier import (
+    CopyError,
     copy_commands,
     copy_commands_codex,
     copy_commands_cursor,
     copy_rules,
     render_template,
     scaffold_project,
-    CopyError,
 )
 from dotnet_ai_kit.models import DotnetAiConfig
 
@@ -35,8 +35,7 @@ def _create_rule_files(source_dir: Path, names: list[str]) -> None:
     source_dir.mkdir(parents=True, exist_ok=True)
     for name in names:
         (source_dir / f"{name}.md").write_text(
-            f"---\ndescription: {name} rule\n---\n\n"
-            f"# {name}\n\nFollow {name} conventions.\n",
+            f"---\ndescription: {name} rule\n---\n\n# {name}\n\nFollow {name} conventions.\n",
             encoding="utf-8",
         )
 
@@ -45,12 +44,12 @@ def _create_rule_files(source_dir: Path, names: list[str]) -> None:
 # render_template
 # ---------------------------------------------------------------------------
 
+
 def test_render_template_replaces_placeholders(tmp_path: Path) -> None:
     """Jinja2 template rendering should replace {Company} style placeholders."""
     template = tmp_path / "template.cs"
     template.write_text(
-        "namespace {Company}.{Domain}.{Layer};\n\n"
-        "public class {Company}Service { }\n",
+        "namespace {Company}.{Domain}.{Layer};\n\npublic class {Company}Service { }\n",
         encoding="utf-8",
     )
     output = tmp_path / "output.cs"
@@ -77,6 +76,7 @@ def test_render_template_creates_parent_dirs(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 # copy_commands
 # ---------------------------------------------------------------------------
+
 
 def test_copy_commands_full_style(tmp_path: Path) -> None:
     """copy_commands with 'full' style should create only full-name files."""
@@ -165,6 +165,7 @@ def test_copy_commands_no_commands_dir(tmp_path: Path) -> None:
 # copy_rules
 # ---------------------------------------------------------------------------
 
+
 def test_copy_rules_to_claude(tmp_path: Path) -> None:
     """copy_rules should copy rule files to the rules directory."""
     source = tmp_path / "rules_src"
@@ -196,6 +197,7 @@ def test_copy_rules_no_rules_dir(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 # Cursor and Codex
 # ---------------------------------------------------------------------------
+
 
 def test_copy_commands_cursor_creates_mdc(tmp_path: Path) -> None:
     """Cursor mode should create a single .mdc file combining commands and rules."""
@@ -241,6 +243,7 @@ def test_copy_commands_codex_creates_agents_md(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 # scaffold_project
 # ---------------------------------------------------------------------------
+
 
 def test_scaffold_project_copies_template_files(tmp_path: Path) -> None:
     """scaffold_project should copy and render template files."""

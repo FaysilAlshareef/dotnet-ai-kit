@@ -20,10 +20,10 @@ from dotnet_ai_kit.models import (
     DotnetAiConfig,
 )
 
-
 # ---------------------------------------------------------------------------
 # Config directory
 # ---------------------------------------------------------------------------
+
 
 def test_get_config_dir(tmp_path: Path) -> None:
     """get_config_dir should return .dotnet-ai-kit/ under the project root."""
@@ -34,6 +34,7 @@ def test_get_config_dir(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 # Config load/save round-trip
 # ---------------------------------------------------------------------------
+
 
 def test_save_and_load_config(tmp_path: Path) -> None:
     """Config should survive a save/load round-trip."""
@@ -93,6 +94,7 @@ def test_save_creates_parent_dirs(tmp_path: Path) -> None:
 # Validation
 # ---------------------------------------------------------------------------
 
+
 def test_company_name_valid_csharp_identifier() -> None:
     """Valid C# identifiers should pass validation."""
     config = CompanyConfig(name="Acme")
@@ -144,6 +146,7 @@ def test_command_style_validation() -> None:
 # ---------------------------------------------------------------------------
 # Project load/save
 # ---------------------------------------------------------------------------
+
 
 def test_save_and_load_project(tmp_path: Path) -> None:
     """DetectedProject should survive a save/load round-trip."""
