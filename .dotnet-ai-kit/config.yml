@@ -1,0 +1,23 @@
+version: '1.0'
+company:
+  name: TestCompany
+  github_org: ''
+  default_branch: main
+naming:
+  solution: '{Company}.{Domain}.{Side}'
+  topic: '{company}-{domain}-{side}'
+  namespace: '{Company}.{Domain}.{Side}.{Layer}'
+repos:
+  command: null
+  query: null
+  processor: null
+  gateway: null
+  controlpanel: null
+integrations:
+  coderabbit:
+    enabled: false
+    auto_fix: false
+    severity_threshold: warning
+permissions_level: standard
+ai_tools: []
+command_style: both

@@ -10,7 +10,7 @@
 ## Install
 
 ```bash
-uv tool install dotnet-ai-kit --from git+https://github.com/{user}/dotnet-ai-kit.git
+uv tool install dotnet-ai-kit --from git+https://github.com/FaysilAlshareef/dotnet-ai-kit.git
 ```
 
 ## Initialize in an Existing Project

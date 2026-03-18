@@ -8,7 +8,7 @@ Works with any .NET project: Vertical Slice, Clean Architecture, DDD, Modular Mo
 
 ```bash
 # Install
-uv tool install dotnet-ai-kit --from git+https://github.com/{user}/dotnet-ai-kit.git
+uv tool install dotnet-ai-kit --from git+https://github.com/FaysilAlshareef/dotnet-ai-kit.git
 
 # Init (auto-detects your project)
 dotnet-ai init . --ai claude
@@ -159,7 +159,7 @@ via `uv tool install` and ready for use with Claude Code.
 | Templates | 11 | Complete |
 | Permission Configs | 4 | Complete |
 | CLI Modules | 8 | Complete |
-| CLI Tests | 52 functions | Complete |
+| CLI Tests | 62 functions | Complete |
 
 See [`planning/`](planning/) for design documentation.
 
