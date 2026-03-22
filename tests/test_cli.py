@@ -88,8 +88,24 @@ def test_init_requires_ai_tool_or_detection(tmp_path: Path) -> None:
     assert "no ai tool detected" in result.output.lower()
 
 
-def test_init_creates_project_yml(tmp_path: Path) -> None:
-    """Init should create project.yml with detection results."""
+def test_init_creates_project_yml_with_type_flag(tmp_path: Path) -> None:
+    """Init should create project.yml when --type is provided."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    result = runner.invoke(
+        app,
+        ["init", str(tmp_path), "--ai", "claude", "--type", "command"],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == 0, result.output
+    project_yml = tmp_path / ".dotnet-ai-kit" / "project.yml"
+    assert project_yml.is_file()
+
+
+def test_init_skips_detection_without_type_flag(tmp_path: Path) -> None:
+    """Init should skip detection and suggest /dotnet-ai.detect without --type."""
     _create_dotnet_project(tmp_path)
     _create_claude_dir(tmp_path)
 
@@ -97,7 +113,8 @@ def test_init_creates_project_yml(tmp_path: Path) -> None:
 
     assert result.exit_code == 0, result.output
     project_yml = tmp_path / ".dotnet-ai-kit" / "project.yml"
-    assert project_yml.is_file()
+    assert not project_yml.is_file()
+    assert "detect" in result.output.lower()
 
 
 def test_check_not_initialized(tmp_path: Path) -> None:

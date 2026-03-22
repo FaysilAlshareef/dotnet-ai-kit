@@ -141,7 +141,12 @@
       "Bash(cd C:/Users/libya/source/repos/AI/dotnet-ai-kit && powershell -File .specify/scripts/powershell/setup-plan.ps1 -Json)",
       "Bash(cd C:/Users/libya/source/repos/AI/dotnet-ai-kit && powershell -File .specify/scripts/powershell/update-agent-context.ps1 -AgentType claude)",
       "Bash(cd C:/Users/libya/source/repos/AI/dotnet-ai-kit && powershell -File .specify/scripts/powershell/check-prerequisites.ps1 -Json)",
-      "Bash(cd C:/Users/libya/source/repos/AI/dotnet-ai-kit && powershell -File .specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks)"
+      "Bash(cd C:/Users/libya/source/repos/AI/dotnet-ai-kit && powershell -File .specify/scripts/powershell/check-prerequisites.ps1 -Json -RequireTasks -IncludeTasks)",
+      "Bash(find /c/Users/libya/source/repos/AI/dotnet-ai-kit -maxdepth 3 -name \"README*\" -o -name \"SPECIFY*\" 2>/dev/null | head -20)",
+      "Bash(cd \"C:\\\\Users\\\\libya\\\\source\\\\repos\\\\AI\\\\dotnet-ai-kit\" && python -m pytest -v 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\libya\\\\source\\\\repos\\\\AI\\\\dotnet-ai-kit\" && ruff check src/ tests/ 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\libya\\\\source\\\\repos\\\\AI\\\\dotnet-ai-kit\" && ruff check --fix tests/test_detection.py 2>&1)",
+      "Bash(cd \"C:\\\\Users\\\\libya\\\\source\\\\repos\\\\AI\\\\dotnet-ai-kit\" && ruff check src/ tests/ 2>&1 && python -m pytest -v 2>&1)"
     ]
   }
 }

@@ -1,5 +1,5 @@
 ---
-description: Initialize dotnet-ai-kit in a .NET project. Detects project type, copies commands/rules, creates config.
+description: Initialize dotnet-ai-kit in a .NET project. Uses AI detection, copies commands/rules, creates config.
 ---
 
 # /dotnet-ai.init
@@ -8,78 +8,91 @@ Initialize dotnet-ai-kit in the current project directory.
 
 ## Instructions
 
-Run the `dotnet-ai init` CLI command to set up dotnet-ai-kit for this project. Follow these steps:
-
 ### Step 1: Check for existing initialization
 
 Check if `.dotnet-ai-kit/` directory already exists. If it does, report the current state and ask if the user wants to reinitialize with `--force`.
 
-### Step 2: Detect or create project
-
-**Existing project detected** (`.sln` or `.csproj` files found):
+### Step 2: Run the CLI init
 
 ```
 dotnet-ai init . --ai claude $ARGUMENTS
 ```
 
-Report the detection results:
-- Solution/project file found
-- .NET version detected
-- Project type (Command, Query, Processor, Gateway, ControlPanel, or generic architecture)
-- Architecture mode (Microservice or Generic)
+This creates the config directory, copies commands and rules.
 
-**No project detected**:
+### Step 3: Detect project type using AI
 
-Ask the user what they want to create:
-1. What project type? (Command, Query-SQL, Query-Cosmos, Processor, Gateway, ControlPanel, or generic: VSA, Clean Architecture, DDD, Modular Monolith)
-2. Company name (for namespace)
-3. Domain name (for namespace)
-4. .NET version (default: latest)
+After the CLI init completes, run project detection using the `/dotnet-ai.detect` command workflow:
 
-Then run:
-```
-dotnet-ai init . --ai claude --type <selected-type> $ARGUMENTS
-```
+1. Check for `.sln`, `.slnx`, or `.csproj` files
+2. If .NET files exist, read project files and apply the smart-detect skill classification
+3. Present detection results to the user for confirmation
+4. Save results to `.dotnet-ai-kit/project.yml`
 
-### Step 3: Report results
+**If detection fails** (no .NET files found, ambiguous results, or any error): skip detection silently and continue. The user can always run `/dotnet-ai.detect` later to detect or re-detect their project.
+
+### Step 4: Report results
 
 After initialization, report:
 - Number of commands copied
 - Number of rules copied
 - Config file location
-- Next steps: suggest running `/dotnet-ai.configure` to set company name and repo paths
+- Detection results (if successful):
+  - Project type and architecture
+  - .NET version
+  - Confidence level
+- Next steps:
+  - If detection was skipped: suggest running `/dotnet-ai.detect` to classify the project
+  - Always suggest running `/dotnet-ai.configure` to set company name and repo paths
 
-### Step 4: Verify
+### Step 5: Verify
 
 Confirm the following files/directories exist:
 - `.dotnet-ai-kit/config.yml`
 - `.dotnet-ai-kit/version.txt`
 - AI tool command directory (e.g., `.claude/commands/`)
 - AI tool rules directory (e.g., `.claude/rules/`)
+- `.dotnet-ai-kit/project.yml` (only if detection succeeded)
 
 ## Error Handling
 
-- **No .NET project found**: Offer to create a new project from a template
+- **No .NET project found**: Skip detection, complete init without project type. Suggest running `/dotnet-ai.detect` later.
 - **AI tool not detected**: Ask the user to specify with `--ai` flag
 - **Already initialized**: Show current state and offer `--force` reinit
-- **Detection ambiguous**: Show all matches and ask user to pick with `--type`
+- **Detection fails for any reason**: Log a note and continue with init. Detection is not blocking.
 
 ## Output Format
 
-Use clear, structured output:
 ```
 dotnet-ai-kit v1.0.0
 
-Scanning project...
-  Found: {solution_name}.sln
-  .NET Version: {version}
-  Project Type: {type}
-  Architecture: {architecture}
-
-Initializing for {AI tool}...
+Initializing for Claude Code...
   Created: .dotnet-ai-kit/config.yml
   Copied: {N} commands
   Copied: {N} rules
+
+Detecting project type...
+  Mode: {mode}
+  Project Type: {type}
+  Architecture: {architecture}
+  .NET Version: {version}
+  Confidence: {confidence}
+  Saved: .dotnet-ai-kit/project.yml
+
+Done. Run /dotnet-ai.configure to complete setup.
+```
+
+Or if detection was skipped:
+
+```
+dotnet-ai-kit v1.0.0
+
+Initializing for Claude Code...
+  Created: .dotnet-ai-kit/config.yml
+  Copied: {N} commands
+  Copied: {N} rules
+
+  Note: Project type detection skipped. Run /dotnet-ai.detect to classify your project.
 
 Done. Run /dotnet-ai.configure to complete setup.
 ```
@@ -87,5 +100,6 @@ Done. Run /dotnet-ai.configure to complete setup.
 ## Flags
 
 - `--force`: Reinitialize even if already configured
+- `--type <type>`: Set project type directly (skip AI detection)
 - `--dry-run`: Show what would be detected and copied without writing any files
 - `--verbose`: Show detailed detection results and file operations

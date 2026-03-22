@@ -34,19 +34,14 @@ from dotnet_ai_kit.copier import (
     copy_commands_cursor,
     copy_rules,
 )
-from dotnet_ai_kit.detection import (
-    DetectionError,
-    _display_detection_summary,
-    _prompt_override,
-    detect_project,
-)
+from dotnet_ai_kit.detection import describe_architecture
 from dotnet_ai_kit.extensions import (
     ExtensionError,
     install_extension,
     list_extensions,
     remove_extension,
 )
-from dotnet_ai_kit.models import DotnetAiConfig
+from dotnet_ai_kit.models import DetectedProject, DotnetAiConfig
 
 app = typer.Typer(
     name="dotnet-ai",
@@ -219,32 +214,26 @@ def init(
         )
         raise typer.Exit(code=1)
 
-    # Step 1: Detect project type
-    if not json_output:
-        console.print("[bold]Scanning project...[/bold]")
-    try:
-        detected = detect_project(target)
-    except DetectionError:
-        # No .NET project found -- this might be a new project scenario
-        detected = None
-        if not json_output:
-            console.print("  [dim]No .NET project detected (new project mode).[/dim]")
-
-    # Show detection summary and allow override (interactive mode only)
-    if detected and not json_output and not dry_run:
-        _display_detection_summary(detected, console)
-        # Allow user to override unless --type was explicitly passed
-        if not project_type:
-            try:
-                detected = _prompt_override(detected)
-            except (EOFError, KeyboardInterrupt):
-                pass  # Non-interactive environment, skip override prompt
-
-    # Override project type if specified via --type flag
-    if project_type and detected:
-        detected.project_type = project_type
-        detected.architecture = project_type
-        _verbose_log(verbose, f"Project type overridden to: {project_type}")
+    # Step 1: Project type (AI detection is done via /dotnet-ai.detect command)
+    detected = None
+    if project_type:
+        # --type flag: create a basic DetectedProject
+        microservice_types = {
+            "command", "query-sql", "query-cosmos", "processor",
+            "gateway", "controlpanel", "hybrid",
+        }
+        mode = "microservice" if project_type in microservice_types else "generic"
+        detected = DetectedProject(
+            mode=mode,
+            project_type=project_type,
+            architecture=describe_architecture(mode, project_type),
+        )
+        _verbose_log(verbose, f"Project type set to: {project_type}")
+    elif not json_output:
+        console.print(
+            "  [dim]Project detection skipped. "
+            "Run /dotnet-ai.detect to classify your project.[/dim]"
+        )
 
     # Step 2: Detect or configure AI tools
     if ai:

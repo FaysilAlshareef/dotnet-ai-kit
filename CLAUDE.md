@@ -23,7 +23,7 @@ src/dotnet_ai_kit/       # Python package
   models.py               # Pydantic v2 models (DotnetAiConfig, DetectedProject, etc.)
   config.py               # YAML config load/save with pydantic validation
   agents.py               # AGENT_CONFIG per AI tool + detection
-  detection.py            # .NET project type detection algorithm
+  detection.py            # Detection helpers (grep, architecture descriptions)
   copier.py               # File copy + Jinja2 template rendering
   extensions.py           # Extension install/remove/list
 
@@ -73,11 +73,12 @@ pip install -e ".[dev]"
 9. **Models**: Use pydantic v2 BaseModel with field_validator decorators
 10. **Type hints**: Use `from __future__ import annotations` for modern syntax in Python 3.10+
 
-## Commands (25 total)
+## Commands (26 total)
 
 | Full Name | Short Alias | Category |
 |-----------|-------------|----------|
 | `/dotnet-ai.do` | `/dai.do` | Smart |
+| `/dotnet-ai.detect` | `/dai.detect` | Project |
 | `/dotnet-ai.specify` | `/dai.spec` | SDD Lifecycle |
 | `/dotnet-ai.clarify` | `/dai.clarify` | SDD Lifecycle |
 | `/dotnet-ai.plan` | `/dai.plan` | SDD Lifecycle |
