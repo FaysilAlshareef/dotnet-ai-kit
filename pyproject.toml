@@ -1,0 +1,72 @@
+[build-system]
+requires = ["hatchling"]
+build-backend = "hatchling.build"
+
+[project]
+name = "dotnet-ai-kit"
+version = "1.0.0"
+description = "AI dev tool plugin for the full .NET development lifecycle"
+readme = "README.md"
+license = "MIT"
+requires-python = ">=3.10"
+authors = [
+    { name = "dotnet-ai-kit contributors" },
+]
+keywords = ["dotnet", "ai", "cli", "code-generation", "cqrs", "microservices", "claude-code-plugin", "agent-skills", "clean-architecture", "vertical-slice"]
+classifiers = [
+    "Development Status :: 4 - Beta",
+    "Environment :: Console",
+    "Intended Audience :: Developers",
+    "License :: OSI Approved :: MIT License",
+    "Programming Language :: Python :: 3",
+    "Programming Language :: Python :: 3.10",
+    "Programming Language :: Python :: 3.11",
+    "Programming Language :: Python :: 3.12",
+    "Programming Language :: Python :: 3.13",
+    "Topic :: Software Development :: Code Generators",
+]
+dependencies = [
+    "typer>=0.9.0",
+    "pydantic>=2.0.0",
+    "jinja2>=3.1.0",
+    "rich>=13.0.0",
+    "pyyaml>=6.0.0",
+    "questionary>=2.0.0",
+]
+
+[project.scripts]
+dotnet-ai = "dotnet_ai_kit.cli:app"
+
+[project.urls]
+Homepage = "https://github.com/FaysilAlshareef/dotnet-ai-kit"
+Repository = "https://github.com/FaysilAlshareef/dotnet-ai-kit"
+
+[tool.hatch.build.targets.wheel]
+packages = ["src/dotnet_ai_kit"]
+
+[tool.hatch.build.targets.wheel.force-include]
+"commands" = "dotnet_ai_kit/bundled/commands"
+"rules" = "dotnet_ai_kit/bundled/rules"
+"agents" = "dotnet_ai_kit/bundled/agents"
+"skills" = "dotnet_ai_kit/bundled/skills"
+"knowledge" = "dotnet_ai_kit/bundled/knowledge"
+"templates" = "dotnet_ai_kit/bundled/templates"
+"config" = "dotnet_ai_kit/bundled/config"
+
+[tool.pytest.ini_options]
+testpaths = ["tests"]
+pythonpath = ["src"]
+
+[tool.ruff]
+target-version = "py310"
+line-length = 100
+
+[tool.ruff.lint]
+select = ["E", "F", "I", "W"]
+
+[dependency-groups]
+dev = [
+    "pytest>=7.0.0",
+    "pytest-cov>=4.0.0",
+    "ruff>=0.1.0",
+]

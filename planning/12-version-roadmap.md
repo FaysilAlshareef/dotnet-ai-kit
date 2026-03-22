@@ -36,8 +36,8 @@ This document organizes the project's build phases into versioned releases and p
 |-----------|-------|
 | Rules | 6 |
 | Agents | 13 |
-| Skills | 101 |
-| Commands | 25 |
+| Skills | 104 |
+| Commands | 26 |
 | Knowledge Docs | 11 |
 | Templates | 11 |
 | Permission Configs | 4 |
@@ -47,6 +47,13 @@ This document organizes the project's build phases into versioned releases and p
 **In scope**: Claude Code plugin, full SDD lifecycle, microservice + generic .NET, single-repo and multi-repo, CodeRabbit integration.
 
 **Out of scope**: Other AI tool integrations (Cursor, Copilot, Codex, Antigravity), advanced orchestration (sagas), alternative event stores, GraphQL, serverless.
+
+### v1.0 Late Additions
+
+- Claude Code plugin format
+- Agent Skills spec compliance
+- 4 hooks (bash-guard, edit-format, scaffold-restore, commit-lint)
+- C# LSP MCP config (.mcp.json)
 
 ---
 
@@ -75,6 +82,13 @@ This document organizes the project's build phases into versioned releases and p
 | `microservice/grpc-web` | gRPC | controlpanel-architect |
 | `testing/contract-testing` | Testing | test-engineer |
 | `devops/aspire-advanced` | DevOps | devops-engineer |
+
+### v1.1 Additional Features
+
+- Roslyn MCP tools (semantic .NET code analysis -- find_symbol, find_references, get_diagnostics, detect_antipatterns, find_dead_code)
+- Cursor, GitHub Copilot, Codex CLI support
+- Extension catalog (online/community installs)
+- PolySkill and skills.sh marketplace publishing
 
 ---
 

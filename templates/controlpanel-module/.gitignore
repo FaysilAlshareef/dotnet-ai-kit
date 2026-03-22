@@ -1,0 +1,25 @@
+## .NET
+bin/
+obj/
+*.user
+*.suo
+*.cache
+*.dll
+*.pdb
+
+## IDE
+.vs/
+.idea/
+*.swp
+
+## Secrets
+appsettings.*.local.json
+*.pfx
+
+## Build
+publish/
+out/
+
+## Test Results
+TestResults/
+coverage/

@@ -1,0 +1,60 @@
+apiVersion: v1
+kind: Namespace
+metadata:
+  name: {{ company }}-{{ domain }}
+---
+apiVersion: v1
+kind: Secret
+metadata:
+  name: {{ company }}-{{ domain }}-processor-secrets
+  namespace: {{ company }}-{{ domain }}
+type: Opaque
+stringData:
+  ServiceBus__ConnectionString: "___SERVICEBUS_CONNECTION___"
+---
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ company }}-{{ domain }}-processor
+  namespace: {{ company }}-{{ domain }}
+spec:
+  replicas: 1
+  strategy:
+    type: RollingUpdate
+    rollingUpdate:
+      maxUnavailable: 0
+      maxSurge: 1
+  selector:
+    matchLabels:
+      app: {{ company }}-{{ domain }}-processor
+  template:
+    metadata:
+      labels:
+        app: {{ company }}-{{ domain }}-processor
+    spec:
+      containers:
+      - name: {{ company }}-{{ domain }}-processor
+        image: "___ACR_NAME___.azurecr.io/{{ company }}-{{ domain }}-processor:___IMAGE_TAG___"
+        envFrom:
+        - secretRef:
+            name: {{ company }}-{{ domain }}-processor-secrets
+        resources:
+          requests:
+            memory: "128Mi"
+            cpu: "100m"
+          limits:
+            memory: "256Mi"
+            cpu: "250m"
+---
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ company }}-{{ domain }}-processor
+  namespace: {{ company }}-{{ domain }}
+spec:
+  selector:
+    app: {{ company }}-{{ domain }}-processor
+  ports:
+  - port: 80
+    targetPort: 8080
+  type: ClusterIP

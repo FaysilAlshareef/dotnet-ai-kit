@@ -1,6 +1,6 @@
 # dotnet-ai-kit - Agents Design
 
-> **System Totals**: 13 agents, 101 skills, 25 commands, 6 rules. See `04-commands-design.md` for commands.
+> **System Totals**: 13 agents, 104 skills, 26 commands, 6 rules. See `04-commands-design.md` for commands.
 
 ## Agent Architecture
 

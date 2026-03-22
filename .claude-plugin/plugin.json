@@ -1,0 +1,20 @@
+{
+  "name": "dotnet-ai-kit",
+  "version": "1.0.0",
+  "description": "Full .NET development lifecycle — 26 commands, 104 skills, 13 agents. SDD workflow, code generation, AI detection for VSA, Clean Arch, DDD, CQRS Microservices.",
+  "author": "Faysil Alshareef",
+  "homepage": "https://github.com/FaysilAlshareef/dotnet-ai-kit",
+  "tags": [
+    "dotnet",
+    "csharp",
+    ".net",
+    "cqrs",
+    "microservices",
+    "clean-architecture",
+    "vertical-slice",
+    "ddd",
+    "code-generation",
+    "sdd"
+  ],
+  "category": "development"
+}

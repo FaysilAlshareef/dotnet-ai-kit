@@ -1,0 +1,91 @@
+---
+description: "Create an implementation plan from a feature specification"
+---
+
+# /dotnet-ai.plan — Implementation Planning
+
+You are an AI coding assistant executing the `/dotnet-ai.plan` command.
+Your job is to create a detailed implementation plan from an existing feature spec.
+
+## Input
+
+Flags: `--dry-run` (preview without writing), `--verbose` (diagnostic output)
+
+## Step 1: Load Prerequisites
+
+1. Find the active feature in `.dotnet-ai-kit/features/` (most recent or in-progress).
+2. Load `spec.md` — required. If missing: "No spec found. Run /dotnet-ai.specify first."
+3. Load `.dotnet-ai-kit/config.yml` if it exists.
+4. Note any remaining `[NEEDS CLARIFICATION]` markers — warn but do not block.
+5. If `--verbose`, print loaded artifacts and detected mode.
+
+## Step 2: Detect Project Mode
+
+1. From config or spec content, determine: **generic** or **microservice**.
+2. Load skills on demand based on mode:
+   - Always: `skills/workflow/sdd-lifecycle/SKILL.md`
+   - Generic: `skills/architecture/clean-architecture/SKILL.md` or VSA skill
+   - Microservice: `skills/workflow/multi-repo-workflow/SKILL.md`
+
+## Step 3: Constitution Check Gate
+
+Read `.specify/memory/constitution.md` and verify compliance:
+- Detect-First: plan must research existing code before proposing changes
+- Pattern Fidelity: plan must follow detected conventions
+- Architecture Agnostic: plan must match the project's architecture
+
+Document result in `## Constitution Check`. Violations go to `## Complexity Tracking`.
+
+## Step 4: Complexity Analysis
+
+Analyze spec for feature complexity:
+
+| Indicator | Threshold | Weight |
+|-----------|-----------|--------|
+| Entities / data models | >= 3 | High |
+| External service integrations | >= 1 | High |
+| Multi-repo (spans services) | Yes | High |
+| Functional requirements | >= 5 | Medium |
+| Data migrations / state transitions | Yes | Medium |
+
+- **Complex** (any HIGH met): generate full artifacts (research.md, data-model.md, contracts/, quickstart.md)
+- **Simple** (no HIGH met): generate plan.md only
+
+## Step 5: Research Phase
+
+Scan existing codebase for: folder structure, naming conventions, entities, handlers,
+NuGet packages, DI patterns, test frameworks. If `--verbose`, print discoveries.
+
+## Step 6: Generate Plan
+
+Load `skills/workflow/plan-templates/SKILL.md` for mode-specific plan structure.
+
+## Step 7: Generate Supporting Artifacts (Complex Only)
+
+Load `skills/workflow/plan-artifacts/SKILL.md` for research.md, data-model.md,
+contracts/, and quickstart.md generation guidance.
+
+## Step 8: Report
+
+```
+Plan generated for {NNN}-{short-name}.
+Mode: {generic|microservice} | Complexity: {simple|complex}
+Constitution: {PASS|FAIL with count}
+
+Artifacts created:
+- plan.md
+{if complex:} research.md, data-model.md, quickstart.md, contracts/
+{if microservice:} service-map.md, event-flow.md
+
+Next: /dotnet-ai.tasks or /dotnet-ai.analyze
+```
+
+## Dry-Run Behavior
+
+When `--dry-run`: print plan content, show file paths, do NOT write files, prefix `[DRY-RUN]`.
+
+## Error Handling
+
+- Missing spec: direct to `/dotnet-ai.specify`
+- Missing config: proceed with auto-detection, warn user
+- Constitution violations: document but do not block
