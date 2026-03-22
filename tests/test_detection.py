@@ -1,4 +1,4 @@
-"""Tests for the signal-based project type detection algorithm."""
+"""Tests for the behavioral project type detection algorithm."""
 
 from __future__ import annotations
 
@@ -8,11 +8,11 @@ import pytest
 
 from dotnet_ai_kit.detection import (
     DetectionError,
-    _classify_project,
-    _collect_signals,
+    _analyze_handler_behavior,
+    _analyze_program_config,
+    _analyze_project_structure,
     _describe_architecture,
     _display_detection_summary,
-    _score_candidates,
     detect_project,
     grep_file,
 )
@@ -112,17 +112,37 @@ def test_grep_file_returns_empty_for_missing_file(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Command-side detection by code patterns (no naming hints)
+# Command-side detection by behavioral patterns
 # ---------------------------------------------------------------------------
 
 
-def test_detects_command_by_aggregate_pattern(tmp_path: Path) -> None:
-    """Should detect Command project from Aggregate<T> base class without naming hints."""
+def test_detects_command_by_aggregate_and_commit(tmp_path: Path) -> None:
+    """Should detect Command from aggregate manipulation + event commit behavior."""
     _create_sln(tmp_path / "Test.sln")
     _create_csproj(tmp_path / "Test.csproj")
     _create_cs_file(
         tmp_path / "Domain" / "Order.cs",
         "public class Order : Aggregate<OrderId>\n{\n}\n",
+    )
+    _create_cs_file(
+        tmp_path / "Application" / "Handlers" / "CreateOrderHandler.cs",
+        (
+            "public class CreateOrderHandler : IRequestHandler<CreateOrderCommand>\n"
+            "{\n"
+            "    private readonly IUnitOfWork _unitOfWork;\n"
+            "    private readonly ICommitEventService _commitEventsService;\n"
+            "    public async Task Handle(CreateOrderCommand cmd, CancellationToken ct)\n"
+            "    {\n"
+            "        var events = await _unitOfWork.Events.GetAllByAggregateIdAsync(cmd.Id, ct);\n"
+            "        var order = Order.Create(cmd);\n"
+            "        await _commitEventsService.CommitNewEventsAsync(order);\n"
+            "    }\n"
+            "}\n"
+        ),
+    )
+    _create_cs_file(
+        tmp_path / "Program.cs",
+        "app.MapGrpcService<OrderService>();\n",
     )
 
     result = detect_project(tmp_path)
@@ -133,32 +153,29 @@ def test_detects_command_by_aggregate_pattern(tmp_path: Path) -> None:
     assert len(result.top_signals) > 0
 
 
-def test_detects_command_by_aggregate_root_pattern(tmp_path: Path) -> None:
-    """Should detect Command from AggregateRoot base class."""
+def test_detects_command_by_command_handler(tmp_path: Path) -> None:
+    """Should detect Command from ICommandHandler<T> pattern with event commit."""
     _create_sln(tmp_path / "Test.sln")
     _create_csproj(tmp_path / "Test.csproj")
     _create_cs_file(
         tmp_path / "Domain" / "Order.cs",
-        "public class Order : AggregateRoot\n{\n}\n",
+        "public class Order : Aggregate<OrderId>\n{\n}\n",
     )
-
-    result = detect_project(tmp_path)
-    assert result.mode == "microservice"
-    assert result.project_type == "command"
-
-
-def test_detects_command_by_command_handler(tmp_path: Path) -> None:
-    """Should detect Command from ICommandHandler<T> pattern."""
-    _create_sln(tmp_path / "Test.sln")
-    _create_csproj(tmp_path / "Test.csproj")
     _create_cs_file(
         tmp_path / "Handlers" / "CreateOrderHandler.cs",
         (
             "public class CreateOrderHandler : ICommandHandler<CreateOrderCommand>\n"
             "{\n"
-            "    public async Task Handle(CreateOrderCommand cmd) { }\n"
+            "    public async Task Handle(CreateOrderCommand cmd) {\n"
+            "        var events = await _unitOfWork.Events.GetAllByAggregateIdAsync(cmd.Id, ct);\n"
+            "        await _commitEventsService.CommitNewEventsAsync(order);\n"
+            "    }\n"
             "}\n"
         ),
+    )
+    _create_cs_file(
+        tmp_path / "Program.cs",
+        "app.MapGrpcService<OrderService>();\n",
     )
 
     result = detect_project(tmp_path)
@@ -167,12 +184,31 @@ def test_detects_command_by_command_handler(tmp_path: Path) -> None:
 
 
 def test_detects_command_by_event_store(tmp_path: Path) -> None:
-    """Should detect Command from IEventStore/EventStoreClient usage."""
+    """Should detect Command from event commit pattern."""
     _create_sln(tmp_path / "Test.sln")
     _create_csproj(tmp_path / "Test.csproj")
     _create_cs_file(
-        tmp_path / "Infrastructure" / "EventStore.cs",
-        ("public class EventStoreRepository\n{\n    private readonly IEventStore _store;\n}\n"),
+        tmp_path / "Application" / "Handlers" / "Handler.cs",
+        (
+            "public class CreateHandler : IRequestHandler<CreateCommand>\n"
+            "{\n"
+            "    private readonly ICommitEventService _commitEventsService;\n"
+            "    public async Task Handle(CreateCommand cmd, CancellationToken ct) {\n"
+            "        var events = await _repo.GetAllByAggregateIdAsync(cmd.Id, ct);\n"
+            "        var agg = MyAggregate.Rebuild(events);\n"
+            "        agg.DoSomething(cmd);\n"
+            "        await _commitEventsService.CommitNewEventsAsync(agg);\n"
+            "    }\n"
+            "}\n"
+        ),
+    )
+    _create_cs_file(
+        tmp_path / "Domain" / "MyAggregate.cs",
+        "public class MyAggregate : Aggregate<MyAggregate> { }\n",
+    )
+    _create_cs_file(
+        tmp_path / "Program.cs",
+        "app.MapGrpcService<MyService>();\n",
     )
 
     result = detect_project(tmp_path)
@@ -181,17 +217,34 @@ def test_detects_command_by_event_store(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Query-sql detection by code patterns
+# Query-sql detection by behavioral patterns
 # ---------------------------------------------------------------------------
 
 
-def test_detects_query_sql_by_query_handler(tmp_path: Path) -> None:
-    """Should detect query-sql from IQueryHandler<T> pattern."""
+def test_detects_query_sql_by_event_save_behavior(tmp_path: Path) -> None:
+    """Should detect query-sql from event handler that saves to database."""
     _create_sln(tmp_path / "Test.sln")
     _create_csproj(tmp_path / "Test.csproj")
     _create_cs_file(
-        tmp_path / "Handlers" / "GetOrderHandler.cs",
-        ("public class GetOrderHandler : IQueryHandler<GetOrderQuery, OrderDto>\n{\n}\n"),
+        tmp_path / "Application" / "Features" / "Events" / "OrderCreatedHandler.cs",
+        (
+            "public class OrderCreatedHandler : IRequestHandler<Event<OrderCreatedData>, bool>\n"
+            "{\n"
+            "    private readonly IUnitOfWork _unitOfWork;\n"
+            "    public async Task<bool> Handle(\n"
+            "        Event<OrderCreatedData> @event, CancellationToken ct)\n"
+            "    {\n"
+            "        var order = new Order(@event);\n"
+            "        await _unitOfWork.Orders.AddAsync(order);\n"
+            "        await _unitOfWork.SaveChangesAsync();\n"
+            "        return true;\n"
+            "    }\n"
+            "}\n"
+        ),
+    )
+    _create_cs_file(
+        tmp_path / "Program.cs",
+        "app.MapGrpcService<OrderQueriesService>();\n",
     )
 
     result = detect_project(tmp_path)
@@ -199,17 +252,42 @@ def test_detects_query_sql_by_query_handler(tmp_path: Path) -> None:
     assert result.project_type == "query-sql"
 
 
-def test_detects_query_sql_by_request_handler_event_pattern(tmp_path: Path) -> None:
-    """Should detect query-sql from IRequestHandler<Event< pattern."""
+def test_detects_query_sql_with_servicebus_and_db(tmp_path: Path) -> None:
+    """Should detect query-sql from ServiceBus listener + DB save pattern."""
     _create_sln(tmp_path / "Test.sln")
     _create_csproj(tmp_path / "Test.csproj")
     _create_cs_file(
-        tmp_path / "Handlers" / "OrderCreatedHandler.cs",
+        tmp_path / "Application" / "Features" / "Events" / "Handler.cs",
         (
-            "public class OrderCreatedHandler :\n"
-            "    IRequestHandler<Event<OrderCreatedData>, Unit>\n"
+            "public class AccountCreatedHandler :\n"
+            "    IRequestHandler<Event<AccountCreatedData>, bool>\n"
             "{\n"
+            "    private readonly IUnitOfWork _unitOfWork;\n"
+            "    public async Task<bool> Handle(\n"
+            "        Event<AccountCreatedData> @event, CancellationToken ct)\n"
+            "    {\n"
+            "        var account = new Account(@event);\n"
+            "        await _unitOfWork.Accounts.AddAsync(account);\n"
+            "        await _unitOfWork.SaveChangesAsync();\n"
+            "        return true;\n"
+            "    }\n"
             "}\n"
+        ),
+    )
+    _create_cs_file(
+        tmp_path / "Infra" / "ServiceBus" / "Listeners" / "Listener.cs",
+        (
+            "public class CompetitionsListener : IHostedService\n"
+            "{\n"
+            "    private readonly ServiceBusSessionProcessor _processor;\n"
+            "}\n"
+        ),
+    )
+    _create_cs_file(
+        tmp_path / "Program.cs",
+        (
+            "builder.Services.RegisterServiceBus(config);\n"
+            "app.MapGrpcService<QueriesService>();\n"
         ),
     )
 
@@ -219,17 +297,52 @@ def test_detects_query_sql_by_request_handler_event_pattern(tmp_path: Path) -> N
 
 
 # ---------------------------------------------------------------------------
-# Query-cosmos detection by code patterns
+# Query-cosmos detection by behavioral patterns
 # ---------------------------------------------------------------------------
 
 
 def test_detects_query_cosmos_by_container_document(tmp_path: Path) -> None:
-    """Should detect query-cosmos from IContainerDocument interface."""
+    """Should detect query-cosmos from Cosmos DB usage + event handler saves."""
     _create_sln(tmp_path / "Test.sln")
     _create_csproj(tmp_path / "Test.csproj")
     _create_cs_file(
-        tmp_path / "Data" / "OrderDocument.cs",
+        tmp_path / "Domain" / "Entities" / "OrderDocument.cs",
         "public class OrderDocument : IContainerDocument\n{\n}\n",
+    )
+    _create_cs_file(
+        tmp_path / "Application" / "Features" / "Events" / "CardCreatedHandler.cs",
+        (
+            "public class CardCreatedHandler : IRequestHandler<Event<CardCreatedData>, bool>\n"
+            "{\n"
+            "    private readonly ICardCacheRepository _cacheRepository;\n"
+            "    public Task<bool> Handle(Event<CardCreatedData> request, CancellationToken ct)\n"
+            "    {\n"
+            "        var card = CachedCard.Create(request);\n"
+            "        _cacheRepository.Add(card);\n"
+            "        return Task.FromResult(true);\n"
+            "    }\n"
+            "}\n"
+        ),
+    )
+    _create_cs_file(
+        tmp_path / "Infra" / "Persistence" / "CosmosDbExtension.cs",
+        (
+            "public static class CosmosDbExtension\n"
+            "{\n"
+            "    public static void AddCosmosDb(this IServiceCollection services) { }\n"
+            "}\n"
+        ),
+    )
+    _create_cs_file(
+        tmp_path / "Infra" / "ServiceBus" / "Listener.cs",
+        "private readonly ServiceBusSessionProcessor _processor;\n",
+    )
+    _create_cs_file(
+        tmp_path / "Program.cs",
+        (
+            "builder.Services.UseServiceBus(config);\n"
+            "app.MapGrpcService<ReportService>();\n"
+        ),
     )
 
     result = detect_project(tmp_path)
@@ -238,24 +351,47 @@ def test_detects_query_cosmos_by_container_document(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Processor detection by code patterns
+# Processor detection by behavioral patterns
 # ---------------------------------------------------------------------------
 
 
-def test_detects_processor_by_event_publishing(tmp_path: Path) -> None:
-    """Should detect Processor when handler publishes events downstream (orchestrator pattern)."""
+def test_detects_processor_by_event_and_grpc_forwarding(tmp_path: Path) -> None:
+    """Should detect Processor when handler receives events and calls other gRPC services."""
     _create_sln(tmp_path / "Test.sln")
     _create_csproj(tmp_path / "Test.csproj")
     _create_cs_file(
-        tmp_path / "Handlers" / "OrderEventHandler.cs",
+        tmp_path / "Application" / "Features" / "AccountEvents" / "AccountConfirmedHandler.cs",
         (
-            "public class OrderEventHandler : IRequestHandler<Event<OrderCreatedData>, bool>\n"
+            "public class AccountConfirmedHandler :\n"
+            "    IRequestHandler<Event<AccountConfirmedData>, bool>\n"
             "{\n"
-            "    private readonly IServiceBusPublisher _publisher;\n"
-            "    public async Task Handle(Event<OrderCreatedData> ev) {\n"
-            "        await _publisher.SendMessageAsync(new Message());\n"
+            "    private readonly AccountCommandsClient _accountCommandsClient;\n"
+            "    public async Task<bool> Handle(\n"
+            "        Event<AccountConfirmedData> @event, CancellationToken ct)\n"
+            "    {\n"
+            "        await _accountCommandsClient.CreateFromGatewayAsync(new CreateRequest());\n"
+            "        return true;\n"
             "    }\n"
             "}\n"
+        ),
+    )
+    _create_cs_file(
+        tmp_path / "Setup" / "ExternalServicesRegistration.cs",
+        (
+            "services.AddGrpcClient<AccountCommandsClient>((provider, configure) => {});\n"
+            "services.AddGrpcClient<AccountQueriesClient>((provider, configure) => {});\n"
+        ),
+    )
+    _create_cs_file(
+        tmp_path / "Infra" / "ServiceBus" / "Client.cs",
+        "public ServiceBusClient Client { get; }\n",
+    )
+    _create_cs_file(
+        tmp_path / "Program.cs",
+        (
+            "builder.Services.RegisterServiceBus(config);\n"
+            "builder.Services.RegisterExternalServices(config);\n"
+            "app.MapGrpcService<ProcessorService>();\n"
         ),
     )
 
@@ -264,31 +400,40 @@ def test_detects_processor_by_event_publishing(tmp_path: Path) -> None:
     assert result.project_type == "processor"
 
 
-def test_detects_processor_by_grpc_command_forwarding(tmp_path: Path) -> None:
-    """Should detect Processor when handler forwards to command services via gRPC."""
+def test_detects_processor_by_event_publishing(tmp_path: Path) -> None:
+    """Should detect Processor when handler publishes events downstream (orchestrator pattern)."""
     _create_sln(tmp_path / "Test.sln")
     _create_csproj(tmp_path / "Test.csproj")
     _create_cs_file(
-        tmp_path / "Handlers" / "AccountHandler.cs",
+        tmp_path / "Application" / "Features" / "PointsExchange" / "Handler.cs",
         (
-            "public class AccountHandler : IRequestHandler<Event<AccountData>, bool>\n"
+            "public class PointsExchangeHandler : IRequestHandler<Event<PointsData>, bool>\n"
             "{\n"
-            "    private readonly AccountCommandsClient _commandsClient;\n"
-            "    public async Task Handle(Event<AccountData> ev) {\n"
-            "        await _commandsClient.ConfirmAccountAsync(new ConfirmRequest());\n"
+            "    private readonly IServiceBusPublisher _publisher;\n"
+            "    public async Task<bool> Handle(Event<PointsData> ev, CancellationToken ct) {\n"
+            "        await _publisher.StartPublish(new Message());\n"
+            "        return true;\n"
             "    }\n"
             "}\n"
         ),
     )
+    _create_cs_file(
+        tmp_path / "Program.cs",
+        "app.MapGrpcService<ProcessorService>();\n",
+    )
+
+    result = detect_project(tmp_path)
+    assert result.mode == "microservice"
+    assert result.project_type == "processor"
 
 
 # ---------------------------------------------------------------------------
-# Gateway detection by code patterns
+# Gateway detection by behavioral patterns
 # ---------------------------------------------------------------------------
 
 
-def test_detects_gateway_by_controller_and_client_protos(tmp_path: Path) -> None:
-    """Should detect Gateway from REST Controllers + gRPC client-only protos."""
+def test_detects_gateway_by_controller_and_grpc_clients(tmp_path: Path) -> None:
+    """Should detect Gateway from REST Controllers + gRPC clients (no ServiceBus)."""
     _create_sln(tmp_path / "Test.sln")
     _create_csproj(tmp_path / "Test.csproj")
     _create_cs_file(
@@ -297,13 +442,13 @@ def test_detects_gateway_by_controller_and_client_protos(tmp_path: Path) -> None
     )
     _create_cs_file(
         tmp_path / "Program.cs",
-        'app.MapControllers();\n',
-    )
-    # gRPC client-only proto reference in csproj
-    (tmp_path / "Protos").mkdir()
-    _create_cs_file(
-        tmp_path / "Protos" / "order.cs",
-        'GrpcServices="Client"\n',
+        (
+            "builder.Services.AddControllersWithConfigurations();\n"
+            "builder.Services.AddGrpcClients(builder.Configuration);\n"
+            "builder.Services.AddSwaggerApiDocumentation(builder.Environment);\n"
+            "builder.Services.AddJwtAuthentication(builder.Configuration);\n"
+            "app.MapControllersWithAuthorization();\n"
+        ),
     )
 
     result = detect_project(tmp_path)
@@ -311,7 +456,7 @@ def test_detects_gateway_by_controller_and_client_protos(tmp_path: Path) -> None
     assert result.project_type == "gateway"
 
 
-def test_detects_gateway_by_controller_and_grpc(tmp_path: Path) -> None:
+def test_detects_gateway_by_controller_and_addgrpcclient(tmp_path: Path) -> None:
     """Should detect Gateway from REST Controllers + AddGrpcClient<."""
     _create_sln(tmp_path / "Test.sln")
     _create_csproj(tmp_path / "Test.csproj")
@@ -320,8 +465,16 @@ def test_detects_gateway_by_controller_and_grpc(tmp_path: Path) -> None:
         "[ApiController]\npublic class OrderController : ControllerBase\n{\n}\n",
     )
     _create_cs_file(
+        tmp_path / "GrpcClients" / "Registration.cs",
+        "services.AddGrpcClient<OrderService.OrderServiceClient>();\n",
+    )
+    _create_cs_file(
         tmp_path / "Program.cs",
-        "builder.Services.AddGrpcClient<OrderService.OrderServiceClient>();\n",
+        (
+            "builder.Services.AddControllers();\n"
+            "builder.Services.AddGrpcClients(config);\n"
+            "app.MapControllers();\n"
+        ),
     )
 
     result = detect_project(tmp_path)
@@ -337,8 +490,10 @@ def test_detects_gateway_by_yarp(tmp_path: Path) -> None:
     _create_cs_file(
         tmp_path / "Program.cs",
         (
+            "builder.Services.AddControllers();\n"
             "builder.Services.AddReverseProxy()\n"
             '    .LoadFromConfig(builder.Configuration.GetSection("ReverseProxy"));\n'
+            "app.MapControllers();\n"
         ),
     )
 
@@ -359,10 +514,6 @@ def test_detects_controlpanel_by_blazor(tmp_path: Path) -> None:
     _create_cs_file(
         tmp_path / "Pages" / "Orders.razor",
         '@page "/orders"\n<h1>Orders</h1>\n',
-    )
-    _create_cs_file(
-        tmp_path / "Services" / "OrderService.cs",
-        "public ResponseResult<OrderDto> GetOrders() { }\n",
     )
 
     result = detect_project(tmp_path)
@@ -385,42 +536,56 @@ def test_detects_controlpanel_blazor_only(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Hybrid detection (both command + query patterns strong)
+# Hybrid detection (both command + query behavioral patterns)
 # ---------------------------------------------------------------------------
 
 
 def test_detects_hybrid_command_and_query(tmp_path: Path) -> None:
-    """Should detect hybrid when both command and query patterns are strong."""
+    """Should detect hybrid when both command and query behavioral patterns are strong."""
     _create_sln(tmp_path / "Test.sln")
     _create_csproj(tmp_path / "Test.csproj")
 
-    # Strong command signals: aggregate + command handler + event store
+    # Command behavior: receives commands, manipulates domain, commits events
     _create_cs_file(
-        tmp_path / "Domain" / "Order.cs",
-        "public class Order : Aggregate<OrderId>\n{\n}\n",
-    )
-    _create_cs_file(
-        tmp_path / "Handlers" / "CreateOrderHandler.cs",
-        ("public class CreateOrderHandler : ICommandHandler<CreateOrderCommand>\n{\n}\n"),
-    )
-
-    # Strong query signals: query handler + request handler event pattern + hosted service
-    _create_cs_file(
-        tmp_path / "Queries" / "GetOrderHandler.cs",
-        ("public class GetOrderHandler : IQueryHandler<GetOrderQuery, OrderDto>\n{\n}\n"),
-    )
-    _create_cs_file(
-        tmp_path / "Queries" / "OrderCreatedHandler.cs",
+        tmp_path / "Application" / "Commands" / "CreateOrderHandler.cs",
         (
-            "public class OrderCreatedHandler :\n"
-            "    IRequestHandler<Event<OrderCreatedData>, Unit>\n"
+            "public class CreateOrderHandler : IRequestHandler<CreateOrderCommand>\n"
             "{\n"
+            "    public async Task Handle(CreateOrderCommand cmd, CancellationToken ct) {\n"
+            "        var events = await _repo.GetAllByAggregateIdAsync(cmd.Id, ct);\n"
+            "        var order = Order.Rebuild(events);\n"
+            "        order.Create(cmd);\n"
+            "        await _commitEventsService.CommitNewEventsAsync(order);\n"
+            "    }\n"
             "}\n"
         ),
     )
     _create_cs_file(
-        tmp_path / "Workers" / "ProjectionWorker.cs",
-        ("public class ProjectionWorker : BackgroundService\n{\n}\n"),
+        tmp_path / "Domain" / "Order.cs",
+        "public class Order : Aggregate<Order> { }\n",
+    )
+
+    # Query behavior: receives events, saves to DB
+    _create_cs_file(
+        tmp_path / "Application" / "Events" / "OrderCreatedHandler.cs",
+        (
+            "public class OrderCreatedHandler :\n"
+            "    IRequestHandler<Event<OrderCreatedData>, bool>\n"
+            "{\n"
+            "    public async Task<bool> Handle(\n"
+            "        Event<OrderCreatedData> ev, CancellationToken ct) {\n"
+            "        var order = new OrderReadModel(ev);\n"
+            "        await _unitOfWork.Orders.AddAsync(order);\n"
+            "        await _unitOfWork.SaveChangesAsync();\n"
+            "        return true;\n"
+            "    }\n"
+            "}\n"
+        ),
+    )
+
+    _create_cs_file(
+        tmp_path / "Program.cs",
+        "app.MapGrpcService<OrderService>();\n",
     )
 
     result = detect_project(tmp_path)
@@ -436,7 +601,7 @@ def test_detects_hybrid_command_and_query(tmp_path: Path) -> None:
 
 
 def test_detection_without_naming_hints(tmp_path: Path) -> None:
-    """Should detect project type from code patterns even with generic naming."""
+    """Should detect project type from behavioral patterns even with generic naming."""
     project_dir = tmp_path / "MyProject"
     project_dir.mkdir()
     _create_sln(project_dir / "MyProject.sln")
@@ -444,6 +609,23 @@ def test_detection_without_naming_hints(tmp_path: Path) -> None:
     _create_cs_file(
         project_dir / "src" / "MyProject" / "Domain" / "Order.cs",
         "public class Order : Aggregate<OrderId>\n{\n}\n",
+    )
+    _create_cs_file(
+        project_dir / "src" / "MyProject" / "Application" / "Handlers" / "CreateHandler.cs",
+        (
+            "public class CreateHandler : IRequestHandler<CreateOrderCommand>\n"
+            "{\n"
+            "    public async Task Handle(CreateOrderCommand cmd, CancellationToken ct) {\n"
+            "        var events = await _repo.GetAllByAggregateIdAsync(cmd.Id, ct);\n"
+            "        var order = Order.Rebuild(events);\n"
+            "        await _commitEventsService.CommitNewEventsAsync(order);\n"
+            "    }\n"
+            "}\n"
+        ),
+    )
+    _create_cs_file(
+        project_dir / "src" / "MyProject" / "Program.cs",
+        "app.MapGrpcService<OrderService>();\n",
     )
 
     result = detect_project(project_dir)
@@ -456,44 +638,42 @@ def test_detection_without_naming_hints(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_high_confidence_with_multiple_signals(tmp_path: Path) -> None:
-    """Multiple strong signals should produce high confidence."""
+def test_high_confidence_with_multiple_layers(tmp_path: Path) -> None:
+    """All 3 layers agreeing should produce high confidence."""
     _create_sln(tmp_path / "Test.sln")
     _create_csproj(tmp_path / "Test.csproj")
-    # Multiple high-confidence command signals
+    # Layer 1: Program.cs with gRPC (no ServiceBus)
+    _create_cs_file(
+        tmp_path / "Program.cs",
+        "app.MapGrpcService<OrderService>();\n",
+    )
+    # Layer 2: Command handlers with domain manipulation
+    _create_cs_file(
+        tmp_path / "Application" / "Handlers" / "CreateOrderHandler.cs",
+        (
+            "public class CreateOrderHandler : IRequestHandler<CreateOrderCommand>\n"
+            "{\n"
+            "    public async Task Handle(CreateOrderCommand cmd, CancellationToken ct) {\n"
+            "        var events = await _repo.GetAllByAggregateIdAsync(cmd.Id, ct);\n"
+            "        await _commitEventsService.CommitNewEventsAsync(order);\n"
+            "    }\n"
+            "}\n"
+        ),
+    )
+    # Layer 3: Domain layer with aggregates
     _create_cs_file(
         tmp_path / "Domain" / "Order.cs",
         "public class Order : Aggregate<OrderId>\n{\n}\n",
     )
     _create_cs_file(
-        tmp_path / "Handlers" / "CreateOrderHandler.cs",
-        "public class CreateOrderHandler : ICommandHandler<CreateOrderCommand> { }\n",
-    )
-    _create_cs_file(
-        tmp_path / "Infrastructure" / "EventStore.cs",
-        "private readonly IEventStore _store;\n",
-    )
-    _create_cs_file(
         tmp_path / "Domain" / "Events" / "OrderCreated.cs",
         "public class OrderCreated : DomainEvent { }\n",
-    )
-    _create_cs_file(
-        tmp_path / "Infrastructure" / "Outbox.cs",
-        "public class OutboxMessage { }\n",
-    )
-    _create_cs_file(
-        tmp_path / "Infrastructure" / "CommitService.cs",
-        "public class CommitService : ICommitEventService { }\n",
-    )
-    _create_cs_file(
-        tmp_path / "Program.cs",
-        "app.MapGrpcService<OrderCommandService>();\n",
     )
 
     result = detect_project(tmp_path)
     assert result.project_type == "command"
     assert result.confidence == "high"
-    assert result.confidence_score > 0.8
+    assert result.confidence_score > 0.7
 
 
 def test_low_confidence_with_weak_signals(tmp_path: Path) -> None:
@@ -507,7 +687,7 @@ def test_low_confidence_with_weak_signals(tmp_path: Path) -> None:
     )
 
     result = detect_project(tmp_path)
-    # Low-weight signal — may result in low confidence
+    # No behavioral patterns -> generic -> low confidence
     assert result.confidence_score <= 0.5
 
 
@@ -543,10 +723,10 @@ def test_display_detection_summary_output(
         confidence_score=0.85,
         top_signals=[
             {
-                "pattern_name": "AggregateRoot base class",
+                "pattern_name": "Handlers manipulate domain aggregates",
                 "signal_type": "code-pattern",
                 "confidence": "high",
-                "evidence": "Order.cs: public class Order : Aggregate<OrderId>",
+                "evidence": "Load events -> rebuild aggregate -> call method -> commit pattern",
                 "is_negative": False,
             },
         ],
@@ -565,7 +745,7 @@ def test_display_detection_summary_output(
     assert "command" in output
     assert "microservice" in output
     assert "10.0" in output
-    assert "AggregateRoot base class" in output
+    assert "Handlers manipulate domain aggregates" in output
 
 
 # ---------------------------------------------------------------------------
@@ -637,7 +817,7 @@ def test_multi_project_solution(tmp_path: Path) -> None:
     _create_csproj(tmp_path / "src" / "Api" / "Api.csproj")
     _create_csproj(tmp_path / "src" / "Infrastructure" / "Infrastructure.csproj")
 
-    # Command patterns in domain project
+    # Command behavioral patterns in domain project
     _create_cs_file(
         tmp_path / "src" / "Domain" / "Aggregates" / "Order.cs",
         "public class Order : Aggregate<OrderId>\n{\n}\n",
@@ -647,8 +827,20 @@ def test_multi_project_solution(tmp_path: Path) -> None:
         "public class OrderCreated : DomainEvent\n{\n}\n",
     )
     _create_cs_file(
-        tmp_path / "src" / "Infrastructure" / "EventStore.cs",
-        "private readonly IEventStore _store;\n",
+        tmp_path / "src" / "Api" / "Handlers" / "CreateHandler.cs",
+        (
+            "public class CreateHandler : IRequestHandler<CreateOrderCommand>\n"
+            "{\n"
+            "    public async Task Handle(CreateOrderCommand cmd, CancellationToken ct) {\n"
+            "        var events = await _repo.GetAllByAggregateIdAsync(cmd.Id, ct);\n"
+            "        await _commitEventsService.CommitNewEventsAsync(order);\n"
+            "    }\n"
+            "}\n"
+        ),
+    )
+    _create_cs_file(
+        tmp_path / "src" / "Api" / "Program.cs",
+        "app.MapGrpcService<OrderService>();\n",
     )
 
     result = detect_project(tmp_path)
@@ -691,148 +883,144 @@ def test_generic_fallback_with_plain_code(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Naming signals (supplementary, not primary)
+# Layer 1: Program.cs configuration analysis
 # ---------------------------------------------------------------------------
 
 
-def test_name_signals_supplement_code_patterns(tmp_path: Path) -> None:
-    """Naming signals should supplement code patterns, not override them."""
-    project_dir = tmp_path / "Acme.Order.Queries"
-    project_dir.mkdir()
-    _create_sln(project_dir / "Acme.Order.Queries.sln")
-    _create_csproj(project_dir / "src" / "Data" / "Data.csproj")
+def test_program_config_detects_grpc(tmp_path: Path) -> None:
+    """_analyze_program_config should detect gRPC service mapping."""
     _create_cs_file(
-        project_dir / "src" / "Data" / "OrderDocument.cs",
-        "public class OrderDocument : IContainerDocument\n{\n}\n",
+        tmp_path / "Program.cs",
+        (
+            "app.MapGrpcService<OrderService>();\n"
+            "app.MapGrpcService<AccountService>();\n"
+        ),
     )
-
-    result = detect_project(project_dir)
-    assert result.mode == "microservice"
-    # IContainerDocument (high) should beat the .Queries naming signal (medium)
-    assert result.project_type == "query-cosmos"
+    config = _analyze_program_config(tmp_path)
+    assert config.serves_grpc is True
+    assert config.serves_grpc_count == 2
 
 
-def test_naming_signals_returned(tmp_path: Path) -> None:
-    """_detect_from_name should return DetectionSignal objects with signal_type='naming'."""
-    from dotnet_ai_kit.detection import _detect_from_name
+def test_program_config_detects_rest(tmp_path: Path) -> None:
+    """_analyze_program_config should detect REST controller mapping."""
+    _create_cs_file(
+        tmp_path / "Program.cs",
+        "app.MapControllers();\n",
+    )
+    config = _analyze_program_config(tmp_path)
+    assert config.serves_rest is True
 
-    project_dir = tmp_path / "Acme.Order.Commands"
-    project_dir.mkdir()
-    _create_sln(project_dir / "Acme.Order.Commands.sln")
-    csproj = project_dir / "src" / "App" / "App.csproj"
-    _create_csproj(csproj)
 
-    signals = _detect_from_name(project_dir, [csproj])
-    assert len(signals) >= 1
-    assert all(s.signal_type == "naming" for s in signals)
-    assert any(s.target_project_type == "command" for s in signals)
+def test_program_config_detects_servicebus(tmp_path: Path) -> None:
+    """_analyze_program_config should detect ServiceBus registration."""
+    _create_cs_file(
+        tmp_path / "Program.cs",
+        "builder.Services.RegisterServiceBus(config);\n",
+    )
+    config = _analyze_program_config(tmp_path)
+    assert config.has_service_bus is True
+
+
+def test_program_config_detects_grpc_clients(tmp_path: Path) -> None:
+    """_analyze_program_config should detect gRPC client registration."""
+    _create_cs_file(
+        tmp_path / "Setup" / "ExternalServices.cs",
+        "services.AddGrpcClient<OrderService.Client>();\n",
+    )
+    config = _analyze_program_config(tmp_path)
+    assert config.has_grpc_clients is True
 
 
 # ---------------------------------------------------------------------------
-# Structural signals
+# Layer 2: Handler behavior analysis
 # ---------------------------------------------------------------------------
 
 
-def test_structural_signals_returned(tmp_path: Path) -> None:
-    """_detect_generic should return DetectionSignal objects with signal_type='structural'."""
-    from dotnet_ai_kit.detection import _detect_generic
+def test_handler_behavior_detects_command_pattern(tmp_path: Path) -> None:
+    """_analyze_handler_behavior should detect command receipt + domain manipulation."""
+    _create_cs_file(
+        tmp_path / "Application" / "Handlers" / "CreateHandler.cs",
+        (
+            "public class CreateHandler : IRequestHandler<CreateOrderCommand>\n"
+            "{\n"
+            "    public async Task Handle(CreateOrderCommand cmd, CancellationToken ct) {\n"
+            "        var events = await _repo.GetAllByAggregateIdAsync(cmd.Id, ct);\n"
+            "        var order = Aggregate<Order>.Rebuild(events);\n"
+            "        await _commitEventsService.CommitNewEventsAsync(order);\n"
+            "    }\n"
+            "}\n"
+        ),
+    )
+    behavior = _analyze_handler_behavior(tmp_path)
+    assert behavior.receives_commands is True
+    assert behavior.manipulates_domain is True
 
+
+def test_handler_behavior_detects_event_save_pattern(tmp_path: Path) -> None:
+    """_analyze_handler_behavior should detect event receipt + DB save."""
+    _create_cs_file(
+        tmp_path / "Application" / "Features" / "Events" / "Handler.cs",
+        (
+            "public class Handler :\n"
+            "    IRequestHandler<Event<OrderCreatedData>, bool>\n"
+            "{\n"
+            "    public async Task<bool> Handle(\n"
+            "        Event<OrderCreatedData> ev, CancellationToken ct) {\n"
+            "        await _unitOfWork.SaveChangesAsync();\n"
+            "        return true;\n"
+            "    }\n"
+            "}\n"
+        ),
+    )
+    behavior = _analyze_handler_behavior(tmp_path)
+    assert behavior.receives_events is True
+    assert behavior.saves_to_database is True
+
+
+def test_handler_behavior_detects_service_calls(tmp_path: Path) -> None:
+    """_analyze_handler_behavior should detect outbound gRPC calls."""
+    _create_cs_file(
+        tmp_path / "Application" / "Handlers" / "Handler.cs",
+        (
+            "public class Handler : IRequestHandler<Event<Data>, bool>\n"
+            "{\n"
+            "    private readonly AccountCommandsClient _accountCommandsClient;\n"
+            "    public async Task<bool> Handle(Event<Data> ev, CancellationToken ct) {\n"
+            "        await _accountCommandsClient.CreateAsync(new Req());\n"
+            "        return true;\n"
+            "    }\n"
+            "}\n"
+        ),
+    )
+    behavior = _analyze_handler_behavior(tmp_path)
+    assert behavior.receives_events is True
+    assert behavior.calls_other_services is True
+
+
+# ---------------------------------------------------------------------------
+# Layer 3: Project structure analysis
+# ---------------------------------------------------------------------------
+
+
+def test_structure_detects_domain_layer(tmp_path: Path) -> None:
+    """_analyze_project_structure should detect Domain/ directory."""
     (tmp_path / "Domain").mkdir()
     (tmp_path / "Application").mkdir()
     (tmp_path / "Infrastructure").mkdir()
 
-    signals = _detect_generic(tmp_path)
-    assert len(signals) >= 1
-    assert all(s.signal_type == "structural" for s in signals)
-    assert any(s.target_project_type == "clean-arch" for s in signals)
+    structure = _analyze_project_structure(tmp_path, [])
+    assert structure.has_domain_layer is True
+    assert structure.layer_count >= 3
 
 
-# ---------------------------------------------------------------------------
-# Score candidates
-# ---------------------------------------------------------------------------
+def test_structure_detects_controllers(tmp_path: Path) -> None:
+    """_analyze_project_structure should detect Controllers/ directory."""
+    (tmp_path / "Controllers").mkdir()
+    (tmp_path / "GrpcClients").mkdir()
 
-
-def test_score_candidates_aggregation(tmp_path: Path) -> None:
-    """_score_candidates should aggregate positive and negative signal weights."""
-    from dotnet_ai_kit.models import DetectionSignal
-
-    signals = [
-        DetectionSignal(
-            pattern_name="AggregateRoot base class",
-            signal_type="code-pattern",
-            target_project_type="command",
-            confidence="high",
-            weight=3,
-            is_negative=False,
-        ),
-        DetectionSignal(
-            pattern_name="ICommandHandler",
-            signal_type="code-pattern",
-            target_project_type="command",
-            confidence="high",
-            weight=3,
-            is_negative=False,
-        ),
-        DetectionSignal(
-            pattern_name="Query handler in command project",
-            signal_type="code-pattern",
-            target_project_type="command",
-            confidence="medium",
-            weight=2,
-            is_negative=True,
-        ),
-    ]
-
-    cards = _score_candidates(signals)
-    assert "command" in cards
-    card = cards["command"]
-    assert card.positive_score == 6.0
-    assert card.negative_score == 2.0
-    assert card.net_score == 4.0
-    assert card.signal_count == 3
-
-
-# ---------------------------------------------------------------------------
-# Classify project
-# ---------------------------------------------------------------------------
-
-
-def test_classify_picks_highest_net_score(tmp_path: Path) -> None:
-    """_classify_project should pick the candidate with highest net score."""
-    from dotnet_ai_kit.models import DetectionSignal
-
-    signals = [
-        DetectionSignal(
-            pattern_name="AggregateRoot base class",
-            signal_type="code-pattern",
-            target_project_type="command",
-            confidence="high",
-            weight=3,
-            is_negative=False,
-        ),
-        DetectionSignal(
-            pattern_name="API Controller",
-            signal_type="code-pattern",
-            target_project_type="gateway",
-            confidence="medium",
-            weight=2,
-            is_negative=False,
-        ),
-    ]
-
-    cards = _score_candidates(signals)
-    mode, ptype, conf_label, conf_score, top = _classify_project(cards, signals, tmp_path)
-    assert ptype == "command"
-    assert mode == "microservice"
-
-
-def test_classify_empty_scorecards_gives_generic(tmp_path: Path) -> None:
-    """Empty scorecards should result in generic classification."""
-    mode, ptype, conf_label, conf_score, top = _classify_project({}, [], tmp_path)
-    assert ptype == "generic"
-    assert mode == "generic"
-    assert conf_label == "low"
-    assert conf_score == 0.0
+    structure = _analyze_project_structure(tmp_path, [])
+    assert structure.has_controllers_dir is True
+    assert structure.has_grpc_clients_dir is True
 
 
 # ---------------------------------------------------------------------------
@@ -871,34 +1059,37 @@ def test_describe_architecture_all_types() -> None:
 
 
 # ---------------------------------------------------------------------------
-# Negative signal impact
+# Confidence scoring
 # ---------------------------------------------------------------------------
 
 
-def test_negative_signals_reduce_score(tmp_path: Path) -> None:
-    """Negative signals should reduce the net score for their target type."""
+def test_confidence_score_between_zero_and_one(tmp_path: Path) -> None:
+    """confidence_score should always be between 0.0 and 1.0."""
     _create_sln(tmp_path / "Test.sln")
     _create_csproj(tmp_path / "Test.csproj")
-
-    # Gateway positive signal
     _create_cs_file(
-        tmp_path / "Controllers" / "OrderController.cs",
-        "[ApiController]\npublic class OrderController : ControllerBase { }\n",
+        tmp_path / "Domain" / "Order.cs",
+        "public class Order : Aggregate<OrderId>\n{\n}\n",
     )
-    # Gateway negative signal (direct DB access)
     _create_cs_file(
-        tmp_path / "Data" / "Context.cs",
-        "public class AppDbContext : DbContext { }\n",
+        tmp_path / "Application" / "Handlers" / "Handler.cs",
+        (
+            "public class H : IRequestHandler<CreateOrderCommand>\n"
+            "{\n"
+            "    public async Task Handle(CreateOrderCommand cmd, CancellationToken ct) {\n"
+            "        var events = await _repo.GetAllByAggregateIdAsync(cmd.Id, ct);\n"
+            "        await _commitEventsService.CommitNewEventsAsync(order);\n"
+            "    }\n"
+            "}\n"
+        ),
+    )
+    _create_cs_file(
+        tmp_path / "Program.cs",
+        "app.MapGrpcService<OrderService>();\n",
     )
 
-    csproj_files = list(tmp_path.rglob("*.csproj"))
-    signals = _collect_signals(tmp_path, csproj_files)
-    cards = _score_candidates(signals)
-
-    if "gateway" in cards:
-        card = cards["gateway"]
-        assert card.negative_score > 0
-        assert card.net_score < card.positive_score
+    result = detect_project(tmp_path)
+    assert 0.0 <= result.confidence_score <= 1.0
 
 
 # ---------------------------------------------------------------------------
@@ -911,26 +1102,26 @@ def test_top_signals_limited_to_three(tmp_path: Path) -> None:
     _create_sln(tmp_path / "Test.sln")
     _create_csproj(tmp_path / "Test.csproj")
 
-    # Create many command signals
+    # Create many signals from a command project
     _create_cs_file(
         tmp_path / "Domain" / "Order.cs",
         "public class Order : Aggregate<OrderId>\n{\n}\n",
     )
     _create_cs_file(
-        tmp_path / "Handlers" / "Handler.cs",
-        "public class H : ICommandHandler<Cmd> { }\n",
+        tmp_path / "Application" / "Handlers" / "Handler.cs",
+        (
+            "public class H : IRequestHandler<CreateOrderCommand>\n"
+            "{\n"
+            "    public async Task Handle(CreateOrderCommand cmd, CancellationToken ct) {\n"
+            "        var events = await _repo.GetAllByAggregateIdAsync(cmd.Id, ct);\n"
+            "        await _commitEventsService.CommitNewEventsAsync(order);\n"
+            "    }\n"
+            "}\n"
+        ),
     )
     _create_cs_file(
-        tmp_path / "Events" / "Event.cs",
-        "public class E : DomainEvent { }\n",
-    )
-    _create_cs_file(
-        tmp_path / "Infrastructure" / "Outbox.cs",
-        "public class OutboxMessage { }\n",
-    )
-    _create_cs_file(
-        tmp_path / "Infrastructure" / "Store.cs",
-        "private readonly IEventStore _store;\n",
+        tmp_path / "Program.cs",
+        "app.MapGrpcService<OrderService>();\n",
     )
 
     result = detect_project(tmp_path)
@@ -938,18 +1129,26 @@ def test_top_signals_limited_to_three(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Confidence score normalization
+# Test exclusion of test directories
 # ---------------------------------------------------------------------------
 
 
-def test_confidence_score_between_zero_and_one(tmp_path: Path) -> None:
-    """confidence_score should always be between 0.0 and 1.0."""
+def test_excludes_test_directories(tmp_path: Path) -> None:
+    """Signals from test directories should be excluded."""
     _create_sln(tmp_path / "Test.sln")
     _create_csproj(tmp_path / "Test.csproj")
+
+    # Only put query patterns in a test directory
     _create_cs_file(
-        tmp_path / "Domain" / "Order.cs",
-        "public class Order : Aggregate<OrderId>\n{\n}\n",
+        tmp_path / "Tests" / "TestHandlers" / "Handler.cs",
+        (
+            "public class Handler : IRequestHandler<Event<TestData>, bool>\n"
+            "{\n"
+            "    await _unitOfWork.SaveChangesAsync();\n"
+            "}\n"
+        ),
     )
 
     result = detect_project(tmp_path)
-    assert 0.0 <= result.confidence_score <= 1.0
+    # Should be generic since the only signals are in test dirs
+    assert result.project_type == "generic"

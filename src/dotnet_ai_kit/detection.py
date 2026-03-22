@@ -1,28 +1,28 @@
 """Project type detection algorithm for dotnet-ai-kit.
 
-Detects .NET project type, architecture mode, and conventions by scanning
-solution/project files and source code for known patterns.
+Uses 3-layer behavioral analysis instead of keyword matching:
+  Layer 1: Program.cs / Startup configuration analysis
+  Layer 2: Handler behavior analysis (input/processing/output patterns)
+  Layer 3: Project structure analysis (folder layout)
 
-Uses a signal-based scoring system where code patterns are the primary signal
-and naming conventions are supplementary.
+Classification is deterministic: rules are checked in order, first match wins.
 """
 
 from __future__ import annotations
 
 import re
 import xml.etree.ElementTree as ET
+from dataclasses import dataclass
 from pathlib import Path
 from typing import Optional
 
 from rich.console import Console
 from rich.panel import Panel
-from rich.progress import Progress, SpinnerColumn, TextColumn
 from rich.table import Table
 
 from dotnet_ai_kit.models import (
     _CONFIDENCE_WEIGHTS,
     DetectedProject,
-    DetectionScoreCard,
     DetectionSignal,
 )
 
@@ -32,311 +32,809 @@ class DetectionError(Exception):
 
 
 # ---------------------------------------------------------------------------
-# Signal pattern registry
+# Layer 1: Program.cs / Startup Configuration Analysis
 # ---------------------------------------------------------------------------
 
-# Each entry: (pattern_name, regex, target_project_type, signal_type,
-#               confidence, is_negative)
 
-_SIGNAL_PATTERNS: list[tuple[str, str, str, str, str, bool]] = [
-    # ── Command-side positive signals ──────────────────────────────────────
-    (
-        "AggregateRoot base class",
-        r"class\s+\w+\s*:\s*.*(?:Aggregate<|AggregateRoot)",
-        "command",
-        "code-pattern",
-        "high",
-        False,
-    ),
-    (
-        "ICommandHandler pattern",
-        r"ICommandHandler<",
-        "command",
-        "code-pattern",
-        "high",
-        False,
-    ),
-    (
-        "Domain event classes",
-        r"(?::\s*(?:DomainEvent|Event<\w)|class\s+\w+.*DomainEvent|INotification)",
-        "command",
-        "code-pattern",
-        "medium",
-        False,
-    ),
-    (
-        "Event publishing",
-        r"(?:IMediator\s*\.\s*Publish|IEventBus|OutboxMessage)",
-        "command",
-        "code-pattern",
-        "medium",
-        False,
-    ),
-    (
-        "Event store",
-        r"(?:IEventStore|EventStoreClient)",
-        "command",
-        "code-pattern",
-        "high",
-        False,
-    ),
-    # ── Command-side additional signals ───────────────────────────────────
-    (
-        "ICommitEventService (event commit)",
-        r"ICommitEventService",
-        "command",
-        "code-pattern",
-        "high",
-        False,
-    ),
-    (
-        "MapGrpcService (gRPC server, command)",
-        r"MapGrpcService<",
-        "command",
-        "code-pattern",
-        "medium",
-        False,
-    ),
-    # ── Command-side negative signal ───────────────────────────────────────
-    (
-        "Query handler in command project",
-        r"IQueryHandler<",
-        "command",
-        "code-pattern",
-        "medium",
-        True,
-    ),
-    # ── Query-sql positive signals ─────────────────────────────────────────
-    (
-        "IRequestHandler<Event< pattern (query)",
-        r"IRequestHandler<.*Event<",
-        "query-sql",
-        "code-pattern",
-        "medium",
-        False,
-    ),
-    (
-        "IQueryHandler pattern",
-        r"IQueryHandler<",
-        "query-sql",
-        "code-pattern",
-        "high",
-        False,
-    ),
-    (
-        "MapGrpcService (gRPC server, query)",
-        r"MapGrpcService<",
-        "query-sql",
-        "code-pattern",
-        "medium",
-        False,
-    ),
-    # ── Query-sql negative signals ─────────────────────────────────────────
-    (
-        "Aggregate in query project",
-        r"class\s+\w+\s*:\s*.*(?:Aggregate<|AggregateRoot)",
-        "query-sql",
-        "code-pattern",
-        "medium",
-        True,
-    ),
-    (
-        "Event publishing in query project",
-        r"(?:IMediator\s*\.\s*Publish|IEventBus|OutboxMessage)",
-        "query-sql",
-        "code-pattern",
-        "medium",
-        True,
-    ),
-    # ── Query-cosmos positive signal ───────────────────────────────────────
-    (
-        "IContainerDocument interface",
-        r"IContainerDocument",
-        "query-cosmos",
-        "code-pattern",
-        "high",
-        False,
-    ),
-    # ── Query-cosmos negative signals ──────────────────────────────────────
-    (
-        "Aggregate in cosmos query project",
-        r"class\s+\w+\s*:\s*.*(?:Aggregate<|AggregateRoot)",
-        "query-cosmos",
-        "code-pattern",
-        "medium",
-        True,
-    ),
-    (
-        "Event publishing in cosmos query project",
-        r"(?:IMediator\s*\.\s*Publish|IEventBus|OutboxMessage)",
-        "query-cosmos",
-        "code-pattern",
-        "medium",
-        True,
-    ),
-    # ── Processor positive signals ─────────────────────────────────────────
-    # NOTE: IHostedService and ServiceBusProcessor exist in BOTH query and
-    # processor projects. The REAL processor signal is what the handler DOES:
-    #   Processor handler: receives event → REDIRECTS to another service via
-    #     gRPC or PUBLISHES to a queue/topic (event orchestrator/router).
-    #   Query handler: receives event → SAVES data locally (may GET via gRPC
-    #     to enrich, but the purpose is local storage).
-    #
-    # So processor signals focus on OUTBOUND actions from handlers:
-    (
-        "Event publishing downstream (processor orchestrator)",
-        r"(?:IServiceBusPublisher|IPointsPublisher|IEventPublisher|IMessagePublisher)",
-        "processor",
-        "code-pattern",
-        "high",
-        False,
-    ),
-    (
-        "Sends messages to queue/topic (processor routing)",
-        r"(?:SendMessageAsync|SendAsync|PublishAsync|PublishMessageAsync)",
-        "processor",
-        "code-pattern",
-        "high",
-        False,
-    ),
-    (
-        "Calls command gRPC services (processor forwarding)",
-        r"(?:CommandsClient|CommandClient|commandsClient|commandClient)\s*\.\s*\w+Async",
-        "processor",
-        "code-pattern",
-        "high",
-        False,
-    ),
-    # ── Processor negative signals ─────────────────────────────────────────
-    (
-        "Aggregate in processor project",
-        r"class\s+\w+\s*:\s*.*(?:Aggregate<|AggregateRoot)",
-        "processor",
-        "code-pattern",
-        "high",
-        True,
-    ),
-    (
-        "Database save in processor (query behavior)",
-        r"(?:SaveChangesAsync|SaveAsync|Repository\s*\.\s*(?:Add|Update|Save))",
-        "processor",
-        "code-pattern",
-        "medium",
-        True,
-    ),
-    # ── Query-sql additional positive signals ──────────────────────────────
-    # Query handlers save data locally — this is the key differentiator
-    (
-        "Database save (query read model sync)",
-        r"(?:SaveChangesAsync|SaveAsync|Repository\s*\.\s*(?:Add|Update|Save))",
-        "query-sql",
-        "code-pattern",
-        "medium",
-        False,
-    ),
-    (
-        "Cache/rebuild pattern (query materialization)",
-        r"(?:CacheRebuilder|RebuildService|IProjection|Materialize)",
-        "query-sql",
-        "code-pattern",
-        "medium",
-        False,
-    ),
-    # ── Gateway positive signals ───────────────────────────────────────────
-    (
-        "API Controller",
-        r"\[ApiController\]|ControllerBase",
-        "gateway",
-        "code-pattern",
-        "high",
-        False,
-    ),
-    (
-        "MapControllers (REST routing)",
-        r"(?:MapControllers|MapControllersWithAuthorization)",
-        "gateway",
-        "code-pattern",
-        "medium",
-        False,
-    ),
-    (
-        "gRPC client-only protos",
-        r'GrpcServices\s*=\s*"Client"',
-        "gateway",
-        "code-pattern",
-        "high",
-        False,
-    ),
-    (
-        "HTTP client factory",
-        r"(?:IHttpClientFactory|AddHttpClient)",
-        "gateway",
-        "code-pattern",
-        "medium",
-        False,
-    ),
-    (
-        "YARP configuration",
-        r"(?:AddReverseProxy|ReverseProxy|Yarp)",
-        "gateway",
-        "code-pattern",
-        "medium",
-        False,
-    ),
-    # ── Gateway negative signals ───────────────────────────────────────────
-    (
-        "Direct database access in gateway",
-        r"(?:DbContext|IDbConnection|SqlConnection|CosmosClient)",
-        "gateway",
-        "code-pattern",
-        "medium",
-        True,
-    ),
-    (
-        "ServiceBusProcessor in gateway (not a gateway)",
-        r"ServiceBusProcessor|ServiceBusSessionProcessor",
-        "gateway",
-        "code-pattern",
-        "high",
-        True,
-    ),
-    # ── Controlpanel positive signals ──────────────────────────────────────
-    (
-        "Blazor components",
-        r"(?:@page|\.razor|Blazor)",
-        "controlpanel",
-        "code-pattern",
-        "high",
-        False,
-    ),
-    (
-        "ResponseResult pattern",
-        r"ResponseResult<",
-        "controlpanel",
-        "code-pattern",
-        "medium",
-        False,
-    ),
-]
+@dataclass
+class ProgramConfig:
+    """What the application configures at startup."""
 
-# Theoretical max positive weight per project type (for normalization).
-# Pre-computed from _SIGNAL_PATTERNS — sum of positive signal weights per type.
-_THEORETICAL_MAX: dict[str, float] = {}
+    serves_grpc: bool = False
+    serves_grpc_count: int = 0
+    serves_rest: bool = False
+    has_service_bus: bool = False
+    has_grpc_clients: bool = False
+    has_reverse_proxy: bool = False
+    has_database: bool = False
+    has_auth: bool = False
+    has_swagger: bool = False
 
 
-def _compute_theoretical_max() -> None:
-    """Pre-compute the theoretical max positive weight per project type."""
-    for name, _regex, target, _stype, conf, is_neg in _SIGNAL_PATTERNS:
-        if not is_neg:
-            _THEORETICAL_MAX.setdefault(target, 0.0)
-            _THEORETICAL_MAX[target] += _CONFIDENCE_WEIGHTS[conf]
+def _analyze_program_config(root: Path) -> ProgramConfig:
+    """Parse Program.cs / Startup.cs to understand app configuration.
+
+    Reads Program.cs (or Startup.cs) content and checks for behavioral
+    patterns indicating what the application serves and depends on.
+    """
+    config = ProgramConfig()
+
+    # Find Program.cs and Startup.cs files (exclude test dirs)
+    program_files: list[Path] = []
+    for name in ("Program.cs", "Startup.cs"):
+        for f in root.rglob(name):
+            if not _is_test_path(f, root):
+                program_files.append(f)
+
+    # Also check DI registration files (*.cs in Setup/, Registration/, etc.)
+    registration_dirs = ("Setup", "Registration", "ServiceRegistration",
+                         "ServicesRegistration", "Extensions", "DependencyInjection")
+    for reg_dir_name in registration_dirs:
+        for reg_dir in root.rglob(reg_dir_name):
+            if reg_dir.is_dir() and not _is_test_path(reg_dir, root):
+                for f in reg_dir.rglob("*.cs"):
+                    if not _is_test_path(f, root):
+                        program_files.append(f)
+
+    all_text = ""
+    for pf in program_files:
+        try:
+            all_text += pf.read_text(encoding="utf-8", errors="replace") + "\n"
+        except OSError:
+            continue
+
+    if not all_text:
+        return config
+
+    # Serves gRPC: MapGrpcService<> or MapGrpc
+    grpc_map_matches = re.findall(r"MapGrpcService<", all_text)
+    if grpc_map_matches:
+        config.serves_grpc = True
+        config.serves_grpc_count = len(grpc_map_matches)
+
+    # Serves REST: MapController / MapControllerRoute / AddControllers
+    if re.search(
+        r"(?:MapControllers|MapControllerRoute|AddControllers"
+        r"|AddControllersWithConfigurations)",
+        all_text,
+    ):
+        config.serves_rest = True
+
+    # Has ServiceBus: ServiceBus/queue/topic registration
+    if re.search(
+        r"(?:ServiceBus|RegisterServiceBus|UseServiceBus|AddServiceBus|"
+        r"ServiceBusClient|ServiceBusProcessor|ServiceBusSessionProcessor|"
+        r"AddMassTransit|UseRabbitMq|AddRebus)",
+        all_text,
+    ):
+        config.has_service_bus = True
+
+    # Has gRPC clients: AddGrpcClient<> / RegisterExternalServices
+    if re.search(r"(?:AddGrpcClient<|RegisterExternalServices|AddGrpcClients)", all_text):
+        config.has_grpc_clients = True
+
+    # Has reverse proxy: YARP / reverse proxy configuration
+    if re.search(r"(?:AddReverseProxy|ReverseProxy|Yarp)", all_text):
+        config.has_reverse_proxy = True
+
+    # Has database: AddDbContext / AddCosmosDb / connection string patterns / EF
+    if re.search(
+        r"(?:AddDbContext|AddCosmosDb|UseSqlServer|UseNpgsql|UseSqlite|"
+        r"CosmosClient|CosmosDb|ConnectionString|AddEntityFramework)",
+        all_text,
+    ):
+        config.has_database = True
+
+    # Has auth: JWT / Authentication / Authorization
+    if re.search(
+        r"(?:AddJwt|AddAuthentication|AddAuthorization|UseAuthentication|UseAuthorization|"
+        r"JwtBearer|AddIdentity)",
+        all_text,
+    ):
+        config.has_auth = True
+
+    # Has swagger: AddSwagger / UseSwagger / AddOpenApi
+    if re.search(
+        r"(?:AddSwagger|UseSwagger|AddOpenApi|UseOpenApi|"
+        r"AddSwaggerGen|AddSwaggerApiDocumentation|AddOpenApiDocumentation)",
+        all_text,
+    ):
+        config.has_swagger = True
+
+    return config
 
 
-_compute_theoretical_max()
+# ---------------------------------------------------------------------------
+# Layer 2: Handler Behavior Analysis
+# ---------------------------------------------------------------------------
 
-# Hybrid detection threshold — if both command-side and query-side net scores
-# are at or above this value, the project is classified as hybrid.
-_HYBRID_THRESHOLD = 3
+
+@dataclass
+class HandlerBehavior:
+    """What handlers/services DO — their input/processing/output patterns."""
+
+    # Input patterns
+    receives_commands: bool = False
+    receives_events: bool = False
+    receives_http: bool = False
+
+    # Processing patterns
+    manipulates_domain: bool = False
+    saves_to_database: bool = False
+    calls_other_services: bool = False
+    publishes_messages: bool = False
+
+    # Output patterns
+    returns_data: bool = False
+    returns_ack: bool = False
+
+
+def _analyze_handler_behavior(root: Path) -> HandlerBehavior:
+    """Find handler/service files and analyze their behavioral patterns.
+
+    Looks in Application/, Handlers/, Features/, Controllers/, Services/
+    directories and reads each file to detect data flow patterns.
+    """
+    behavior = HandlerBehavior()
+
+    # Collect handler/service files from relevant directories
+    handler_dirs = ("Application", "Handlers", "Features", "Controllers",
+                    "Services", "EventHandlers", "CommandHandlers", "QueryHandlers")
+
+    handler_files: list[Path] = []
+    for dir_name in handler_dirs:
+        for d in root.rglob(dir_name):
+            if d.is_dir() and not _is_test_path(d, root):
+                for f in d.rglob("*.cs"):
+                    if not _is_test_path(f, root):
+                        handler_files.append(f)
+
+    # Deduplicate
+    seen_paths: set[str] = set()
+    unique_files: list[Path] = []
+    for f in handler_files:
+        key = str(f)
+        if key not in seen_paths:
+            seen_paths.add(key)
+            unique_files.append(f)
+
+    # Analyze each file for behavioral patterns
+    for file_path in unique_files:
+        try:
+            text = file_path.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+
+        _analyze_single_handler(text, behavior)
+
+    return behavior
+
+
+def _analyze_single_handler(text: str, behavior: HandlerBehavior) -> None:
+    """Analyze a single handler file's text for behavioral patterns."""
+
+    # --- Input patterns ---
+
+    # Receives commands: handler takes a command-like parameter, returns void/Task/Unit
+    # Pattern: IRequestHandler<SomeCommand> (no second type param or Unit)
+    # or ICommandHandler<>
+    if re.search(r"IRequestHandler<\w+Command\s*>", text):
+        behavior.receives_commands = True
+    if re.search(r"ICommandHandler<", text):
+        behavior.receives_commands = True
+    # Handler that takes a command and commits events (behavioral: the method
+    # loads aggregate, calls domain method, commits)
+    if re.search(r"CommitNewEventsAsync|CommitEventsAsync", text):
+        behavior.receives_commands = True
+
+    # Receives events: handler takes event-like parameter, returns bool
+    # Pattern: IRequestHandler<Event<SomeData>, bool>
+    if re.search(r"IRequestHandler<.*Event<.*>,\s*bool>", text):
+        behavior.receives_events = True
+    # Also event notification handlers
+    if re.search(r"INotificationHandler<", text):
+        behavior.receives_events = True
+
+    # Receives HTTP: controller actions
+    if re.search(r"\[ApiController\]|ControllerBase|Controller\b.*:\s*ControllerBase", text):
+        behavior.receives_http = True
+    if re.search(r"\[Http(?:Get|Post|Put|Delete|Patch)\]", text):
+        behavior.receives_http = True
+
+    # --- Processing patterns ---
+
+    # Manipulates domain: loads from event store, calls methods on aggregates, commits
+    # Behavioral: load events by aggregate ID -> rebuild aggregate -> call method -> persist
+    if re.search(r"GetAllByAggregateIdAsync", text) and re.search(
+        r"CommitNewEventsAsync|CommitEventsAsync", text
+    ):
+        behavior.manipulates_domain = True
+    # Also: creates aggregate and commits
+    if re.search(r"Aggregate<|AggregateRoot", text) and re.search(
+        r"CommitNewEventsAsync|CommitEventsAsync", text
+    ):
+        behavior.manipulates_domain = True
+
+    # Saves to database: calls save/add/update on repositories/dbcontext/cache
+    if re.search(
+        r"SaveChangesAsync|\.SaveAsync|_unitOfWork\b.*Save|"
+        r"_context\.\w+\.Add|_repository\.\w*Add|"
+        r"_cacheRepository\.\w*Add|"
+        r"\.AddAsync\(|\.UpdateAsync\(|"
+        r"_\w+Repository\.Add\(",
+        text,
+    ):
+        behavior.saves_to_database = True
+
+    # Calls other services: makes outbound gRPC/HTTP calls
+    # Behavioral: has injected client fields that call async methods
+    if re.search(r"\w+Client\s+_\w+", text) and re.search(r"_\w+Client\.\w+Async\(", text):
+        behavior.calls_other_services = True
+    # Also: HttpClient usage
+    if re.search(r"_httpClient\.\w+Async|IHttpClientFactory", text):
+        behavior.calls_other_services = True
+
+    # Publishes messages: sends to message bus/queue/topic
+    if re.search(
+        r"_publisher\.\w+|_sender\.\w+Send|"
+        r"PublishMessageAsync|SendMessageAsync|StartPublish|"
+        r"IServiceBusPublisher|IEventPublisher|IMessagePublisher|"
+        r"IPublisher\b",
+        text,
+    ):
+        behavior.publishes_messages = True
+
+    # --- Output patterns ---
+
+    # Returns data: handlers that return DTOs/response objects
+    if re.search(r"IRequestHandler<\w+,\s*\w+(?:Dto|Response|Model|Result)\w*>", text):
+        behavior.returns_data = True
+    if re.search(r"IQueryHandler<", text):
+        behavior.returns_data = True
+
+    # Returns ack: handlers that return bool/Unit
+    if re.search(r"IRequestHandler<.*,\s*(?:bool|Unit)>", text):
+        behavior.returns_ack = True
+    # Void-returning command handlers
+    if re.search(r"IRequestHandler<\w+Command\s*>", text):
+        behavior.returns_ack = True
+
+
+# ---------------------------------------------------------------------------
+# Layer 3: Project Structure Analysis
+# ---------------------------------------------------------------------------
+
+
+@dataclass
+class ProjectStructure:
+    """Folder layout and project references."""
+
+    has_domain_layer: bool = False
+    has_aggregates: bool = False
+    has_entities: bool = False
+    has_commands_dir: bool = False
+    has_queries_dir: bool = False
+    has_event_handlers_dir: bool = False
+    has_listeners_dir: bool = False
+    has_outbox_dir: bool = False
+    has_controllers_dir: bool = False
+    has_grpc_clients_dir: bool = False
+    has_features_dir: bool = False
+    has_modules_dir: bool = False
+    has_bounded_contexts: bool = False
+    layer_count: int = 0
+    project_count: int = 0
+
+
+def _analyze_project_structure(root: Path, csproj_files: list[Path]) -> ProjectStructure:
+    """Analyze folder layout and project references."""
+    structure = ProjectStructure()
+    structure.project_count = len(csproj_files)
+
+    # Gather all directory names (case-insensitive) across the project
+    # Include both the full directory name AND the last segment after '.'
+    # to handle .NET naming like "Company.Project.Domain" -> "domain"
+    all_dir_names: set[str] = set()
+    try:
+        for d in root.rglob("*"):
+            if d.is_dir() and not _is_test_path(d, root) and ".git" not in d.parts:
+                dir_name_lower = d.name.lower()
+                all_dir_names.add(dir_name_lower)
+                # Also add last segment after dot (e.g. "Anis.Competition.Domain" -> "domain")
+                if "." in dir_name_lower:
+                    last_segment = dir_name_lower.rsplit(".", 1)[-1]
+                    all_dir_names.add(last_segment)
+    except OSError:
+        pass
+
+    # Domain layer
+    if "domain" in all_dir_names:
+        structure.has_domain_layer = True
+
+    # Aggregates
+    if "aggregates" in all_dir_names or "core" in all_dir_names:
+        # Check if Core/Aggregates contain aggregate classes
+        structure.has_aggregates = True
+
+    # Entities
+    if "entities" in all_dir_names or "models" in all_dir_names:
+        structure.has_entities = True
+
+    # Commands directory
+    if "commands" in all_dir_names or "commandhandlers" in all_dir_names:
+        structure.has_commands_dir = True
+
+    # Queries directory
+    if "queries" in all_dir_names or "queryhandlers" in all_dir_names:
+        structure.has_queries_dir = True
+
+    # Event handlers directory
+    if "eventhandlers" in all_dir_names or "events" in all_dir_names:
+        structure.has_event_handlers_dir = True
+
+    # Listeners directory (ServiceBus listeners)
+    if "listeners" in all_dir_names or "servicebus" in all_dir_names:
+        structure.has_listeners_dir = True
+
+    # Outbox
+    if "outbox" in all_dir_names:
+        structure.has_outbox_dir = True
+
+    # Controllers
+    if "controllers" in all_dir_names:
+        structure.has_controllers_dir = True
+
+    # gRPC clients directory
+    if "grpcclients" in all_dir_names or "protos" in all_dir_names:
+        structure.has_grpc_clients_dir = True
+
+    # Features (VSA indicator)
+    if "features" in all_dir_names:
+        structure.has_features_dir = True
+
+    # Modules (modular monolith)
+    if "modules" in all_dir_names:
+        structure.has_modules_dir = True
+
+    # Bounded contexts
+    if "boundedcontexts" in all_dir_names or "contexts" in all_dir_names:
+        structure.has_bounded_contexts = True
+
+    # Count distinct layers
+    layer_names = {"domain", "application", "infrastructure", "infra",
+                   "presentation", "api", "web", "grpc"}
+    structure.layer_count = len(layer_names & all_dir_names)
+
+    return structure
+
+
+# ---------------------------------------------------------------------------
+# Helpers
+# ---------------------------------------------------------------------------
+
+_TEST_DIR_NAMES = {"test", "tests", "test.live", "test.integration", "test.unit"}
+
+
+def _is_test_path(p: Path, root: Path) -> bool:
+    """Check if a path is within a test directory."""
+    try:
+        rel = p.relative_to(root)
+    except ValueError:
+        return False
+    return any(
+        part.lower().rstrip("s") == "test" or part.lower() in _TEST_DIR_NAMES
+        for part in rel.parts
+    )
+
+
+def _has_cosmos(root: Path) -> bool:
+    """Check if the project uses Cosmos DB."""
+    for f in root.rglob("*.cs"):
+        if _is_test_path(f, root):
+            continue
+        try:
+            text = f.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        if re.search(
+            r"(?:CosmosClient|CosmosDb|IContainerDocument"
+            r"|Microsoft\.Azure\.Cosmos)",
+            text,
+        ):
+            return True
+    # Also check csproj for Cosmos packages
+    for f in root.rglob("*.csproj"):
+        try:
+            text = f.read_text(encoding="utf-8", errors="replace")
+        except OSError:
+            continue
+        if re.search(r"(?:Microsoft\.Azure\.Cosmos|CosmosDb)", text):
+            return True
+    return False
+
+
+def _has_blazor(root: Path) -> bool:
+    """Check if the project has Blazor components."""
+    razor_files = list(root.rglob("*.razor"))
+    return len(razor_files) > 0
+
+
+def _has_feature_handlers(root: Path) -> bool:
+    """Check if Features/ directories contain handler files."""
+    for features_dir in root.rglob("Features"):
+        if features_dir.is_dir() and not _is_test_path(features_dir, root):
+            handlers = list(features_dir.rglob("*Handler.cs"))
+            if handlers:
+                return True
+    return False
+
+
+# ---------------------------------------------------------------------------
+# Classification logic (deterministic rules)
+# ---------------------------------------------------------------------------
+
+
+def _classify(
+    config: ProgramConfig,
+    behavior: HandlerBehavior,
+    structure: ProjectStructure,
+    root: Path,
+) -> tuple[str, list[DetectionSignal]]:
+    """Classify project type using deterministic rules on behavioral analysis.
+
+    Returns (project_type, signals) where signals are the top evidence.
+    Rules are checked in order; first match wins.
+    """
+    signals: list[DetectionSignal] = []
+
+    # --- Collect evidence signals for all layers ---
+
+    # Layer 1 signals
+    if config.serves_grpc:
+        signals.append(_make_signal(
+            "Serves gRPC endpoints",
+            "build-config",
+            f"MapGrpcService found ({config.serves_grpc_count} services)",
+        ))
+    if config.serves_rest:
+        signals.append(_make_signal(
+            "Serves REST endpoints",
+            "build-config",
+            "MapControllers or AddControllers found",
+        ))
+    if config.has_service_bus:
+        signals.append(_make_signal(
+            "ServiceBus/message bus configured",
+            "build-config",
+            "ServiceBus registration found in startup",
+        ))
+    if config.has_grpc_clients:
+        signals.append(_make_signal(
+            "gRPC clients configured",
+            "build-config",
+            "AddGrpcClient or RegisterExternalServices found",
+        ))
+    if config.has_database:
+        signals.append(_make_signal(
+            "Database configured",
+            "build-config",
+            "Database context or connection found in startup",
+        ))
+    if config.has_swagger:
+        signals.append(_make_signal(
+            "Swagger/OpenAPI configured",
+            "build-config",
+            "Swagger or OpenAPI documentation enabled",
+        ))
+
+    # Layer 2 signals
+    if behavior.receives_commands:
+        signals.append(_make_signal(
+            "Handlers receive commands",
+            "code-pattern",
+            "Command handler pattern detected (command in, void/Unit out)",
+        ))
+    if behavior.receives_events:
+        signals.append(_make_signal(
+            "Handlers receive events",
+            "code-pattern",
+            "Event handler pattern detected (event in, bool out)",
+        ))
+    if behavior.receives_http:
+        signals.append(_make_signal(
+            "Controllers receive HTTP requests",
+            "code-pattern",
+            "[ApiController] or ControllerBase found",
+        ))
+    if behavior.manipulates_domain:
+        signals.append(_make_signal(
+            "Handlers manipulate domain aggregates",
+            "code-pattern",
+            "Load events -> rebuild aggregate -> call method -> commit pattern",
+        ))
+    if behavior.saves_to_database:
+        signals.append(_make_signal(
+            "Handlers save to database",
+            "code-pattern",
+            "SaveChangesAsync or repository Add/Update calls found",
+        ))
+    if behavior.calls_other_services:
+        signals.append(_make_signal(
+            "Handlers call other services",
+            "code-pattern",
+            "gRPC/HTTP client async calls found in handlers",
+        ))
+    if behavior.publishes_messages:
+        signals.append(_make_signal(
+            "Handlers publish messages",
+            "code-pattern",
+            "Message publisher/sender invocations found",
+        ))
+
+    # Layer 3 signals
+    if structure.has_domain_layer:
+        signals.append(_make_signal(
+            "Domain layer present",
+            "structural",
+            "Domain/ directory found",
+        ))
+    if structure.has_controllers_dir:
+        signals.append(_make_signal(
+            "Controllers directory present",
+            "structural",
+            "Controllers/ directory found",
+        ))
+    if structure.has_listeners_dir:
+        signals.append(_make_signal(
+            "ServiceBus listeners present",
+            "structural",
+            "Listeners/ or ServiceBus/ directory found",
+        ))
+
+    # --- Deterministic classification rules ---
+
+    # Control panel: Blazor UI (check early — distinctive)
+    if _has_blazor(root):
+        return "controlpanel", signals
+
+    # Gateway: REST API that forwards to other services via gRPC or reverse proxy
+    if config.serves_rest and config.has_grpc_clients and not config.has_service_bus:
+        return "gateway", signals
+    if config.serves_rest and config.has_reverse_proxy:
+        return "gateway", signals
+
+    # Hybrid: both command and query behaviors present (check BEFORE command)
+    if (behavior.receives_commands and behavior.manipulates_domain
+            and behavior.receives_events and behavior.saves_to_database):
+        return "hybrid", signals
+
+    # Command: receives commands, manipulates domain
+    # Command projects may PUBLISH to ServiceBus (event outbox) but do NOT
+    # listen/consume events. The key: receives_commands=True + receives_events=False.
+    if behavior.receives_commands and behavior.manipulates_domain and not behavior.receives_events:
+        return "command", signals
+
+    # Processor: receives events AND (calls other services OR publishes)
+    #            AND does NOT save to database
+    if (behavior.receives_events and behavior.calls_other_services
+            and not behavior.saves_to_database):
+        return "processor", signals
+    if (behavior.receives_events and behavior.publishes_messages
+            and not behavior.saves_to_database):
+        return "processor", signals
+    # Processor: has ServiceBus + gRPC clients + receives events + no DB save
+    if (config.has_service_bus and config.has_grpc_clients
+            and behavior.receives_events and behavior.calls_other_services
+            and not behavior.saves_to_database):
+        return "processor", signals
+
+    # Query: receives events, saves to DB, exposes query endpoints (gRPC or REST)
+    if behavior.receives_events and behavior.saves_to_database and config.serves_grpc:
+        if _has_cosmos(root):
+            return "query-cosmos", signals
+        return "query-sql", signals
+    # Query with ServiceBus listener that saves to DB
+    if config.has_service_bus and behavior.saves_to_database and behavior.receives_events:
+        if _has_cosmos(root):
+            return "query-cosmos", signals
+        return "query-sql", signals
+
+    # --- Fallback to generic architecture patterns ---
+
+    if structure.has_features_dir and _has_feature_handlers(root):
+        return "vsa", signals
+
+    if structure.layer_count >= 3 and structure.has_domain_layer:
+        return "clean-arch", signals
+
+    if structure.has_bounded_contexts:
+        return "ddd", signals
+
+    if structure.has_modules_dir:
+        return "modular-monolith", signals
+
+    return "generic", signals
+
+
+def _make_signal(
+    name: str,
+    signal_type: str,
+    evidence: str,
+    *,
+    confidence: str = "high",
+    is_negative: bool = False,
+    target: str = "",
+) -> DetectionSignal:
+    """Create a DetectionSignal with defaults."""
+    return DetectionSignal(
+        pattern_name=name,
+        signal_type=signal_type,
+        target_project_type=target,
+        confidence=confidence,
+        weight=_CONFIDENCE_WEIGHTS[confidence],
+        evidence=evidence,
+        is_negative=is_negative,
+    )
+
+
+# ---------------------------------------------------------------------------
+# Confidence scoring
+# ---------------------------------------------------------------------------
+
+
+def _compute_confidence(
+    config: ProgramConfig,
+    behavior: HandlerBehavior,
+    structure: ProjectStructure,
+    project_type: str,
+) -> tuple[str, float]:
+    """Compute confidence based on how many layers agree on the classification.
+
+    Returns (confidence_label, confidence_score).
+    """
+    if project_type == "generic":
+        return "low", 0.0
+
+    # Count how many layers provide supporting evidence
+    layer_agreement = 0
+    total_layers = 3
+
+    # Layer 1: Program.cs config supports the classification
+    if _config_supports(config, project_type):
+        layer_agreement += 1
+
+    # Layer 2: Handler behavior supports the classification
+    if _behavior_supports(behavior, project_type):
+        layer_agreement += 1
+
+    # Layer 3: Structure supports the classification
+    if _structure_supports(structure, project_type):
+        layer_agreement += 1
+
+    # Score based on layer agreement
+    confidence_score = layer_agreement / total_layers
+
+    # Boost: if behavior is very strong (multiple behavioral flags match)
+    behavior_strength = _behavior_strength(behavior, project_type)
+    if behavior_strength >= 3:
+        confidence_score = min(confidence_score + 0.15, 1.0)
+    elif behavior_strength >= 2:
+        confidence_score = min(confidence_score + 0.07, 1.0)
+
+    confidence_score = round(confidence_score, 2)
+
+    if confidence_score > 0.7:
+        return "high", confidence_score
+    if confidence_score >= 0.4:
+        return "medium", confidence_score
+    return "low", confidence_score
+
+
+def _config_supports(config: ProgramConfig, project_type: str) -> bool:
+    """Check if Program.cs config supports the project type."""
+    if project_type == "command":
+        return config.serves_grpc
+    if project_type in ("query-sql", "query-cosmos"):
+        return config.serves_grpc and (config.has_service_bus or config.has_database)
+    if project_type == "processor":
+        return config.has_service_bus and config.has_grpc_clients
+    if project_type == "gateway":
+        return config.serves_rest and (config.has_grpc_clients or config.has_reverse_proxy)
+    if project_type == "controlpanel":
+        return not config.serves_grpc and not config.serves_rest
+    if project_type == "hybrid":
+        return config.serves_grpc
+    if project_type == "vsa":
+        return True
+    if project_type == "clean-arch":
+        return True
+    return False
+
+
+def _behavior_supports(behavior: HandlerBehavior, project_type: str) -> bool:
+    """Check if handler behavior supports the project type."""
+    if project_type == "command":
+        return behavior.receives_commands and behavior.manipulates_domain
+    if project_type in ("query-sql", "query-cosmos"):
+        return behavior.receives_events and behavior.saves_to_database
+    if project_type == "processor":
+        return behavior.receives_events and (
+            behavior.calls_other_services or behavior.publishes_messages
+        )
+    if project_type == "gateway":
+        return behavior.receives_http and behavior.calls_other_services
+    if project_type == "controlpanel":
+        return True  # Blazor detection is structural, not behavioral
+    if project_type == "hybrid":
+        return behavior.receives_commands and behavior.receives_events
+    return False
+
+
+def _structure_supports(structure: ProjectStructure, project_type: str) -> bool:
+    """Check if project structure supports the project type."""
+    if project_type == "command":
+        return structure.has_domain_layer and (
+            structure.has_commands_dir or structure.has_aggregates
+        )
+    if project_type in ("query-sql", "query-cosmos"):
+        return structure.has_event_handlers_dir and (
+            structure.has_listeners_dir or structure.has_queries_dir
+        )
+    if project_type == "processor":
+        return structure.has_event_handlers_dir or structure.has_listeners_dir
+    if project_type == "gateway":
+        return structure.has_controllers_dir and structure.has_grpc_clients_dir
+    if project_type == "controlpanel":
+        return True
+    if project_type == "vsa":
+        return structure.has_features_dir
+    if project_type == "clean-arch":
+        return structure.has_domain_layer and structure.layer_count >= 3
+    if project_type == "ddd":
+        return structure.has_bounded_contexts
+    if project_type == "modular-monolith":
+        return structure.has_modules_dir
+    return False
+
+
+def _behavior_strength(behavior: HandlerBehavior, project_type: str) -> int:
+    """Count how many behavioral flags are set for the project type."""
+    count = 0
+    if project_type == "command":
+        if behavior.receives_commands:
+            count += 1
+        if behavior.manipulates_domain:
+            count += 1
+        if not behavior.saves_to_database:
+            count += 1
+        if behavior.returns_ack:
+            count += 1
+    elif project_type in ("query-sql", "query-cosmos"):
+        if behavior.receives_events:
+            count += 1
+        if behavior.saves_to_database:
+            count += 1
+        if behavior.returns_data:
+            count += 1
+        if behavior.returns_ack:
+            count += 1
+    elif project_type == "processor":
+        if behavior.receives_events:
+            count += 1
+        if behavior.calls_other_services:
+            count += 1
+        if behavior.publishes_messages:
+            count += 1
+        if not behavior.saves_to_database:
+            count += 1
+    elif project_type == "gateway":
+        if behavior.receives_http:
+            count += 1
+        if behavior.calls_other_services:
+            count += 1
+        if not behavior.saves_to_database:
+            count += 1
+    return count
 
 
 # ---------------------------------------------------------------------------
@@ -349,8 +847,8 @@ def detect_project(path: Path) -> DetectedProject:
 
     Steps:
         1. Find .sln/.csproj files, read TargetFramework
-        2. Collect signals from code patterns, naming, and structure
-        3. Score candidates and classify
+        2. 3-layer behavioral analysis (Program.cs, handlers, structure)
+        3. Deterministic classification
         4. Learn conventions (namespace, packages)
 
     Args:
@@ -380,14 +878,37 @@ def detect_project(path: Path) -> DetectedProject:
     # Read NuGet packages
     packages = _detect_packages(csproj_files)
 
-    # Step 2: Collect all signals
-    signals = _collect_signals(path, csproj_files)
+    # Step 2: 3-layer behavioral analysis
+    config = _analyze_program_config(path)
+    behavior = _analyze_handler_behavior(path)
+    structure = _analyze_project_structure(path, csproj_files)
 
-    # Step 3: Score candidates and classify
-    scorecards = _score_candidates(signals)
-    mode, project_type, confidence, confidence_score, top_signals = _classify_project(
-        scorecards, signals, path
+    # Step 3: Classify
+    project_type, all_signals = _classify(config, behavior, structure, path)
+
+    # Determine mode
+    microservice_types = {
+        "command", "query-sql", "query-cosmos", "processor",
+        "gateway", "controlpanel", "hybrid",
+    }
+    mode = "microservice" if project_type in microservice_types else "generic"
+
+    # Update signal targets now that we know the classification
+    for sig in all_signals:
+        sig.target_project_type = project_type
+
+    # Compute confidence
+    confidence_label, confidence_score = _compute_confidence(
+        config, behavior, structure, project_type
     )
+
+    # Pick top 3 signals (prefer code-pattern, then build-config, then structural)
+    signal_priority = {"code-pattern": 0, "build-config": 1, "structural": 2}
+    sorted_signals = sorted(
+        all_signals,
+        key=lambda s: (signal_priority.get(s.signal_type, 99), -s.weight),
+    )
+    top_signals = sorted_signals[:3]
 
     # Step 4: Learn conventions
     namespace_format = _detect_namespace_format(path)
@@ -412,7 +933,7 @@ def detect_project(path: Path) -> DetectedProject:
         architecture=architecture,
         namespace_format=namespace_format,
         packages=packages,
-        confidence=confidence,
+        confidence=confidence_label,
         confidence_score=confidence_score,
         top_signals=top_signal_dicts,
     )
@@ -527,393 +1048,7 @@ def _detect_packages(csproj_files: list[Path]) -> list[str]:
 
 
 # ---------------------------------------------------------------------------
-# Step 2: Signal collection
-# ---------------------------------------------------------------------------
-
-
-def _collect_signals(
-    root: Path,
-    csproj_files: list[Path],
-    *,
-    show_progress: bool = False,
-) -> list[DetectionSignal]:
-    """Scan .cs and .razor files and return a list of DetectionSignal objects.
-
-    Collects signals from three sources:
-    1. Code patterns (_SIGNAL_PATTERNS registry)
-    2. Naming conventions (_detect_from_name)
-    3. Structural patterns (_detect_generic)
-
-    Args:
-        root: Project root directory.
-        csproj_files: List of .csproj file paths.
-        show_progress: Whether to display a rich progress spinner.
-
-    Returns:
-        List of all detected signals.
-    """
-    signals: list[DetectionSignal] = []
-
-    # Gather all source files once to avoid repeated rglob calls
-    cs_files = list(root.rglob("*.cs"))
-    razor_files = list(root.rglob("*.razor"))
-    all_source_files = cs_files + razor_files
-
-    if show_progress:
-        with Progress(
-            SpinnerColumn(),
-            TextColumn("[progress.description]{task.description}"),
-            transient=True,
-        ) as progress:
-            task = progress.add_task(
-                "Scanning source files for patterns...",
-                total=len(all_source_files),
-            )
-            signals.extend(_scan_code_patterns(all_source_files, progress, task))
-    else:
-        signals.extend(_scan_code_patterns(all_source_files))
-
-    # Naming signals
-    signals.extend(_detect_from_name(root, csproj_files))
-
-    # Structural / architecture signals
-    signals.extend(_detect_generic(root))
-
-    return signals
-
-
-def _scan_code_patterns(
-    source_files: list[Path],
-    progress: Optional[Progress] = None,
-    task_id: Optional[object] = None,
-) -> list[DetectionSignal]:
-    """Scan source files against _SIGNAL_PATTERNS and produce signals.
-
-    Each pattern is checked once per file. Multiple matches in the same file
-    for the same pattern produce a single signal (with the first match as
-    evidence).
-
-    Args:
-        source_files: List of .cs/.razor files to scan.
-        progress: Optional rich Progress instance for UI updates.
-        task_id: Optional task ID for the progress bar.
-
-    Returns:
-        List of DetectionSignal objects.
-    """
-    signals: list[DetectionSignal] = []
-    # Track which (pattern_name, target) combos already fired to avoid
-    # producing hundreds of signals for repeated patterns.
-    seen: set[tuple[str, str]] = set()
-
-    for file_path in source_files:
-        try:
-            text = file_path.read_text(encoding="utf-8", errors="replace")
-        except OSError:
-            if progress and task_id is not None:
-                progress.advance(task_id)
-            continue
-
-        lines = text.splitlines()
-
-        for pattern_name, regex, target, stype, conf, is_neg in _SIGNAL_PATTERNS:
-            key = (pattern_name, target)
-            if key in seen:
-                continue
-
-            compiled = re.compile(regex)
-            for line in lines:
-                if compiled.search(line):
-                    evidence = f"{file_path.name}: {line.strip()}"
-                    signals.append(
-                        DetectionSignal(
-                            pattern_name=pattern_name,
-                            signal_type=stype,
-                            target_project_type=target,
-                            confidence=conf,
-                            weight=_CONFIDENCE_WEIGHTS[conf],
-                            evidence=evidence,
-                            is_negative=is_neg,
-                        )
-                    )
-                    seen.add(key)
-                    break
-
-        if progress and task_id is not None:
-            progress.advance(task_id)
-
-    return signals
-
-
-# ---------------------------------------------------------------------------
-# Step 2b: Naming signals
-# ---------------------------------------------------------------------------
-
-
-def _detect_from_name(root: Path, csproj_files: list[Path]) -> list[DetectionSignal]:
-    """Detect project type from solution/project naming convention.
-
-    Checks for well-known suffixes like .Commands, .Queries, .Processor,
-    .Gateway. Returns DetectionSignal list with signal_type="naming".
-    """
-    sln_files = list(root.glob("*.sln")) + list(root.glob("*.slnx"))
-    names_to_check: list[str] = [f.stem for f in sln_files]
-    names_to_check.extend(f.stem for f in csproj_files)
-    names_to_check.append(root.name)
-
-    combined = " ".join(names_to_check).lower()
-
-    signals: list[DetectionSignal] = []
-
-    _NAME_MAP: list[tuple[str, str]] = [
-        ("commands", "command"),
-        ("queries", "query-sql"),
-        ("processor", "processor"),
-        ("gateway", "gateway"),
-        ("controlpanel", "controlpanel"),
-    ]
-
-    for suffix, project_type in _NAME_MAP:
-        # Check for .suffix in combined names or as final segment of root name
-        root_parts = root.name.lower().split(".")
-        if f".{suffix}" in combined or (root_parts and root_parts[-1] == suffix):
-            signals.append(
-                DetectionSignal(
-                    pattern_name=f"Naming convention: .{suffix.title()}",
-                    signal_type="naming",
-                    target_project_type=project_type,
-                    confidence="medium",
-                    weight=_CONFIDENCE_WEIGHTS["medium"],
-                    evidence=f"Directory/solution name contains '.{suffix}'",
-                    is_negative=False,
-                )
-            )
-
-    return signals
-
-
-# ---------------------------------------------------------------------------
-# Step 2c: Structural / architecture signals
-# ---------------------------------------------------------------------------
-
-
-def _detect_generic(root: Path) -> list[DetectionSignal]:
-    """Detect generic architecture patterns from directory structure.
-
-    Returns DetectionSignal list with signal_type="structural".
-    """
-    signals: list[DetectionSignal] = []
-
-    src_dirs: set[str] = set()
-    try:
-        src_dirs = {d.name.lower() for d in root.iterdir() if d.is_dir()}
-    except OSError:
-        return signals
-
-    # Also check one level under src/
-    src_subdir = root / "src"
-    if src_subdir.is_dir():
-        try:
-            src_dirs.update(d.name.lower() for d in src_subdir.iterdir() if d.is_dir())
-        except OSError:
-            pass
-
-    # Clean Architecture: has Domain + Application + Infrastructure layers
-    clean_arch_layers = {"domain", "application", "infrastructure"}
-    if clean_arch_layers.issubset(src_dirs):
-        signals.append(
-            DetectionSignal(
-                pattern_name="Clean Architecture layers",
-                signal_type="structural",
-                target_project_type="clean-arch",
-                confidence="high",
-                weight=_CONFIDENCE_WEIGHTS["high"],
-                evidence="Found Domain + Application + Infrastructure directories",
-                is_negative=False,
-            )
-        )
-
-    # VSA: Features folder with *Handler.cs files
-    features_dirs = list(root.rglob("Features"))
-    for features_dir in features_dirs:
-        if features_dir.is_dir():
-            handlers = list(features_dir.rglob("*Handler.cs"))
-            if handlers:
-                signals.append(
-                    DetectionSignal(
-                        pattern_name="Vertical Slice Architecture",
-                        signal_type="structural",
-                        target_project_type="vsa",
-                        confidence="high",
-                        weight=_CONFIDENCE_WEIGHTS["high"],
-                        evidence=f"Features folder with handler files (e.g. {handlers[0].name})",
-                        is_negative=False,
-                    )
-                )
-                break
-
-    # DDD: bounded context folders or explicit "BoundedContexts" dir
-    if "boundedcontexts" in src_dirs or "contexts" in src_dirs:
-        signals.append(
-            DetectionSignal(
-                pattern_name="Domain-Driven Design contexts",
-                signal_type="structural",
-                target_project_type="ddd",
-                confidence="high",
-                weight=_CONFIDENCE_WEIGHTS["high"],
-                evidence="Found BoundedContexts or Contexts directory",
-                is_negative=False,
-            )
-        )
-
-    # Modular Monolith: multiple modules directory
-    if "modules" in src_dirs:
-        signals.append(
-            DetectionSignal(
-                pattern_name="Modular Monolith modules",
-                signal_type="structural",
-                target_project_type="modular-monolith",
-                confidence="medium",
-                weight=_CONFIDENCE_WEIGHTS["medium"],
-                evidence="Found Modules directory",
-                is_negative=False,
-            )
-        )
-
-    return signals
-
-
-# ---------------------------------------------------------------------------
-# Step 3: Scoring and classification
-# ---------------------------------------------------------------------------
-
-
-def _score_candidates(
-    signals: list[DetectionSignal],
-) -> dict[str, DetectionScoreCard]:
-    """Aggregate signals into DetectionScoreCard per project type.
-
-    Args:
-        signals: All collected signals.
-
-    Returns:
-        Dict mapping project_type -> DetectionScoreCard.
-    """
-    cards: dict[str, DetectionScoreCard] = {}
-
-    for sig in signals:
-        ptype = sig.target_project_type
-        if ptype not in cards:
-            cards[ptype] = DetectionScoreCard(project_type=ptype)
-
-        card = cards[ptype]
-        if sig.is_negative:
-            card.negative_score += sig.weight
-        else:
-            card.positive_score += sig.weight
-        card.signal_count += 1
-        card.net_score = card.positive_score - card.negative_score
-
-    return cards
-
-
-def _classify_project(
-    scorecards: dict[str, DetectionScoreCard],
-    signals: list[DetectionSignal],
-    root: Path,
-) -> tuple[str, str, str, float, list[DetectionSignal]]:
-    """Pick the highest-scoring project type, compute confidence, select top signals.
-
-    Handles hybrid detection: if both a command-side type and a query-side type
-    have net_score >= _HYBRID_THRESHOLD, classify as "hybrid".
-
-    Args:
-        scorecards: Scored candidates.
-        signals: All detected signals.
-        root: Project root (unused currently but available for future use).
-
-    Returns:
-        Tuple of (mode, project_type, confidence_label, confidence_score, top_3_signals).
-    """
-    if not scorecards:
-        # No signals at all — fall back to generic
-        return "generic", "generic", "low", 0.0, []
-
-    # Check for hybrid: command + query both above threshold
-    command_score = scorecards.get("command", DetectionScoreCard(project_type="command")).net_score
-    query_types = ["query-sql", "query-cosmos"]
-    max_query_score = max(
-        (scorecards.get(qt, DetectionScoreCard(project_type=qt)).net_score for qt in query_types),
-        default=0.0,
-    )
-
-    microservice_types = {
-        "command",
-        "query-sql",
-        "query-cosmos",
-        "processor",
-        "gateway",
-        "controlpanel",
-        "hybrid",
-    }
-
-    if command_score >= _HYBRID_THRESHOLD and max_query_score >= _HYBRID_THRESHOLD:
-        # Hybrid detection
-        combined_score = command_score + max_query_score
-        # Use combined theoretical max
-        t_max = _THEORETICAL_MAX.get("command", 1.0) + max(
-            _THEORETICAL_MAX.get(qt, 1.0) for qt in query_types
-        )
-        confidence_score = min(combined_score / t_max, 1.0) if t_max > 0 else 0.0
-        confidence_label = _score_to_label(confidence_score)
-
-        # Top signals: pick top 3 across both command and query signals
-        relevant = [
-            s
-            for s in signals
-            if s.target_project_type in {"command"} | set(query_types) and not s.is_negative
-        ]
-        top = sorted(relevant, key=lambda s: s.weight, reverse=True)[:3]
-
-        return "microservice", "hybrid", confidence_label, round(confidence_score, 2), top
-
-    # Find highest net-score candidate
-    best = max(scorecards.values(), key=lambda c: c.net_score)
-
-    if best.net_score <= 0:
-        return "generic", "generic", "low", 0.0, []
-
-    # Compute confidence score
-    t_max = _THEORETICAL_MAX.get(best.project_type, 1.0)
-    confidence_score = min(best.net_score / t_max, 1.0) if t_max > 0 else 0.0
-    confidence_label = _score_to_label(confidence_score)
-
-    # Pick mode
-    if best.project_type in microservice_types:
-        mode = "microservice"
-    else:
-        mode = "generic"
-
-    # Top 3 positive signals for the winning type
-    relevant = [
-        s for s in signals if s.target_project_type == best.project_type and not s.is_negative
-    ]
-    top = sorted(relevant, key=lambda s: s.weight, reverse=True)[:3]
-
-    return mode, best.project_type, confidence_label, round(confidence_score, 2), top
-
-
-def _score_to_label(score: float) -> str:
-    """Convert a numeric confidence score to a label."""
-    if score > 0.8:
-        return "high"
-    if score >= 0.5:
-        return "medium"
-    return "low"
-
-
-# ---------------------------------------------------------------------------
-# Step 4 helpers — conventions
+# Step 4 helpers -- conventions
 # ---------------------------------------------------------------------------
 
 
@@ -1044,54 +1179,66 @@ def _prompt_override(result: DetectedProject) -> DetectedProject:
         DetectionError: If the user rejects the detection and doesn't override.
     """
     console = Console()
-    _display_detection_summary(result, console)
 
     response = console.input("\n[bold]Is this correct?[/bold] [Y/n/change]: ").strip().lower()
 
     if response in ("", "y", "yes"):
         return result
 
-    if response in ("change", "c"):
-        valid_types = [
-            "command",
-            "query-sql",
-            "query-cosmos",
-            "processor",
-            "gateway",
-            "controlpanel",
-            "hybrid",
-            "vsa",
-            "clean-arch",
-            "ddd",
-            "modular-monolith",
-            "generic",
-        ]
-        console.print(f"\nValid types: {', '.join(valid_types)}")
-        new_type = console.input("[bold]Enter project type:[/bold] ").strip().lower()
+    # n, change, or anything else -- show type selection
+    valid_types = [
+        ("command", "Command-side (CQRS write model)"),
+        ("query-sql", "Query-side with SQL storage"),
+        ("query-cosmos", "Query-side with Cosmos DB"),
+        ("processor", "Event processor / router"),
+        ("gateway", "API gateway / router"),
+        ("controlpanel", "Blazor control panel"),
+        ("hybrid", "Mixed command + query"),
+        ("vsa", "Vertical Slice Architecture"),
+        ("clean-arch", "Clean Architecture"),
+        ("ddd", "Domain-Driven Design"),
+        ("modular-monolith", "Modular Monolith"),
+        ("generic", "Generic .NET project"),
+    ]
 
-        if new_type not in valid_types:
-            raise DetectionError(
-                f"Invalid project type '{new_type}'. Must be one of: {', '.join(valid_types)}"
-            )
+    console.print("\n[bold]Select project type:[/bold]")
+    for i, (type_key, desc) in enumerate(valid_types, 1):
+        console.print(f"  [bold]{i:>2}[/bold]. {type_key:<18} - {desc}")
 
-        # Determine mode from type
-        microservice_types = {
-            "command",
-            "query-sql",
-            "query-cosmos",
-            "processor",
-            "gateway",
-            "controlpanel",
-            "hybrid",
-        }
-        new_mode = "microservice" if new_type in microservice_types else "generic"
-        new_architecture = _describe_architecture(new_mode, new_type)
+    choice = console.input("\n[bold]Your choice [1-12]:[/bold] ").strip()
 
-        result.user_override = new_type
-        result.mode = new_mode
-        result.project_type = new_type
-        result.architecture = new_architecture
-        return result
+    try:
+        idx = int(choice) - 1
+        if 0 <= idx < len(valid_types):
+            new_type = valid_types[idx][0]
+        else:
+            console.print("[yellow]Invalid choice. Keeping detected type.[/yellow]")
+            return result
+    except ValueError:
+        # Try matching by name directly
+        type_keys = [t[0] for t in valid_types]
+        if choice.lower() in type_keys:
+            new_type = choice.lower()
+        else:
+            console.print("[yellow]Invalid choice. Keeping detected type.[/yellow]")
+            return result
 
-    # n or anything else — reject
-    raise DetectionError("Detection rejected by user.")
+    # Determine mode from type
+    microservice_types = {
+        "command",
+        "query-sql",
+        "query-cosmos",
+        "processor",
+        "gateway",
+        "controlpanel",
+        "hybrid",
+    }
+    new_mode = "microservice" if new_type in microservice_types else "generic"
+    new_architecture = _describe_architecture(new_mode, new_type)
+
+    result.user_override = new_type
+    result.mode = new_mode
+    result.project_type = new_type
+    result.architecture = new_architecture
+    console.print(f"\n[green]Type changed to: {new_type} ({new_architecture})[/green]")
+    return result
