@@ -1,0 +1,40 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 120 120" width="120" height="120">
+  <defs>
+    <linearGradient id="ic_bg" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#1A1232"/>
+      <stop offset="100%" stop-color="#0D1117"/>
+    </linearGradient>
+    <linearGradient id="ic_purple" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8B5CF6"/>
+      <stop offset="100%" stop-color="#512BD4"/>
+    </linearGradient>
+    <linearGradient id="ic_shine" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff" stop-opacity="0.3"/>
+      <stop offset="50%" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="ic_teal" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#00E5C3"/>
+      <stop offset="100%" stop-color="#00BFA5"/>
+    </linearGradient>
+    <filter id="ic_glow">
+      <feGaussianBlur stdDeviation="4" result="b"/>
+      <feFlood flood-color="#7B3FF2" flood-opacity="0.4"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- Rounded square background -->
+  <rect width="120" height="120" rx="24" fill="url(#ic_bg)"/>
+
+  <!-- .NET Diamond — centered, large -->
+  <g transform="translate(22, 18)" filter="url(#ic_glow)">
+    <path d="M38 0 L76 38 L38 76 L0 38 Z" fill="url(#ic_purple)"/>
+    <path d="M38 0 L76 38 L38 76 L0 38 Z" fill="url(#ic_shine)"/>
+    <text x="38" y="43" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="16" font-weight="800" fill="#fff" letter-spacing="0.5">.NET</text>
+  </g>
+
+  <!-- Small teal AI circle at bottom-right corner of diamond -->
+  <circle cx="86" cy="86" r="14" fill="url(#ic_teal)"/>
+  <text x="86" y="91" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" font-weight="800" fill="#0D1117" letter-spacing="0.5">AI</text>
+</svg>

@@ -1,0 +1,29 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 100" width="460" height="100">
+  <defs>
+    <linearGradient id="ld_purple" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#7B3FF2"/>
+      <stop offset="100%" stop-color="#512BD4"/>
+    </linearGradient>
+    <linearGradient id="ld_shine" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff" stop-opacity="0.25"/>
+      <stop offset="50%" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="ld_teal" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00BFA5"/>
+      <stop offset="100%" stop-color="#00897B"/>
+    </linearGradient>
+  </defs>
+
+  <!-- .NET Diamond -->
+  <g transform="translate(10, 15)">
+    <path d="M35 0 L70 35 L35 70 L0 35 Z" fill="url(#ld_purple)"/>
+    <path d="M35 0 L70 35 L35 70 L0 35 Z" fill="url(#ld_shine)"/>
+    <text x="35" y="40" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="14" font-weight="800" fill="#fff" letter-spacing="0.5">.NET</text>
+  </g>
+
+  <!-- Wordmark — dark text for light backgrounds -->
+  <text x="110" y="58" font-family="'Segoe UI',system-ui,sans-serif" font-size="34" font-weight="700" fill="#1A1A2E" letter-spacing="-0.5">dotnet-ai-kit</text>
+
+  <!-- Tagline -->
+  <text x="110" y="80" font-family="'Segoe UI',system-ui,sans-serif" font-size="13" fill="#6B7280" letter-spacing="0.3">.NET development lifecycle, powered by AI</text>
+</svg>

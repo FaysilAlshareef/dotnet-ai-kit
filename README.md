@@ -1,35 +1,52 @@
-# dotnet-ai-kit
+<p align="center">
+  <img src="assets/banner-github.svg" alt="dotnet-ai-kit banner" width="900"/>
+</p>
 
-AI dev tool plugin for the **full .NET development lifecycle** — from feature specification to pull request.
+<h3 align="center">The AI brain for .NET — 104 skills, 13 agents, one command to ship features</h3>
 
-Works with any .NET project: Vertical Slice, Clean Architecture, DDD, Modular Monolith, or CQRS Microservices.
+<p align="center">
+  <a href="https://github.com/FaysilAlshareef/dotnet-ai-kit/releases"><img src="https://img.shields.io/badge/version-1.0.0-7B3FF2?style=flat-square" alt="Version"></a>
+  <a href="LICENSE"><img src="https://img.shields.io/badge/license-MIT-00D4AA?style=flat-square" alt="License"></a>
+  <a href="https://www.python.org/"><img src="https://img.shields.io/badge/python-3.10+-3776AB?style=flat-square&logo=python&logoColor=white" alt="Python"></a>
+  <a href="https://dotnet.microsoft.com/"><img src="https://img.shields.io/badge/.NET-8.0+-512BD4?style=flat-square&logo=dotnet&logoColor=white" alt=".NET"></a>
+  <a href="https://github.com/FaysilAlshareef/dotnet-ai-kit"><img src="https://img.shields.io/badge/AI_Tool-Claude_Code-F78166?style=flat-square" alt="Claude Code"></a>
+  <a href="https://github.com/FaysilAlshareef/dotnet-ai-kit/stargazers"><img src="https://img.shields.io/github/stars/FaysilAlshareef/dotnet-ai-kit?style=flat-square&color=yellow" alt="Stars"></a>
+</p>
+
+<p align="center">
+  <code>104 skills</code> · <code>13 agents</code> · <code>26 commands</code> · <code>12 architectures</code> · <code>4 safety hooks</code> · <code>11 templates</code>
+</p>
+
+---
+
+## The Problem
+
+When you use AI coding assistants on .NET projects, the AI doesn't know your architecture. It generates **layered code in your VSA project**, **anemic models in your DDD project**, and **everything in one repo for your CQRS microservices**. You spend hours fixing AI output to match your patterns.
+
+**dotnet-ai-kit fixes this.** It gives AI deep .NET intelligence — your architecture, your conventions, your lifecycle — so every line of generated code fits your project.
 
 ## Quick Start
 
 ```bash
-# Install
+# Install the CLI
 uv tool install dotnet-ai-kit --from git+https://github.com/FaysilAlshareef/dotnet-ai-kit.git
 
-# Init (auto-detects your project)
+# Initialize your project (auto-detects architecture)
 dotnet-ai init . --ai claude
 
-# Build a feature
-/dotnet-ai.do "Add order management with tracking"
+# Build a complete feature with one command
+/dai.do "Add order management with tracking"
 
-# That's it. spec → plan → code → test → review → PR
+# That's it → spec → plan → code → test → review → PR
 ```
 
-No configuration needed. The tool auto-detects your company name, architecture, and .NET version.
-
-## Plugin Installation
-
-### Claude Code Plugin (recommended)
+### Claude Code Plugin (Recommended)
 
 ```bash
 # Add the marketplace
 /plugin marketplace add FaysilAlshareef/dotnet-ai-kit
 
-# Install the plugin
+# Install
 /plugin install dotnet-ai-kit
 ```
 
@@ -41,178 +58,315 @@ All 26 commands, 104 skills, 13 agents, 6 rules, and 4 safety hooks are availabl
 dotnet tool install -g csharp-ls
 ```
 
-Enables semantic code navigation (go-to-definition, find references, diagnostics) via MCP — ~10x fewer tokens than grep-based analysis.
+Enables semantic code navigation via MCP — ~10x fewer tokens than grep-based analysis.
 
-### Alternative: pip install
+---
+
+## One Command, Full Feature
+
+```
+/dai.do "Add order management with status tracking and notifications"
+```
+
+This single command automatically runs the full 9-phase lifecycle:
+
+```
+ specify → clarify → plan → tasks → analyze → implement → review → verify → PR
+```
+
+| Phase | Command | What Happens |
+|-------|---------|-------------|
+| 1 | `/dai.spec` | Generates structured feature specification |
+| 2 | `/dai.clarify` | Asks up to 3 smart clarifying questions |
+| 3 | `/dai.plan` | Creates detailed implementation plan |
+| 4 | `/dai.tasks` | Breaks plan into executable tasks |
+| 5 | `/dai.check` | Analyzes plan for architecture compliance |
+| 6 | `/dai.go` | Implements all code (entities, endpoints, handlers, tests) |
+| 7 | `/dai.review` | Code review against YOUR project standards |
+| 8 | `/dai.verify` | Verifies build, tests, and quality gates |
+| 9 | `/dai.pr` | Creates PR with full description |
+
+- **Simple features** (<10 tasks): fully automatic
+- **Complex features** (multi-repo): pauses after plan for confirmation
+- **Always** supports `--dry-run` to preview first
+
+---
+
+## What's Inside
+
+<table>
+<tr><td>
+
+### 104 Skills (16 categories)
+
+| Category | Count |
+|----------|:-----:|
+| Microservice | 31 |
+| Data (EF Core) | 8 |
+| Docs | 8 |
+| API | 7 |
+| Workflow | 7 |
+| Architecture | 6 |
+| Core (C#) | 6 |
+| CQRS | 6 |
+| DevOps | 5 |
+| Testing | 4 |
+| Security | 3 |
+| Observability | 3 |
+| Resilience | 3 |
+| Infrastructure | 3 |
+| Detection | 1 |
+
+</td><td>
+
+### 13 Specialist Agents
+
+| Agent | Domain |
+|-------|--------|
+| `dotnet-architect` | Architecture decisions |
+| `api-designer` | REST, Minimal APIs, gRPC |
+| `ef-specialist` | EF Core, migrations |
+| `command-architect` | Event-sourced write side |
+| `query-architect` | SQL Server read side |
+| `cosmos-architect` | Cosmos DB read models |
+| `gateway-architect` | API Gateway, routing |
+| `processor-architect` | Background processing |
+| `controlpanel-architect` | Blazor WASM |
+| `test-engineer` | Unit + integration tests |
+| `reviewer` | Code review, quality |
+| `devops-engineer` | Docker, Azure, CI/CD |
+| `docs-engineer` | API docs, standards |
+
+</td></tr>
+</table>
+
+### 6 Convention Rules (Always Active)
+
+| Rule | Purpose |
+|------|---------|
+| `architecture` | Enforces architectural boundaries |
+| `coding-style` | Code formatting and patterns |
+| `error-handling` | Exception handling, validation |
+| `existing-projects` | Respects your existing codebase patterns |
+| `localization` | Resource files, culture handling |
+| `naming` | C# naming conventions, namespaces |
+
+### 4 Safety Hooks
+
+| Hook | What It Prevents |
+|------|-----------------|
+| `pre-bash-guard.sh` | Blocks destructive commands (`rm -rf`, `git reset --hard`) |
+| `post-edit-format.sh` | Auto-formats C# files after every edit |
+| `post-scaffold-restore.sh` | Auto-runs `dotnet restore` after scaffolding |
+| `pre-commit-lint.sh` | Verifies formatting before git commit |
+
+---
+
+## All 26 Commands
+
+### SDD Lifecycle (build features end-to-end)
+
+| Command | Short | What It Does |
+|---------|-------|-------------|
+| `/dotnet-ai.specify` | `/dai.spec` | Generate feature specification |
+| `/dotnet-ai.clarify` | `/dai.clarify` | Clarify ambiguous requirements |
+| `/dotnet-ai.plan` | `/dai.plan` | Create implementation plan |
+| `/dotnet-ai.tasks` | `/dai.tasks` | Break plan into tasks |
+| `/dotnet-ai.analyze` | `/dai.check` | Analyze plan before coding |
+| `/dotnet-ai.implement` | `/dai.go` | Execute all planned tasks |
+| `/dotnet-ai.review` | `/dai.review` | Code review against standards |
+| `/dotnet-ai.verify` | `/dai.verify` | Verify build + tests pass |
+| `/dotnet-ai.pr` | `/dai.pr` | Create Pull Request |
+
+### Code Generation (add specific components)
+
+| Command | Short | What It Does |
+|---------|-------|-------------|
+| `/dotnet-ai.add-crud` | `/dai.crud` | Full CRUD for an entity |
+| `/dotnet-ai.add-aggregate` | `/dai.agg` | Event-sourced aggregate |
+| `/dotnet-ai.add-entity` | `/dai.entity` | Domain entity |
+| `/dotnet-ai.add-event` | `/dai.event` | Domain event |
+| `/dotnet-ai.add-endpoint` | `/dai.ep` | API endpoint |
+| `/dotnet-ai.add-page` | `/dai.page` | UI page (Blazor) |
+| `/dotnet-ai.add-tests` | `/dai.tests` | Tests for existing code |
+
+### Smart Commands (productivity boosters)
+
+| Command | Short | What It Does |
+|---------|-------|-------------|
+| `/dotnet-ai.do` | `/dai.do` | **One command** — full lifecycle |
+| `/dotnet-ai.status` | `/dai.status` | See feature progress |
+| `/dotnet-ai.undo` | `/dai.undo` | Safely revert last step |
+| `/dotnet-ai.explain` | `/dai.explain` | Learn patterns with examples |
+
+### Project & Session
+
+| Command | Short | What It Does |
+|---------|-------|-------------|
+| `/dotnet-ai.init` | `/dai.init` | Initialize project (auto-detects architecture) |
+| `/dotnet-ai.detect` | `/dai.detect` | Re-detect project type |
+| `/dotnet-ai.configure` | `/dai.config` | Configure company/naming/repos |
+| `/dotnet-ai.docs` | `/dai.docs` | Generate documentation |
+| `/dotnet-ai.checkpoint` | `/dai.save` | Save session state |
+| `/dotnet-ai.wrap-up` | `/dai.done` | Finalize session |
+
+> All commands support `--dry-run`, `--verbose`, and `--preview` flags.
+
+---
+
+## Supported Architectures
+
+### Generic .NET
+
+| Architecture | Template | Detection |
+|-------------|----------|-----------|
+| Vertical Slice Architecture | `generic-vsa` | Auto |
+| Clean Architecture | `generic-clean-arch` | Auto |
+| Domain-Driven Design | `generic-ddd` | Auto |
+| Modular Monolith | `generic-modular-monolith` | Auto |
+
+### CQRS Microservices (Event Sourcing)
+
+| Service Type | Template | Agent |
+|-------------|----------|-------|
+| Command (write side) | `command` | `command-architect` |
+| Query — SQL Server | `query` | `query-architect` |
+| Query — Cosmos DB | `cosmos-query` | `cosmos-architect` |
+| Processor (background) | `processor` | `processor-architect` |
+| Gateway (REST API) | `gateway-consumer` / `gateway-management` | `gateway-architect` |
+| Control Panel (Blazor) | `controlpanel-module` | `controlpanel-architect` |
+
+### Multi-Repo Support
+
+For CQRS microservices across multiple repositories:
+
+```
+/dai.do "Add order management with tracking"
+```
+
+dotnet-ai-kit automatically:
+- Detects all affected repos (command, query, processor, gateway)
+- Generates code in each repo following its architecture
+- Creates **linked Pull Requests** across all repos
+- Manages event versioning between services
+
+---
+
+## AI-Powered Project Detection
 
 ```bash
-uv tool install dotnet-ai-kit --from git+https://github.com/FaysilAlshareef/dotnet-ai-kit.git
 dotnet-ai init . --ai claude
 ```
 
-## How dotnet-ai-kit Differs
+The tool scans your project and detects type using signal-based scoring:
 
-| Feature | dotnet-ai-kit | Microsoft dotnet/skills | dotnet-claude-kit |
-|---------|--------------|------------------------|-------------------|
-| **Skills** | 104 | ~30 | 47 |
-| **Commands** | 26 slash commands | — | 16 |
-| **Agents** | 13 specialists | 5 | 10 |
-| **SDD Lifecycle** | Full (specify → plan → implement → PR) | No | No |
-| **Code Gen Commands** | 7 (add-crud, add-entity, add-event, etc.) | No | `/scaffold` only |
-| **AI Project Detection** | 12 types (VSA, Clean Arch, DDD, CQRS, etc.) | No | Convention detector |
-| **CLI Tool** | `dotnet-ai init/check/upgrade/configure` | No | No |
-| **Hooks** | 4 (bash-guard, format, restore, lint) | No | 7 |
-| **MCP** | C# LSP (csharp-ls) | No | 15 Roslyn tools |
+| Signal Type | Confidence |
+|------------|-----------|
+| Naming patterns | High |
+| Build configuration | High |
+| Code structure patterns | Medium |
+| NuGet packages | Medium |
 
-**Unique to dotnet-ai-kit:**
-- Full Specification-Driven Development lifecycle (one command: `/dotnet-ai.do`)
-- 7 code generation commands for any architecture
-- AI-powered project type detection for 12 .NET project types
-- Python CLI for project management (`init`, `check`, `upgrade`, `configure`)
-- Extension system with manifest validation
+**Result:** A project type classification with confidence score (0.0–1.0) and top contributing signals. Supports 12 project types. You can override with manual selection.
 
-## Core 5 Commands
+---
 
-| Command | What it does |
-|---------|-------------|
-| `/dotnet-ai.do "description"` | Build a feature — one command, full lifecycle |
-| `/dotnet-ai.add-crud Entity` | Generate complete CRUD (entity, handlers, endpoint, tests) |
-| `/dotnet-ai.status` | See feature progress and what to do next |
-| `/dotnet-ai.undo` | Revert the last step safely |
-| `/dotnet-ai.explain topic` | Learn any pattern with examples |
-
-These 5 commands cover 90% of daily work. The remaining 20 commands give you step-by-step control when you need it.
-
-## Which command do I use?
+## Which Command Do I Use?
 
 ```
 I want to...
-├── Build a feature fast           → /dotnet-ai.do "description"
-├── Build a feature step-by-step   → /dotnet-ai.specify → plan → implement
-├── Add CRUD for an entity         → /dotnet-ai.add-crud Order
-├── Add tests to existing code     → /dotnet-ai.add-tests
-├── Add one endpoint/event/page    → /dotnet-ai.add-endpoint, add-event, add-page
-├── Check my progress              → /dotnet-ai.status
-├── Undo a mistake                 → /dotnet-ai.undo
-├── Learn a pattern                → /dotnet-ai.explain "clean architecture"
-├── I'm new, show me how           → /dotnet-ai.explain --tutorial
-├── Resume from yesterday          → /dotnet-ai.status → follow "Next:" suggestion
-└── Preview before doing anything  → Add --dry-run to any command
+├── Build a feature fast             → /dai.do "description"
+├── Build a feature step-by-step     → /dai.spec → plan → go
+├── Add CRUD for an entity           → /dai.crud Order
+├── Add tests to existing code       → /dai.tests
+├── Add one endpoint / event / page  → /dai.ep, /dai.event, /dai.page
+├── Check my progress                → /dai.status
+├── Undo a mistake                   → /dai.undo
+├── Learn a pattern                  → /dai.explain "event sourcing"
+├── Resume from yesterday            → /dai.status → follow "Next:" suggestion
+└── Preview before doing anything    → Add --dry-run to any command
 ```
 
-## Supported Projects
-
-### Generic .NET
-- Vertical Slice Architecture
-- Clean Architecture
-- Domain-Driven Design
-- Modular Monolith
-
-### Microservices (CQRS + Event Sourcing)
-- Command (event-sourced write side)
-- Query (SQL Server / Cosmos DB read side)
-- Processor (background event processing)
-- Gateway (REST API with Scalar docs)
-- Control Panel (Blazor WASM)
-
-## How It Works
-
-### Quick Mode (default)
-
-```
-/dotnet-ai.do "Add order management"
-```
-
-One command chains: specify → plan → implement → review → verify → PR.
-- Simple features (<10 tasks): fully automatic
-- Complex features (multi-repo): pauses after plan for confirmation
-- Always supports `--dry-run` to preview first
-
-### Full Lifecycle (when you need control)
-
-**Single repo:**
-```
-/dotnet-ai.specify "Add orders" → /dotnet-ai.plan → /dotnet-ai.implement → /dotnet-ai.pr
-```
-
-**Multi-repo microservices:**
-```
-/dotnet-ai.specify → /dotnet-ai.plan → /dotnet-ai.tasks → /dotnet-ai.analyze → /dotnet-ai.implement → /dotnet-ai.pr
-```
+---
 
 ## Supported AI Tools
 
 | Tool | Status |
 |------|--------|
-| **Claude Code** | v1.0 (supported) |
-| **Cursor** | v1.1 (planned) |
-| **GitHub Copilot** | v1.1 (planned) |
-| **Codex CLI** | v1.1 (planned) |
+| **Claude Code** | v1.0 — Fully supported |
+| **Cursor** | v1.1 — Planned |
+| **GitHub Copilot** | v1.1 — Planned |
+| **Codex CLI** | v1.1 — Planned |
 
-The core knowledge (rules, skills, agents, commands) is portable across AI tools.
+The core knowledge (rules, skills, agents, commands) is portable across AI tools via the Agent Skills specification.
 
-## All 26 Commands
+---
 
-### SDD Lifecycle
-`specify` · `clarify` · `plan` · `tasks` · `analyze` · `implement` · `review` · `verify` · `pr`
+## Extension System
 
-### Code Generation
-`add-aggregate` · `add-entity` · `add-event` · `add-endpoint` · `add-page` · `add-crud` · `add-tests`
+```bash
+# Install a community extension
+dotnet-ai extension install {name}
 
-### Smart Commands
-`do` · `status` · `undo` · `explain`
+# Install from local development
+dotnet-ai extension install --dev ./my-extension
 
-### Project & Session
-`init` · `detect` · `configure` · `docs` · `checkpoint` · `wrap-up`
+# List installed extensions
+dotnet-ai extension list
+```
 
-All commands support short aliases: `/dai.do`, `/dai.spec`, `/dai.go`, `/dai.crud`, etc.
+Extensions use manifest validation (JSON schema) for safety and compatibility.
 
-## Platform Support
+---
 
-Works on **Windows**, **macOS**, and **Linux** — anywhere .NET and Python run.
+## Platform & Requirements
 
-**Prerequisites:** Python 3.10+, .NET SDK 8.0+, Git
+| Requirement | Version |
+|------------|---------|
+| Python | 3.10+ |
+| .NET SDK | 8.0+ |
+| Git | Any recent |
+| OS | Windows, macOS, Linux |
 
-## .NET Version Support
+The tool detects your .NET version from `.csproj` and uses version-appropriate patterns (primary constructors for .NET 8+, etc.). It never force-upgrades syntax.
 
-The tool respects your existing .NET version. It:
-- Detects version from `.csproj` TargetFramework
-- Uses version-appropriate patterns (primary constructors for .NET 8+, etc.)
-- Never force-upgrades syntax
-- New projects default to latest stable .NET
+---
 
-## What's Inside
+## Project Structure
 
-| Component | Count | Purpose |
-|-----------|-------|---------|
-| Rules | 6 | Always-loaded coding conventions |
-| Agents | 13 | Specialist agents per project type |
-| Skills | 104 | Code patterns and knowledge |
-| Commands | 26 | Developer workflow commands |
-| Knowledge Docs | 11 | Reference patterns from real projects |
-| Templates | 11 | New project scaffolds (7 microservice + 4 generic) |
+```
+dotnet-ai-kit/
+├── commands/          # 26 slash command definitions
+├── rules/             # 6 always-loaded convention rules
+├── agents/            # 13 specialist agent definitions
+├── skills/            # 104 skills across 16 categories
+├── knowledge/         # 11 reference documents
+├── templates/         # 11 project templates (Jinja2)
+├── hooks/             # 4 safety hooks
+├── config/            # 4 permission level configs
+├── src/               # Python CLI source (Typer + Pydantic v2)
+├── tests/             # 108 test functions (90% coverage)
+└── .claude-plugin/    # Claude Code plugin manifest
+```
 
-## Project Status
+---
 
-**Status: v1.0 Implementation Complete**
+## Contributing
 
-All components built from 18 planning documents. The tool is installable
-via `uv tool install` and ready for use with Claude Code.
+See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
 
-| Component | Count | Status |
-|-----------|-------|--------|
-| Rules | 6 | Complete |
-| Agents | 13 | Complete |
-| Skills | 104 | Complete |
-| Commands | 26 | Complete |
-| Knowledge Docs | 11 | Complete |
-| Templates | 11 | Complete |
-| Permission Configs | 4 | Complete |
-| CLI Modules | 8 | Complete |
-| CLI Tests | 108 functions | Complete |
+## Changelog
 
-See [`planning/`](planning/) for design documentation.
+See [CHANGELOG.md](CHANGELOG.md) for version history.
 
 ## License
 
-MIT
+[MIT](LICENSE) — free and open source.
+
+---
+
+<p align="center">
+  <b>Built with care from Libya</b> 🇱🇾
+  <br/>
+  <sub>by <a href="https://github.com/FaysilAlshareef">Faysil Alshareef</a></sub>
+</p>
