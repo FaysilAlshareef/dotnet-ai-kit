@@ -1,5 +1,5 @@
 ---
-name: cosmos-entity
+name: dotnet-ai-cosmos-entity
 description: >
   Cosmos DB entity design with IContainerDocument, hierarchical partition keys,
   discriminator pattern, and ETag concurrency. Covers entity modeling for NoSQL documents.

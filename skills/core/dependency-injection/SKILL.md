@@ -1,5 +1,5 @@
 ---
-name: dependency-injection
+name: dotnet-ai-dependency-injection
 description: >
   DI registration patterns, service lifetimes, keyed services, Options pattern,
   decorator pattern, and factory delegates.

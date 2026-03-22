@@ -1,5 +1,5 @@
 ---
-name: file-storage
+name: dotnet-ai-file-storage
 description: >
   File storage abstraction with Azure Blob Storage and local file system support.
   Covers IFileStorage interface, blob operations, and SAS token generation.

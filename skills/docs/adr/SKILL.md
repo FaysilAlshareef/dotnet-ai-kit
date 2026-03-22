@@ -1,5 +1,5 @@
 ---
-name: adr
+name: dotnet-ai-adr
 description: >
   Architecture Decision Records using MADR format. Covers numbered sequence,
   status lifecycle, decision documentation, and cross-references.

@@ -1,5 +1,5 @@
 ---
-name: feature-tracking
+name: dotnet-ai-feature-tracking
 description: >
   Feature directory structure and status progression for tracking development.
   Covers feature briefs, specs, status files, and multi-service coordination.

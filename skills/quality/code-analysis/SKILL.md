@@ -1,5 +1,5 @@
 ---
-name: code-analysis
+name: dotnet-ai-code-analysis
 description: >
   Static code analysis with Roslyn analyzers, StyleCop, and EditorConfig.
   Covers analyzer configuration, rule customization, and CI enforcement.

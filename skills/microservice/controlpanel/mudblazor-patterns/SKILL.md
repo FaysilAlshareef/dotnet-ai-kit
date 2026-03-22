@@ -1,5 +1,5 @@
 ---
-name: mudblazor-patterns
+name: dotnet-ai-mudblazor-patterns
 description: >
   MudBlazor theming, dialog patterns, snackbar integration, and common component
   usage for control panel applications.

@@ -1,5 +1,5 @@
 ---
-name: batch-processing
+name: dotnet-ai-batch-processing
 description: >
   Batch event processing with BackgroundService, SemaphoreSlim concurrency control,
   AcceptNextSessionAsync, ReceiveMessagesAsync batching, deduplication by SourceId,

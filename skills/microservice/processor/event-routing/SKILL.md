@@ -1,5 +1,5 @@
 ---
-name: event-routing
+name: dotnet-ai-event-routing
 description: >
   Subject-based event routing with inline switch statement, typed HandleAsync,
   MediatR dispatch, and Serilog LogContext enrichment. No separate EventRouter

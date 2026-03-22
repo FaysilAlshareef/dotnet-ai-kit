@@ -1,5 +1,5 @@
 ---
-name: query-string-bindable
+name: dotnet-ai-query-string-bindable
 description: >
   URL-synchronized filter models for control panel data grids. Covers
   QueryStringBindable base class, two-way URL binding, and PropertyChanged notification.

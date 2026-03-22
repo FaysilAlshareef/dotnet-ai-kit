@@ -1,5 +1,5 @@
 ---
-name: gateway-facade
+name: dotnet-ai-gateway-facade
 description: >
   Gateway management class hierarchy for control panel API calls. Covers typed
   HttpClient wrappers, nested management classes, HTTP extension methods.

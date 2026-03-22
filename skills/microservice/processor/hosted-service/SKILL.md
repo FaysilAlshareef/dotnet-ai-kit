@@ -1,5 +1,5 @@
 ---
-name: hosted-service
+name: dotnet-ai-hosted-service
 description: >
   IHostedService with ServiceBusSessionProcessor and paired DLQ processor pattern.
   Covers lifecycle management, exact session processor configuration,

@@ -1,5 +1,5 @@
 ---
-name: scalar-docs
+name: dotnet-ai-scalar-docs
 description: >
   Scalar API documentation for gateway endpoints. Covers AddOpenApiDocumentation,
   AddBaseScalarApiDocumentation, OpenApiDocEntry, BearerSecuritySchemeTransformer,

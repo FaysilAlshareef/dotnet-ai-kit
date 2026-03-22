@@ -1,5 +1,5 @@
 ---
-name: aggregate-design
+name: dotnet-ai-aggregate-design
 description: >
   Aggregate root pattern for event-sourced microservices. Covers Aggregate<T> base class,
   LoadFromHistory replay, ApplyChange for new events, factory methods, and domain invariants.

@@ -1,5 +1,5 @@
 ---
-name: sdd-lifecycle
+name: dotnet-ai-sdd-lifecycle
 description: >
   Specification-Driven Development lifecycle phases. Covers plan, spec, implement,
   review, and ship phases adapted for microservice and generic .NET projects.

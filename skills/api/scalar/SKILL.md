@@ -1,5 +1,5 @@
 ---
-name: scalar-api-docs
+name: dotnet-ai-scalar-api-docs
 description: >
   Scalar API documentation setup for .NET. OpenAPI doc generation,
   Scalar UI configuration, basic auth protection, theme customization.

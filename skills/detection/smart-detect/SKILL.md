@@ -1,4 +1,5 @@
 ---
+name: dotnet-ai-smart-detect
 description: "AI-assisted project type detection for .NET projects (microservice and generic architectures)"
 category: "detection"
 ---

@@ -1,5 +1,5 @@
 ---
-name: health-checks
+name: dotnet-ai-health-checks
 description: >
   ASP.NET Core health check endpoints, custom health checks,
   Kubernetes probes, and health check UI.

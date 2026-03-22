@@ -1,5 +1,5 @@
 ---
-name: github-actions
+name: dotnet-ai-github-actions
 description: >
   GitHub Actions CI/CD workflows for .NET microservices. Covers build-test-deploy
   pipelines, Azure OIDC auth, ACR image push, and AKS deployment.

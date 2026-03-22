@@ -20,7 +20,7 @@ from rich.prompt import Prompt
 from rich.table import Table
 
 from dotnet_ai_kit import __version__
-from dotnet_ai_kit.agents import detect_ai_tools, get_agent_config
+from dotnet_ai_kit.agents import SUPPORTED_AI_TOOLS, detect_ai_tools, get_agent_config
 from dotnet_ai_kit.config import (
     get_config_dir,
     load_config,
@@ -43,11 +43,49 @@ from dotnet_ai_kit.extensions import (
 )
 from dotnet_ai_kit.models import DetectedProject, DotnetAiConfig
 
+# All valid --type values for init
+_VALID_PROJECT_TYPES = {
+    "command",
+    "query-sql",
+    "query-cosmos",
+    "processor",
+    "gateway",
+    "controlpanel",
+    "hybrid",
+    "vsa",
+    "clean-arch",
+    "ddd",
+    "modular-monolith",
+    "generic",
+}
+
+
+def _version_callback(value: bool) -> None:
+    if value:
+        typer.echo(f"dotnet-ai-kit {__version__}")
+        raise typer.Exit()
+
+
 app = typer.Typer(
     name="dotnet-ai",
     help="AI dev tool plugin for the full .NET development lifecycle.",
     add_completion=False,
 )
+
+
+@app.callback()
+def main(
+    version: bool = typer.Option(
+        False,
+        "--version",
+        "-V",
+        help="Show version and exit.",
+        callback=_version_callback,
+        is_eager=True,
+    ),
+) -> None:
+    """AI dev tool plugin for the full .NET development lifecycle."""
+
 
 # T053 - NO_COLOR support (clig.dev best practice)
 _no_color = os.environ.get("NO_COLOR") is not None
@@ -165,7 +203,7 @@ def init(
     ai: Optional[list[str]] = typer.Option(
         None,
         "--ai",
-        help="AI tool(s) to configure (claude, cursor, copilot, codex, antigravity). Repeatable.",
+        help="AI tool to configure (claude). Repeatable.",
     ),
     project_type: Optional[str] = typer.Option(
         None,
@@ -198,6 +236,24 @@ def init(
     """Initialize dotnet-ai-kit in a .NET project directory."""
     target = path.resolve()
 
+    # Validate --type value
+    if project_type and project_type.lower() not in _VALID_PROJECT_TYPES:
+        err_console.print(
+            f"[red]Unknown project type '{project_type}'. "
+            f"Valid types: {', '.join(sorted(_VALID_PROJECT_TYPES))}[/red]"
+        )
+        raise typer.Exit(code=1)
+
+    # Validate --ai values (v1.0: claude only)
+    if ai:
+        unsupported = [t for t in ai if t.lower() not in SUPPORTED_AI_TOOLS]
+        if unsupported:
+            err_console.print(
+                f"[red]Unsupported AI tool(s): {', '.join(unsupported)}. "
+                f"v1.0 supports: {', '.join(sorted(SUPPORTED_AI_TOOLS))}.[/red]"
+            )
+            raise typer.Exit(code=1)
+
     if not json_output:
         if dry_run:
             console.print("\n[bold][DRY-RUN] dotnet-ai-kit init preview[/bold]\n")
@@ -219,8 +275,13 @@ def init(
     if project_type:
         # --type flag: create a basic DetectedProject
         microservice_types = {
-            "command", "query-sql", "query-cosmos", "processor",
-            "gateway", "controlpanel", "hybrid",
+            "command",
+            "query-sql",
+            "query-cosmos",
+            "processor",
+            "gateway",
+            "controlpanel",
+            "hybrid",
         }
         mode = "microservice" if project_type in microservice_types else "generic"
         detected = DetectedProject(
@@ -895,7 +956,7 @@ def configure(
         perm_map = {"1": "minimal", "2": "standard", "3": "full"}
         config.permissions_level = perm_map.get(perm_choice, "standard")
 
-        # AI tools multi-select (T041)
+        # AI tools multi-select (T041) — v1.0: Claude only
         current_tools = config.ai_tools or []
         tools_result = questionary.checkbox(
             "AI tools to configure:",
@@ -904,26 +965,6 @@ def configure(
                     "Claude Code",
                     value="claude",
                     checked="claude" in current_tools,
-                ),
-                questionary.Choice(
-                    "Cursor",
-                    value="cursor",
-                    checked="cursor" in current_tools,
-                ),
-                questionary.Choice(
-                    "GitHub Copilot",
-                    value="copilot",
-                    checked="copilot" in current_tools,
-                ),
-                questionary.Choice(
-                    "Codex CLI",
-                    value="codex",
-                    checked="codex" in current_tools,
-                ),
-                questionary.Choice(
-                    "Antigravity",
-                    value="antigravity",
-                    checked="antigravity" in current_tools,
                 ),
             ],
         ).ask()

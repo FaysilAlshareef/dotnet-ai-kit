@@ -249,9 +249,9 @@ The most complex phase:
 | Doc | File | Purpose |
 |-----|------|---------|
 | 01 | `01-vision.md` | Vision, principles, supported tools |
-| 02 | `02-skills-inventory.md` | 101 skills with detailed descriptions |
+| 02 | `02-skills-inventory.md` | 104 skills with detailed descriptions |
 | 03 | `03-agents-design.md` | 13 agents, routing tables, orchestration |
-| 04 | `04-commands-design.md` | 25 commands, SDD lifecycle flows |
+| 04 | `04-commands-design.md` | 26 commands, SDD lifecycle flows |
 | 05 | `05-rules-design.md` | 6 always-loaded rules |
 | 06 | `06-build-roadmap.md` | Build phases and roadmap (this file) |
 | 07 | `07-project-structure.md` | Source repo + user project file trees |
@@ -266,3 +266,11 @@ The most complex phase:
 | 16 | `16-cli-implementation.md` | CLI detection, config, extension system |
 | 17 | `17-code-generation-flows.md` | 5 code generation command flows |
 | 18 | `18-microservice-skills-spec.md` | Code patterns for microservice skills |
+
+---
+
+## Post-v1.0 Additions
+
+The following were added after the initial build phases:
+- Phase 14: Plugin Ecosystem — `.claude-plugin/plugin.json`, Agent Skills spec compliance, 4 hooks, `.mcp.json` for C# LSP
+- Phase 15 (v1.1): Roslyn MCP tools for semantic .NET analysis

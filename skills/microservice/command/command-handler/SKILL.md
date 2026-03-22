@@ -1,5 +1,5 @@
 ---
-name: command-handler
+name: dotnet-ai-command-handler
 description: >
   MediatR command handlers for event-sourced microservices. Covers IRequestHandler pattern,
   aggregate loading/creation via IUnitOfWork and ICommitEventService, command records with

@@ -7,6 +7,7 @@ dotnet-ai-kit tooling.
 
 from __future__ import annotations
 
+import logging
 import shutil
 from datetime import datetime, timezone
 from pathlib import Path
@@ -15,6 +16,8 @@ from typing import Any, Optional
 import yaml
 
 from dotnet_ai_kit.agents import AGENT_CONFIG
+
+logger = logging.getLogger(__name__)
 
 
 class ExtensionError(Exception):
@@ -282,6 +285,12 @@ def _register_extension_files(
                         dest = commands_dir / f"{cmd_name}{ext}"
                         content = src.read_text(encoding="utf-8")
                         dest.write_text(content, encoding="utf-8")
+                    elif cmd_file:
+                        logger.warning(
+                            "Extension '%s': command file '%s' not found",
+                            manifest.id,
+                            cmd_file,
+                        )
 
         if rules_dir_rel:
             rules_dir = project_root / rules_dir_rel
@@ -293,6 +302,12 @@ def _register_extension_files(
                         dest = rules_dir / src.name
                         content = src.read_text(encoding="utf-8")
                         dest.write_text(content, encoding="utf-8")
+                    elif rule_file:
+                        logger.warning(
+                            "Extension '%s': rule file '%s' not found",
+                            manifest.id,
+                            rule_file,
+                        )
 
 
 def remove_extension(name: str, project_root: Path) -> None:

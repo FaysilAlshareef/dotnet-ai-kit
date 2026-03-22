@@ -1,5 +1,5 @@
 ---
-name: grpc-client
+name: dotnet-ai-grpc-client
 description: >
   GrpcClientFactory registration with AddGrpcClient using (provider, client) callback,
   IOptions<ExternalServicesOptions> for URL resolution, and RetryCallerService wrapper

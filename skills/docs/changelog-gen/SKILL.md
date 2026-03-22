@@ -1,5 +1,5 @@
 ---
-name: changelog-gen
+name: dotnet-ai-changelog-gen
 description: >
   Changelog generation from git history using Keep a Changelog format.
   Covers conventional commits, semantic versioning, and release notes.

@@ -45,23 +45,18 @@ AGENT_CONFIG: dict[str, dict[str, Any]] = {
         "args_placeholder": None,
         "agents_file": "AGENTS.md",
     },
-    "antigravity": {
-        "name": "Antigravity",
-        "commands_dir": None,
-        "rules_dir": None,
-        "command_ext": None,
-        "command_prefix": "dotnet-ai",
-        "args_placeholder": None,
-        # Planned for v1.1 — format TBD when Antigravity defines its extension format
-    },
 }
+
+# v1.0: Only Claude Code is fully supported.
+# Cursor, Copilot, Codex planned for v1.1.
+SUPPORTED_AI_TOOLS: frozenset[str] = frozenset({"claude"})
 
 
 def get_agent_config(tool: str) -> dict[str, Any]:
     """Get the configuration dictionary for a specific AI tool.
 
     Args:
-        tool: AI tool name (claude, cursor, copilot, codex, antigravity).
+        tool: AI tool name (claude, cursor, copilot, codex).
               Case-insensitive.
 
     Returns:
@@ -78,20 +73,15 @@ def get_agent_config(tool: str) -> dict[str, Any]:
 
 
 def detect_ai_tools(project_root: Path) -> list[str]:
-    """Detect which AI tools are configured in a project by checking
-    for tool-specific directories.
+    """Detect which supported AI tools are configured in a project.
 
-    Checks for:
-    - .claude/         -> claude
-    - .cursor/         -> cursor
-    - .github/agents/  -> copilot
+    Only returns tools that are in SUPPORTED_AI_TOOLS (v1.0: claude only).
 
     Args:
         project_root: The root directory of the project.
 
     Returns:
-        List of detected AI tool names (lowercase). May be empty if
-        no tools are detected.
+        List of detected supported AI tool names (lowercase). May be empty.
     """
     detected: list[str] = []
 
@@ -99,20 +89,5 @@ def detect_ai_tools(project_root: Path) -> list[str]:
     claude_dir = project_root / ".claude"
     if claude_dir.is_dir():
         detected.append("claude")
-
-    # Cursor: .cursor/ directory
-    cursor_dir = project_root / ".cursor"
-    if cursor_dir.is_dir():
-        detected.append("cursor")
-
-    # GitHub Copilot: .github/agents/ directory
-    copilot_dir = project_root / ".github" / "agents"
-    if copilot_dir.is_dir():
-        detected.append("copilot")
-
-    # Codex CLI: AGENTS.md file at project root
-    codex_file = project_root / "AGENTS.md"
-    if codex_file.is_file():
-        detected.append("codex")
 
     return detected

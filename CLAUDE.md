@@ -27,10 +27,13 @@ src/dotnet_ai_kit/       # Python package
   copier.py               # File copy + Jinja2 template rendering
   extensions.py           # Extension install/remove/list
 
+.claude-plugin/           # Claude Code plugin manifest (plugin.json)
+.mcp.json                 # MCP server config (csharp-ls for C# intelligence)
+hooks/                    # Claude Code hooks (bash-guard, edit-format, scaffold-restore, commit-lint)
 commands/                 # Slash command templates (max 200 lines each)
 rules/                    # Always-loaded convention rules (max 100 lines each)
 agents/                   # Specialist agent definitions
-skills/                   # 101 skills organized by category
+skills/                   # 104 skills organized by category (Agent Skills spec compliant)
 templates/                # Project scaffolding templates + config-template.yml
 config/                   # Permission JSON configs (minimal, standard, full, mcp)
 knowledge/                # Reference documents

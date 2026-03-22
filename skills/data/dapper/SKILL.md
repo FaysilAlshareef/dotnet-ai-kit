@@ -1,5 +1,5 @@
 ---
-name: dapper-queries
+name: dotnet-ai-dapper-queries
 description: >
   Dapper for read-optimized queries alongside EF Core. Multi-mapping,
   pagination, dynamic filtering, CTEs, bulk operations.

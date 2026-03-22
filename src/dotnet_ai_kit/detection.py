@@ -115,7 +115,7 @@ def display_detection_summary(result: DetectedProject, console: Console) -> None
     }.get(result.confidence, "dim")
 
     confidence_display = result.confidence or "unknown"
-    if result.confidence_score > 0:
+    if result.confidence_score > 0.0:
         confidence_display += f" ({result.confidence_score:.0%})"
     table.add_row("Confidence", f"[{confidence_style}]{confidence_display}[/{confidence_style}]")
 

@@ -1,5 +1,5 @@
 ---
-name: dockerfile
+name: dotnet-ai-dockerfile
 description: >
   Multi-stage Docker builds for .NET applications. Covers layer caching optimization,
   non-root user, health checks, and .NET-specific Dockerfile patterns.

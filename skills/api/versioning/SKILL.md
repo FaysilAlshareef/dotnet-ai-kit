@@ -1,5 +1,5 @@
 ---
-name: versioning
+name: dotnet-ai-versioning
 description: >
   API versioning strategies using Asp.Versioning. URL segment, header,
   query string approaches, sunset policies, and OpenAPI integration.

@@ -1,5 +1,5 @@
 ---
-name: test-fixtures
+name: dotnet-ai-test-fixtures
 description: >
   Test data generation with CustomConstructorFaker and Bogus. Covers faker patterns,
   assertion extensions, and test helper utilities for microservice testing.

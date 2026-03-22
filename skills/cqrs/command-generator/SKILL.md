@@ -1,5 +1,5 @@
 ---
-name: cqrs-command-generator
+name: dotnet-ai-cqrs-command-generator
 description: >
   CQRS command pattern: command record + handler + validator using
   MediatR and FluentValidation. Three-section file organization.

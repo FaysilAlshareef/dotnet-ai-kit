@@ -1,5 +1,5 @@
 ---
-name: clean-architecture
+name: dotnet-ai-clean-architecture
 description: >
   4-layer Clean Architecture pattern with dependency rules. Domain, Application,
   Infrastructure, and Presentation layers with dependency inversion.

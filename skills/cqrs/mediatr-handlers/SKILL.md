@@ -1,5 +1,5 @@
 ---
-name: mediatr-handlers
+name: dotnet-ai-mediatr-handlers
 description: >
   MediatR IRequest, IRequestHandler, and INotificationHandler patterns.
   Command and query handler creation, registration, and dispatch.

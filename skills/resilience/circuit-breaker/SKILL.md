@@ -1,5 +1,5 @@
 ---
-name: circuit-breaker
+name: dotnet-ai-circuit-breaker
 description: >
   Circuit breaker pattern for preventing cascading failures.
   Health degradation detection, half-open state, and recovery.

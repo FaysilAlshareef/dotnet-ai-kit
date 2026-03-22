@@ -1,5 +1,5 @@
 ---
-name: event-store
+name: dotnet-ai-event-store
 description: >
   EF Core event store with discriminator mapping for event-sourced command services.
   Covers ApplicationDbContext, GenericEventConfiguration with Newtonsoft.Json Data conversion,

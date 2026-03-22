@@ -1,5 +1,5 @@
 ---
-name: auth-policies
+name: dotnet-ai-auth-policies
 description: >
   Policy-based authorization with custom requirements, handlers,
   and permission-based access control.

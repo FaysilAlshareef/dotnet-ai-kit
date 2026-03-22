@@ -1,5 +1,5 @@
 ---
-name: specification-pattern
+name: dotnet-ai-specification-pattern
 description: >
   Specification pattern for composable query criteria. ISpecification interface,
   BaseSpecification with expression trees, repository integration.

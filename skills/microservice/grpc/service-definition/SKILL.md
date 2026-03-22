@@ -1,5 +1,5 @@
 ---
-name: service-definition
+name: dotnet-ai-service-definition
 description: >
   Proto file design and gRPC service implementation patterns. Covers proto service/message
   definitions, service class inheritance, MediatR integration, and mapping extensions.

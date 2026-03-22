@@ -1,5 +1,5 @@
 ---
-name: pipeline-behaviors
+name: dotnet-ai-pipeline-behaviors
 description: >
   MediatR pipeline behaviors for validation, logging, performance monitoring,
   and transaction management.

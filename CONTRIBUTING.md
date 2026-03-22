@@ -4,15 +4,18 @@
 
 ```
 dotnet-ai-kit/
+├── .claude-plugin/    # Claude Code plugin manifest (plugin.json)
+├── .mcp.json          # MCP server config (csharp-ls for C# intelligence)
 ├── src/               # CLI tool (Python 3.10+, typer + pydantic + jinja2 + rich)
+├── hooks/             # 4 Claude Code hooks (bash-guard, edit-format, scaffold-restore, commit-lint)
 ├── rules/             # 6 always-loaded convention files (≤100 lines each)
 ├── agents/            # 13 specialist agents
-├── skills/            # 101 skills by domain (≤400 lines each)
-├── commands/          # 25 command templates (≤200 lines each)
+├── skills/            # 104 skills by domain (≤400 lines each, Agent Skills spec compliant)
+├── commands/          # 26 command templates (≤200 lines each)
 ├── knowledge/         # 11 reference documents
 ├── templates/         # 11 project scaffolds (7 microservice + 4 generic)
 ├── config/            # 4 permission config templates
-├── tests/             # pytest test suite (62 test functions)
+├── tests/             # pytest test suite (108 test functions, 90% coverage)
 └── planning/          # 18 planning documents (design specs, not shipped)
 ```
 
@@ -45,7 +48,7 @@ ruff format --check src/ tests/
 
 ```markdown
 ---
-name: skill-name
+name: dotnet-ai-skill-name
 description: One-line description
 category: category-name
 agent: agent-that-loads-this
@@ -53,6 +56,8 @@ agent: agent-that-loads-this
 
 # Skill content (patterns, code examples, anti-patterns)
 ```
+
+**Note**: All skill `name` fields must start with `dotnet-ai-` prefix per the [Agent Skills specification](https://agentskills.io/specification).
 
 ### Commands (`commands/{name}.md`, max 200 lines)
 
@@ -79,8 +84,9 @@ description: One-line description
 
 1. Read the relevant planning doc in `planning/` for the area you want to work on
 2. Follow existing patterns in the codebase
-3. Run `pytest` and `ruff check src/ tests/` before submitting
-4. Submit a PR with a clear description of what changed and why
+3. Run `pytest --cov=dotnet_ai_kit` and `ruff check src/ tests/` before submitting
+4. Maintain overall test coverage at 90% or above; new modules should target 95%+
+5. Submit a PR with a clear description of what changed and why
 
 ## Key Conventions
 

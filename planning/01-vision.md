@@ -31,7 +31,7 @@ No configuration needed. The tool auto-detects your company name, architecture, 
 | `/dotnet-ai.undo` | Revert the last step safely |
 | `/dotnet-ai.explain topic` | Learn any pattern with examples |
 
-These 5 commands cover 90% of daily work. The remaining 20 commands give you step-by-step control when you need it (see `04-commands-design.md`).
+These 5 commands cover 90% of daily work. The remaining 21 commands give you step-by-step control when you need it (see `04-commands-design.md`).
 
 ---
 
@@ -81,10 +81,10 @@ The tool uses Claude Code's native features — no custom plugin system:
 
 ```
 .claude/
-├── commands/       ← 25 slash commands (each reads relevant skills on demand)
+├── commands/       ← 26 slash commands (each reads relevant skills on demand)
 ├── rules/          ← 6 always-loaded coding conventions
 CLAUDE.md           ← Project context
-skills/             ← 101 skill files (read by commands when needed)
+skills/             ← 104 skill files (read by commands when needed)
 knowledge/          ← 11 reference docs (read by commands when needed)
 ```
 
@@ -141,8 +141,8 @@ dotnet-ai-kit/                       # Source repository
 ├── src/                             # CLI tool (dotnet-ai init/check/upgrade)
 ├── rules/                           # 6 always-loaded convention files
 ├── agents/                          # 13 specialist agents
-├── skills/                          # 101 skills by domain
-├── commands/                        # 25 command templates
+├── skills/                          # 104 skills by domain
+├── commands/                        # 26 command templates
 ├── knowledge/                       # Reference documents
 ├── templates/                       # Project scaffolding
 └── config/                          # Permission templates
@@ -299,3 +299,21 @@ One command. Chains specify → plan → implement → review → verify → PR 
 ```
 /dotnet-ai.status              ← Where am I? What's next?
 ```
+
+## v1.0 Additions (March 2026)
+
+- Claude Code plugin format (`.claude-plugin/plugin.json`) for marketplace distribution
+- Agent Skills specification compliance — all 104 SKILL.md files prefixed with `dotnet-ai-`
+- 4 safety/quality hooks: pre-bash-guard, post-edit-format, post-scaffold-restore, pre-commit-lint
+- C# LSP MCP configuration (`.mcp.json`) pointing to csharp-ls
+- AI-powered project detection via `/dotnet-ai.detect` smart skill (replaced Python-based detection)
+- `--version` flag on CLI
+- `--type` flag validation against 12 known project types
+- Claude-only for v1.0 (other AI tools planned for v1.1)
+
+## v1.1 Planned Features
+
+- Roslyn MCP tools for semantic .NET code analysis (find_symbol, find_references, get_diagnostics, detect_antipatterns, find_dead_code, detect_circular_dependencies)
+- Cursor, GitHub Copilot, and Codex CLI support
+- Extension catalog for online/community extension installs
+- PolySkill and skills.sh marketplace publishing

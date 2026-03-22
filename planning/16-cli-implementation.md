@@ -403,7 +403,7 @@ Scanning project...
 Initializing for Claude Code...
   Created: .dotnet-ai-kit/config.yml
   Created: .dotnet-ai-kit/project.yml
-  Copied: 25 commands → .claude/commands/
+  Copied: 26 commands → .claude/commands/
   Copied: 6 rules → .claude/rules/
 
 ✓ dotnet-ai-kit initialized for Claude Code
@@ -419,7 +419,7 @@ Mode: Microservice (Command)
 .NET: 10.0
 
 AI Tools:
-  ✓ Claude Code — 25 commands, 6 rules
+  ✓ Claude Code — 26 commands, 6 rules
   ✗ Cursor — not configured
 
 Extensions:

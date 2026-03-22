@@ -1,5 +1,5 @@
 ---
-name: serilog-structured
+name: dotnet-ai-serilog-structured
 description: >
   Serilog configuration with two-stage bootstrap, structured logging,
   enrichers, Seq sink, and request logging middleware.

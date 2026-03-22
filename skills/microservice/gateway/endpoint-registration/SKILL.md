@@ -1,5 +1,5 @@
 ---
-name: endpoint-registration
+name: dotnet-ai-endpoint-registration
 description: >
   Service registration for gateway gRPC clients. Covers ServicesURLsOptions with
   validated properties, AddGrpcClient with RegisterUrl helper, RegisterInterceptors,

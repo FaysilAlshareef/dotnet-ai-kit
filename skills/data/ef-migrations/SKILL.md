@@ -1,5 +1,5 @@
 ---
-name: ef-migrations
+name: dotnet-ai-ef-migrations
 description: >
   EF Core migration strategy, CI/CD migration application, data seeding,
   idempotent scripts, and migration best practices.

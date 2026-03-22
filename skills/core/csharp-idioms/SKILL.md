@@ -1,5 +1,5 @@
 ---
-name: csharp-idioms
+name: dotnet-ai-csharp-idioms
 description: >
   Modern C# idioms and language features. File-scoped namespaces, records,
   pattern matching, primary constructors, collection expressions.

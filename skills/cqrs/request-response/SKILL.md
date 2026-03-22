@@ -1,5 +1,5 @@
 ---
-name: request-response
+name: dotnet-ai-request-response
 description: >
   CQRS request/response patterns, FluentValidation integration, Result types,
   and response DTO design.

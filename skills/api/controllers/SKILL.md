@@ -1,5 +1,5 @@
 ---
-name: controller-patterns
+name: dotnet-ai-controller-patterns
 description: >
   RESTful API controllers with MediatR integration, action results,
   model binding, authorization, and ProblemDetails error handling.

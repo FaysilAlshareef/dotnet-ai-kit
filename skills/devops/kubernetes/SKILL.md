@@ -1,5 +1,5 @@
 ---
-name: kubernetes
+name: dotnet-ai-kubernetes
 description: >
   Kubernetes manifests for .NET microservices. Covers Deployment, Service, ConfigMap,
   Secret, health probes, and token placeholders for CI/CD pipelines.

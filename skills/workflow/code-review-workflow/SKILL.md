@@ -1,5 +1,5 @@
 ---
-name: code-review-workflow
+name: dotnet-ai-code-review-workflow
 description: >
   Code review workflow with review checklist and CodeRabbit integration. Covers
   review categories, severity ratings, and automated review patterns.

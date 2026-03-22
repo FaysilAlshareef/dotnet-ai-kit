@@ -1,5 +1,5 @@
 ---
-name: validation
+name: dotnet-ai-validation
 description: >
   FluentValidation for gRPC requests with Calzolari integration. Covers
   AbstractValidator for proto requests, resource-based messages, and pre-handler validation.

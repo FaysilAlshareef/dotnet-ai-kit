@@ -1,5 +1,5 @@
 ---
-name: unit-testing
+name: dotnet-ai-unit-testing
 description: >
   Unit testing patterns with xUnit, NSubstitute/Moq, and FluentAssertions.
   Covers Arrange-Act-Assert, test naming, mocking strategies, and test organization.
