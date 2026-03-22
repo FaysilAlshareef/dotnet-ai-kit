@@ -1,0 +1,41 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 460 100" width="460" height="100">
+  <defs>
+    <linearGradient id="lh_purple" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#8B5CF6"/>
+      <stop offset="100%" stop-color="#512BD4"/>
+    </linearGradient>
+    <linearGradient id="lh_shine" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#fff" stop-opacity="0.3"/>
+      <stop offset="50%" stop-color="#fff" stop-opacity="0"/>
+    </linearGradient>
+    <linearGradient id="lh_teal" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#00E5C3"/>
+      <stop offset="100%" stop-color="#00BFA5"/>
+    </linearGradient>
+    <filter id="lh_glow">
+      <feGaussianBlur stdDeviation="5" result="b"/>
+      <feFlood flood-color="#7B3FF2" flood-opacity="0.3"/>
+      <feComposite in2="b" operator="in" result="g"/>
+      <feMerge><feMergeNode in="g"/><feMergeNode in="SourceGraphic"/></feMerge>
+    </filter>
+  </defs>
+
+  <!-- .NET Diamond — 70x70, vertically centered in 100px height = y=15 -->
+  <g transform="translate(10, 15)" filter="url(#lh_glow)">
+    <path d="M35 0 L70 35 L35 70 L0 35 Z" fill="url(#lh_purple)"/>
+    <path d="M35 0 L70 35 L35 70 L0 35 Z" fill="url(#lh_shine)"/>
+    <text x="35" y="40" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="14" font-weight="800" fill="#fff" letter-spacing="0.5">.NET</text>
+  </g>
+
+  <!-- 30px gap after diamond (10+70+30 = 110) -->
+
+  <!-- "dotnet-ai-kit" wordmark — large, clean -->
+  <text x="110" y="58" font-family="'Segoe UI',system-ui,sans-serif" font-size="34" font-weight="700" fill="#FFFFFF" letter-spacing="-0.5">dotnet-ai-kit</text>
+
+  <!-- Small teal AI accent dot -->
+  <circle cx="430" cy="48" r="8" fill="url(#lh_teal)" opacity="0.9"/>
+  <text x="430" y="52" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="8" font-weight="800" fill="#0D1117">AI</text>
+
+  <!-- Subtle tagline below wordmark -->
+  <text x="110" y="80" font-family="'Segoe UI',system-ui,sans-serif" font-size="13" fill="#6E7681" letter-spacing="0.3">.NET development lifecycle, powered by AI</text>
+</svg>
