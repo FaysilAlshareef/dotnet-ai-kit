@@ -37,7 +37,7 @@ dotnet-ai-kit/
 │   ├── reviewer.md                              # Code review specialist
 │   └── docs-engineer.md                         # Documentation specialist
 │
-├── skills/                                      # ~101 skills (max 400 lines each)
+├── skills/                                      # ~104 skills (max 400 lines each)
 │   ├── core/                                    # Language & style (4)
 │   ├── architecture/                            # Architecture patterns (5)
 │   ├── api/                                     # Web API (5)
@@ -61,7 +61,7 @@ dotnet-ai-kit/
 │   ├── quality/                                 # Code quality & review (3)
 │   └── docs/                                    # Documentation (8)
 │
-├── commands/                                    # 25 command templates (max 200 lines each)
+├── commands/                                    # 26 command templates (max 200 lines each)
 │   │
 │   │  # === SDD Lifecycle ===
 │   ├── specify.md                               # dotnet-ai.specify
@@ -145,9 +145,9 @@ dotnet-ai-kit/
 │
 └── planning/                                    # Planning documents (not shipped, 18 files)
     ├── 01-vision.md                             # Vision, principles, supported tools
-    ├── 02-skills-inventory.md                   # 101 skills with descriptions
+    ├── 02-skills-inventory.md                   # 104 skills with descriptions
     ├── 03-agents-design.md                      # 13 agents, routing, orchestration
-    ├── 04-commands-design.md                    # 25 commands, SDD lifecycle flows
+    ├── 04-commands-design.md                    # 26 commands, SDD lifecycle flows
     ├── 05-rules-design.md                       # 6 always-loaded rules
     ├── 06-build-roadmap.md                      # Build phases and roadmap
     ├── 07-project-structure.md                  # Source repo + user project trees
@@ -289,8 +289,8 @@ AGENT_CONFIG = {
 |----------|-------|-----------|
 | Rules | 6 | 100 each |
 | Agents | 13 | ~3 KB each |
-| Skills | 101 | 400 each |
-| Commands | 25 | 200 each |
+| Skills | 104 | 400 each |
+| Commands | 26 | 200 each |
 | Knowledge | 11 | Unlimited |
 | Templates | 11 | Project scaffolds (7 microservice + 4 generic) |
 | Config | 4 | Permission templates |

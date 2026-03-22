@@ -1,5 +1,5 @@
 ---
-name: ef-queries
+name: dotnet-ai-ef-queries
 description: >
   EF Core query patterns. LINQ queries, raw SQL, compiled queries,
   projection with Select, split queries, and performance optimization.

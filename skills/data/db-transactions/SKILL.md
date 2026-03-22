@@ -1,5 +1,5 @@
 ---
-name: db-transactions
+name: dotnet-ai-db-transactions
 description: >
   Database transaction management, isolation levels, EF Core transactions,
   and cross-context coordination patterns.

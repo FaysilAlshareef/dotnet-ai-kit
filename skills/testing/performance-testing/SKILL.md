@@ -1,5 +1,5 @@
 ---
-name: performance-testing
+name: dotnet-ai-performance-testing
 description: >
   Performance testing with BenchmarkDotNet, load testing, and Test.Live projects
   for Service Bus throughput validation. Covers hot path optimization and baselines.

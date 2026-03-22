@@ -1,5 +1,5 @@
 ---
-name: cqrs-basics
+name: dotnet-ai-cqrs-basics
 description: >
   Command/Query Responsibility Segregation basics. Separate read and write models,
   MediatR integration, and pipeline behaviors.

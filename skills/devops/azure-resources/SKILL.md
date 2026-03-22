@@ -1,5 +1,5 @@
 ---
-name: azure-resources
+name: dotnet-ai-azure-resources
 description: >
   Azure resource provisioning for microservices. Covers Service Bus topics/subscriptions,
   Cosmos DB accounts, SQL Server databases, and resource organization.

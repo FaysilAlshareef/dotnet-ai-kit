@@ -1,5 +1,5 @@
 ---
-name: controller-patterns
+name: dotnet-ai-controller-patterns
 description: >
   Controller-based API design, action results, model binding, routing,
   and MediatR integration patterns.

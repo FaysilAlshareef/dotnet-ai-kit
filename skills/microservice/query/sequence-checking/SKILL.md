@@ -1,5 +1,5 @@
 ---
-name: sequence-checking
+name: dotnet-ai-sequence-checking
 description: >
   Inline sequence validation for idempotent event handlers. Covers the exact guard pattern
   using Sequence != @event.Sequence - 1, returning true for already-processed duplicates,

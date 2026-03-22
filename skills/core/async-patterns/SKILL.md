@@ -1,5 +1,5 @@
 ---
-name: async-patterns
+name: dotnet-ai-async-patterns
 description: >
   Async/await best practices, CancellationToken propagation, Task patterns,
   ValueTask usage, and common async pitfalls.

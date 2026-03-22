@@ -1,5 +1,5 @@
 ---
-name: blazor-component
+name: dotnet-ai-blazor-component
 description: >
   MudBlazor components for control panel pages. Covers MudDataGrid with server-side
   data, MudDialog for forms, loading states, and gateway integration.

@@ -1,5 +1,5 @@
 ---
-name: repository-patterns
+name: dotnet-ai-repository-patterns
 description: >
   Repository pattern with Unit of Work, specification pattern, generic and
   specialized repositories, and proper EF Core integration.

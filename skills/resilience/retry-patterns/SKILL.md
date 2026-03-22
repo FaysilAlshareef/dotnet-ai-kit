@@ -1,5 +1,5 @@
 ---
-name: retry-patterns
+name: dotnet-ai-retry-patterns
 description: >
   Retry patterns with exponential backoff and jitter. Polly v8 retry strategies,
   transient fault handling, and idempotency considerations.

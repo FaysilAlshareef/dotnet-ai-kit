@@ -1,5 +1,5 @@
 ---
-name: query-handler
+name: dotnet-ai-query-handler
 description: >
   MediatR query handlers using IUnitOfWork with named repository properties. Repositories
   encapsulate filtering, pagination, and sorting. Single-entity queries use FindAsync

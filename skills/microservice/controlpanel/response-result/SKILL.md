@@ -1,5 +1,5 @@
 ---
-name: response-result
+name: dotnet-ai-response-result
 description: >
   ResponseResult<T> pattern with Switch for success/failure handling. Covers
   SuccessResult, FailedResult, ProblemDetails parsing, and UI integration.

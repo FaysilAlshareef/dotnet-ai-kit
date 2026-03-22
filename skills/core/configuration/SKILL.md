@@ -1,5 +1,5 @@
 ---
-name: configuration
+name: dotnet-ai-configuration
 description: >
   IConfiguration, Options pattern, appsettings layering, user secrets,
   environment variables, and ValidateOnStart.

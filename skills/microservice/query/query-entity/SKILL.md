@@ -1,5 +1,5 @@
 ---
-name: query-entity
+name: dotnet-ai-query-entity
 description: >
   Query-side entity pattern with private setters, event-based constructors, behavior methods
   with (TData data, int sequence) signature, and sequence tracking for idempotency.

@@ -1,5 +1,5 @@
 ---
-name: outbox
+name: dotnet-ai-outbox
 description: >
   Outbox pattern for reliable event publishing. Covers OutboxMessage entity with Event FK,
   CommitEventService with IUnitOfWork, and ServiceBusPublisher with lock + Task.Run + batch

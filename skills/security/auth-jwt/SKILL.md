@@ -1,5 +1,5 @@
 ---
-name: auth-jwt
+name: dotnet-ai-auth-jwt
 description: >
   JWT authentication setup, token generation with claims, refresh token flow,
   and token validation configuration.

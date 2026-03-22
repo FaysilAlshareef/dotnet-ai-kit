@@ -1,5 +1,5 @@
 ---
-name: background-jobs
+name: dotnet-ai-background-jobs
 description: >
   Background job patterns with Hangfire, hosted services, and recurring tasks.
   Covers job scheduling, persistent store, and fire-and-forget patterns.

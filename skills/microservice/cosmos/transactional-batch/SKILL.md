@@ -1,5 +1,5 @@
 ---
-name: transactional-batch
+name: dotnet-ai-transactional-batch
 description: >
   Cosmos DB TransactionalBatch for atomic multi-document operations. Covers batch
   creation, ETag concurrency, chunked batches for large operations, and error handling.

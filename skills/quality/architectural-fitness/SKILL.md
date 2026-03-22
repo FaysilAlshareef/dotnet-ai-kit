@@ -1,5 +1,5 @@
 ---
-name: architectural-fitness
+name: dotnet-ai-architectural-fitness
 description: >
   Architecture tests with NetArchTest for enforcing dependency rules and
   project structure conventions. Covers layer dependency validation and naming rules.

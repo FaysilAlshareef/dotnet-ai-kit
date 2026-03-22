@@ -720,3 +720,264 @@ def test_init_json_suppresses_rich_output(tmp_path: Path) -> None:
     assert "Next:" not in result.output
     # Should not contain the rich-formatted init banner
     assert "Scanning project" not in result.output
+
+
+# ---------------------------------------------------------------------------
+# --version flag
+# ---------------------------------------------------------------------------
+
+
+def test_version_flag() -> None:
+    """--version should print version and exit 0."""
+    result = runner.invoke(app, ["--version"])
+    assert result.exit_code == 0
+    assert "dotnet-ai-kit" in result.output
+
+
+def test_version_flag_short() -> None:
+    """-V should also print version and exit 0."""
+    result = runner.invoke(app, ["-V"])
+    assert result.exit_code == 0
+    assert "dotnet-ai-kit" in result.output
+
+
+# ---------------------------------------------------------------------------
+# --type validation
+# ---------------------------------------------------------------------------
+
+
+def test_init_rejects_invalid_type(tmp_path: Path) -> None:
+    """Init should reject unknown --type values."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    result = runner.invoke(
+        app,
+        ["init", str(tmp_path), "--ai", "claude", "--type", "invalid-type"],
+    )
+
+    assert result.exit_code == 1
+    assert "unknown project type" in result.output.lower()
+
+
+def test_init_accepts_all_valid_types(tmp_path: Path) -> None:
+    """Init should accept all 12 known project types."""
+    from dotnet_ai_kit.cli import _VALID_PROJECT_TYPES
+
+    for ptype in _VALID_PROJECT_TYPES:
+        project_dir = tmp_path / ptype
+        project_dir.mkdir()
+        _create_dotnet_project(project_dir)
+        _create_claude_dir(project_dir)
+
+        result = runner.invoke(
+            app,
+            ["init", str(project_dir), "--ai", "claude", "--type", ptype],
+            catch_exceptions=False,
+        )
+        assert result.exit_code == 0, f"Type '{ptype}' failed: {result.output}"
+
+
+# ---------------------------------------------------------------------------
+# --ai validation (v1.0: claude only)
+# ---------------------------------------------------------------------------
+
+
+def test_init_rejects_unsupported_ai_tool(tmp_path: Path) -> None:
+    """Init should reject AI tools not supported in v1.0."""
+    _create_dotnet_project(tmp_path)
+
+    result = runner.invoke(
+        app,
+        ["init", str(tmp_path), "--ai", "cursor"],
+    )
+
+    assert result.exit_code == 1
+    assert "unsupported" in result.output.lower()
+
+
+# ---------------------------------------------------------------------------
+# upgrade command tests
+# ---------------------------------------------------------------------------
+
+
+def test_upgrade_not_initialized_exits_1(tmp_path: Path, monkeypatch) -> None:
+    """Upgrade should exit 1 when .dotnet-ai-kit/ is missing."""
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(app, ["upgrade"])
+    assert result.exit_code == 1
+    assert "not initialized" in result.output.lower()
+
+
+def test_upgrade_already_up_to_date(tmp_path: Path, monkeypatch) -> None:
+    """Upgrade should report up-to-date when versions match."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
+    monkeypatch.chdir(tmp_path)
+
+    result = runner.invoke(app, ["upgrade"], catch_exceptions=False)
+    assert result.exit_code == 0
+    assert "up to date" in result.output.lower()
+
+
+def test_upgrade_json_up_to_date(tmp_path: Path, monkeypatch) -> None:
+    """Upgrade --json should output valid JSON when up to date."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
+    monkeypatch.chdir(tmp_path)
+
+    result = runner.invoke(app, ["upgrade", "--json"], catch_exceptions=False)
+    assert result.exit_code == 0
+
+    json_lines = [ln for ln in result.output.strip().splitlines() if ln.strip().startswith("{")]
+    assert len(json_lines) >= 1
+    data = json.loads(json_lines[0])
+    assert data["status"] == "up_to_date"
+
+
+def test_upgrade_dry_run(tmp_path: Path, monkeypatch) -> None:
+    """Upgrade --dry-run should show preview without changes."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
+
+    # Tamper version to trigger upgrade path
+    version_file = tmp_path / ".dotnet-ai-kit" / "version.txt"
+    version_file.write_text("0.0.1", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+
+    result = runner.invoke(app, ["upgrade", "--dry-run"], catch_exceptions=False)
+    assert result.exit_code == 0
+    assert "DRY-RUN" in result.output
+    assert "No changes were made" in result.output
+    # Version should NOT have been updated
+    assert version_file.read_text(encoding="utf-8").strip() == "0.0.1"
+
+
+def test_upgrade_updates_version(tmp_path: Path, monkeypatch) -> None:
+    """Upgrade should update version.txt after upgrading files."""
+    from dotnet_ai_kit import __version__
+
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
+
+    # Tamper version to trigger upgrade
+    version_file = tmp_path / ".dotnet-ai-kit" / "version.txt"
+    version_file.write_text("0.0.1", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+
+    result = runner.invoke(app, ["upgrade"], catch_exceptions=False)
+    assert result.exit_code == 0
+    assert "upgraded" in result.output.lower()
+    assert version_file.read_text(encoding="utf-8").strip() == __version__
+
+
+def test_upgrade_json_output(tmp_path: Path, monkeypatch) -> None:
+    """Upgrade --json should produce valid JSON after upgrade."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
+
+    version_file = tmp_path / ".dotnet-ai-kit" / "version.txt"
+    version_file.write_text("0.0.1", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+
+    result = runner.invoke(app, ["upgrade", "--json"], catch_exceptions=False)
+    assert result.exit_code == 0
+
+    json_lines = [ln for ln in result.output.strip().splitlines() if ln.strip().startswith("{")]
+    data = json.loads(json_lines[0])
+    assert data["status"] == "upgraded"
+    assert data["old_version"] == "0.0.1"
+
+
+# ---------------------------------------------------------------------------
+# check command tests
+# ---------------------------------------------------------------------------
+
+
+def test_check_displays_project_info(tmp_path: Path, monkeypatch) -> None:
+    """Check should display project info when project.yml exists."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    runner.invoke(
+        app,
+        ["init", str(tmp_path), "--ai", "claude", "--type", "command"],
+        catch_exceptions=False,
+    )
+    monkeypatch.chdir(tmp_path)
+
+    result = runner.invoke(app, ["check"], catch_exceptions=False)
+    assert result.exit_code == 0
+    assert "command" in result.output.lower()
+
+
+def test_check_json_includes_project(tmp_path: Path, monkeypatch) -> None:
+    """Check --json should include project info in output."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    runner.invoke(
+        app,
+        ["init", str(tmp_path), "--ai", "claude", "--type", "command"],
+        catch_exceptions=False,
+    )
+    monkeypatch.chdir(tmp_path)
+
+    result = runner.invoke(app, ["check", "--json"], catch_exceptions=False)
+    assert result.exit_code == 0
+
+    json_lines = [ln for ln in result.output.strip().splitlines() if ln.strip().startswith("{")]
+    data = json.loads(json_lines[0])
+    assert "project" in data
+    assert data["project"]["project_type"] == "command"
+
+
+# ---------------------------------------------------------------------------
+# extension command tests
+# ---------------------------------------------------------------------------
+
+
+def test_extension_list_empty(tmp_path: Path, monkeypatch) -> None:
+    """Extension list should show 'No extensions' when none installed."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
+    monkeypatch.chdir(tmp_path)
+
+    result = runner.invoke(app, ["extension-list"], catch_exceptions=False)
+    assert result.exit_code == 0
+    assert "no extensions" in result.output.lower()
+
+
+def test_extension_add_missing_dir(tmp_path: Path, monkeypatch) -> None:
+    """Extension add --dev with missing dir should fail."""
+    monkeypatch.chdir(tmp_path)
+
+    result = runner.invoke(
+        app,
+        ["extension-add", str(tmp_path / "nonexistent"), "--dev"],
+    )
+    assert result.exit_code == 1
+
+
+def test_extension_remove_not_installed(tmp_path: Path, monkeypatch) -> None:
+    """Extension remove for non-installed extension should fail."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+    runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
+    monkeypatch.chdir(tmp_path)
+
+    result = runner.invoke(app, ["extension-remove", "nonexistent"])
+    assert result.exit_code == 1
+    assert "not installed" in result.output.lower()

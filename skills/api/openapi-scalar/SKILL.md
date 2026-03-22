@@ -1,5 +1,5 @@
 ---
-name: openapi-scalar
+name: dotnet-ai-openapi-scalar
 description: >
   OpenAPI spec generation with native .NET support, Scalar UI configuration,
   document transformers, and security scheme setup.

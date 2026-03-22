@@ -1,5 +1,5 @@
 ---
-name: multi-repo-workflow
+name: dotnet-ai-multi-repo-workflow
 description: >
   Cross-repo coordination for microservice development. Covers dependency chains,
   deployment order, shared contracts, and parallel development strategies.

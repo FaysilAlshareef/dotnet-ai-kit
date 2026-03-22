@@ -1,5 +1,5 @@
 ---
-name: modular-monolith
+name: dotnet-ai-modular-monolith
 description: >
   Modular monolith architecture. Module isolation, inter-module communication,
   shared kernel, and migration path to microservices.

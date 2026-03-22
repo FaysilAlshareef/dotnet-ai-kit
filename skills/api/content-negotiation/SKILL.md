@@ -1,5 +1,5 @@
 ---
-name: content-negotiation
+name: dotnet-ai-content-negotiation
 description: >
   Content type negotiation, custom formatters, Accept headers,
   and response format configuration.

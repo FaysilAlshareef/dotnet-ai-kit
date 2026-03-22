@@ -1,5 +1,5 @@
 ---
-name: notification-handlers
+name: dotnet-ai-notification-handlers
 description: >
   Domain event dispatch using MediatR notifications. Multiple handlers per event,
   dispatch after persistence, and idempotent handling.

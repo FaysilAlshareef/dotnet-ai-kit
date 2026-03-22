@@ -1,5 +1,5 @@
 ---
-name: partition-strategy
+name: dotnet-ai-partition-strategy
 description: >
   Cosmos DB partition key strategy with composite/hierarchical keys, cross-partition
   query patterns, and hot partition avoidance. Covers design decisions for data distribution.

@@ -1,5 +1,5 @@
 ---
-name: minimal-api
+name: dotnet-ai-minimal-api
 description: >
   Minimal API endpoints, route groups, endpoint filters, TypedResults,
   and auto-discovery patterns.

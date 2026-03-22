@@ -1,5 +1,5 @@
 ---
-name: aspire-orchestration
+name: dotnet-ai-aspire-orchestration
 description: >
   .NET Aspire for local development orchestration and service defaults. Covers
   AppHost configuration, service discovery, and local resource provisioning.

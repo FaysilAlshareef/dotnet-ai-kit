@@ -1,5 +1,5 @@
 ---
-name: audit-trail
+name: dotnet-ai-audit-trail
 description: >
   Audit trail with IAuditable interface and EF Core interceptor.
   Automatic CreatedAt/UpdatedAt/CreatedBy/UpdatedBy population.

@@ -1,5 +1,5 @@
 ---
-name: runbook
+name: dotnet-ai-runbook
 description: >
   Deployment runbooks and troubleshooting guides. Covers prerequisites, deployment
   steps, verification, rollback procedures, and per-environment documentation.

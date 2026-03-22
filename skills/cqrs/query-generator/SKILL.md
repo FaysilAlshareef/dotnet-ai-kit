@@ -1,5 +1,5 @@
 ---
-name: cqrs-query-generator
+name: dotnet-ai-cqrs-query-generator
 description: >
   CQRS query pattern: query record + handler + response DTO with
   pagination support. EF Core or Dapper read path.

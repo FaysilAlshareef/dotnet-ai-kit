@@ -1,5 +1,5 @@
 ---
-name: ddd-patterns
+name: dotnet-ai-ddd-patterns
 description: >
   Domain-Driven Design tactical patterns. Aggregates, value objects, domain events,
   strongly-typed IDs, bounded contexts, and rich domain models.

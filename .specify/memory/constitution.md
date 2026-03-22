@@ -1,21 +1,12 @@
 <!--
 Sync Impact Report
 ===================
-- Version change: (none) → 1.0.0
-- Modified principles: N/A (initial creation)
-- Added sections:
-  - Core Principles (5 principles)
-  - Technology Constraints
-  - Development Workflow
-  - Governance
+- Version change: 1.0.0 → 1.0.1
+- Modified principles: N/A
+- Updated sections:
+  - Technology Constraints: command count 25 → 26
 - Removed sections: N/A
-- Templates requiring updates:
-  - .specify/templates/plan-template.md ✅ no update needed
-    (Constitution Check section uses dynamic placeholder)
-  - .specify/templates/spec-template.md ✅ no update needed
-    (no constitution-dependent sections)
-  - .specify/templates/tasks-template.md ✅ no update needed
-    (phase structure is constitution-compatible)
+- Templates requiring updates: none
 - Follow-up TODOs: none
 -->
 
@@ -156,8 +147,8 @@ implementation, and linked PR creation.
 **Knowledge base composition**:
 - 6 rules (always loaded)
 - 13 specialist agents (routing logic in commands)
-- 101 skills (loaded on demand)
-- 25 commands (slash commands)
+- 104 skills (loaded on demand, Agent Skills spec compliant)
+- 26 commands (slash commands)
 - 11 knowledge documents (reference material)
 - 11 templates (project scaffolds)
 
@@ -219,4 +210,4 @@ compliance with this constitution. Complexity that violates
 a principle MUST be explicitly justified in the plan's
 Complexity Tracking table.
 
-**Version**: 1.0.0 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-03-15
+**Version**: 1.0.1 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-03-22

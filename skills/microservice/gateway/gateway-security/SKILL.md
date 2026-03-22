@@ -1,5 +1,5 @@
 ---
-name: gateway-security
+name: dotnet-ai-gateway-security
 description: >
   JWT authentication, policy-based authorization, and role-based access for
   gateway endpoints. Covers AddJwtAuthentication, AddPolicies with ApiScope,

@@ -1,5 +1,5 @@
 ---
-name: review-checklist
+name: dotnet-ai-review-checklist
 description: >
   Standards review categories and severity ratings for code review.
   Covers architecture, security, performance, and testing review criteria.

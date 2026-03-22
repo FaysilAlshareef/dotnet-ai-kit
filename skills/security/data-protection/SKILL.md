@@ -1,5 +1,5 @@
 ---
-name: data-protection
+name: dotnet-ai-data-protection
 description: >
   ASP.NET Core Data Protection API for encryption at rest, key management,
   secure cookie protection, and sensitive data handling.

@@ -1,5 +1,5 @@
 ---
-name: ef-core-basics
+name: dotnet-ai-ef-core-basics
 description: >
   Entity Framework Core fundamentals. DbContext configuration, entity
   configuration with IEntityTypeConfiguration, value converters, and

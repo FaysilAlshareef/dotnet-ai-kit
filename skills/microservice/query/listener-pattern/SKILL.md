@@ -1,5 +1,5 @@
 ---
-name: listener-pattern
+name: dotnet-ai-listener-pattern
 description: >
   Service Bus session-based listener as IHostedService. Uses ServiceBusSessionProcessor
   with specific config, paired dead-letter processor, subject-based routing via switch

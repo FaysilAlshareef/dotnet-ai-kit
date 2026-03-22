@@ -1,5 +1,5 @@
 ---
-name: readme-gen
+name: dotnet-ai-readme-gen
 description: >
   README generation from project analysis. Covers badges, setup instructions,
   architecture diagrams, and API summaries for per-repo and umbrella READMEs.

@@ -208,7 +208,7 @@ class DotnetAiConfig(BaseModel):
     )
     ai_tools: list[str] = Field(
         default_factory=list,
-        description="List of configured AI tools (claude, cursor, copilot, codex, antigravity).",
+        description="List of configured AI tools (claude).",
     )
     command_style: str = Field(
         default="both",
@@ -234,7 +234,7 @@ class DotnetAiConfig(BaseModel):
     @field_validator("ai_tools")
     @classmethod
     def validate_ai_tools(cls, v: list[str]) -> list[str]:
-        allowed = {"claude", "cursor", "copilot", "codex", "antigravity"}
+        allowed = {"claude", "cursor", "copilot", "codex"}
         for tool in v:
             if tool.lower() not in allowed:
                 raise ValueError(f"Unknown AI tool '{tool}'. Must be one of {allowed}.")

@@ -25,7 +25,7 @@ I want to...
 | `/dotnet-ai.undo` | Revert the last step safely |
 | `/dotnet-ai.explain topic` | Learn any pattern with examples |
 
-## All 25 Commands by Category
+## All 26 Commands by Category
 
 ### A. SDD Lifecycle Commands (step-by-step feature building)
 ### B. Project Management Commands

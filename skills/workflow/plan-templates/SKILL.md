@@ -1,4 +1,5 @@
 ---
+name: dotnet-ai-plan-templates
 description: "Mode-specific plan templates for /dotnet-ai.plan"
 ---
 

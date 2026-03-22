@@ -1,5 +1,5 @@
 ---
-name: interceptors
+name: dotnet-ai-interceptors
 description: >
   gRPC server and client interceptors for cross-cutting concerns. Covers exception
   mapping, culture switching, access claims extraction, and registration order.

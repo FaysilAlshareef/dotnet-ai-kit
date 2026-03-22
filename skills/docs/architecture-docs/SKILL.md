@@ -1,5 +1,5 @@
 ---
-name: architecture-docs
+name: dotnet-ai-architecture-docs
 description: >
   Architecture overview documentation with Mermaid diagrams. Covers service
   topology, event flows, data flows, and system architecture documentation.

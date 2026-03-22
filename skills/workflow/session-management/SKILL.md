@@ -1,5 +1,5 @@
 ---
-name: session-management
+name: dotnet-ai-session-management
 description: >
   Session checkpoint, wrap-up, and handoff patterns for AI-assisted development.
   Covers session state persistence, context handoff, and resumption strategies.

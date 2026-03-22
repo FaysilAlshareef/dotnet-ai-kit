@@ -1,5 +1,5 @@
 ---
-name: event-handler
+name: dotnet-ai-event-handler
 description: >
   Query-side event handlers implementing IRequestHandler<Event<T>, bool>. Returns bool
   for message completion. Uses IUnitOfWork with named repository properties, strict

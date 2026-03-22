@@ -1,5 +1,5 @@
 ---
-name: onboarding
+name: dotnet-ai-onboarding
 description: >
   Developer onboarding documentation generation. Covers setup guides, architecture
   overview, development workflow, and common tasks for new team members.

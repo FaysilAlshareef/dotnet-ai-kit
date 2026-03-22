@@ -1,5 +1,5 @@
 ---
-name: aggregate-testing
+name: dotnet-ai-aggregate-testing
 description: >
   Testing patterns for event-sourced aggregates. Covers CustomConstructorFaker with Bogus,
   event faker patterns, assertion extensions, and integration test patterns with

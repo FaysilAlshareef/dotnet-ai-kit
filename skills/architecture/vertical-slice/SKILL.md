@@ -1,5 +1,5 @@
 ---
-name: vertical-slice
+name: dotnet-ai-vertical-slice
 description: >
   Vertical Slice Architecture with feature folders, MediatR handlers per slice,
   minimal abstraction, and co-located code.

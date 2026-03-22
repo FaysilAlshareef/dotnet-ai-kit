@@ -1,5 +1,5 @@
 ---
-name: api-docs
+name: dotnet-ai-api-docs
 description: >
   OpenAPI enrichment and Markdown API reference generation. Covers operation
   summaries, request/response examples, and gateway documentation patterns.

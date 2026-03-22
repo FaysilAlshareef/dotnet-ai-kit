@@ -1,5 +1,5 @@
 ---
-name: integration-testing
+name: dotnet-ai-integration-testing
 description: >
   Integration testing with WebApplicationFactory, TestContainers, and test fixtures.
   Covers in-memory database setup, fixture sharing, and end-to-end test patterns.

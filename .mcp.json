@@ -1,0 +1,9 @@
+{
+  "mcpServers": {
+    "csharp-ls": {
+      "command": "csharp-ls",
+      "args": ["--solution", "."],
+      "transport": "stdio"
+    }
+  }
+}
