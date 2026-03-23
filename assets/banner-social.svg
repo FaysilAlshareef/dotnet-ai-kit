@@ -93,13 +93,13 @@
   <!-- ============================================= -->
 
   <!-- Divider -->
-  <line x1="160" y1="360" x2="1040" y2="360" stroke="#21262D" stroke-width="1"/>
+  <line x1="160" y1="360" x2="1060" y2="360" stroke="#21262D" stroke-width="1"/>
 
   <!-- Stats -->
   <g transform="translate(0, 390)">
-    <!-- 104 Skills -->
+    <!-- 106 Skills -->
     <g transform="translate(240, 0)">
-      <text x="0" y="0" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="48" font-weight="800" fill="#7B3FF2">104</text>
+      <text x="0" y="0" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="48" font-weight="800" fill="#7B3FF2">106</text>
       <text x="0" y="30" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="14" fill="#6E7681" letter-spacing="2">SKILLS</text>
     </g>
 
