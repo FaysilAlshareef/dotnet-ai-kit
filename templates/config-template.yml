@@ -51,11 +51,10 @@ integrations:
 #   minimal  — Only build/test commands (everything else requires confirmation)
 #   standard — Build, test, git, gh CLI (recommended)
 #   full     — All operations in working directory
-permissions:
-  level: "standard"
+permissions_level: "standard"
 
 # AI tools configured for this project
-# Supported: claude, cursor, copilot, codex, antigravity
+# Supported: claude
 ai_tools:
   - claude
 

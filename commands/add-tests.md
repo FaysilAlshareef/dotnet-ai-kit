@@ -58,6 +58,22 @@ Scan existing code for classes, handlers, and controllers without test files and
    - Apply targeting filter (`--handlers`, `--controllers`, specific class name)
 6. **Skip control panel projects** -- no tests required for Blazor UI.
 
+## Load Specialist Agent
+
+Read `agents/test-engineer.md` for testing patterns. Also read the project's primary architect agent for architecture context:
+- **Microservice mode**:
+  - command → Read `agents/command-architect.md`
+  - query-sql → Read `agents/query-architect.md`
+  - query-cosmos → Read `agents/cosmos-architect.md`
+  - processor → Read `agents/processor-architect.md`
+  - gateway → Read `agents/gateway-architect.md`
+  - controlpanel → Read `agents/controlpanel-architect.md`
+  - hybrid → Read both `agents/command-architect.md` and `agents/query-architect.md`
+- **Generic mode** (VSA, Clean Arch, DDD, Modular Monolith):
+  - Read `agents/dotnet-architect.md`
+
+Load all skills listed in each loaded agent's Skills Loaded section.
+
 ## Skills to Read
 
 - `skills/testing/unit-testing` -- unit test structure, assertions, mocking patterns

@@ -3,10 +3,10 @@
 **Role**: Expert in code review against company standards
 
 ## Skills Loaded
-1. `quality/standards-review`
-2. `quality/coderabbit`
-3. `quality/de-sloppify`
-4. `security/security-scan`
+1. `skills/quality/review-checklist/SKILL.md`
+2. `skills/quality/code-analysis/SKILL.md`
+3. `skills/quality/architectural-fitness/SKILL.md`
+4. `skills/security/data-protection/SKILL.md`
 
 ## Responsibilities
 - Run standards review checklist (architecture, naming, localization, error handling)

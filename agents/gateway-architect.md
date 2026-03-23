@@ -3,16 +3,15 @@
 **Role**: Expert in REST API gateways aggregating gRPC services. Always uses Scalar for API documentation (new and existing projects)
 
 ## Skills Loaded
-1. `microservice/gateway-endpoint`
-2. `microservice/gateway-registration`
-3. `microservice/gateway-security`
-4. `microservice/gateway-documentation`
-5. `microservice/grpc-service`
-6. `api/versioning`
-7. `api/openapi`
-8. `core/modern-csharp`
-9. `core/configuration`
-10. `resilience/rate-limiting`
+1. `skills/microservice/gateway/gateway-endpoint/SKILL.md`
+2. `skills/microservice/gateway/endpoint-registration/SKILL.md`
+3. `skills/microservice/gateway/gateway-security/SKILL.md`
+4. `skills/microservice/gateway/scalar-docs/SKILL.md`
+5. `skills/microservice/grpc/service-definition/SKILL.md`
+6. `skills/api/versioning/SKILL.md`
+7. `skills/api/openapi-scalar/SKILL.md`
+8. `skills/core/modern-csharp/SKILL.md`
+9. `skills/core/configuration/SKILL.md`
 
 ## Responsibilities
 - Design REST controllers with authorization policies

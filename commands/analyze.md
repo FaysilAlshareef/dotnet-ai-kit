@@ -12,6 +12,22 @@ This command is **READ-ONLY**. You MUST NOT modify any files.
 Flags: `--dry-run` (preview analysis scope), `--verbose` (diagnostic output),
        `--severity {level}` (filter output: critical, high, medium, low)
 
+## Load Specialist Agent
+
+Based on the detected project type, read the specialist agent for architectural guidance:
+- **Microservice mode**:
+  - command → Read `agents/command-architect.md`
+  - query-sql → Read `agents/query-architect.md`
+  - query-cosmos → Read `agents/cosmos-architect.md`
+  - processor → Read `agents/processor-architect.md`
+  - gateway → Read `agents/gateway-architect.md`
+  - controlpanel → Read `agents/controlpanel-architect.md`
+  - hybrid → Read both `agents/command-architect.md` and `agents/query-architect.md`
+- **Generic mode** (VSA, Clean Arch, DDD, Modular Monolith):
+  - Read `agents/dotnet-architect.md`
+
+Load all skills listed in the agent's Skills Loaded section.
+
 ## Step 1: Load All Artifacts
 
 1. Find the active feature in `.dotnet-ai-kit/features/`.
@@ -88,25 +104,19 @@ These passes inspect both feature artifacts AND actual code across repos listed 
 - Check dependency order in tasks.md matches `service-map.md`.
 - Severity: HIGH for URL/topic mismatches, MEDIUM for missing config entries.
 
-**Pass 8: Event Catalogue**
-- Verify `event-catalogue/` in the feature directory has entries for every event.
-- Each entry must list: producer, consumers, version, data schema, topic.
-- Cross-check catalogue entries against actual event classes and handler files.
-- Severity: MEDIUM for incomplete or missing catalogue entries.
-
-**Pass 9: Event Version Compatibility**
+**Pass 8: Event Version Compatibility**
 - If events use version suffixes (e.g., `OrderCreatedV2`), verify handlers exist
   for each version still in circulation.
 - Check that new event versions do not remove required fields (breaking change).
 - Verify processor routing handles both old and new event versions during migration.
 - Severity: HIGH for breaking changes, MEDIUM for missing version handlers.
 
-**Pass 10: Sequence Gaps**
+**Pass 9: Sequence Gaps**
 - Trace the full event flow: command publishes -> query/processor handles -> any
   downstream publish -> next handler. Verify no dead ends or missing links.
 - Severity: HIGH for broken chains.
 
-**Pass 11: Idempotency**
+**Pass 10: Idempotency**
 - Commands that create resources use client-provided IDs.
 - Event handlers are idempotent (sequence-based dedup in query, client-sent ID in command).
 - Severity: MEDIUM for missing idempotency.

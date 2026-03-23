@@ -45,6 +45,10 @@ Create a Blazor page in the control panel project with MudDataGrid, filter model
 4. **Detect module** -- if `--module` not provided, scan existing page structure and ask user.
 5. **Load config** -- read `.dotnet-ai-kit/config.yml`.
 
+## Load Specialist Agent
+
+Read `agents/controlpanel-architect.md` for Blazor page patterns. Load all skills listed in the agent's Skills Loaded section.
+
 ## Skills to Read
 
 - `skills/microservice/controlpanel/blazor-component` -- page structure, code-behind pattern

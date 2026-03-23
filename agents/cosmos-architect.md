@@ -3,17 +3,16 @@
 **Role**: Expert in CQRS query microservices with Cosmos DB
 
 ## Skills Loaded
-1. `microservice/event-structure`
-2. `microservice/cosmos-entity`
-3. `microservice/cosmos-repository`
-4. `microservice/cosmos-unit-of-work`
-5. `microservice/cosmos-config`
-6. `microservice/query-event-handler`
-7. `microservice/service-bus-listener`
-8. `microservice/grpc-service`
-9. `core/modern-csharp`
-10. `core/configuration`
-11. `microservice/event-catalogue`
+1. `skills/microservice/command/event-design/SKILL.md`
+2. `skills/microservice/cosmos/cosmos-entity/SKILL.md`
+3. `skills/microservice/cosmos/cosmos-repository/SKILL.md`
+4. `skills/microservice/cosmos/transactional-batch/SKILL.md`
+5. `skills/microservice/cosmos/partition-strategy/SKILL.md`
+6. `skills/microservice/query/event-handler/SKILL.md`
+7. `skills/microservice/query/listener-pattern/SKILL.md`
+8. `skills/microservice/grpc/service-definition/SKILL.md`
+9. `skills/core/modern-csharp/SKILL.md`
+10. `skills/core/configuration/SKILL.md`
 
 ## Responsibilities
 - Design Cosmos entities with IContainerDocument

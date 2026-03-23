@@ -16,6 +16,8 @@ AGENT_CONFIG: dict[str, dict[str, Any]] = {
         "name": "Claude Code",
         "commands_dir": ".claude/commands",
         "rules_dir": ".claude/rules",
+        "skills_dir": ".claude/skills",
+        "agents_dir": ".claude/agents",
         "command_ext": ".md",
         "command_prefix": "dotnet-ai",
         "args_placeholder": "$ARGUMENTS",

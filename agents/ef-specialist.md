@@ -3,15 +3,15 @@
 **Role**: Expert in EF Core, Dapper, and data access patterns
 
 ## Skills Loaded
-1. `data/ef-core`
-2. `data/repository-pattern`
-3. `data/dapper`
-4. `data/specification-pattern`
-5. `data/audit-trail`
-6. `cqrs/command-generator`
-7. `cqrs/query-generator`
-8. `cqrs/pipeline-behaviors`
-9. `cqrs/domain-events`
+1. `skills/data/ef-core-basics/SKILL.md`
+2. `skills/data/repository-patterns/SKILL.md`
+3. `skills/data/dapper/SKILL.md`
+4. `skills/data/specification-pattern/SKILL.md`
+5. `skills/data/audit-trail/SKILL.md`
+6. `skills/cqrs/command-generator/SKILL.md`
+7. `skills/cqrs/query-generator/SKILL.md`
+8. `skills/cqrs/pipeline-behaviors/SKILL.md`
+9. `skills/cqrs/notification-handlers/SKILL.md`
 
 ## Responsibilities
 - Design DbContext with proper entity configurations

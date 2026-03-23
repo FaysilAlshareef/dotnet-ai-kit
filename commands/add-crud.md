@@ -48,6 +48,21 @@ Generate full Create/Read/Update/Delete operations for an entity. Detects projec
 5. **Prompt for fields** -- if `--fields` not provided, interactively ask: field name, type, required?
 6. **Check uniqueness** -- ensure no existing entity with same name.
 
+## Load Specialist Agent
+
+For generic mode: Read `agents/dotnet-architect.md`.
+For microservice mode: Read the project's primary architect based on detected project type:
+- command → Read `agents/command-architect.md`
+- query-sql → Read `agents/query-architect.md`
+- query-cosmos → Read `agents/cosmos-architect.md`
+- processor → Read `agents/processor-architect.md`
+- gateway → Read `agents/gateway-architect.md`
+- controlpanel → Read `agents/controlpanel-architect.md`
+- hybrid → Read both `agents/command-architect.md` and `agents/query-architect.md`
+
+Also read `agents/ef-specialist.md` for data patterns and `agents/api-designer.md` for API patterns.
+Load all skills listed in each loaded agent's Skills Loaded section.
+
 ## Skills to Read (architecture-dependent)
 
 **VSA mode:**

@@ -141,6 +141,17 @@ class ReposConfig(BaseModel):
         description="Path or github:org/repo for the Control Panel.",
     )
 
+    @field_validator("command", "query", "processor", "gateway", "controlpanel", mode="before")
+    @classmethod
+    def validate_repo_path(cls, v: Optional[str]) -> Optional[str]:
+        """Validate repo path: None, 'github:org/repo', or non-empty string."""
+        if v is None:
+            return v
+        if not isinstance(v, str) or not v.strip():
+            msg = "Repo path must be None, 'github:org/repo', or non-empty."
+            raise ValueError(msg)
+        return v.strip()
+
 
 class CodeRabbitConfig(BaseModel):
     """CodeRabbit integration settings."""

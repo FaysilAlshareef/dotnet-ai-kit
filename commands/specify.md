@@ -12,6 +12,22 @@ Your job is to create a structured feature specification from user input.
 Feature description: `$ARGUMENTS`
 Flags: `--dry-run` (preview without writing), `--verbose` (diagnostic output)
 
+## Load Specialist Agent
+
+Based on the detected project type, read the specialist agent for architectural guidance:
+- **Microservice mode**:
+  - command → Read `agents/command-architect.md`
+  - query-sql → Read `agents/query-architect.md`
+  - query-cosmos → Read `agents/cosmos-architect.md`
+  - processor → Read `agents/processor-architect.md`
+  - gateway → Read `agents/gateway-architect.md`
+  - controlpanel → Read `agents/controlpanel-architect.md`
+  - hybrid → Read both `agents/command-architect.md` and `agents/query-architect.md`
+- **Generic mode** (VSA, Clean Arch, DDD, Modular Monolith):
+  - Read `agents/dotnet-architect.md`
+
+Load all skills listed in the agent's Skills Loaded section.
+
 ## Step 1: Detect Project Mode
 
 1. Read `.dotnet-ai-kit/config.yml` if it exists. Extract `project_mode` (generic | microservice).
@@ -31,7 +47,7 @@ Flags: `--dry-run` (preview without writing), `--verbose` (diagnostic output)
 ## Step 3: Create Feature Directory
 
 1. Determine next feature number: scan `.dotnet-ai-kit/features/` for highest NNN, increment.
-   - If no features exist, start at `001`.
+   - Feature numbers are per-repo. Scan ONLY the current repo's `.dotnet-ai-kit/features/` directory. Do not inherit or reference numbers from other repos. If no features exist in this repo, start at 001.
 2. Generate short-name from `$ARGUMENTS` (lowercase, hyphenated, max 4 words).
    - Example: "Add order management" → `order-management`
 3. Create directory: `.dotnet-ai-kit/features/{NNN}-{short-name}/`

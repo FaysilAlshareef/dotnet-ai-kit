@@ -12,6 +12,10 @@ Your job is to run a verification pipeline and report PASS/FAIL/WARN per check.
 Flags: `--dry-run` (preview checks without running), `--verbose` (diagnostic output),
        `--skip-tests` (skip test suite, run build + format only)
 
+## Load Specialist Agents
+
+Read `agents/test-engineer.md` for test verification. Read `agents/devops-engineer.md` for build/deploy checks. Load all skills listed in both agents' Skills Loaded sections.
+
 ## Step 1: Identify Affected Repos
 
 1. Find the active feature in `.dotnet-ai-kit/features/`.

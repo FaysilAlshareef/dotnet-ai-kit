@@ -8,10 +8,12 @@ import pytest
 
 from dotnet_ai_kit.copier import (
     CopyError,
+    copy_agents,
     copy_commands,
     copy_commands_codex,
     copy_commands_cursor,
     copy_rules,
+    copy_skills,
     render_template,
     scaffold_project,
 )
@@ -274,3 +276,169 @@ def test_scaffold_project_missing_template_dir(tmp_path: Path) -> None:
 
     with pytest.raises(CopyError, match="Template directory not found"):
         scaffold_project(tmp_path / "nonexistent", tmp_path / "target", config, "command")
+
+
+# ---------------------------------------------------------------------------
+# copy_skills
+# ---------------------------------------------------------------------------
+
+
+def _create_skill_files(source_dir: Path) -> None:
+    """Create a sample skills directory structure."""
+    skills = [
+        ("core", "configuration", "SKILL.md"),
+        ("core", "dependency-injection", "SKILL.md"),
+        ("microservice", "command", "SKILL.md"),
+        ("microservice", "query", "SKILL.md"),
+    ]
+    for cat, subcat, filename in skills:
+        skill_dir = source_dir / cat / subcat
+        skill_dir.mkdir(parents=True, exist_ok=True)
+        (skill_dir / filename).write_text(
+            f"# {cat}/{subcat}\n\nSkill content for {subcat}.\n",
+            encoding="utf-8",
+        )
+
+
+def test_copy_skills_preserves_directory_structure(tmp_path: Path) -> None:
+    """copy_skills should recursively copy skills preserving category structure."""
+    source = tmp_path / "skills_src"
+    _create_skill_files(source)
+    target = tmp_path / "project"
+    target.mkdir()
+
+    agent_config = {"skills_dir": ".claude/skills"}
+
+    count = copy_skills(source, target, agent_config)
+
+    assert count == 4
+    assert (target / ".claude" / "skills" / "core" / "configuration" / "SKILL.md").is_file()
+    assert (target / ".claude" / "skills" / "core" / "dependency-injection" / "SKILL.md").is_file()
+    assert (target / ".claude" / "skills" / "microservice" / "command" / "SKILL.md").is_file()
+    assert (target / ".claude" / "skills" / "microservice" / "query" / "SKILL.md").is_file()
+
+    content = (target / ".claude" / "skills" / "core" / "configuration" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    assert "Skill content for configuration" in content
+
+
+def test_copy_skills_overwrites_existing(tmp_path: Path) -> None:
+    """copy_skills should overwrite existing skills directory with latest version."""
+    source = tmp_path / "skills_src"
+    _create_skill_files(source)
+    target = tmp_path / "project"
+    target.mkdir()
+
+    agent_config = {"skills_dir": ".claude/skills"}
+
+    # First copy
+    copy_skills(source, target, agent_config)
+
+    # Add an extra file that should be removed on re-copy
+    old_file = target / ".claude" / "skills" / "old" / "stale" / "SKILL.md"
+    old_file.parent.mkdir(parents=True, exist_ok=True)
+    old_file.write_text("stale content", encoding="utf-8")
+
+    # Second copy should overwrite
+    count = copy_skills(source, target, agent_config)
+
+    assert count == 4
+    assert not old_file.exists()
+
+
+def test_copy_skills_no_skills_dir(tmp_path: Path) -> None:
+    """copy_skills should return 0 when agent has no skills_dir."""
+    source = tmp_path / "skills_src"
+    _create_skill_files(source)
+    target = tmp_path / "project"
+    target.mkdir()
+
+    agent_config = {"skills_dir": None}
+    count = copy_skills(source, target, agent_config)
+    assert count == 0
+
+
+# ---------------------------------------------------------------------------
+# copy_agents
+# ---------------------------------------------------------------------------
+
+
+def _create_agent_files(source_dir: Path) -> None:
+    """Create sample agent .md files."""
+    source_dir.mkdir(parents=True, exist_ok=True)
+    agents = ["command-architect", "query-architect", "processor-architect"]
+    for name in agents:
+        (source_dir / f"{name}.md").write_text(
+            f"# {name}\n\n**Role**: Specialist for {name}.\n",
+            encoding="utf-8",
+        )
+
+
+def test_copy_agents_flat_copy(tmp_path: Path) -> None:
+    """copy_agents should flat-copy all agent .md files."""
+    source = tmp_path / "agents_src"
+    _create_agent_files(source)
+    target = tmp_path / "project"
+    target.mkdir()
+
+    agent_config = {"agents_dir": ".claude/agents"}
+
+    count = copy_agents(source, target, agent_config)
+
+    assert count == 3
+    assert (target / ".claude" / "agents" / "command-architect.md").is_file()
+    assert (target / ".claude" / "agents" / "query-architect.md").is_file()
+    assert (target / ".claude" / "agents" / "processor-architect.md").is_file()
+
+
+def test_copy_agents_overwrites_existing(tmp_path: Path) -> None:
+    """copy_agents should overwrite existing agents directory."""
+    source = tmp_path / "agents_src"
+    _create_agent_files(source)
+    target = tmp_path / "project"
+    target.mkdir()
+
+    agent_config = {"agents_dir": ".claude/agents"}
+
+    # First copy
+    copy_agents(source, target, agent_config)
+
+    # Add stale file
+    stale = target / ".claude" / "agents" / "stale-agent.md"
+    stale.write_text("stale", encoding="utf-8")
+
+    # Second copy should overwrite
+    count = copy_agents(source, target, agent_config)
+
+    assert count == 3
+    assert not stale.exists()
+
+
+def test_copy_agents_no_agents_dir(tmp_path: Path) -> None:
+    """copy_agents should return 0 when agent has no agents_dir."""
+    source = tmp_path / "agents_src"
+    _create_agent_files(source)
+    target = tmp_path / "project"
+    target.mkdir()
+
+    agent_config = {"agents_dir": None}
+    count = copy_agents(source, target, agent_config)
+    assert count == 0
+
+
+# ---------------------------------------------------------------------------
+# Jinja2 StrictUndefined
+# ---------------------------------------------------------------------------
+
+
+def test_render_template_strict_undefined_raises(tmp_path: Path) -> None:
+    """render_template should raise on missing variables with StrictUndefined."""
+    import jinja2
+
+    template = tmp_path / "template.md"
+    template.write_text("Hello {{ MissingVar }}!\n", encoding="utf-8")
+    output = tmp_path / "output.md"
+
+    with pytest.raises(jinja2.UndefinedError):
+        render_template(template, output, {})

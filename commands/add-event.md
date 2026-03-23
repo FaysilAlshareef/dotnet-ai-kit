@@ -42,6 +42,10 @@ Add a new event to an existing aggregate in a command project. Creates the event
    - Event class structure, `EventType` naming convention, data record format.
 6. **Check uniqueness** -- ensure no event with same name already exists.
 
+## Load Specialist Agent
+
+Read `agents/command-architect.md` for event design guidance. Load all skills listed in the agent's Skills Loaded section.
+
 ## Skills to Read
 
 - `skills/microservice/command/event-design` -- event class structure, EventData record, naming
