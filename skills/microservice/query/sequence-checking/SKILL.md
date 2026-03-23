@@ -58,7 +58,7 @@ public async Task<bool> Handle(
     // Process: call entity behavior method (which sets Sequence internally)
     order.UpdateDetails(@event.Data, @event.Sequence);
 
-    await _unitOfWork.SaveChangesAsync();
+    await _unitOfWork.SaveChangesAsync(cancellationToken);
 
     return true;
 }
@@ -81,7 +81,7 @@ public async Task<bool> Handle(
 
     order = new Order(@event);  // Constructor sets Sequence = @event.Sequence
     await _unitOfWork.Orders.AddAsync(order);
-    await _unitOfWork.SaveChangesAsync();
+    await _unitOfWork.SaveChangesAsync(cancellationToken);
 
     return true;
 }
@@ -111,7 +111,7 @@ if (product.Sequence == @event.Sequence - 1)
 {
     product.Update(@event);
     product.IncrementSequence();  // Sequence++
-    await _unitOfWork.SaveChangesAsync();
+    await _unitOfWork.SaveChangesAsync(cancellationToken);
 }
 
 return product.Sequence >= @event.Sequence;

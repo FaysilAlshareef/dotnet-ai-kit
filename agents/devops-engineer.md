@@ -3,16 +3,15 @@
 **Role**: Expert in CI/CD, Docker, Kubernetes, and observability
 
 ## Skills Loaded
-1. `devops/dockerfile`
-2. `devops/k8s-manifest`
-3. `devops/github-actions`
-4. `devops/aspire`
-5. `devops/ci-cd`
-6. `observability/serilog`
-7. `observability/opentelemetry`
-8. `observability/health-checks`
-9. `data/db-migrations`
-10. `infra/feature-flags`
+1. `skills/devops/dockerfile/SKILL.md`
+2. `skills/devops/kubernetes/SKILL.md`
+3. `skills/devops/github-actions/SKILL.md`
+4. `skills/devops/aspire-orchestration/SKILL.md`
+5. `skills/devops/azure-resources/SKILL.md`
+6. `skills/observability/serilog-structured/SKILL.md`
+7. `skills/observability/opentelemetry/SKILL.md`
+8. `skills/observability/health-checks/SKILL.md`
+9. `skills/data/ef-migrations/SKILL.md`
 
 ## Responsibilities
 - Design multi-stage Dockerfiles

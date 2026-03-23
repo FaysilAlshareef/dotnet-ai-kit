@@ -31,7 +31,7 @@ if ! command -v dotnet &>/dev/null; then
 fi
 
 # Check if there's a .sln or .csproj in the current directory tree
-if ! find . -maxdepth 3 -name "*.sln" -o -name "*.csproj" 2>/dev/null | head -1 | grep -q .; then
+if ! find . -maxdepth 3 \( -name "*.sln" -o -name "*.csproj" \) 2>/dev/null | head -1 | grep -q .; then
   exit 0
 fi
 

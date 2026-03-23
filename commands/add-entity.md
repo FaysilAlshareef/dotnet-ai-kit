@@ -44,6 +44,14 @@ Create a new entity in a query project with event handlers, query handler, and r
 5. **Load config** -- read `.dotnet-ai-kit/config.yml`.
 6. **Check name uniqueness** -- ensure no existing entity with same name.
 
+## Load Specialist Agent
+
+Based on detected project type:
+- query-sql → Read `agents/query-architect.md`
+- query-cosmos → Read `agents/cosmos-architect.md`
+
+Also read `agents/ef-specialist.md` for data access patterns. Load all skills listed in each loaded agent's Skills Loaded section.
+
 ## Skills to Read
 
 Load on demand based on detected mode:

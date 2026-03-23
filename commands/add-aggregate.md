@@ -42,6 +42,10 @@ Create a new aggregate root in a command project with its initial event, command
 4. **Load config** -- read `.dotnet-ai-kit/config.yml` for `{Company}` name and project settings.
 5. **Check name uniqueness** -- ensure no existing class named `{AggregateName}` in target directories.
 
+## Load Specialist Agent
+
+Read `agents/command-architect.md` for aggregate design guidance. Load all skills listed in the agent's Skills Loaded section.
+
 ## Skills to Read
 
 Load these skills on demand based on what is being generated:

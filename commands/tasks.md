@@ -11,6 +11,22 @@ Your job is to generate a structured task list from an implementation plan.
 
 Flags: `--dry-run` (preview without writing), `--verbose` (diagnostic output)
 
+## Load Specialist Agent
+
+Based on the detected project type, read the specialist agent for architectural guidance:
+- **Microservice mode**:
+  - command → Read `agents/command-architect.md`
+  - query-sql → Read `agents/query-architect.md`
+  - query-cosmos → Read `agents/cosmos-architect.md`
+  - processor → Read `agents/processor-architect.md`
+  - gateway → Read `agents/gateway-architect.md`
+  - controlpanel → Read `agents/controlpanel-architect.md`
+  - hybrid → Read both `agents/command-architect.md` and `agents/query-architect.md`
+- **Generic mode** (VSA, Clean Arch, DDD, Modular Monolith):
+  - Read `agents/dotnet-architect.md`
+
+Load all skills listed in the agent's Skills Loaded section.
+
 ## Step 1: Load Prerequisites
 
 1. Find the active feature in `.dotnet-ai-kit/features/`.
@@ -47,6 +63,12 @@ Create `tasks.md` in the feature directory. Organize tasks by phase:
 - [ ] T002 [P] [Repo:{repo2}] Clone/open {repo2}, create branch feature/{NNN}-{short-name}
 
 ## Phase 2: Command Side
+
+**CONSTRAINT**: Command side is event-sourced. Generate ONLY:
+- Aggregates, Events, Value Objects, Enums, Domain Exceptions
+- NEVER create entities, projections, read models, or lookup tables
+- If the command side needs to query external state, add a gRPC client call task in Infrastructure tasks
+
 - [ ] T003 [Repo:command] Create {Aggregate} with {Event} event
       File: src/{Domain}/Aggregates/{Aggregate}.cs
 - [ ] T004 [Repo:command] Add {Command} command handler
@@ -140,6 +162,8 @@ For generic .NET projects, organize by architectural layer:
 
 ## Task Format Rules
 
+`[P]` means this task can execute in parallel with other `[P]` tasks in the same phase — it modifies different files and has no dependencies on incomplete tasks within the phase.
+
 - Every task has a unique ID: `T001`, `T002`, etc.
 - `[P]` = can run in parallel with the previous task (different files, no dependency)
 - `[depends: T{N}]` = blocked until T{N} completes
@@ -160,15 +184,13 @@ Next: /dotnet-ai.analyze     (check consistency before implementing)
       /dotnet-ai.implement   (start implementing)
 ```
 
-## Dry-Run Behavior
+## Cross-Repo Feature Tracking
 
-When `--dry-run` is active:
-- Print the full task list to the terminal
-- Do NOT create tasks.md
-- Prefix output with `[DRY-RUN]`
+For microservice mode, create `spec-link.md` in each secondary repo's `.dotnet-ai-kit/features/{feature-name}/` directory with feature name, source repo path, primary spec path, and creation date.
 
-## Error Handling
+## Dry-Run / Error Handling
 
+- `--dry-run`: Print full task list, do NOT create tasks.md, prefix with `[DRY-RUN]`
 - Missing plan.md: direct user to `/dotnet-ai.plan`
 - Missing spec.md: direct user to `/dotnet-ai.specify`
-- Microservice mode without service-map.md: warn, generate tasks from plan.md only
+- Microservice without service-map.md: warn, generate tasks from plan.md only

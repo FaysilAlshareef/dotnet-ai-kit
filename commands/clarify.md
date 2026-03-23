@@ -12,6 +12,22 @@ Your job is to find ambiguities in a feature spec and resolve them interactively
 Optional feature ID: `$ARGUMENTS` (e.g., `001` to target a specific feature)
 Flags: `--dry-run` (show questions without updating), `--verbose` (diagnostic output)
 
+## Load Specialist Agent
+
+Based on the detected project type, read the specialist agent for architectural guidance:
+- **Microservice mode**:
+  - command → Read `agents/command-architect.md`
+  - query-sql → Read `agents/query-architect.md`
+  - query-cosmos → Read `agents/cosmos-architect.md`
+  - processor → Read `agents/processor-architect.md`
+  - gateway → Read `agents/gateway-architect.md`
+  - controlpanel → Read `agents/controlpanel-architect.md`
+  - hybrid → Read both `agents/command-architect.md` and `agents/query-architect.md`
+- **Generic mode** (VSA, Clean Arch, DDD, Modular Monolith):
+  - Read `agents/dotnet-architect.md`
+
+Load all skills listed in the agent's Skills Loaded section.
+
 ## Step 1: Load Feature Spec
 
 1. If `$ARGUMENTS` contains a feature ID, load `.dotnet-ai-kit/features/{ID}-*/spec.md`.

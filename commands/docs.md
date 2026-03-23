@@ -40,6 +40,10 @@ Generate or update technical and business documentation. With no subcommand, sca
 | `--verbose` | Show scanning details and content summaries |
 | `--update` | Update existing docs only, do not create new ones |
 
+## Load Specialist Agent
+
+Read `agents/docs-engineer.md` for documentation patterns. Load all skills listed in the agent's Skills Loaded section.
+
 ## Pre-Generation (all subcommands)
 
 1. **Detect project mode** -- microservice vs generic from config or project structure.

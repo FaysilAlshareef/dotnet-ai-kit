@@ -29,10 +29,12 @@ from dotnet_ai_kit.config import (
     save_project,
 )
 from dotnet_ai_kit.copier import (
+    copy_agents,
     copy_commands,
     copy_commands_codex,
     copy_commands_cursor,
     copy_rules,
+    copy_skills,
 )
 from dotnet_ai_kit.detection import describe_architecture
 from dotnet_ai_kit.extensions import (
@@ -127,6 +129,18 @@ def _find_rules_source() -> Path:
     """Find the rules source directory in the package."""
     pkg = _get_package_dir()
     return pkg / "rules"
+
+
+def _find_skills_source() -> Path:
+    """Find the skills source directory in the package."""
+    pkg = _get_package_dir()
+    return pkg / "skills"
+
+
+def _find_agents_source() -> Path:
+    """Find the agents source directory in the package."""
+    pkg = _get_package_dir()
+    return pkg / "agents"
 
 
 def _verbose_log(verbose: bool, message: str) -> None:
@@ -348,12 +362,16 @@ def init(
     version_path = config_dir / "version.txt"
     version_path.write_text(__version__, encoding="utf-8")
 
-    # Step 7: Copy commands and rules for each AI tool
+    # Step 7: Copy commands, rules, skills, and agents for each AI tool
     commands_source = _find_commands_source()
     rules_source = _find_rules_source()
+    skills_source = _find_skills_source()
+    agents_source = _find_agents_source()
 
     total_cmds = 0
     total_rules = 0
+    total_skills = 0
+    total_agents = 0
 
     for tool_name in ai_tools:
         try:
@@ -369,6 +387,8 @@ def init(
 
         cmd_count = 0
         rule_count = 0
+        skill_count = 0
+        agent_count = 0
 
         if tool_name == "cursor":
             cmd_count = copy_commands_cursor(commands_source, target, tool_config, rules_source)
@@ -378,8 +398,16 @@ def init(
             cmd_count = copy_commands(commands_source, target, tool_config, config)
             rule_count = copy_rules(rules_source, target, tool_config)
 
+        # Copy skills and agents for all tools
+        if skills_source.is_dir():
+            skill_count = copy_skills(skills_source, target, tool_config)
+        if agents_source.is_dir():
+            agent_count = copy_agents(agents_source, target, tool_config)
+
         total_cmds += cmd_count
         total_rules += rule_count
+        total_skills += skill_count
+        total_agents += agent_count
 
         if not json_output:
             if cmd_count:
@@ -389,6 +417,10 @@ def init(
                 )
             if rule_count:
                 console.print(f"  Copied: {rule_count} rules -> {tool_config.get('rules_dir', '')}")
+            if skill_count and tool_config.get("skills_dir"):
+                console.print(f"  Copied: {skill_count} skills -> {tool_config['skills_dir']}")
+            if agent_count and tool_config.get("agents_dir"):
+                console.print(f"  Copied: {agent_count} agents -> {tool_config['agents_dir']}")
 
     # Step 8: Validate development tools
     if not json_output:
@@ -401,6 +433,8 @@ def init(
             "ai_tools": ai_tools,
             "commands_copied": total_cmds,
             "rules_copied": total_rules,
+            "skills_copied": total_skills,
+            "agents_copied": total_agents,
             "config_dir": str(config_dir),
         }
         if detected:
@@ -712,6 +746,8 @@ def upgrade(
 
     commands_source = _find_commands_source()
     rules_source = _find_rules_source()
+    skills_source = _find_skills_source()
+    agents_source = _find_agents_source()
 
     # T058 - Dry run: show what WOULD be done
     if dry_run:
@@ -725,16 +761,24 @@ def upgrade(
             tool_display = tool_config.get("name", tool_name)
             cmd_dir_rel = tool_config.get("commands_dir")
             rules_dir_rel = tool_config.get("rules_dir")
+            skills_dir_rel = tool_config.get("skills_dir")
+            agents_dir_rel = tool_config.get("agents_dir")
             if cmd_dir_rel:
                 console.print(f"  Backup and update: {cmd_dir_rel}")
             if rules_dir_rel:
                 console.print(f"  Backup and update: {rules_dir_rel}")
+            if skills_dir_rel:
+                console.print(f"  Update: {skills_dir_rel}")
+            if agents_dir_rel:
+                console.print(f"  Update: {agents_dir_rel}")
         console.print(f"  Update version file to {__version__}")
         console.print("\n[dim]No changes were made (dry run).[/dim]")
         return
 
     total_cmds = 0
     total_rules = 0
+    total_skills = 0
+    total_agents = 0
 
     for tool_name in config.ai_tools:
         try:
@@ -776,6 +820,12 @@ def upgrade(
             total_cmds += copy_commands(commands_source, target, tool_config, config)
             total_rules += copy_rules(rules_source, target, tool_config)
 
+        # Re-copy skills and agents for all tools
+        if skills_source.is_dir():
+            total_skills += copy_skills(skills_source, target, tool_config)
+        if agents_source.is_dir():
+            total_agents += copy_agents(agents_source, target, tool_config)
+
     # Update version file
     version_path.write_text(__version__, encoding="utf-8")
 
@@ -789,6 +839,8 @@ def upgrade(
                     "new_version": __version__,
                     "commands_updated": total_cmds,
                     "rules_updated": total_rules,
+                    "skills_updated": total_skills,
+                    "agents_updated": total_agents,
                 }
             )
         )
@@ -797,7 +849,12 @@ def upgrade(
     console.print(
         f"\n[green bold]Upgraded from {old_version or 'unknown'} to {__version__}.[/green bold]"
     )
-    console.print(f"  {total_cmds} commands updated, {total_rules} rules updated.\n")
+    parts = [f"{total_cmds} commands", f"{total_rules} rules"]
+    if total_skills:
+        parts.append(f"{total_skills} skills")
+    if total_agents:
+        parts.append(f"{total_agents} agents")
+    console.print(f"  {', '.join(parts)} updated.\n")
     # T052 - Next-command suggestion
     console.print("Next: Run [bold]dotnet-ai check[/bold] to verify the upgrade.\n")
 

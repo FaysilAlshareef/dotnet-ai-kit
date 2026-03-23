@@ -3,15 +3,15 @@
 **Role**: Expert in background event processing services
 
 ## Skills Loaded
-1. `microservice/event-structure`
-2. `microservice/hosted-service`
-3. `microservice/event-routing`
-4. `microservice/grpc-client`
-5. `microservice/batch-processing`
-6. `microservice/grpc-service`
-7. `core/modern-csharp`
-8. `core/configuration`
-9. `microservice/event-versioning`
+1. `skills/microservice/command/event-design/SKILL.md`
+2. `skills/microservice/processor/hosted-service/SKILL.md`
+3. `skills/microservice/processor/event-routing/SKILL.md`
+4. `skills/microservice/processor/grpc-client/SKILL.md`
+5. `skills/microservice/processor/batch-processing/SKILL.md`
+6. `skills/microservice/grpc/service-definition/SKILL.md`
+7. `skills/core/modern-csharp/SKILL.md`
+8. `skills/core/configuration/SKILL.md`
+9. `skills/microservice/command/event-versioning/SKILL.md`
 
 ## Responsibilities
 - Design hosted services for event listeners

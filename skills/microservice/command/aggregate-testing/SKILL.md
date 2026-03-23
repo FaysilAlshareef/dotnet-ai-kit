@@ -310,7 +310,7 @@ public class DbContextHelper
         using var scope = _serviceProvider.CreateScope();
         var db = scope.ServiceProvider.GetRequiredService<ApplicationDbContext>();
         await db.Set<T>().AddAsync(entity);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(cancellationToken);
         return entity;
     }
 }

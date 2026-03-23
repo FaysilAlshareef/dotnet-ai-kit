@@ -3,20 +3,18 @@
 **Role**: Expert in .NET REST API design (Minimal API and Controllers)
 
 ## Skills Loaded
-1. `api/minimal-api`
-2. `api/controllers`
-3. `api/versioning`
-4. `api/openapi`
-5. `api/scalar`
-6. `resilience/result-pattern`
-7. `resilience/polly`
-8. `resilience/caching`
-9. `security/jwt-authentication`
-10. `security/permission-authorization`
-11. `api/cors-configuration`
-12. `api/real-time`
-13. `resilience/rate-limiting`
-14. `api/grpc-design`
+1. `skills/api/minimal-api/SKILL.md`
+2. `skills/api/controllers/SKILL.md`
+3. `skills/api/versioning/SKILL.md`
+4. `skills/api/openapi-scalar/SKILL.md`
+5. `skills/api/scalar/SKILL.md`
+6. `skills/resilience/polly-resilience/SKILL.md`
+7. `skills/resilience/circuit-breaker/SKILL.md`
+8. `skills/resilience/retry-patterns/SKILL.md`
+9. `skills/security/auth-jwt/SKILL.md`
+10. `skills/security/auth-policies/SKILL.md`
+11. `skills/api/content-negotiation/SKILL.md`
+12. `skills/api/controller-patterns/SKILL.md`
 
 ## Responsibilities
 - Design Minimal API endpoints or Controllers

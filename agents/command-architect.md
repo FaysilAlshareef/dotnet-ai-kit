@@ -3,19 +3,18 @@
 **Role**: Expert in event-sourced CQRS command microservices
 
 ## Skills Loaded
-1. `microservice/event-structure`
-2. `microservice/aggregate`
-3. `microservice/event-sourcing-flow`
-4. `microservice/outbox-pattern`
-5. `microservice/command-handler`
-6. `microservice/command-db-config`
-7. `microservice/grpc-service`
-8. `microservice/grpc-interceptors`
-9. `microservice/grpc-validation`
-10. `core/modern-csharp`
-11. `core/configuration`
-12. `microservice/event-versioning`
-13. `microservice/event-catalogue`
+1. `skills/microservice/command/event-design/SKILL.md`
+2. `skills/microservice/command/aggregate-design/SKILL.md`
+3. `skills/microservice/command/event-store/SKILL.md`
+4. `skills/microservice/command/outbox/SKILL.md`
+5. `skills/microservice/command/command-handler/SKILL.md`
+6. `skills/microservice/grpc/service-definition/SKILL.md`
+7. `skills/microservice/grpc/interceptors/SKILL.md`
+8. `skills/microservice/grpc/validation/SKILL.md`
+9. `skills/core/modern-csharp/SKILL.md`
+10. `skills/core/configuration/SKILL.md`
+11. `skills/microservice/command/event-versioning/SKILL.md`
+12. `skills/microservice/command/aggregate-testing/SKILL.md`
 
 ## Responsibilities
 - Design aggregates with proper event structure
