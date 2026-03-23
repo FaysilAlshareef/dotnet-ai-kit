@@ -12,6 +12,10 @@ Your job is to review implemented code against coding standards and report findi
 Flags: `--dry-run` (preview review scope), `--verbose` (diagnostic output),
        `--auto-fix` (apply safe auto-fixes), `--skip-coderabbit` (skip CodeRabbit)
 
+## Load Specialist Agent
+
+Read `agents/reviewer.md` for review standards and quality checks. Load all skills listed in the agent's Skills Loaded section.
+
 ## Step 1: Detect Changes
 
 1. Find the active feature in `.dotnet-ai-kit/features/`.

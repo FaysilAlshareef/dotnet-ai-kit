@@ -102,7 +102,7 @@ public class CommitEventService(IUnitOfWork unitOfWork, IServiceBusPublisher ser
 
         await _unitOfWork.OutboxMessages.AddRangeAsync(messages);
 
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
     }
 }
 ```
@@ -222,7 +222,7 @@ public class ServiceBusPublisher : IServiceBusPublisher
 
             await unitOfWork.OutboxMessages.RemoveAsync(message);
 
-            await unitOfWork.SaveChangesAsync();
+            await unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
         await Task.CompletedTask;
@@ -289,7 +289,7 @@ public interface IUnitOfWork : IDisposable
 {
     IOutboxMessagesRepository OutboxMessages { get; }
     IEventRepository Events { get; }
-    Task<int> SaveChangesAsync();
+    Task<int> SaveChangesAsync(CancellationToken cancellationToken = default);
 }
 ```
 

@@ -1,10 +1,10 @@
 <!--
 Sync Impact Report
 ===================
-- Version change: 1.0.0 → 1.0.1
+- Version change: 1.0.1 → 1.0.2
 - Modified principles: N/A
 - Updated sections:
-  - Technology Constraints: command count 25 → 26
+  - Technology Constraints: rule count 6 → 9, skill count 104 → 106
 - Removed sections: N/A
 - Templates requiring updates: none
 - Follow-up TODOs: none
@@ -112,7 +112,7 @@ The tool MUST prioritize safety and context efficiency:
 **Token discipline**:
 - Skills: maximum 400 lines per file
 - Commands: maximum 200 lines per file
-- Rules: maximum 100 lines per file (6 rules, ~600 lines
+- Rules: maximum 100 lines per file (9 rules, ~600 lines
   total budget)
 - Skills loaded on-demand by commands, not upfront
 - Minimize context window usage while maximizing relevant
@@ -145,9 +145,9 @@ implementation, and linked PR creation.
 - YAML for configuration (`.dotnet-ai-kit/config.yml`)
 
 **Knowledge base composition**:
-- 6 rules (always loaded)
+- 9 rules (always loaded)
 - 13 specialist agents (routing logic in commands)
-- 104 skills (loaded on demand, Agent Skills spec compliant)
+- 106 skills (loaded on demand, Agent Skills spec compliant)
 - 26 commands (slash commands)
 - 11 knowledge documents (reference material)
 - 11 templates (project scaffolds)
@@ -210,4 +210,4 @@ compliance with this constitution. Complexity that violates
 a principle MUST be explicitly justified in the plan's
 Complexity Tracking table.
 
-**Version**: 1.0.1 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-03-22
+**Version**: 1.0.2 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-03-23

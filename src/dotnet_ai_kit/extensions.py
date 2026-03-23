@@ -14,6 +14,7 @@ from pathlib import Path
 from typing import Any, Optional
 
 import yaml
+from filelock import FileLock
 
 from dotnet_ai_kit.agents import AGENT_CONFIG
 
@@ -220,37 +221,49 @@ def install_extension(
     # Load and validate manifest
     manifest = load_manifest(ext_source)
 
-    # Check for conflicts
-    registry = _load_extensions_registry(project_root)
-    conflict = _check_conflicts(manifest, registry)
-    if conflict:
-        raise ExtensionError(conflict)
+    # Lock the registry to prevent concurrent modifications
+    registry_path = project_root / ".dotnet-ai-kit" / "extensions.yml"
+    registry_path.parent.mkdir(parents=True, exist_ok=True)
+    lock = FileLock(registry_path.with_suffix(".lock"))
 
-    # Copy extension files to project
-    ext_dest = project_root / ".dotnet-ai-kit" / "extensions" / manifest.id
-    if ext_dest.exists():
-        shutil.rmtree(ext_dest)
-    shutil.copytree(ext_source, ext_dest)
+    with lock:
+        # Check for conflicts
+        registry = _load_extensions_registry(project_root)
+        conflict = _check_conflicts(manifest, registry)
+        if conflict:
+            raise ExtensionError(conflict)
 
-    # Copy command and rule files to AI tool directories
-    _register_extension_files(manifest, ext_source, project_root)
+        # Copy extension files to project
+        ext_dest = project_root / ".dotnet-ai-kit" / "extensions" / manifest.id
+        if ext_dest.exists():
+            shutil.rmtree(ext_dest)
+        try:
+            shutil.copytree(ext_source, ext_dest)
+        except Exception:
+            # Clean up partial copy on failure
+            if ext_dest.exists():
+                shutil.rmtree(ext_dest)
+            raise
 
-    # Register in extensions.yml
-    extensions_list = registry.get("extensions", [])
-    entry = {
-        "id": manifest.id,
-        "version": manifest.version,
-        "source": f"local:{ext_source}" if dev else f"catalog:{name_or_path}",
-        "installed": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
-        "commands": [cmd.get("name", "") for cmd in manifest.commands],
-        "rules": [rule.get("file", "") for rule in manifest.rules],
-    }
-    if manifest.hooks:
-        entry["hooks"] = manifest.hooks
+        # Copy command and rule files to AI tool directories
+        _register_extension_files(manifest, ext_source, project_root)
 
-    extensions_list.append(entry)
-    registry["extensions"] = extensions_list
-    _save_extensions_registry(project_root, registry)
+        # Register in extensions.yml
+        extensions_list = registry.get("extensions", [])
+        entry = {
+            "id": manifest.id,
+            "version": manifest.version,
+            "source": f"local:{ext_source}" if dev else f"catalog:{name_or_path}",
+            "installed": datetime.now(timezone.utc).strftime("%Y-%m-%d"),
+            "commands": [cmd.get("name", "") for cmd in manifest.commands],
+            "rules": [rule.get("file", "") for rule in manifest.rules],
+        }
+        if manifest.hooks:
+            entry["hooks"] = manifest.hooks
+
+        extensions_list.append(entry)
+        registry["extensions"] = extensions_list
+        _save_extensions_registry(project_root, registry)
 
     return manifest
 
@@ -322,47 +335,53 @@ def remove_extension(name: str, project_root: Path) -> None:
     Raises:
         ExtensionError: If the extension is not installed.
     """
-    registry = _load_extensions_registry(project_root)
-    extensions_list = registry.get("extensions", [])
+    # Lock the registry to prevent concurrent modifications
+    registry_path = project_root / ".dotnet-ai-kit" / "extensions.yml"
+    registry_path.parent.mkdir(parents=True, exist_ok=True)
+    lock = FileLock(registry_path.with_suffix(".lock"))
 
-    target_entry = None
-    for entry in extensions_list:
-        if entry.get("id") == name:
-            target_entry = entry
-            break
+    with lock:
+        registry = _load_extensions_registry(project_root)
+        extensions_list = registry.get("extensions", [])
 
-    if target_entry is None:
-        raise ExtensionError(f"Extension '{name}' is not installed.")
+        target_entry = None
+        for entry in extensions_list:
+            if entry.get("id") == name:
+                target_entry = entry
+                break
 
-    # Remove command files from AI tool directories
-    for tool_name, tool_config in AGENT_CONFIG.items():
-        commands_dir_rel = tool_config.get("commands_dir")
-        rules_dir_rel = tool_config.get("rules_dir")
-        ext = tool_config.get("command_ext", ".md")
+        if target_entry is None:
+            raise ExtensionError(f"Extension '{name}' is not installed.")
 
-        if commands_dir_rel:
-            commands_dir = project_root / commands_dir_rel
-            for cmd_name in target_entry.get("commands", []):
-                cmd_path = commands_dir / f"{cmd_name}{ext}"
-                if cmd_path.is_file():
-                    cmd_path.unlink()
+        # Remove command files from AI tool directories
+        for tool_name, tool_config in AGENT_CONFIG.items():
+            commands_dir_rel = tool_config.get("commands_dir")
+            rules_dir_rel = tool_config.get("rules_dir")
+            ext = tool_config.get("command_ext", ".md")
 
-        if rules_dir_rel:
-            rules_dir = project_root / rules_dir_rel
-            for rule_file in target_entry.get("rules", []):
-                rule_path = rules_dir / Path(rule_file).name
-                if rule_path.is_file():
-                    rule_path.unlink()
+            if commands_dir_rel:
+                commands_dir = project_root / commands_dir_rel
+                for cmd_name in target_entry.get("commands", []):
+                    cmd_path = commands_dir / f"{cmd_name}{ext}"
+                    if cmd_path.is_file():
+                        cmd_path.unlink()
 
-    # Remove extension directory
-    ext_dir = project_root / ".dotnet-ai-kit" / "extensions" / name
-    if ext_dir.is_dir():
-        shutil.rmtree(ext_dir)
+            if rules_dir_rel:
+                rules_dir = project_root / rules_dir_rel
+                for rule_file in target_entry.get("rules", []):
+                    rule_path = rules_dir / Path(rule_file).name
+                    if rule_path.is_file():
+                        rule_path.unlink()
 
-    # Update registry
-    extensions_list = [e for e in extensions_list if e.get("id") != name]
-    registry["extensions"] = extensions_list
-    _save_extensions_registry(project_root, registry)
+        # Remove extension directory
+        ext_dir = project_root / ".dotnet-ai-kit" / "extensions" / name
+        if ext_dir.is_dir():
+            shutil.rmtree(ext_dir)
+
+        # Update registry
+        extensions_list = [e for e in extensions_list if e.get("id") != name]
+        registry["extensions"] = extensions_list
+        _save_extensions_registry(project_root, registry)
 
 
 def list_extensions(project_root: Path) -> list[dict[str, Any]]:

@@ -3,16 +3,15 @@
 **Role**: Expert in technical and business documentation for .NET projects
 
 ## Skills Loaded
-1. `docs/readme-generator`
-2. `docs/api-documentation`
-3. `docs/adr`
-4. `docs/code-documentation`
-5. `docs/deployment-guide`
-6. `docs/release-notes`
-7. `docs/feature-spec`
-8. `docs/service-documentation`
-9. `api/openapi`
-10. `microservice/event-catalogue`
+1. `skills/docs/readme-gen/SKILL.md`
+2. `skills/docs/api-docs/SKILL.md`
+3. `skills/docs/adr/SKILL.md`
+4. `skills/docs/runbook/SKILL.md`
+5. `skills/docs/changelog-gen/SKILL.md`
+6. `skills/docs/architecture-docs/SKILL.md`
+7. `skills/docs/diagram-gen/SKILL.md`
+8. `skills/docs/onboarding/SKILL.md`
+9. `skills/api/openapi-scalar/SKILL.md`
 
 ## Responsibilities
 - Generate and maintain README.md files (per-repo and umbrella)

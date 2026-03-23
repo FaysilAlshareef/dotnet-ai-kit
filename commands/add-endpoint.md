@@ -47,6 +47,10 @@ Create a REST endpoint in a gateway project with controller action, gRPC client 
 5. **Load config** -- read `.dotnet-ai-kit/config.yml`.
 6. **Check uniqueness** -- ensure no existing controller/action conflicts.
 
+## Load Specialist Agent
+
+Read `agents/gateway-architect.md` for gateway patterns. Also read `agents/api-designer.md` for REST API design. Load all skills listed in each agent's Skills Loaded section.
+
 ## Skills to Read
 
 - `skills/microservice/gateway/gateway-endpoint` -- controller structure, action methods

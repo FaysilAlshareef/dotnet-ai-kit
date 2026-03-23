@@ -26,6 +26,10 @@ Flags: `--dry-run` (preview without writing), `--verbose` (diagnostic output),
 
 ## Step 2: Load Skills on Demand
 
+**Always load** (regardless of task type):
+- `skills/core/configuration/SKILL.md` — Options pattern, DI registration, ValidateOnStart
+- `skills/core/dependency-injection/SKILL.md` — Service lifetime, registration patterns
+
 Load skills based on the tasks being implemented:
 - Read `skills/workflow/sdd-lifecycle/SKILL.md` for lifecycle patterns
 - Per task type, load the relevant skill:
@@ -39,6 +43,30 @@ Load skills based on the tasks being implemented:
   - Generic API: `skills/api/minimal-api/SKILL.md`
   - Generic data: `skills/data/ef-core-basics/SKILL.md`
   - Generic CQRS: `skills/cqrs/mediatr-handlers/SKILL.md`
+
+## Step 2b: Load Specialist Agent
+
+Based on the project's detected `project_type`, read the specialist agent for architectural guidance:
+- command → Read `agents/command-architect.md`
+- query-sql → Read `agents/query-architect.md`
+- query-cosmos → Read `agents/cosmos-architect.md`
+- processor → Read `agents/processor-architect.md`
+- gateway → Read `agents/gateway-architect.md`
+- controlpanel → Read `agents/controlpanel-architect.md`
+- hybrid → Read both `agents/command-architect.md` and `agents/query-architect.md`
+- vsa, clean-arch, ddd, modular-monolith, generic → Read `agents/dotnet-architect.md`
+
+## Step 2c: Load Task-Specific Secondary Agent
+
+Based on the current task's domain, also load a secondary specialist agent:
+- API/endpoint tasks → Read `agents/api-designer.md`
+- Entity/data/EF tasks → Read `agents/ef-specialist.md`
+- Test tasks → Read `agents/test-engineer.md`
+- DevOps/Docker/CI tasks → Read `agents/devops-engineer.md`
+- Documentation tasks → Read `agents/docs-engineer.md`
+- Review tasks → Read `agents/reviewer.md`
+
+Load all skills listed in the secondary agent's Skills Loaded section.
 
 ## Step 3: Resume Logic
 
@@ -135,52 +163,19 @@ Read `skills/workflow/multi-repo-workflow/SKILL.md` for orchestration patterns.
 
 ## Step 6: Undo Log
 
-For every file created or modified, record in `undo-log.md`:
-
-```markdown
-# Undo Log: {Feature Name}
-
-## T001 - {description}
-**Repo**: {repo name or "local"}
-**Timestamp**: {ISO datetime}
-- created: {file path}
-- created: {file path}
-
-## T002 - {description}
-**Repo**: {repo name or "local"}
-**Timestamp**: {ISO datetime}
-- created: {file path}
-- modified: {file path} (added service registration)
-```
+For every file created or modified, record in `undo-log.md` with task ID, repo name, timestamp, and action (created/modified) per file.
 
 ## Step 7: Completion Report
 
-```
-Implementation complete for {NNN}-{short-name}.
-- Tasks: {completed}/{total}
-- Files created: {N}
-- Files modified: {N}
-- Build: {PASS/FAIL}
-- Tests: {PASS/FAIL} ({passed}/{total} tests)
-{Microservice: per-repo summary}
-
-Next: /dotnet-ai.review    (review against standards)
-      /dotnet-ai.verify    (run verification pipeline)
-```
+Report: tasks completed/total, files created/modified, build status, test results. For microservice mode, include per-repo summary. Suggest next: `/dotnet-ai.review` or `/dotnet-ai.verify`.
 
 ## Dry-Run Behavior
 
-When `--dry-run` is active:
-- Print each task and the files that WOULD be created/modified
-- Show file counts per repo: "Would create {N} files, modify {M} files"
-- Do NOT write any code, create branches, or run builds
-- Do NOT modify tasks.md or create undo-log.md
-- Prefix output with `[DRY-RUN]`
+When `--dry-run`: print tasks and files that WOULD be created/modified, show file counts per repo. Do NOT write code, create branches, run builds, or modify tasks.md. Prefix with `[DRY-RUN]`.
 
 ## Error Handling
 
 - Build failure: stop, show error, suggest fix, user can `--resume`
-- Test failure: report failing tests, continue if `--verbose` requested
-- Missing repo (microservice): prompt for clone URL or local path
-- Task dependency not met: skip and report "Blocked by T{N}"
-- Missing config: prompt for `/dotnet-ai.configure`
+- Test failure: report failing tests, continue if `--verbose`
+- Missing repo: prompt for clone URL or local path
+- Task dependency not met: skip, report "Blocked by T{N}"

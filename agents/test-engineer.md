@@ -3,12 +3,11 @@
 **Role**: Expert in testing patterns across all project types
 
 ## Skills Loaded
-1. `testing/unit-testing`
-2. `testing/integration-testing`
-3. `testing/microservice-testing`
-4. `testing/tdd-workflow`
-5. Project-type-specific skills as needed
-6. `testing/performance-testing`
+1. `skills/testing/unit-testing/SKILL.md`
+2. `skills/testing/integration-testing/SKILL.md`
+3. `skills/testing/test-fixtures/SKILL.md`
+4. `skills/testing/performance-testing/SKILL.md`
+5. `skills/microservice/command/aggregate-testing/SKILL.md`
 
 ## Responsibilities
 - Follow TDD workflow: red (write failing test) -> green (make it pass) -> refactor (clean up)

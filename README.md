@@ -2,7 +2,7 @@
   <img src="assets/banner-github.svg" alt="dotnet-ai-kit banner" width="900"/>
 </p>
 
-<h3 align="center">The AI brain for .NET — 104 skills, 13 agents, one command to ship features</h3>
+<h3 align="center">The AI brain for .NET — 106 skills, 13 agents, one command to ship features</h3>
 
 <p align="center">
   <a href="https://github.com/FaysilAlshareef/dotnet-ai-kit/releases"><img src="https://img.shields.io/badge/version-1.0.0-7B3FF2?style=flat-square" alt="Version"></a>
@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <code>104 skills</code> · <code>13 agents</code> · <code>26 commands</code> · <code>12 architectures</code> · <code>4 safety hooks</code> · <code>11 templates</code>
+  <code>106 skills</code> · <code>13 agents</code> · <code>26 commands</code> · <code>9 rules</code> · <code>12 architectures</code> · <code>4 safety hooks</code> · <code>11 templates</code>
 </p>
 
 ---
@@ -50,7 +50,7 @@ dotnet-ai init . --ai claude
 /plugin install dotnet-ai-kit
 ```
 
-All 26 commands, 104 skills, 13 agents, 6 rules, and 4 safety hooks are available immediately.
+All 26 commands, 106 skills, 13 agents, 9 rules, and 4 safety hooks are available immediately.
 
 ### Optional: C# Language Intelligence
 
@@ -97,23 +97,24 @@ This single command automatically runs the full 9-phase lifecycle:
 <table>
 <tr><td>
 
-### 104 Skills (16 categories)
+### 106 Skills (17 categories)
 
 | Category | Count |
 |----------|:-----:|
-| Microservice | 31 |
+| Microservice | 33 |
 | Data (EF Core) | 8 |
 | Docs | 8 |
 | API | 7 |
 | Workflow | 7 |
 | Architecture | 6 |
-| Core (C#) | 6 |
+| Core (C#) | 7 |
 | CQRS | 6 |
 | DevOps | 5 |
 | Testing | 4 |
 | Security | 3 |
 | Observability | 3 |
 | Resilience | 3 |
+| Quality | 3 |
 | Infrastructure | 3 |
 | Detection | 1 |
 
@@ -140,16 +141,19 @@ This single command automatically runs the full 9-phase lifecycle:
 </td></tr>
 </table>
 
-### 6 Convention Rules (Always Active)
+### 9 Convention Rules (Always Active)
 
 | Rule | Purpose |
 |------|---------|
 | `architecture` | Enforces architectural boundaries |
 | `coding-style` | Code formatting and patterns |
+| `configuration` | Options pattern, ValidateOnStart |
 | `error-handling` | Exception handling, validation |
 | `existing-projects` | Respects your existing codebase patterns |
 | `localization` | Resource files, culture handling |
 | `naming` | C# naming conventions, namespaces |
+| `testing` | Test naming, AAA structure, CQRS patterns |
+| `tool-calls` | Sequential tool usage, verification |
 
 ### 4 Safety Hooks
 
@@ -337,15 +341,15 @@ The tool detects your .NET version from `.csproj` and uses version-appropriate p
 ```
 dotnet-ai-kit/
 ├── commands/          # 26 slash command definitions
-├── rules/             # 6 always-loaded convention rules
+├── rules/             # 9 always-loaded convention rules
 ├── agents/            # 13 specialist agent definitions
-├── skills/            # 104 skills across 16 categories
+├── skills/            # 106 skills across 17 categories
 ├── knowledge/         # 11 reference documents
 ├── templates/         # 11 project templates (Jinja2)
 ├── hooks/             # 4 safety hooks
 ├── config/            # 4 permission level configs
 ├── src/               # Python CLI source (Typer + Pydantic v2)
-├── tests/             # 108 test functions (90% coverage)
+├── tests/             # 115 test functions (90% coverage)
 └── .claude-plugin/    # Claude Code plugin manifest
 ```
 

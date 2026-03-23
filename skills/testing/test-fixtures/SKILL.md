@@ -156,7 +156,7 @@ public static class DbContextHelper
     {
         var db = sp.GetRequiredService<ApplicationDbContext>();
         db.Set<T>().Add(entity);
-        await db.SaveChangesAsync();
+        await db.SaveChangesAsync(cancellationToken);
     }
 }
 

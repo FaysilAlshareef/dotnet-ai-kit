@@ -43,7 +43,7 @@ def render_template(template_path: Path, output_path: Path, context: dict[str, A
     )
 
     env = jinja2.Environment(
-        undefined=jinja2.Undefined,
+        undefined=jinja2.StrictUndefined,
         keep_trailing_newline=True,
     )
     template = env.from_string(text)
@@ -252,6 +252,85 @@ def copy_commands_codex(
     out_path = target_dir / agents_file
     out_path.write_text("\n".join(sections), encoding="utf-8")
     return 1
+
+
+def copy_skills(
+    source_dir: Path,
+    target_dir: Path,
+    agent_config: dict[str, Any],
+) -> int:
+    """Copy skill files from the source to the AI tool's skills directory.
+
+    Recursively copies the skills directory structure preserving
+    category/subcategory organization.
+
+    Args:
+        source_dir: Directory containing skill subdirectories.
+        target_dir: Root of the user's project.
+        agent_config: Configuration dict for the target AI tool.
+
+    Returns:
+        Number of skill files copied.
+    """
+    skills_dir_rel = agent_config.get("skills_dir")
+    if not skills_dir_rel:
+        return 0
+
+    skills_dir = target_dir / skills_dir_rel
+    # Remove existing skills directory to ensure clean overwrite
+    if skills_dir.is_dir():
+        shutil.rmtree(skills_dir)
+    skills_dir.mkdir(parents=True, exist_ok=True)
+
+    count = 0
+    for skill_file in sorted(source_dir.rglob("*.md")):
+        rel_path = skill_file.relative_to(source_dir)
+        dest = skills_dir / rel_path
+        dest.parent.mkdir(parents=True, exist_ok=True)
+        content = skill_file.read_text(encoding="utf-8")
+        dest.write_text(content, encoding="utf-8")
+        count += 1
+
+    return count
+
+
+def copy_agents(
+    source_dir: Path,
+    target_dir: Path,
+    agent_config: dict[str, Any],
+) -> int:
+    """Copy agent files from the source to the AI tool's agents directory.
+
+    Flat copy of all .md files in the agents directory.
+
+    Args:
+        source_dir: Directory containing agent .md files.
+        target_dir: Root of the user's project.
+        agent_config: Configuration dict for the target AI tool.
+
+    Returns:
+        Number of agent files copied.
+    """
+    agents_dir_rel = agent_config.get("agents_dir")
+    if not agents_dir_rel:
+        return 0
+
+    agents_dir = target_dir / agents_dir_rel
+    # Remove existing agents directory to ensure clean overwrite
+    if agents_dir.is_dir():
+        shutil.rmtree(agents_dir)
+    agents_dir.mkdir(parents=True, exist_ok=True)
+
+    count = 0
+    agent_files = sorted(source_dir.glob("*.md"))
+
+    for agent_file in agent_files:
+        content = agent_file.read_text(encoding="utf-8")
+        dest = agents_dir / agent_file.name
+        dest.write_text(content, encoding="utf-8")
+        count += 1
+
+    return count
 
 
 def scaffold_project(

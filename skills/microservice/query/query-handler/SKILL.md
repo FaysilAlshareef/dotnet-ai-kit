@@ -35,7 +35,7 @@ public interface IUnitOfWork : IDisposable
     IProductRepository Products { get; }
     IOrderItemRepository OrderItems { get; }
     ICategoryRepository Categories { get; }
-    Task SaveChangesAsync();
+    Task SaveChangesAsync(CancellationToken cancellationToken = default);
 }
 ```
 

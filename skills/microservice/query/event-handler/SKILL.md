@@ -20,7 +20,7 @@ agent: query-architect
 - Primary constructor with field assignment: `handler(IUnitOfWork unitOfWork)`
 - Creation handlers: check if entity exists, return `true` if duplicate (idempotent)
 - Update handlers: strict sequence check `entity.Sequence != @event.Sequence - 1`
-- Call entity behavior methods, then `_unitOfWork.SaveChangesAsync()`
+- Call entity behavior methods, then `_unitOfWork.SaveChangesAsync(cancellationToken)`
 
 ## Key Patterns
 
@@ -48,7 +48,7 @@ public class OrderCreatedHandler(IUnitOfWork unitOfWork)
         order = new Order(@event);
 
         await _unitOfWork.Orders.AddAsync(order);
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return true;
     }
@@ -84,7 +84,7 @@ public class OrderUpdatedHandler(IUnitOfWork unitOfWork)
         // Apply state change via behavior method
         order.UpdateDetails(@event.Data, @event.Sequence);
 
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return true;
     }
@@ -115,7 +115,7 @@ public class OrderStatusChangedHandler(IUnitOfWork unitOfWork)
 
         order.ChangeStatus(@event.Data, @event.Sequence);
 
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return true;
     }
@@ -149,7 +149,7 @@ public class ProductCreatedHandler(IUnitOfWork unitOfWork)
         await _unitOfWork.ProductVariants.AddRangeAsync(
             @event.Data.Variants.Select(v => new ProductVariant(v, @event.AggregateId)));
 
-        await _unitOfWork.SaveChangesAsync();
+        await _unitOfWork.SaveChangesAsync(cancellationToken);
 
         return true;
     }
@@ -173,7 +173,7 @@ public async Task<bool> Handle(
         {
             product.Update(@event);
             product.IncrementSequence();
-            await _unitOfWork.SaveChangesAsync();
+            await _unitOfWork.SaveChangesAsync(cancellationToken);
         }
 
         return product.Sequence >= @event.Sequence;
@@ -202,7 +202,7 @@ public async Task<bool> Handle(
 | `if (@event.Sequence <= order.Sequence)` | `if (order.Sequence != @event.Sequence - 1) return order.Sequence >= @event.Sequence;` |
 | Separate sequence check and return | Combine into single conditional expression |
 | Direct DbContext usage | Use IUnitOfWork with named repository properties |
-| `SaveChangesAsync(cancellationToken)` | `SaveChangesAsync()` — no cancellation token passed |
+| `SaveChangesAsync()` without cancellation token | `SaveChangesAsync(cancellationToken)` — always pass cancellation token |
 
 ## Detect Existing Patterns
 
