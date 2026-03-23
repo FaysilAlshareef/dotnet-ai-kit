@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <code>106 skills</code> · <code>13 agents</code> · <code>26 commands</code> · <code>9 rules</code> · <code>12 architectures</code> · <code>4 safety hooks</code> · <code>11 templates</code>
+  <code>106 skills</code> · <code>13 agents</code> · <code>26 commands</code> · <code>9 rules</code> · <code>12 architectures</code> · <code>4 safety hooks</code> · <code>13 templates</code>
 </p>
 
 ---
@@ -345,7 +345,7 @@ dotnet-ai-kit/
 ├── agents/            # 13 specialist agent definitions
 ├── skills/            # 106 skills across 17 categories
 ├── knowledge/         # 11 reference documents
-├── templates/         # 11 project templates (Jinja2)
+├── templates/         # 13 project templates (Jinja2)
 ├── hooks/             # 4 safety hooks
 ├── config/            # 4 permission level configs
 ├── src/               # Python CLI source (Typer + Pydantic v2)
