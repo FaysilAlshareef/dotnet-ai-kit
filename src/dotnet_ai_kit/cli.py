@@ -29,10 +29,12 @@ from dotnet_ai_kit.config import (
     save_project,
 )
 from dotnet_ai_kit.copier import (
+    CopyError,
     copy_agents,
     copy_commands,
     copy_commands_codex,
     copy_commands_cursor,
+    copy_permissions,
     copy_rules,
     copy_skills,
 )
@@ -422,7 +424,26 @@ def init(
             if agent_count and tool_config.get("agents_dir"):
                 console.print(f"  Copied: {agent_count} agents -> {tool_config['agents_dir']}")
 
-    # Step 8: Validate development tools
+    # Step 8: Apply permissions to .claude/settings.json
+    try:
+        if config.permissions_level == "full" and not json_output:
+            console.print(
+                "\n[yellow bold]Warning:[/yellow bold] Full permission mode enables "
+                "bypassPermissions — the AI assistant will execute all operations "
+                "without prompting. Only use in trusted environments.\n"
+            )
+        perm_result = copy_permissions(target, config, _get_package_dir())
+        save_config(config, config_dir / "config.yml")
+        if not json_output and perm_result["changed"]:
+            console.print(
+                f"  Permissions: {perm_result['entries_count']} rules applied "
+                f"(mode: {perm_result['mode']}) -> {perm_result['settings_path']}"
+            )
+    except CopyError as exc:
+        if not json_output:
+            err_console.print(f"[yellow]Permission warning: {exc}[/yellow]")
+
+    # Step 9: Validate development tools
     if not json_output:
         _validate_tools(console, verbose=verbose)
 
@@ -829,6 +850,30 @@ def upgrade(
     # Update version file
     version_path.write_text(__version__, encoding="utf-8")
 
+    # Detect and fix permission gap (permissions_level set but not applied)
+    settings_path = target / ".claude" / "settings.json"
+    has_permissions = False
+    if settings_path.is_file():
+        try:
+            import json as _json
+
+            _data = _json.loads(settings_path.read_text(encoding="utf-8"))
+            has_permissions = bool(_data.get("permissions", {}).get("allow"))
+        except (ValueError, OSError):
+            pass
+    if not has_permissions and config.permissions_level:
+        try:
+            perm_result = copy_permissions(target, config, _get_package_dir())
+            save_config(config, config_path)
+            if not json_output:
+                console.print(
+                    f"  Permissions: {perm_result['entries_count']} rules applied "
+                    f"(mode: {perm_result['mode']}) -> {perm_result['settings_path']}"
+                )
+        except CopyError as exc:
+            if not json_output:
+                err_console.print(f"[yellow]Permission warning: {exc}[/yellow]")
+
     # T051 - JSON output mode
     if json_output:
         print(
@@ -927,6 +972,11 @@ def configure(
         "--dry-run",
         "-n",
         help="Preview without making changes.",
+    ),
+    global_install: bool = typer.Option(
+        False,
+        "--global",
+        help="Apply permissions to global user settings (~/.claude/settings.json).",
     ),
 ) -> None:
     """Interactive configuration wizard."""
@@ -1056,6 +1106,28 @@ def configure(
     # Save config
     config_dir.mkdir(parents=True, exist_ok=True)
     save_config(config, config_path)
+
+    # Apply permissions to .claude/settings.json
+    try:
+        if config.permissions_level == "full" and not json_output:
+            console.print(
+                "\n[yellow bold]Warning:[/yellow bold] Full permission mode enables "
+                "bypassPermissions — the AI assistant will execute all operations "
+                "without prompting. Only use in trusted environments."
+            )
+        perm_result = copy_permissions(
+            target, config, _get_package_dir(), global_install=global_install
+        )
+        save_config(config, config_path)
+        if not json_output and perm_result["changed"]:
+            scope = "global" if global_install else "project"
+            console.print(
+                f"\n  Permissions ({scope}): {perm_result['entries_count']} rules applied "
+                f"(mode: {perm_result['mode']}) -> {perm_result['settings_path']}"
+            )
+    except CopyError as exc:
+        if not json_output:
+            err_console.print(f"[yellow]Permission warning: {exc}[/yellow]")
 
     # T051 - JSON output mode
     if json_output:

@@ -506,16 +506,21 @@ def test_permission_json_files_use_space_syntax() -> None:
         assert len(allow_list) > 0, f"{perm_file.name} has empty allow list"
 
         for entry in allow_list:
-            # Should not contain colon syntax like "Bash(dotnet build:*)"
-            assert ":" not in entry, (
-                f"{perm_file.name} uses colon syntax: {entry!r}. "
-                "Expected space syntax like 'Bash(dotnet build *)'"
-            )
-            # Should use space syntax like "Bash(dotnet build *)"
-            assert entry.startswith("Bash("), (
-                f"{perm_file.name} has unexpected entry format: {entry!r}"
-            )
-            assert entry.endswith(")"), f"{perm_file.name} has unexpected entry format: {entry!r}"
+            # Bash entries should use space syntax, not colon syntax
+            if entry.startswith("Bash("):
+                # Should not contain colon syntax like "Bash(dotnet build:*)"
+                inner = entry[5:-1]  # content between Bash( and )
+                assert ":" not in inner, (
+                    f"{perm_file.name} uses colon syntax: {entry!r}. "
+                    "Expected space syntax like 'Bash(dotnet build *)'"
+                )
+                assert entry.endswith(")"), f"{perm_file.name} has unexpected entry format: {entry!r}"
+            else:
+                # Non-Bash entries: WebSearch, WebFetch(domain:...), Edit(...), etc.
+                valid_prefixes = ("WebSearch", "WebFetch(", "Edit(", "Agent(")
+                assert entry.startswith(valid_prefixes), (
+                    f"{perm_file.name} has unexpected entry format: {entry!r}"
+                )
 
         # Check that Bash(cd *) is present
         assert "Bash(cd *)" in allow_list, f"{perm_file.name} is missing 'Bash(cd *)' entry"

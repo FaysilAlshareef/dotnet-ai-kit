@@ -217,6 +217,10 @@ class DotnetAiConfig(BaseModel):
         default="standard",
         description="Permission level: minimal, standard, or full.",
     )
+    managed_permissions: list[str] = Field(
+        default_factory=list,
+        description="Permission entries managed by the tool, used for merge diffs.",
+    )
     ai_tools: list[str] = Field(
         default_factory=list,
         description="List of configured AI tools (claude).",

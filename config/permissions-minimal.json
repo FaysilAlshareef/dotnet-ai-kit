@@ -2,10 +2,14 @@
   "$schema": "https://json.schemastore.org/claude-code-settings.json",
   "permissions": {
     "allow": [
+      "Bash(cd)",
       "Bash(cd *)",
+      "Bash(dotnet)",
       "Bash(dotnet build *)",
       "Bash(dotnet test *)",
-      "Bash(dotnet restore *)"
+      "Bash(dotnet restore *)",
+      "Bash(ls)",
+      "Bash(ls *)"
     ]
   }
 }
