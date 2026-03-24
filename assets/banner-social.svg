@@ -142,5 +142,5 @@
 
   <!-- Footer -->
   <text x="600" y="575" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="13" fill="#484F58">pip install dotnet-ai-kit</text>
-  <text x="600" y="598" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#30363D">github.com/FaysilAlshworworkeef/dotnet-ai-kit</text>
+  <text x="600" y="598" text-anchor="middle" font-family="'Segoe UI',system-ui,sans-serif" font-size="11" fill="#30363D">github.com/FaysilAlshareef/dotnet-ai-kit</text>
 </svg>
