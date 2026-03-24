@@ -208,6 +208,29 @@ This single command automatically runs the full 9-phase lifecycle:
 </p>
 </details>
 
+### 3 Permission Levels
+
+Permissions are automatically applied to `.claude/settings.json` when you run `init` or `configure`. No manual file editing needed.
+
+| Level | Mode | Commands Covered |
+|-------|------|-----------------|
+| **Minimal** | Default (prompts for most) | `dotnet build/test/restore`, `cd`, `ls` |
+| **Standard** | Default + allow-list | + `git`, `gh`, `grep`, `find`, `python`, `powershell` |
+| **Full** | `bypassPermissions` (no prompts) | All dev commands: .NET, git, npm, docker, search, utilities |
+
+```bash
+# Set during init
+dotnet-ai init . --ai claude
+
+# Change anytime
+dotnet-ai configure --permissions full
+
+# Apply globally (all repos)
+dotnet-ai configure --permissions full --global
+```
+
+The `--global` flag writes to `~/.claude/settings.json` so permissions work across all repositories without per-project setup.
+
 ---
 
 ## All 26 Commands
@@ -261,7 +284,7 @@ This single command automatically runs the full 9-phase lifecycle:
 |---------|-------|-------------|
 | `/dotnet-ai.init` | `/dai.init` | Initialize project (auto-detects architecture) |
 | `/dotnet-ai.detect` | `/dai.detect` | Re-detect project type |
-| `/dotnet-ai.configure` | `/dai.config` | Configure company/naming/repos |
+| `/dotnet-ai.configure` | `/dai.config` | Configure company/naming/repos/permissions |
 | `/dotnet-ai.docs` | `/dai.docs` | Generate documentation |
 | `/dotnet-ai.checkpoint` | `/dai.save` | Save session state |
 | `/dotnet-ai.wrap-up` | `/dai.done` | Finalize session |
@@ -413,7 +436,7 @@ dotnet-ai-kit/
 ├── hooks/             # 4 safety hooks
 ├── config/            # 4 permission level configs
 ├── src/               # Python CLI source (Typer + Pydantic v2)
-├── tests/             # 115 test functions (90% coverage)
+├── tests/             # 137 test functions (90% coverage)
 └── .claude-plugin/    # Claude Code plugin manifest
 ```
 

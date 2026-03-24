@@ -7,6 +7,7 @@ projects from templates.
 
 from __future__ import annotations
 
+import json
 import re
 import shutil
 from pathlib import Path
@@ -395,6 +396,144 @@ def scaffold_project(
         count += 1
 
     return count
+
+
+def merge_permissions(
+    existing_settings: dict[str, Any],
+    template_entries: list[str],
+    managed_entries: list[str],
+    level: str,
+) -> dict[str, Any]:
+    """Merge tool-managed permission entries into existing settings.
+
+    Preserves user-defined allow, ask, and deny entries. Replaces
+    previously managed entries with new template entries.
+
+    Args:
+        existing_settings: Current contents of the settings JSON file.
+        template_entries: New permission entries from the selected template.
+        managed_entries: Previously managed entries (from config.yml).
+        level: Permission level ('minimal', 'standard', or 'full').
+
+    Returns:
+        Updated settings dict ready to be written to disk.
+    """
+    settings = dict(existing_settings)
+
+    permissions = dict(settings.get("permissions", {}))
+
+    current_allow = list(permissions.get("allow", []))
+
+    managed_set = set(managed_entries)
+    user_entries = [e for e in current_allow if e not in managed_set]
+
+    template_set = set(template_entries)
+    merged_allow = list(template_entries)
+    for entry in user_entries:
+        if entry not in template_set:
+            merged_allow.append(entry)
+
+    permissions["allow"] = merged_allow
+
+    if level == "full":
+        permissions["defaultMode"] = "bypassPermissions"
+    else:
+        permissions.pop("defaultMode", None)
+
+    settings["permissions"] = permissions
+    return settings
+
+
+def copy_permissions(
+    target_dir: Path,
+    config: DotnetAiConfig,
+    package_dir: Path,
+    *,
+    global_install: bool = False,
+    dry_run: bool = False,
+) -> dict[str, Any]:
+    """Apply permission rules from a template to the AI assistant settings file.
+
+    Reads the permission template for the configured level, merges with
+    existing settings (preserving user entries), and writes the result.
+
+    Args:
+        target_dir: Root of the user's project.
+        config: The dotnet-ai-kit configuration.
+        package_dir: The dotnet-ai-kit package installation directory.
+        global_install: If True, write to ~/.claude/settings.json instead.
+        dry_run: If True, compute changes but do not write to disk.
+
+    Returns:
+        Dict with keys: 'settings_path', 'entries_count', 'mode', 'changed'.
+
+    Raises:
+        CopyError: If the template file is missing or settings JSON is invalid.
+    """
+    level = config.permissions_level
+
+    template_path = package_dir / "config" / f"permissions-{level}.json"
+    if not template_path.is_file():
+        raise CopyError(
+            f"Permission template not found: {template_path}. Try reinstalling dotnet-ai-kit."
+        )
+
+    template_data = json.loads(template_path.read_text(encoding="utf-8"))
+    template_entries = template_data.get("permissions", {}).get("allow", [])
+
+    if level == "full":
+        mode = template_data.get("permissions", {}).get("defaultMode", "bypassPermissions")
+    else:
+        mode = None
+
+    if global_install:
+        settings_dir = Path.home() / ".claude"
+    else:
+        settings_dir = target_dir / ".claude"
+
+    settings_path = settings_dir / "settings.json"
+
+    existing_settings: dict[str, Any] = {}
+    if settings_path.is_file():
+        raw = settings_path.read_text(encoding="utf-8")
+        try:
+            existing_settings = json.loads(raw)
+        except json.JSONDecodeError as exc:
+            raise CopyError(
+                f"Invalid JSON in {settings_path}: {exc}. Fix or remove the file, then re-run."
+            ) from exc
+
+    merged = merge_permissions(
+        existing_settings,
+        template_entries,
+        config.managed_permissions,
+        level,
+    )
+
+    changed = merged != existing_settings
+
+    if not dry_run and changed:
+        # Backup existing file before overwriting
+        if settings_path.is_file():
+            backup_dir = target_dir / ".dotnet-ai-kit" / "backups"
+            backup_dir.mkdir(parents=True, exist_ok=True)
+            backup_path = backup_dir / "settings.json.bak"
+            shutil.copy2(settings_path, backup_path)
+
+        settings_dir.mkdir(parents=True, exist_ok=True)
+        settings_path.write_text(
+            json.dumps(merged, indent=2, ensure_ascii=False) + "\n",
+            encoding="utf-8",
+        )
+
+    config.managed_permissions = list(template_entries)
+
+    return {
+        "settings_path": str(settings_path),
+        "entries_count": len(template_entries),
+        "mode": mode or "default",
+        "changed": changed,
+    }
 
 
 def get_template_source(
