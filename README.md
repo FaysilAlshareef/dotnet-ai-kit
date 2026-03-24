@@ -25,7 +25,21 @@ When you use AI coding assistants on .NET projects, the AI doesn't know your arc
 
 **dotnet-ai-kit fixes this.** It gives AI deep .NET intelligence — your architecture, your conventions, your lifecycle — so every line of generated code fits your project.
 
+---
+
+## See It in Action
+
+<p align="center">
+  <img src="assets/gif/cc-02-dai-do-lifecycle.gif" alt="dotnet-ai-kit /dai.do lifecycle demo" width="720"/>
+  <br/>
+  <sub><code>/dai.do</code> running the full 9-phase lifecycle inside Claude Code</sub>
+</p>
+
+---
+
 ## Quick Start
+
+### CLI Installation
 
 ```bash
 # Install the CLI
@@ -40,6 +54,14 @@ dotnet-ai init . --ai claude
 # That's it → spec → plan → code → test → review → PR
 ```
 
+<details>
+<summary><b>See installation demo</b></summary>
+<br/>
+<p align="center">
+  <img src="assets/gif/01-install.gif" alt="Installation demo" width="720"/>
+</p>
+</details>
+
 ### Claude Code Plugin (Recommended)
 
 ```bash
@@ -51,6 +73,14 @@ dotnet-ai init . --ai claude
 ```
 
 All 26 commands, 106 skills, 13 agents, 9 rules, and 4 safety hooks are available immediately.
+
+<details>
+<summary><b>See plugin install demo</b></summary>
+<br/>
+<p align="center">
+  <img src="assets/gif/cc-01-plugin-install.gif" alt="Claude Code plugin install demo" width="720"/>
+</p>
+</details>
 
 ### Optional: C# Language Intelligence
 
@@ -86,9 +116,15 @@ This single command automatically runs the full 9-phase lifecycle:
 | 8 | `/dai.verify` | Verifies build, tests, and quality gates |
 | 9 | `/dai.pr` | Creates PR with full description |
 
-- **Simple features** (<10 tasks): fully automatic
-- **Complex features** (multi-repo): pauses after plan for confirmation
-- **Always** supports `--dry-run` to preview first
+**Simple features** (<10 tasks): fully automatic · **Complex features** (multi-repo): pauses after plan for confirmation · **Always** supports `--dry-run` to preview first
+
+<details>
+<summary><b>See the full SDD lifecycle demo</b></summary>
+<br/>
+<p align="center">
+  <img src="assets/gif/cc-07-sdd-lifecycle.gif" alt="SDD lifecycle in Claude Code" width="720"/>
+</p>
+</details>
 
 ---
 
@@ -164,6 +200,14 @@ This single command automatically runs the full 9-phase lifecycle:
 | `post-scaffold-restore.sh` | Auto-runs `dotnet restore` after scaffolding |
 | `pre-commit-lint.sh` | Verifies formatting before git commit |
 
+<details>
+<summary><b>See safety hooks in action</b></summary>
+<br/>
+<p align="center">
+  <img src="assets/gif/cc-05-safety-hooks.gif" alt="Safety hooks in Claude Code" width="720"/>
+</p>
+</details>
+
 ---
 
 ## All 26 Commands
@@ -193,6 +237,14 @@ This single command automatically runs the full 9-phase lifecycle:
 | `/dotnet-ai.add-endpoint` | `/dai.ep` | API endpoint |
 | `/dotnet-ai.add-page` | `/dai.page` | UI page (Blazor) |
 | `/dotnet-ai.add-tests` | `/dai.tests` | Tests for existing code |
+
+<details>
+<summary><b>See /dai.crud generating a full entity</b></summary>
+<br/>
+<p align="center">
+  <img src="assets/gif/cc-04-dai-crud.gif" alt="/dai.crud in Claude Code" width="720"/>
+</p>
+</details>
 
 ### Smart Commands (productivity boosters)
 
@@ -248,11 +300,15 @@ For CQRS microservices across multiple repositories:
 /dai.do "Add order management with tracking"
 ```
 
-dotnet-ai-kit automatically:
-- Detects all affected repos (command, query, processor, gateway)
-- Generates code in each repo following its architecture
-- Creates **linked Pull Requests** across all repos
-- Manages event versioning between services
+dotnet-ai-kit automatically detects all affected repos, generates code in each one following its architecture, creates linked Pull Requests across all repos, and manages event versioning between services.
+
+<details>
+<summary><b>See multi-repo microservice generation</b></summary>
+<br/>
+<p align="center">
+  <img src="assets/gif/cc-06-microservice.gif" alt="Microservice generation in Claude Code" width="720"/>
+</p>
+</details>
 
 ---
 
@@ -271,7 +327,15 @@ The tool scans your project and detects type using signal-based scoring:
 | Code structure patterns | Medium |
 | NuGet packages | Medium |
 
-**Result:** A project type classification with confidence score (0.0–1.0) and top contributing signals. Supports 12 project types. You can override with manual selection.
+**Result:** A project type classification with confidence score (0.0-1.0) and top contributing signals. Supports 12 project types. You can override with manual selection.
+
+<details>
+<summary><b>See project detection demo</b></summary>
+<br/>
+<p align="center">
+  <img src="assets/gif/cc-03-dai-init.gif" alt="/dai.init in Claude Code" width="720"/>
+</p>
+</details>
 
 ---
 
