@@ -2,14 +2,14 @@
 
 ## Rules Philosophy
 
-Rules are always loaded into context (max 100 lines each, ~600 lines total).
+Rules are always loaded into context (max 100 lines each, ~900 lines total).
 They enforce company conventions (from config) without requiring explicit skill loading.
 Rules are company-agnostic — they use `{Company}` placeholder resolved from `.dotnet-ai-kit/config.yml`.
 Each rule file includes YAML frontmatter with `alwaysApply: true` and a `description` field, following the Claude Code rules format.
 
 ---
 
-## Rule Files (6 rules)
+## Rule Files (9 rules)
 
 ### 1. `.claude/rules/naming.md` - Naming Conventions
 
@@ -261,7 +261,7 @@ description: Rules for working with existing codebases - detect, respect, extend
 | error-handling.md | ~55 | Mode-aware error patterns (microservice vs generic) |
 | architecture.md | ~80 | Multi-architecture layer boundaries |
 | existing-projects.md | ~65 | Detect & respect existing codebases |
-| **TOTAL** | **~380** | Max budget: 600 lines |
+| **TOTAL** | **~380** | Max budget: 900 lines |
 
 ---
 

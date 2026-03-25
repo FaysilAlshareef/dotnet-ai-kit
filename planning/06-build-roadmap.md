@@ -16,7 +16,7 @@
 | 10 | Review System | review command + CodeRabbit + verify | High |
 | 11 | Code Gen | add-aggregate, add-entity, add-event, add-endpoint, add-page, add-crud | High |
 | 12 | PR & Session | pr, checkpoint, wrap-up commands | High |
-| 13 | Templates | 11 project templates (for new projects) | Medium |
+| 13 | Templates | 13 project templates (for new projects) | Medium |
 | 14 | Permissions | Permission configs | Medium |
 | 15 | Documentation System | 8 docs skills + docs-engineer agent + /dotnet-ai.docs command | Medium |
 
@@ -30,7 +30,7 @@
 ```
 dotnet-ai-kit/
 ├── .claude-plugin/plugin.json
-├── .claude/rules/ (6 rules)
+├── .claude/rules/ (9 rules)
 ├── CLAUDE.md
 ├── AGENTS.md
 └── LICENSE
@@ -94,7 +94,7 @@ permissions:
 
 ## Phase 3: Knowledge Documents
 
-10 knowledge files capturing actual patterns from scanned projects (+ 1 added in Phase 15 = 11 total):
+10 knowledge files capturing actual patterns from scanned projects (+ 6 added during development = 16 total):
 1. `event-sourcing-flow.md` - From competition-commands
 2. `outbox-pattern.md` - CommitEventService + ServiceBusPublisher
 3. `service-bus-patterns.md` - Listeners, session processors, batch
@@ -175,7 +175,7 @@ The most complex phase:
 
 - Phase 11: Code generation commands (add-aggregate, add-entity, add-event, add-endpoint, add-page, add-crud)
 - Phase 12: PR & session commands (pr, checkpoint, wrap-up)
-- Phase 13: 11 project templates for new projects
+- Phase 13: 13 project templates for new projects
 - Phase 14: Permission configs
 ### Phase 15: Documentation System
 
@@ -249,10 +249,10 @@ The most complex phase:
 | Doc | File | Purpose |
 |-----|------|---------|
 | 01 | `01-vision.md` | Vision, principles, supported tools |
-| 02 | `02-skills-inventory.md` | 104 skills with detailed descriptions |
+| 02 | `02-skills-inventory.md` | 106 skills with detailed descriptions |
 | 03 | `03-agents-design.md` | 13 agents, routing tables, orchestration |
-| 04 | `04-commands-design.md` | 26 commands, SDD lifecycle flows |
-| 05 | `05-rules-design.md` | 6 always-loaded rules |
+| 04 | `04-commands-design.md` | 27 commands, SDD lifecycle flows |
+| 05 | `05-rules-design.md` | 9 always-loaded rules |
 | 06 | `06-build-roadmap.md` | Build phases and roadmap (this file) |
 | 07 | `07-project-structure.md` | Source repo + user project file trees |
 | 08 | `08-multi-repo-orchestration.md` | Multi-repo workspace, dependency chain |
@@ -262,7 +262,7 @@ The most complex phase:
 | 12 | `12-version-roadmap.md` | Version releases (v1.0 → v2.0) |
 | 13 | `13-handoff-schemas.md` | Inter-agent file schemas (spec, plan, tasks, etc.) |
 | 14 | `14-generic-skills-spec.md` | Code patterns for 32 generic .NET skills |
-| 15 | `15-template-content.md` | 11 project template file structures |
+| 15 | `15-template-content.md` | 13 project template file structures |
 | 16 | `16-cli-implementation.md` | CLI detection, config, extension system |
 | 17 | `17-code-generation-flows.md` | 5 code generation command flows |
 | 18 | `18-microservice-skills-spec.md` | Code patterns for microservice skills |

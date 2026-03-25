@@ -16,7 +16,7 @@ This document organizes the project's build phases into versioned releases and p
 |-------|-------|--------|
 | 1 | Foundation (plugin structure, rules, AGENTS.md) | Planned |
 | 2 | Configuration (config.yml, permissions) | Planned |
-| 3 | Knowledge (11 reference documents) | Planned |
+| 3 | Knowledge (16 reference documents) | Planned |
 | 4 | Core + Workflow Skills (8 core + 3 workflow + 9 gap-analysis) | Planned |
 | 5 | SDD Planning Commands (specify, clarify, plan, tasks, analyze) | Planned |
 | 6 | Command Skills (6 command-side skills + agent) | Planned |
@@ -46,7 +46,7 @@ This document organizes the project's build phases into versioned releases and p
 
 **In scope**: Claude Code plugin, full SDD lifecycle, microservice + generic .NET, single-repo and multi-repo, CodeRabbit integration.
 
-**Out of scope**: Other AI tool integrations (Cursor, Copilot, Codex, Antigravity), advanced orchestration (sagas), alternative event stores, GraphQL, serverless.
+**Out of scope**: Simple REST microservices (v1.1), MassTransit/broker abstraction (v1.1), YARP gateway (v1.1), Sagas/Choreography (v1.2), Dapr (v1.2), SignalR (v1.2), other AI tools (v1.1), alternative event stores (v2.0), GraphQL (v2.0), serverless (v2.0).
 
 ### v1.0 Late Additions
 
@@ -57,31 +57,67 @@ This document organizes the project's build phases into versioned releases and p
 
 ---
 
-## v1.1 — Multi-Tool & Quick Wins
+## v1.1 — Microservice Flexibility & Multi-Tool
 
-**Goal**: Expand beyond Claude Code and add high-value, low-effort features.
+**Goal**: Make the tool relevant to ALL .NET microservice teams (not just event-sourcing), expand beyond Claude Code, and add high-value quick wins.
 
 **Timeline**: After v1.0 stabilization.
 
+### Microservice Expansion (Priority)
+
 | # | Feature | Effort | Value | Details |
 |---|---------|--------|-------|---------|
-| 1 | Cursor Integration (Phase 16a) | Medium | High | .cursorrules generation, rules + commands in Cursor format |
-| 2 | GitHub Copilot Integration (Phase 16b) | Medium | High | Copilot Extensions, .agent.md command format |
-| 3 | Codex CLI Integration (Phase 16c) | Low | Medium | AGENTS.md generation, instruction format |
-| 4 | gRPC-Web for Blazor WASM | Low | Medium | Browser-side gRPC calls from control panel, replaces REST facade |
-| 5 | API Contract Testing (Pact) | Low | Medium | Consumer-driven contract tests for gRPC and REST |
-| 6 | .NET Aspire Enhanced Orchestration | Low | Medium | Deeper Aspire service defaults, resource provisioning, dashboard configuration |
+| 1 | Simple REST Microservice Mode | High | Very High | New "rest-micro" mode: database-per-service, Minimal API/Controllers, EF Core, no event sourcing, no gRPC. New templates, agent routing, code-gen support. Covers the ~70% of microservices that don't use event sourcing. |
+| 2 | MassTransit Messaging Abstraction | High | Very High | Replace Azure-Service-Bus-only messaging with MassTransit. Supports RabbitMQ, Kafka, Azure Service Bus, AWS SQS/SNS, InMemory (testing) through one API. New skills for consumers, producers, message contracts. Update outbox/processor patterns. |
+| 3 | YARP API Gateway | Medium | High | YARP reverse proxy replacing custom gateway templates. Route configuration, service discovery, request transformation, rate limiting, load balancing, health-based routing. New template + agent update. |
+
+### Multi-Tool & Quick Wins
+
+| # | Feature | Effort | Value | Details |
+|---|---------|--------|-------|---------|
+| 4 | Cursor Integration (Phase 16a) | Medium | High | .cursorrules generation, rules + commands in Cursor format |
+| 5 | GitHub Copilot Integration (Phase 16b) | Medium | High | Copilot Extensions, .agent.md command format |
+| 6 | Codex CLI Integration (Phase 16c) | Low | Medium | AGENTS.md generation, instruction format |
+| 7 | gRPC-Web for Blazor WASM | Low | Medium | Browser-side gRPC calls from control panel, replaces REST facade |
+| 8 | API Contract Testing (Pact) | Low | Medium | Consumer-driven contract tests for gRPC and REST |
+| 9 | .NET Aspire Enhanced Orchestration | Low | Medium | Deeper Aspire service defaults, resource provisioning, dashboard configuration |
 
 ### New Skills for v1.1
 
 | Skill | Category | Agent |
 |-------|----------|-------|
-| `integration/cursor` | Workflow | N/A (CLI) |
-| `integration/copilot` | Workflow | N/A (CLI) |
-| `integration/codex` | Workflow | N/A (CLI) |
+| `microservice/rest-micro/crud-service` | Microservice | dotnet-architect |
+| `microservice/rest-micro/database-per-service` | Microservice | ef-specialist |
+| `microservice/rest-micro/api-composition` | Microservice | api-designer |
+| `microservice/rest-micro/inter-service-http` | Microservice | api-designer |
+| `microservice/messaging/masstransit-consumer` | Microservice | processor-architect |
+| `microservice/messaging/masstransit-producer` | Microservice | command-architect |
+| `microservice/messaging/message-contracts` | Microservice | dotnet-architect |
+| `microservice/messaging/masstransit-testing` | Testing | test-engineer |
+| `api/yarp-gateway` | API | gateway-architect |
+| `api/yarp-routing` | API | gateway-architect |
+| `api/yarp-transforms` | API | gateway-architect |
 | `microservice/grpc-web` | gRPC | controlpanel-architect |
 | `testing/contract-testing` | Testing | test-engineer |
 | `devops/aspire-advanced` | DevOps | devops-engineer |
+| `integration/cursor` | Workflow | N/A (CLI) |
+| `integration/copilot` | Workflow | N/A (CLI) |
+| `integration/codex` | Workflow | N/A (CLI) |
+
+### New Templates for v1.1
+
+| Template | Type | Description |
+|----------|------|-------------|
+| `rest-micro` | Microservice | Simple REST microservice (Minimal API + EF Core + database-per-service) |
+| `yarp-gateway` | Microservice | YARP reverse proxy gateway (replaces custom gateway template) |
+
+### New Knowledge Docs for v1.1
+
+| Document | Description |
+|----------|-------------|
+| `masstransit-patterns.md` | MassTransit consumers, producers, sagas, testing, broker configuration |
+| `rest-microservice-patterns.md` | Database-per-service, API composition, inter-service communication without event sourcing |
+| `yarp-gateway-patterns.md` | YARP configuration, route matching, transforms, service discovery |
 
 ### v1.1 Additional Features
 
@@ -89,20 +125,22 @@ This document organizes the project's build phases into versioned releases and p
 - Cursor, GitHub Copilot, Codex CLI support
 - Extension catalog (online/community installs)
 - PolySkill and skills.sh marketplace publishing
+- New project detection: "rest-micro" type in `/dai.detect` smart skill
+- Agent routing update: simple REST microservices routed to dotnet-architect + api-designer (not command/query architects)
 
 ---
 
-## v1.2 — Architecture Expansion
+## v1.2 — Distributed Patterns & Dapr
 
-**Goal**: Support more architecture patterns and infrastructure options.
+**Goal**: Add distributed transaction support, Dapr sidecar integration, real-time communication, and BFF patterns.
 
 | # | Feature | Effort | Value | Details |
 |---|---------|--------|-------|---------|
-| 7 | Saga / Choreography Patterns | High | High | Distributed transaction coordination, compensation, saga state machines |
-| 8 | Message Broker Abstraction | Medium | High | Support RabbitMQ, AWS SNS/SQS alongside Azure Service Bus |
-| 9 | API Gateway Patterns (YARP/Ocelot) | Medium | Medium | Reverse proxy, rate limiting, load balancing, service discovery |
-| 10 | Blazor Server / Hybrid Support | Medium | Medium | Server-side rendering, Blazor United, hybrid rendering modes |
-| 11 | Database-per-Service Patterns | Medium | Medium | Data isolation, cross-service queries, eventual consistency |
+| 10 | Saga / Choreography Patterns | High | Very High | MassTransit saga state machines, compensation logic, saga persistence (EF Core, Redis), choreography-based eventual consistency. Works with both CQRS and simple-REST modes. |
+| 11 | Dapr Integration | High | High | Dapr sidecar for state, pub/sub, service invocation, secrets, bindings. Dapr .NET SDK, Aspire + Dapr orchestration. Cloud-agnostic alternative to direct broker/database coupling. |
+| 12 | SignalR Real-Time | Medium | Medium | Push notifications from services to clients, hub patterns, group management, scaling with Redis backplane |
+| 13 | BFF (Backend for Frontend) | Medium | Medium | Separate API layers per client type (web, mobile, admin), field projection, client-specific aggregation |
+| 14 | Blazor Server / Hybrid Support | Medium | Medium | Server-side rendering, Blazor United, hybrid rendering modes |
 
 ### New Skills for v1.2
 
@@ -110,50 +148,80 @@ This document organizes the project's build phases into versioned releases and p
 |-------|----------|-------|
 | `architecture/saga-patterns` | Architecture | dotnet-architect |
 | `architecture/choreography` | Architecture | dotnet-architect |
-| `infra/rabbitmq` | Infrastructure | devops-engineer |
-| `infra/aws-messaging` | Infrastructure | devops-engineer |
-| `api/yarp-gateway` | API | api-designer |
+| `architecture/saga-state-machine` | Architecture | dotnet-architect |
+| `microservice/dapr/state-management` | Microservice | dotnet-architect |
+| `microservice/dapr/pubsub` | Microservice | processor-architect |
+| `microservice/dapr/service-invocation` | Microservice | api-designer |
+| `microservice/dapr/secrets` | Microservice | devops-engineer |
+| `microservice/dapr/aspire-integration` | Microservice | devops-engineer |
+| `api/signalr-hubs` | API | api-designer |
+| `api/signalr-scaling` | API | devops-engineer |
+| `architecture/bff-pattern` | Architecture | api-designer |
 | `api/blazor-server` | API | dotnet-architect |
-| `data/database-per-service` | Data | ef-specialist |
+
+### New Knowledge Docs for v1.2
+
+| Document | Description |
+|----------|-------------|
+| `saga-choreography-patterns.md` | Saga orchestration, compensation, state machines, choreography vs orchestration |
+| `dapr-patterns.md` | Dapr building blocks, sidecar architecture, .NET SDK, Aspire integration |
+| `signalr-patterns.md` | Real-time communication, hub design, scaling, group management |
 
 ---
 
-## v1.3 — Operations & Reliability
+## v1.3 — Operations, Observability & Reliability
 
-**Goal**: Production operations, chaos engineering, and cost optimization.
+**Goal**: Production operations, centralized observability, chaos engineering, secret management, and cost optimization.
 
 | # | Feature | Effort | Value | Details |
 |---|---------|--------|-------|---------|
-| 12 | Chaos Engineering | Medium | Medium | Fault injection, resilience verification, Polly chaos policies |
-| 13 | Infrastructure-as-Code (Terraform/Bicep) | High | High | Azure resource provisioning, environment management |
-| 14 | Cost Optimization Skills | Low | Medium | Azure cost analysis, right-sizing, reserved instances, RU budgeting for Cosmos |
-| 15 | Real-time Monitoring Dashboards | Medium | Medium | Grafana/Aspire dashboard templates, alerting rules |
+| 15 | Centralized Observability | High | High | ELK/Seq/Application Insights aggregation, Jaeger/Zipkin distributed tracing, Prometheus/Grafana dashboards, correlation IDs |
+| 16 | Secret Management | Medium | High | Azure Key Vault, HashiCorp Vault patterns, secret rotation, environment-based config |
+| 17 | Chaos Engineering | Medium | Medium | Fault injection with Polly/Simmy, resilience verification, failure scenario testing |
+| 18 | Infrastructure-as-Code (Terraform/Bicep) | High | High | Azure resource provisioning, environment management |
+| 19 | Service Discovery | Medium | Medium | Consul, Eureka integration beyond K8s/Aspire DNS-based discovery |
+| 20 | Cost Optimization Skills | Low | Medium | Azure cost analysis, right-sizing, reserved instances, RU budgeting for Cosmos |
 
 ### New Skills for v1.3
 
 | Skill | Category | Agent |
 |-------|----------|-------|
+| `observability/centralized-logging` | Observability | devops-engineer |
+| `observability/distributed-tracing` | Observability | devops-engineer |
+| `observability/dashboards` | Observability | devops-engineer |
+| `observability/cost-optimization` | Observability | devops-engineer |
+| `security/secret-management` | Security | devops-engineer |
+| `security/secret-rotation` | Security | devops-engineer |
 | `testing/chaos-engineering` | Testing | test-engineer |
 | `devops/terraform` | DevOps | devops-engineer |
 | `devops/bicep` | DevOps | devops-engineer |
-| `observability/cost-optimization` | Observability | devops-engineer |
-| `observability/dashboards` | Observability | devops-engineer |
+| `infra/service-discovery` | Infrastructure | devops-engineer |
+
+### New Knowledge Docs for v1.3
+
+| Document | Description |
+|----------|-------------|
+| `observability-stack-patterns.md` | ELK, Seq, Application Insights, Jaeger, Prometheus, Grafana integration |
+| `secret-management-patterns.md` | Key Vault, Vault, rotation, environment config |
 
 ---
 
 ## v2.0 — Platform Evolution
 
-**Goal**: Major evolution — alternative architectures, cloud-native, and AI integration.
+**Goal**: Major evolution — alternative architectures, cloud-native, migration patterns, and AI integration.
 
 | # | Feature | Effort | Value | Details |
 |---|---------|--------|-------|---------|
-| 16 | Event Store Alternatives | High | Medium | EventStoreDB, Marten as alternatives to SQL-based event sourcing |
-| 17 | GraphQL Support | High | Medium | HotChocolate, schema-first, subscriptions, DataLoader |
-| 18 | Azure Functions / Serverless | High | Medium | Isolated worker, Durable Functions, event-driven triggers |
-| 19 | Antigravity Integration (Phase 16d) | Medium | Medium | When Antigravity defines its extension format |
-| 20 | Multi-Cloud Deployment | High | Medium | AWS ECS/EKS + Azure AKS deployment targets |
-| 21 | AI-Assisted Code Review | Medium | High | Custom ML models for pattern detection beyond CodeRabbit |
-| 22 | Plugin Marketplace | High | High | Community extensions, version management, dependency resolution |
+| 21 | Event Store Alternatives | High | Medium | EventStoreDB, Marten as alternatives to SQL-based event sourcing |
+| 22 | GraphQL Support (HotChocolate) | High | Medium | Schema-first, subscriptions, DataLoader, filtering, sorting |
+| 23 | Strangler Fig Pattern | Medium | High | Monolith → microservice migration, gradual decomposition, anti-corruption layers |
+| 24 | Service Mesh | Medium | Medium | Istio, Linkerd sidecar patterns, mTLS, traffic management |
+| 25 | Azure Functions / Serverless | High | Medium | Isolated worker, Durable Functions, event-driven triggers |
+| 26 | Antigravity Integration (Phase 16d) | Medium | Medium | When Antigravity defines its extension format |
+| 27 | Multi-Cloud Deployment | High | Medium | AWS ECS/EKS + Azure AKS + GCP Cloud Run deployment targets |
+| 28 | AI-Assisted Code Review | Medium | High | Custom ML models for pattern detection beyond CodeRabbit |
+| 29 | Plugin Marketplace | High | High | Community extensions, version management, dependency resolution |
+| 30 | NServiceBus / Wolverine | Medium | Medium | Enterprise service bus patterns as alternative to MassTransit |
 
 ### New Skills for v2.0
 
@@ -162,8 +230,23 @@ This document organizes the project's build phases into versioned releases and p
 | `data/eventstoredb` | Data | command-architect |
 | `data/marten` | Data | command-architect |
 | `api/graphql` | API | api-designer |
+| `api/graphql-subscriptions` | API | api-designer |
+| `architecture/strangler-fig` | Architecture | dotnet-architect |
+| `architecture/anti-corruption-layer` | Architecture | dotnet-architect |
+| `infra/service-mesh` | Infrastructure | devops-engineer |
 | `infra/azure-functions` | Infrastructure | devops-engineer |
 | `devops/aws-deployment` | DevOps | devops-engineer |
+| `devops/gcp-deployment` | DevOps | devops-engineer |
+| `microservice/messaging/nservicebus` | Microservice | dotnet-architect |
+| `microservice/messaging/wolverine` | Microservice | dotnet-architect |
+
+### New Knowledge Docs for v2.0
+
+| Document | Description |
+|----------|-------------|
+| `graphql-patterns.md` | HotChocolate, schema design, DataLoader, subscriptions |
+| `strangler-fig-patterns.md` | Monolith decomposition, anti-corruption layer, gradual migration |
+| `service-mesh-patterns.md` | Istio/Linkerd, mTLS, traffic management, observability |
 
 ---
 
@@ -175,18 +258,21 @@ When deciding which version a feature belongs to:
 |----------|------|------|------|------|------|
 | Core SDD lifecycle | Yes | - | - | - | - |
 | Multi-tool support | Claude only | +Cursor, Copilot, Codex | - | - | +Antigravity |
-| Architecture patterns | Microservice + Generic | - | +Sagas, +Broker abstraction | - | +Event store alternatives |
-| Infrastructure | Docker, K8s, GitHub Actions | +Aspire enhanced | +YARP | +IaC, Chaos | +Serverless, Multi-cloud |
+| Microservice modes | Event-sourced CQRS only | +Simple REST micro, +MassTransit | +Dapr sidecar | - | +NServiceBus, Wolverine |
+| Architecture patterns | Microservice + Generic | +YARP gateway | +Sagas, +BFF, +SignalR | - | +Strangler Fig, +Service Mesh |
+| Messaging | Azure Service Bus | +MassTransit (RabbitMQ, Kafka, AWS SQS) | +Dapr pub/sub | - | +NServiceBus, Wolverine |
+| Infrastructure | Docker, K8s, GitHub Actions | +Aspire enhanced | +Dapr sidecar | +IaC, Secrets, Discovery | +Serverless, Multi-cloud |
+| Observability | OpenTelemetry, Serilog, Health | - | - | +ELK, Jaeger, Prometheus | - |
 | Testing | Unit, Integration, TDD, Perf | +Contract testing | - | +Chaos | +AI review |
 
 ---
 
 ## Migration Notes
 
-- **v1.0 → v1.1**: Non-breaking. Adds new AI tool integrations alongside Claude Code. Existing Claude Code setup continues to work.
-- **v1.1 → v1.2**: Non-breaking. Adds new skills and agents. Existing skills unchanged.
-- **v1.2 → v1.3**: Non-breaking. Adds operational skills. No changes to core workflow.
-- **v1.3 → v2.0**: May include breaking changes to plugin manifest format, config schema, or extension system. Migration guide provided.
+- **v1.0 → v1.1**: Non-breaking. Adds new AI tool integrations (Cursor, Copilot, Codex) alongside Claude Code — existing Claude Code setup continues to work. Also adds simple REST microservice mode, MassTransit messaging, and YARP gateway. New "rest-micro" project type added to detection.
+- **v1.1 → v1.2**: Non-breaking. Adds Dapr, Sagas, SignalR, BFF. New agent routing for Dapr-based projects. Existing skills unchanged.
+- **v1.2 → v1.3**: Non-breaking. Adds operational/observability skills. No changes to core workflow.
+- **v1.3 → v2.0**: May include breaking changes to plugin manifest format, config schema, or extension system. Adds GraphQL, Strangler Fig, service mesh. Migration guide provided.
 
 ---
 
