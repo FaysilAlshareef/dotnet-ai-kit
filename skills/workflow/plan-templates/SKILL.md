@@ -19,6 +19,7 @@ Generate the plan.md structure based on project mode.
 {1-2 sentence overview}
 
 ## Constitution Check
+Source: `.dotnet-ai-kit/memory/constitution.md`
 {PASS/FAIL with notes}
 
 ## Technical Context
@@ -65,6 +66,7 @@ Generate the plan.md structure based on project mode.
 
 ## Summary
 ## Constitution Check
+Source: `.dotnet-ai-kit/memory/constitution.md`
 ## Research Findings
 
 ## Service Plan

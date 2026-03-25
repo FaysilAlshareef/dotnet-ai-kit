@@ -7,8 +7,11 @@ from pathlib import Path
 import pytest
 import yaml
 
+from unittest.mock import patch
+
 from dotnet_ai_kit.extensions import (
     ExtensionError,
+    _parse_version_tuple,
     install_extension,
     list_extensions,
     load_manifest,
@@ -41,12 +44,7 @@ def _create_extension(ext_dir: Path, ext_id: str = "test-ext", version: str = "1
                 }
             ],
         },
-        "hooks": {
-            "after_tasks": {
-                "command": f"dotnet-ai.{ext_id}.run",
-                "optional": True,
-            }
-        },
+        "hooks": {},
     }
 
     manifest_path = ext_dir / "extension.yml"
@@ -270,3 +268,145 @@ def test_list_extensions_multiple(tmp_path: Path) -> None:
     assert len(extensions) == 2
     ids = {e["id"] for e in extensions}
     assert ids == {"ext-one", "ext-two"}
+
+
+# ---------------------------------------------------------------------------
+# min_cli_version validation (T020)
+# ---------------------------------------------------------------------------
+
+
+def test_version_parse() -> None:
+    """_parse_version_tuple should parse version strings into tuples."""
+    assert _parse_version_tuple("1.0.0") == (1, 0, 0)
+    assert _parse_version_tuple("2.1.3") == (2, 1, 3)
+    assert _parse_version_tuple("1.0") == (1, 0)
+
+
+def test_install_rejects_too_new_min_version(tmp_path: Path) -> None:
+    """install_extension should reject when min_cli_version exceeds current CLI version."""
+    project_dir = tmp_path / "project"
+    _init_project(project_dir)
+
+    ext_dir = tmp_path / "future-ext"
+    ext_dir.mkdir(parents=True)
+    manifest = {
+        "extension": {
+            "id": "future-ext",
+            "name": "Future Extension",
+            "version": "1.0.0",
+            "min_cli_version": "99.0.0",
+        },
+        "provides": {"commands": [], "rules": []},
+    }
+    (ext_dir / "extension.yml").write_text(yaml.dump(manifest), encoding="utf-8")
+
+    with pytest.raises(ExtensionError, match="requires dotnet-ai-kit >= 99.0.0"):
+        install_extension(str(ext_dir), dev=True, project_root=project_dir)
+
+
+def test_install_accepts_matching_version(tmp_path: Path) -> None:
+    """install_extension should accept when min_cli_version matches current CLI version."""
+    project_dir = tmp_path / "project"
+    _init_project(project_dir)
+
+    ext_dir = tmp_path / "ok-ext"
+    ext_dir.mkdir(parents=True)
+    manifest = {
+        "extension": {
+            "id": "ok-ext",
+            "name": "OK Extension",
+            "version": "1.0.0",
+            "min_cli_version": "0.0.1",
+        },
+        "provides": {"commands": [], "rules": []},
+    }
+    (ext_dir / "extension.yml").write_text(yaml.dump(manifest), encoding="utf-8")
+
+    result = install_extension(str(ext_dir), dev=True, project_root=project_dir)
+    assert result.id == "ok-ext"
+
+
+# ---------------------------------------------------------------------------
+# Hook validation (T021)
+# ---------------------------------------------------------------------------
+
+
+def test_hook_validation_rejects_invalid_keys(tmp_path: Path) -> None:
+    """load_manifest should reject hooks with invalid lifecycle event keys."""
+    ext_dir = tmp_path / "bad-hook-ext"
+    ext_dir.mkdir(parents=True)
+    manifest = {
+        "extension": {
+            "id": "bad-hook",
+            "name": "Bad Hook",
+            "version": "1.0.0",
+        },
+        "hooks": {
+            "invalid_event": ["echo hello"],
+        },
+    }
+    (ext_dir / "extension.yml").write_text(yaml.dump(manifest), encoding="utf-8")
+
+    with pytest.raises(ExtensionError, match="Invalid hook event"):
+        load_manifest(ext_dir)
+
+
+def test_hook_validation_rejects_non_list_values(tmp_path: Path) -> None:
+    """load_manifest should reject hooks where values are not lists of strings."""
+    ext_dir = tmp_path / "bad-hook-ext2"
+    ext_dir.mkdir(parents=True)
+    manifest = {
+        "extension": {
+            "id": "bad-hook2",
+            "name": "Bad Hook 2",
+            "version": "1.0.0",
+        },
+        "hooks": {
+            "after_install": "not a list",
+        },
+    }
+    (ext_dir / "extension.yml").write_text(yaml.dump(manifest), encoding="utf-8")
+
+    with pytest.raises(ExtensionError, match="must be a list"):
+        load_manifest(ext_dir)
+
+
+# ---------------------------------------------------------------------------
+# Hook execution (T022)
+# ---------------------------------------------------------------------------
+
+
+def test_after_install_hooks_execute(tmp_path: Path) -> None:
+    """install_extension should execute after_install hooks on success."""
+    project_dir = tmp_path / "project"
+    _init_project(project_dir)
+
+    ext_dir = tmp_path / "hook-ext"
+    ext_dir.mkdir(parents=True)
+
+    # Create a small script the hook will run
+    script = project_dir / "hook_script.py"
+    marker = project_dir / "hook_ran.txt"
+    script.write_text(
+        f"from pathlib import Path\nPath(r'{marker}').write_text('ok')\n",
+        encoding="utf-8",
+    )
+
+    manifest = {
+        "extension": {
+            "id": "hook-ext",
+            "name": "Hook Extension",
+            "version": "1.0.0",
+            "min_cli_version": "0.0.1",
+        },
+        "provides": {"commands": [], "rules": []},
+        "hooks": {
+            "after_install": [f"python {script}"],
+        },
+    }
+    (ext_dir / "extension.yml").write_text(yaml.dump(manifest), encoding="utf-8")
+
+    install_extension(str(ext_dir), dev=True, project_root=project_dir)
+
+    assert marker.is_file()
+    assert marker.read_text() == "ok"

@@ -282,6 +282,46 @@ def test_scaffold_project_missing_template_dir(tmp_path: Path) -> None:
         scaffold_project(tmp_path / "nonexistent", tmp_path / "target", config, "command")
 
 
+def test_scaffold_project_default_domain_unchanged(tmp_path: Path) -> None:
+    """scaffold_project with default NamingConfig.domain produces 'Domain'."""
+    template_dir = tmp_path / "template"
+    template_dir.mkdir()
+    (template_dir / "Ns.cs").write_text(
+        "namespace {{ Company }}.{{ Domain }}.{{ Side }};\n",
+        encoding="utf-8",
+    )
+
+    target = tmp_path / "out"
+    config = DotnetAiConfig(company={"name": "Acme"})
+
+    scaffold_project(template_dir, target, config, "command")
+
+    content = (target / "Ns.cs").read_text(encoding="utf-8")
+    assert "Acme.Domain.Command" in content
+
+
+def test_scaffold_project_custom_domain(tmp_path: Path) -> None:
+    """scaffold_project with naming.domain='Draw' uses 'Draw'/'draw' in context."""
+    template_dir = tmp_path / "template"
+    template_dir.mkdir()
+    (template_dir / "Ns.cs").write_text(
+        "namespace {{ Company }}.{{ Domain }}.{{ Side }};\n// {{ domain }}\n",
+        encoding="utf-8",
+    )
+
+    target = tmp_path / "out"
+    config = DotnetAiConfig(
+        company={"name": "Ecom"},
+        naming={"domain": "Draw"},
+    )
+
+    scaffold_project(template_dir, target, config, "command")
+
+    content = (target / "Ns.cs").read_text(encoding="utf-8")
+    assert "Ecom.Draw.Command" in content
+    assert "draw" in content
+
+
 # ---------------------------------------------------------------------------
 # copy_skills
 # ---------------------------------------------------------------------------

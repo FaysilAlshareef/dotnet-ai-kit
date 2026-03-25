@@ -37,8 +37,8 @@ This document organizes the project's build phases into versioned releases and p
 | Rules | 6 |
 | Agents | 13 |
 | Skills | 104 |
-| Commands | 26 |
-| Knowledge Docs | 11 |
+| Commands | 27 |
+| Knowledge Docs | 16 |
 | Templates | 11 |
 | Permission Configs | 4 |
 

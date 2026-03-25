@@ -45,9 +45,9 @@ Load all skills listed in the agent's Skills Loaded section.
 
 ## Step 3: Constitution Check Gate
 
-If `.specify/memory/constitution.md` does not exist, skip this gate with a warning: "Constitution file not found — skipping compliance check." Continue to Phase 0.
+If `.dotnet-ai-kit/memory/constitution.md` does not exist, skip this gate with a warning: "Project constitution not found — run /dai.learn to generate." Continue to Phase 0.
 
-Read `.specify/memory/constitution.md` and verify compliance:
+Read `.dotnet-ai-kit/memory/constitution.md` and verify compliance:
 - Detect-First: plan must research existing code before proposing changes
 - Pattern Fidelity: plan must follow detected conventions
 - Architecture Agnostic: plan must match the project's architecture

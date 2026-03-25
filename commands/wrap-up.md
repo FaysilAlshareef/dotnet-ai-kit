@@ -15,8 +15,7 @@ Full session close -- commit all pending changes, write a comprehensive handoff 
 **Examples:**
 - (no args) -- End session, commit changes, write handoff
 - `--no-commit` -- Write handoff without committing changes
-- `--preview` -- Show what would be committed and written
-- `--dry-run` -- Same as `--preview`
+- `--dry-run` -- Show what would be committed and written
 - `--verbose` -- Show detailed commit diffs and full handoff content
 
 ## Flags
@@ -24,8 +23,7 @@ Full session close -- commit all pending changes, write a comprehensive handoff 
 | Flag | Description |
 |------|-------------|
 | `--no-commit` | Write handoff only, do not commit changes |
-| `--preview` | Show what would be committed and written, no side effects |
-| `--dry-run` | Same as `--preview` |
+| `--dry-run` | Show what would be committed and written, no side effects |
 | `--verbose` | Show detailed diffs and full handoff content |
 
 ## Flow
@@ -134,6 +132,6 @@ To resume: /dotnet-ai.status 001
 
 For quick mid-session saves, use `/dotnet-ai.checkpoint` instead (lighter weight).
 
-## Preview / Dry-Run Behavior
+## Dry-Run Behavior
 
-- `--preview` / `--dry-run`: Show per-repo changes, proposed commits, and full handoff content. No commits, no writes.
+- `--dry-run`: Show per-repo changes, proposed commits, and full handoff content. No commits, no writes.
