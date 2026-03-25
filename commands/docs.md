@@ -28,14 +28,14 @@ Generate or update technical and business documentation. With no subcommand, sca
 - `/dotnet-ai.docs` -- Report documentation gaps
 - `/dotnet-ai.docs readme` -- Generate README
 - `/dotnet-ai.docs adr "Use Cosmos for read model"` -- Create ADR
-- `/dotnet-ai.docs all --preview` -- Preview all docs generation
+- `/dotnet-ai.docs all --dry-run` -- Preview all docs generation
 - `/dotnet-ai.docs api --verbose` -- Generate API docs with details
 
 ## Flags
 
 | Flag | Description |
 |------|-------------|
-| `--preview` | Show generated documentation without writing files |
+| `--dry-run` | Show generated documentation without writing files |
 | `--dry-run` | List files that would be created/modified |
 | `--verbose` | Show scanning details and content summaries |
 | `--update` | Update existing docs only, do not create new ones |
@@ -185,5 +185,5 @@ project-root/
 
 ## Preview / Dry-Run Behavior
 
-- `--preview`: Show generated documentation content. No file writes.
+- `--dry-run`: Show generated documentation content. No file writes.
 - `--dry-run`: List files that would be created/modified. No content, no writes.

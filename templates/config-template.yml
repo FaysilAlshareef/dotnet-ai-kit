@@ -17,6 +17,9 @@ company:
 # Naming convention patterns
 # Available placeholders: {Company}, {Domain}, {Side}, {Layer}
 naming:
+  # Domain name used in template rendering (e.g., "Draw", "Order", "Invoice")
+  # This replaces the {Domain} placeholder in patterns below
+  domain: "Domain"
   # Solution file naming pattern
   solution: "{Company}.{Domain}.{Side}"
   # Service Bus topic naming pattern (lowercase)

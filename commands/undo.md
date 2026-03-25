@@ -1,5 +1,5 @@
 ---
-description: "Revert the last code generation action or specific task with preview and confirmation"
+description: "Revert the last code generation action or specific task with dry-run and confirmation"
 ---
 
 # Undo
@@ -16,7 +16,7 @@ Safely revert the last implementation step or a specific task. Shows a preview o
 - (no args) -- Undo the last action
 - `T005` -- Undo specific task T005
 - `--list` -- Show undo history without reverting
-- `--preview` -- Show what would be reverted without doing it
+- `--dry-run` -- Show what would be reverted without doing it
 - `--verbose` -- Show detailed file diffs before reverting
 
 ## Flags
@@ -24,8 +24,7 @@ Safely revert the last implementation step or a specific task. Shows a preview o
 | Flag | Description |
 |------|-------------|
 | `--list` | Show undo history (all recorded actions) without reverting |
-| `--preview` | Show what would be reverted, do not revert |
-| `--dry-run` | Same as `--preview` |
+| `--dry-run` | Show what would be reverted, do not revert |
 | `--verbose` | Show full file diffs for each file that would be reverted |
 | `--force` | Skip confirmation prompt (use with caution) |
 
@@ -70,7 +69,7 @@ Files to revert:
 Confirm? [Y/n]
 ```
 
-If `--preview` or `--dry-run`: show the preview and stop without reverting.
+If `--dry-run`: show the preview and stop without reverting.
 If `--verbose`: also show file diffs for modified files.
 
 ### Step 5: Execute Revert (after confirmation)
@@ -108,6 +107,6 @@ repo: gateway
 - Requires confirmation unless `--force` is used.
 - If a file was further modified after the task: warn and ask whether to proceed.
 
-## Preview / Dry-Run Behavior
+## Dry-Run Behavior
 
-- `--preview` / `--dry-run`: Show exactly what would be reverted. No file changes, no task updates.
+- `--dry-run`: Show exactly what would be reverted. No file changes, no task updates.

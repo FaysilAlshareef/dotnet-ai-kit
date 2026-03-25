@@ -15,7 +15,7 @@ Add a new event to an existing aggregate in a command project. Creates the event
 **Examples:**
 - `OrderShipped Order` -- Add OrderShipped event to Order aggregate
 - `OrderShipped Order --fields "TrackingNumber:string,ShippedAt:DateTime"` -- With data fields
-- `OrderShipped Order --preview` -- Show code without writing
+- `OrderShipped Order --dry-run` -- Show code without writing
 - `OrderShipped Order --dry-run` -- Show file list only
 - `OrderShipped Order --verbose` -- Show detection details
 
@@ -24,7 +24,7 @@ Add a new event to an existing aggregate in a command project. Creates the event
 | Flag | Description |
 |------|-------------|
 | `--fields "Name:Type,..."` | Specify event data fields explicitly |
-| `--preview` | Display generated code without writing to disk |
+| `--dry-run` | Display generated code without writing to disk |
 | `--dry-run` | List files that would be created/modified |
 | `--verbose` | Show detection steps and pattern matching details |
 | `--no-tests` | Skip test file generation |
@@ -104,5 +104,5 @@ Read `agents/command-architect.md` for event design guidance. Load all skills li
 
 ## Preview / Dry-Run Behavior
 
-- `--preview`: Show all generated code and the diff for modified files. No writes.
+- `--dry-run`: Show all generated code and the diff for modified files. No writes.
 - `--dry-run`: List files that would be created/modified. No code, no writes.

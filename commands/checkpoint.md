@@ -15,16 +15,14 @@ Quick save -- stage and commit progress in each repo with changes, then write a 
 **Examples:**
 - (no args) -- Save progress in all repos with auto-generated message
 - `"Completed query side"` -- Save with a custom message
-- `--preview` -- Show what would be committed without doing it
-- `--dry-run` -- Same as `--preview`
+- `--dry-run` -- Show what would be committed without doing it
 - `--verbose` -- Show detailed file lists per repo
 
 ## Flags
 
 | Flag | Description |
 |------|-------------|
-| `--preview` | Show what would be committed and written, without doing it |
-| `--dry-run` | Same as `--preview` |
+| `--dry-run` | Show what would be committed and written, without doing it |
 | `--verbose` | Show detailed per-repo file lists and handoff content |
 | `--no-commit` | Write handoff only, skip git commits |
 
@@ -43,7 +41,7 @@ For each repo (or current directory for single-repo projects):
 - Categorize files: new, modified, deleted.
 - If no changes in any repo: report "No changes to save." and stop.
 
-If `--preview` or `--dry-run`: show the file summary per repo and stop here.
+If `--dry-run`: show the file summary per repo and stop here.
 
 ### Step 3: Stage and Commit (per repo with changes)
 
@@ -114,6 +112,6 @@ Resume with: /dotnet-ai.implement --resume
 
 For end-of-day or longer breaks, use `/dotnet-ai.wrap-up` instead (more comprehensive).
 
-## Preview / Dry-Run Behavior
+## Dry-Run Behavior
 
-- `--preview` / `--dry-run`: Show per-repo file lists, proposed commit messages, and handoff content. No commits, no file writes.
+- `--dry-run`: Show per-repo file lists, proposed commit messages, and handoff content. No commits, no file writes.

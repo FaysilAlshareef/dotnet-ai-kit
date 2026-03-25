@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <code>106 skills</code> · <code>13 agents</code> · <code>26 commands</code> · <code>9 rules</code> · <code>12 architectures</code> · <code>4 safety hooks</code> · <code>13 templates</code>
+  <code>106 skills</code> · <code>13 agents</code> · <code>27 commands</code> · <code>9 rules</code> · <code>12 architectures</code> · <code>4 safety hooks</code> · <code>13 templates</code>
 </p>
 
 ---
@@ -72,7 +72,7 @@ dotnet-ai init . --ai claude
 /plugin install dotnet-ai-kit
 ```
 
-All 26 commands, 106 skills, 13 agents, 9 rules, and 4 safety hooks are available immediately.
+All 27 commands, 106 skills, 13 agents, 9 rules, and 4 safety hooks are available immediately.
 
 <details>
 <summary><b>See plugin install demo</b></summary>
@@ -233,7 +233,7 @@ The `--global` flag writes to `~/.claude/settings.json` so permissions work acro
 
 ---
 
-## All 26 Commands
+## All 27 Commands
 
 ### SDD Lifecycle (build features end-to-end)
 
@@ -284,12 +284,13 @@ The `--global` flag writes to `~/.claude/settings.json` so permissions work acro
 |---------|-------|-------------|
 | `/dotnet-ai.init` | `/dai.init` | Initialize project (auto-detects architecture) |
 | `/dotnet-ai.detect` | `/dai.detect` | Re-detect project type |
+| `/dotnet-ai.learn` | `/dai.learn` | Generate project constitution (persistent knowledge) |
 | `/dotnet-ai.configure` | `/dai.config` | Configure company/naming/repos/permissions |
 | `/dotnet-ai.docs` | `/dai.docs` | Generate documentation |
 | `/dotnet-ai.checkpoint` | `/dai.save` | Save session state |
 | `/dotnet-ai.wrap-up` | `/dai.done` | Finalize session |
 
-> All commands support `--dry-run`, `--verbose`, and `--preview` flags.
+> All commands support `--dry-run` and `--verbose` flags.
 
 ---
 
@@ -368,6 +369,7 @@ The tool scans your project and detects type using signal-based scoring:
 I want to...
 ├── Build a feature fast             → /dai.do "description"
 ├── Build a feature step-by-step     → /dai.spec → plan → go
+├── Teach AI my project patterns     → /dai.learn
 ├── Add CRUD for an entity           → /dai.crud Order
 ├── Add tests to existing code       → /dai.tests
 ├── Add one endpoint / event / page  → /dai.ep, /dai.event, /dai.page
@@ -427,16 +429,16 @@ The tool detects your .NET version from `.csproj` and uses version-appropriate p
 
 ```
 dotnet-ai-kit/
-├── commands/          # 26 slash command definitions
+├── commands/          # 27 slash command definitions
 ├── rules/             # 9 always-loaded convention rules
 ├── agents/            # 13 specialist agent definitions
 ├── skills/            # 106 skills across 17 categories
-├── knowledge/         # 11 reference documents
+├── knowledge/         # 16 reference documents
 ├── templates/         # 13 project templates (Jinja2)
 ├── hooks/             # 4 safety hooks
 ├── config/            # 4 permission level configs
 ├── src/               # Python CLI source (Typer + Pydantic v2)
-├── tests/             # 137 test functions (90% coverage)
+├── tests/             # 158 test functions
 └── .claude-plugin/    # Claude Code plugin manifest
 ```
 

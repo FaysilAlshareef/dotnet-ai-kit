@@ -1,7 +1,7 @@
 {
   "name": "dotnet-ai-kit",
   "version": "1.0.0",
-  "description": "Full .NET development lifecycle — 26 commands, 106 skills, 9 rules, 13 agents. SDD workflow, code generation, AI detection for VSA, Clean Arch, DDD, CQRS Microservices.",
+  "description": "Full .NET development lifecycle — 27 commands, 106 skills, 9 rules, 13 agents. SDD workflow, code generation, AI detection for VSA, Clean Arch, DDD, CQRS Microservices.",
   "author": "Faysil Alshareef",
   "homepage": "https://github.com/FaysilAlshareef/dotnet-ai-kit",
   "repository": "https://github.com/FaysilAlshareef/dotnet-ai-kit",
@@ -18,5 +18,76 @@
     "code-generation",
     "sdd"
   ],
-  "category": "development"
+  "category": "development",
+  "commands": [
+    {"name": "dotnet-ai.do", "alias": "dai.do", "category": "Smart", "description": "Smart orchestrator that chains the full SDD lifecycle"},
+    {"name": "dotnet-ai.detect", "alias": "dai.detect", "category": "Project", "description": "AI-powered project type detection"},
+    {"name": "dotnet-ai.learn", "alias": "dai.learn", "category": "Project", "description": "Generate project constitution with detected patterns"},
+    {"name": "dotnet-ai.init", "alias": "dai.init", "category": "Project", "description": "Initialize dotnet-ai-kit in a .NET project"},
+    {"name": "dotnet-ai.configure", "alias": "dai.config", "category": "Project", "description": "Interactive configuration wizard"},
+    {"name": "dotnet-ai.specify", "alias": "dai.spec", "category": "SDD Lifecycle", "description": "Create feature specification"},
+    {"name": "dotnet-ai.clarify", "alias": "dai.clarify", "category": "SDD Lifecycle", "description": "Resolve specification ambiguities"},
+    {"name": "dotnet-ai.plan", "alias": "dai.plan", "category": "SDD Lifecycle", "description": "Generate implementation plan"},
+    {"name": "dotnet-ai.tasks", "alias": "dai.tasks", "category": "SDD Lifecycle", "description": "Break plan into executable tasks"},
+    {"name": "dotnet-ai.analyze", "alias": "dai.check", "category": "SDD Lifecycle", "description": "Pre-implementation analysis"},
+    {"name": "dotnet-ai.implement", "alias": "dai.go", "category": "SDD Lifecycle", "description": "Execute implementation tasks"},
+    {"name": "dotnet-ai.review", "alias": "dai.review", "category": "SDD Lifecycle", "description": "Code review checklist"},
+    {"name": "dotnet-ai.verify", "alias": "dai.verify", "category": "SDD Lifecycle", "description": "Verify implementation completeness"},
+    {"name": "dotnet-ai.pr", "alias": "dai.pr", "category": "SDD Lifecycle", "description": "Create pull request"},
+    {"name": "dotnet-ai.add-aggregate", "alias": "dai.agg", "category": "Code Gen", "description": "Generate event-sourced aggregate"},
+    {"name": "dotnet-ai.add-entity", "alias": "dai.entity", "category": "Code Gen", "description": "Generate query-side entity"},
+    {"name": "dotnet-ai.add-event", "alias": "dai.event", "category": "Code Gen", "description": "Generate domain event type"},
+    {"name": "dotnet-ai.add-endpoint", "alias": "dai.ep", "category": "Code Gen", "description": "Generate API endpoint"},
+    {"name": "dotnet-ai.add-page", "alias": "dai.page", "category": "Code Gen", "description": "Generate Blazor page"},
+    {"name": "dotnet-ai.add-crud", "alias": "dai.crud", "category": "Code Gen", "description": "Generate full CRUD stack"},
+    {"name": "dotnet-ai.add-tests", "alias": "dai.tests", "category": "Code Gen", "description": "Generate test suite"},
+    {"name": "dotnet-ai.docs", "alias": "dai.docs", "category": "Documentation", "description": "Generate project documentation"},
+    {"name": "dotnet-ai.status", "alias": "dai.status", "category": "Smart", "description": "Show current feature status"},
+    {"name": "dotnet-ai.undo", "alias": "dai.undo", "category": "Smart", "description": "Revert last AI-generated changes"},
+    {"name": "dotnet-ai.explain", "alias": "dai.explain", "category": "Smart", "description": "Explain code or architecture"},
+    {"name": "dotnet-ai.checkpoint", "alias": "dai.save", "category": "Session", "description": "Save progress checkpoint"},
+    {"name": "dotnet-ai.wrap-up", "alias": "dai.done", "category": "Session", "description": "End session with handoff"}
+  ],
+  "agents": [
+    {"name": "api-designer", "role": "Designs REST and gRPC API contracts and endpoint conventions"},
+    {"name": "command-architect", "role": "Architects CQRS command-side aggregates and event sourcing"},
+    {"name": "controlpanel-architect", "role": "Designs Blazor admin control panel UI and workflows"},
+    {"name": "cosmos-architect", "role": "Designs Cosmos DB data models and query-side projections"},
+    {"name": "devops-engineer", "role": "Manages CI/CD pipelines, Docker, and infrastructure as code"},
+    {"name": "docs-engineer", "role": "Generates and maintains project documentation and ADRs"},
+    {"name": "dotnet-architect", "role": "Leads overall .NET solution architecture and design patterns"},
+    {"name": "ef-specialist", "role": "Manages Entity Framework Core models, migrations, and queries"},
+    {"name": "gateway-architect", "role": "Designs API gateway routing, aggregation, and BFF patterns"},
+    {"name": "processor-architect", "role": "Architects background processors and event handler services"},
+    {"name": "query-architect", "role": "Architects CQRS query-side read models and projections"},
+    {"name": "reviewer", "role": "Reviews code for quality, patterns, and architectural compliance"},
+    {"name": "test-engineer", "role": "Designs and implements unit, integration, and E2E test suites"}
+  ],
+  "skills_summary": {
+    "total": 106,
+    "categories": {
+      "api": 7,
+      "architecture": 6,
+      "core": 7,
+      "cqrs": 6,
+      "data": 8,
+      "detection": 1,
+      "devops": 5,
+      "docs": 8,
+      "infra": 3,
+      "microservice": 32,
+      "observability": 3,
+      "quality": 3,
+      "resilience": 3,
+      "security": 3,
+      "testing": 4,
+      "workflow": 7
+    }
+  },
+  "hooks": [
+    {"name": "bash-guard", "event": "PreToolUse", "target": "Bash", "description": "Blocks dangerous commands"},
+    {"name": "edit-format", "event": "PostToolUse", "target": "Edit *.cs", "description": "Auto-formats C# files"},
+    {"name": "commit-lint", "event": "PreToolUse", "target": "Bash git commit", "description": "Verifies formatting"},
+    {"name": "scaffold-restore", "event": "PostToolUse", "target": "Bash dotnet new", "description": "Auto-restores packages"}
+  ]
 }
