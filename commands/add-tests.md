@@ -17,7 +17,7 @@ Scan existing code for classes, handlers, and controllers without test files and
 - `OrderService` -- Generate tests for a specific class
 - `--handlers` -- Generate tests for all MediatR handlers
 - `--coverage 80` -- Generate tests until estimated 80% coverage
-- `--preview` -- Show what tests would be generated
+- `--dry-run` -- Show what tests would be generated
 - `--dry-run` -- Show file list only
 - `--verbose` -- Show scanning and detection details
 
@@ -29,7 +29,7 @@ Scan existing code for classes, handlers, and controllers without test files and
 | `--controllers` | Target all controllers only |
 | `--services` | Target all service classes only |
 | `--coverage {N}` | Generate tests targeting N% coverage estimate |
-| `--preview` | Display generated test code without writing |
+| `--dry-run` | Display generated test code without writing |
 | `--dry-run` | List test files that would be created |
 | `--verbose` | Show scanning progress, pattern detection, coverage estimates |
 | `--no-build` | Skip post-generation build and test run |
@@ -134,5 +134,5 @@ Load all skills listed in each loaded agent's Skills Loaded section.
 
 ## Preview / Dry-Run Behavior
 
-- `--preview`: Show generated test code with file headers. No writes.
+- `--dry-run`: Show generated test code with file headers. No writes.
 - `--dry-run`: List test files that would be created with class counts. No code, no writes.

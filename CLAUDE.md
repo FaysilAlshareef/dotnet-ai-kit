@@ -76,12 +76,13 @@ pip install -e ".[dev]"
 9. **Models**: Use pydantic v2 BaseModel with field_validator decorators
 10. **Type hints**: Use `from __future__ import annotations` for modern syntax in Python 3.10+
 
-## Commands (26 total)
+## Commands (27 total)
 
 | Full Name | Short Alias | Category |
 |-----------|-------------|----------|
 | `/dotnet-ai.do` | `/dai.do` | Smart |
 | `/dotnet-ai.detect` | `/dai.detect` | Project |
+| `/dotnet-ai.learn` | `/dai.learn` | Project |
 | `/dotnet-ai.specify` | `/dai.spec` | SDD Lifecycle |
 | `/dotnet-ai.clarify` | `/dai.clarify` | SDD Lifecycle |
 | `/dotnet-ai.plan` | `/dai.plan` | SDD Lifecycle |

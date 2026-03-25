@@ -8,7 +8,10 @@ dotnet-ai-kit tooling.
 from __future__ import annotations
 
 import logging
+import platform
+import shlex
 import shutil
+import subprocess
 from datetime import datetime, timezone
 from pathlib import Path
 from typing import Any, Optional
@@ -16,9 +19,24 @@ from typing import Any, Optional
 import yaml
 from filelock import FileLock
 
+from dotnet_ai_kit import __version__ as CLI_VERSION
 from dotnet_ai_kit.agents import AGENT_CONFIG
 
 logger = logging.getLogger(__name__)
+
+
+_VALID_HOOK_EVENTS = {"after_install", "after_remove"}
+
+
+def _parse_version_tuple(version_str: str) -> tuple[int, ...]:
+    """Parse a version string like '1.2.3' into a tuple of ints for comparison."""
+    parts = []
+    for part in version_str.strip().split("."):
+        try:
+            parts.append(int(part))
+        except ValueError:
+            parts.append(0)
+    return tuple(parts)
 
 
 class ExtensionError(Exception):
@@ -81,6 +99,18 @@ def _validate_manifest_data(data: dict[str, Any]) -> ExtensionManifest:
     commands = provides.get("commands", []) if isinstance(provides, dict) else []
     rules = provides.get("rules", []) if isinstance(provides, dict) else []
     hooks = data.get("hooks", {})
+
+    # Validate hook structure: keys must be valid lifecycle events, values must be lists of strings
+    if hooks and isinstance(hooks, dict):
+        for key, value in hooks.items():
+            if key not in _VALID_HOOK_EVENTS:
+                raise ExtensionError(
+                    f"Invalid hook event '{key}'. Must be one of: {_VALID_HOOK_EVENTS}"
+                )
+            if not isinstance(value, list) or not all(isinstance(v, str) for v in value):
+                raise ExtensionError(
+                    f"Hook '{key}' must be a list of command strings, got: {type(value).__name__}"
+                )
 
     return ExtensionManifest(
         id=ext_id,
@@ -221,6 +251,15 @@ def install_extension(
     # Load and validate manifest
     manifest = load_manifest(ext_source)
 
+    # Validate min_cli_version requirement
+    cli_version = _parse_version_tuple(CLI_VERSION)
+    min_version = _parse_version_tuple(manifest.min_cli_version)
+    if cli_version < min_version:
+        raise ExtensionError(
+            f"Extension '{manifest.id}' requires dotnet-ai-kit >= {manifest.min_cli_version}, "
+            f"but current version is {CLI_VERSION}. Please upgrade."
+        )
+
     # Lock the registry to prevent concurrent modifications
     registry_path = project_root / ".dotnet-ai-kit" / "extensions.yml"
     registry_path.parent.mkdir(parents=True, exist_ok=True)
@@ -264,6 +303,20 @@ def install_extension(
         extensions_list.append(entry)
         registry["extensions"] = extensions_list
         _save_extensions_registry(project_root, registry)
+
+    # Execute after_install hooks
+    after_install_hooks = manifest.hooks.get("after_install", [])
+    for hook_cmd in after_install_hooks:
+        try:
+            if platform.system() == "Windows":
+                args = hook_cmd.split()
+            else:
+                args = shlex.split(hook_cmd)
+            subprocess.run(args, check=True, cwd=str(project_root))
+        except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+            raise ExtensionError(
+                f"Extension '{manifest.id}' after_install hook failed: {hook_cmd!r} — {exc}"
+            ) from exc
 
     return manifest
 

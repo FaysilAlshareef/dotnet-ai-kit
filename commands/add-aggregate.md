@@ -15,7 +15,7 @@ Create a new aggregate root in a command project with its initial event, command
 **Examples:**
 - `Order` -- Create Order aggregate with OrderCreated event
 - `Order --events "Created,Updated,Completed"` -- With multiple initial events
-- `Order --preview` -- Show generated code without writing files
+- `Order --dry-run` -- Show generated code without writing files
 - `Order --dry-run` -- Show file list only, no code output
 - `Order --verbose` -- Show detailed detection and generation steps
 
@@ -24,7 +24,7 @@ Create a new aggregate root in a command project with its initial event, command
 | Flag | Description |
 |------|-------------|
 | `--events "E1,E2,..."` | Generate multiple initial events (default: Created only) |
-| `--preview` | Display generated code in terminal without writing to disk |
+| `--dry-run` | Display generated code in terminal without writing to disk |
 | `--dry-run` | List files that would be created/modified, no writes |
 | `--verbose` | Show detection steps, pattern matching, and generation details |
 | `--no-tests` | Skip test file generation |
@@ -108,5 +108,5 @@ For each event (default: `{Name}Created`, or from `--events` flag):
 
 ## Preview / Dry-Run Behavior
 
-- `--preview`: Generate all code and display in terminal with file path headers. Write nothing.
+- `--dry-run`: Generate all code and display in terminal with file path headers. Write nothing.
 - `--dry-run`: List files that would be created/modified with descriptions. No code output, no writes.

@@ -114,6 +114,10 @@ Generate `spec.md` inside the feature directory using this structure:
 - Events to create/handle across services
 - Read `skills/workflow/multi-repo-workflow/SKILL.md` for cross-repo patterns
 - Auto-detect affected repos by analyzing the feature description against config repos
+- Generate `service-map.md` in the feature directory with:
+  - Mermaid diagram showing service dependencies
+  - Per-service change summary (what each repo needs)
+  - Affected repos list with specific artifacts to create/modify
 
 ### Constraints
 

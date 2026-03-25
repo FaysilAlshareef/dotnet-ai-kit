@@ -1,10 +1,10 @@
 <!--
 Sync Impact Report
 ===================
-- Version change: 1.0.1 → 1.0.2
+- Version change: 1.0.2 → 1.0.3
 - Modified principles: N/A
 - Updated sections:
-  - Technology Constraints: rule count 6 → 9, skill count 104 → 106
+  - Technology Constraints: commands 26 → 27 (added /dai.learn), knowledge docs 11 → 16
 - Removed sections: N/A
 - Templates requiring updates: none
 - Follow-up TODOs: none
@@ -148,8 +148,8 @@ implementation, and linked PR creation.
 - 9 rules (always loaded)
 - 13 specialist agents (routing logic in commands)
 - 106 skills (loaded on demand, Agent Skills spec compliant)
-- 26 commands (slash commands)
-- 11 knowledge documents (reference material)
+- 27 commands (slash commands)
+- 16 knowledge documents (reference material)
 - 11 templates (project scaffolds)
 
 ## Development Workflow
@@ -210,4 +210,4 @@ compliance with this constitution. Complexity that violates
 a principle MUST be explicitly justified in the plan's
 Complexity Tracking table.
 
-**Version**: 1.0.2 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-03-23
+**Version**: 1.0.3 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-03-26

@@ -364,8 +364,8 @@ def scaffold_project(
     context = {
         "Company": config.company.name or "MyCompany",
         "company": (config.company.name or "MyCompany").lower(),
-        "Domain": "Domain",
-        "domain": "domain",
+        "Domain": config.naming.domain or "Domain",
+        "domain": (config.naming.domain or "Domain").lower(),
         "Side": project_type.capitalize().replace("-", ""),
         "side": project_type.lower().replace("-", ""),
         "Layer": "Application",

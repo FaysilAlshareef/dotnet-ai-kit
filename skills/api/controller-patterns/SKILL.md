@@ -1,5 +1,5 @@
 ---
-name: dotnet-ai-controller-patterns
+name: dotnet-ai-restful-controllers
 description: >
   Controller-based API design, action results, model binding, routing,
   and MediatR integration patterns.

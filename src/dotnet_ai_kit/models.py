@@ -5,7 +5,7 @@ from __future__ import annotations
 import re
 from typing import Optional
 
-from pydantic import BaseModel, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator
 
 # ---------------------------------------------------------------------------
 # Detection signal models (used by signal-based detection pipeline)
@@ -99,6 +99,10 @@ class CompanyConfig(BaseModel):
 class NamingConfig(BaseModel):
     """Naming convention patterns using {Company}, {Domain}, {Side}, {Layer} placeholders."""
 
+    domain: str = Field(
+        default="Domain",
+        description="Domain name for template rendering (e.g., 'Draw', 'Order', 'Invoice').",
+    )
     solution: str = Field(
         default="{Company}.{Domain}.{Side}",
         description="Solution naming pattern.",
@@ -153,45 +157,14 @@ class ReposConfig(BaseModel):
         return v.strip()
 
 
-class CodeRabbitConfig(BaseModel):
-    """CodeRabbit integration settings."""
-
-    enabled: bool = Field(
-        default=False,
-        description="Whether CodeRabbit integration is enabled.",
-    )
-    auto_fix: bool = Field(
-        default=False,
-        description="Whether CodeRabbit auto-fix suggestions are applied.",
-    )
-    severity_threshold: str = Field(
-        default="warning",
-        description="Minimum severity level for CodeRabbit findings.",
-    )
-
-    @field_validator("severity_threshold")
-    @classmethod
-    def validate_severity(cls, v: str) -> str:
-        allowed = {"info", "warning", "error"}
-        if v.lower() not in allowed:
-            raise ValueError(f"severity_threshold must be one of {allowed}, got '{v}'")
-        return v.lower()
-
-
-class IntegrationsConfig(BaseModel):
-    """External tool integrations."""
-
-    coderabbit: CodeRabbitConfig = Field(
-        default_factory=CodeRabbitConfig,
-        description="CodeRabbit integration configuration.",
-    )
-
 
 class DotnetAiConfig(BaseModel):
     """Main configuration model for dotnet-ai-kit.
 
     Stored in .dotnet-ai-kit/config.yml.
     """
+
+    model_config = ConfigDict(extra="ignore")
 
     version: str = Field(
         default="1.0",
@@ -208,10 +181,6 @@ class DotnetAiConfig(BaseModel):
     repos: ReposConfig = Field(
         default_factory=ReposConfig,
         description="Repository paths for microservice roles.",
-    )
-    integrations: IntegrationsConfig = Field(
-        default_factory=IntegrationsConfig,
-        description="External tool integration settings.",
     )
     permissions_level: str = Field(
         default="standard",
