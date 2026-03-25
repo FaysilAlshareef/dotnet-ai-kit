@@ -19,6 +19,7 @@ from dotnet_ai_kit.copier import (
     merge_permissions,
     render_template,
     scaffold_project,
+    verify_permissions,
 )
 from dotnet_ai_kit.models import DotnetAiConfig
 
@@ -716,3 +717,88 @@ def test_permission_template_no_duplicates() -> None:
         )
         entries = data["permissions"]["allow"]
         assert len(entries) == len(set(entries)), f"Duplicates in {level} template"
+
+
+# ---------------------------------------------------------------------------
+# verify_permissions tests
+# ---------------------------------------------------------------------------
+
+
+def test_verify_permissions_ok_standard(tmp_path: Path) -> None:
+    """verify_permissions should pass for correct standard settings."""
+    settings_path = tmp_path / "settings.json"
+    settings_path.write_text(
+        json.dumps({"permissions": {"allow": ["a", "b", "c"]}}),
+        encoding="utf-8",
+    )
+    result = verify_permissions(settings_path, "standard", 3)
+    assert result["ok"] is True
+
+
+def test_verify_permissions_ok_full(tmp_path: Path) -> None:
+    """verify_permissions should pass for correct full settings with bypassPermissions."""
+    settings_path = tmp_path / "settings.json"
+    settings_path.write_text(
+        json.dumps({
+            "permissions": {
+                "defaultMode": "bypassPermissions",
+                "allow": [f"entry{i}" for i in range(104)],
+            }
+        }),
+        encoding="utf-8",
+    )
+    result = verify_permissions(settings_path, "full", 104)
+    assert result["ok"] is True
+
+
+def test_verify_permissions_fails_missing_bypass(tmp_path: Path) -> None:
+    """verify_permissions should fail when full mode is missing bypassPermissions."""
+    settings_path = tmp_path / "settings.json"
+    settings_path.write_text(
+        json.dumps({"permissions": {"allow": [f"e{i}" for i in range(104)]}}),
+        encoding="utf-8",
+    )
+    result = verify_permissions(settings_path, "full", 104)
+    assert result["ok"] is False
+    assert "bypassPermissions" in result["reason"]
+
+
+def test_verify_permissions_fails_too_few_entries(tmp_path: Path) -> None:
+    """verify_permissions should fail when allow list is too short."""
+    settings_path = tmp_path / "settings.json"
+    settings_path.write_text(
+        json.dumps({
+            "permissions": {
+                "defaultMode": "bypassPermissions",
+                "allow": ["a", "b"],
+            }
+        }),
+        encoding="utf-8",
+    )
+    result = verify_permissions(settings_path, "full", 104)
+    assert result["ok"] is False
+    assert "fewer entries" in result["reason"]
+
+
+def test_verify_permissions_fails_missing_file(tmp_path: Path) -> None:
+    """verify_permissions should fail when settings.json is missing."""
+    result = verify_permissions(tmp_path / "nonexistent.json", "full", 104)
+    assert result["ok"] is False
+    assert "not found" in result["reason"]
+
+
+def test_verify_permissions_fails_unwanted_bypass(tmp_path: Path) -> None:
+    """verify_permissions should fail when standard mode has bypassPermissions."""
+    settings_path = tmp_path / "settings.json"
+    settings_path.write_text(
+        json.dumps({
+            "permissions": {
+                "defaultMode": "bypassPermissions",
+                "allow": [f"e{i}" for i in range(43)],
+            }
+        }),
+        encoding="utf-8",
+    )
+    result = verify_permissions(settings_path, "standard", 43)
+    assert result["ok"] is False
+    assert "should not have bypassPermissions" in result["reason"]

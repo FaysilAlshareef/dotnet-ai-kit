@@ -116,8 +116,15 @@ Unless `--skip-coderabbit` is set:
 
 If `--auto-fix`:
 1. Apply all safe fixes.
-2. List unsafe fixes and ask: "Apply these {N} changes? [y/N/select]"
-3. Report what was auto-fixed.
+2. Run `dotnet build` to verify fixes did not break compilation. If build fails, revert the last fix and report the error.
+3. Record each auto-fixed file in the feature's `undo-log.md` so `/dotnet-ai.undo` can revert them:
+   ```
+   ## Auto-Fix - Review ({DATE})
+   - modified: {file path} (removed unused usings)
+   - modified: {file path} (added sealed keyword)
+   ```
+4. List unsafe fixes and ask: "Apply these {N} changes? [y/N/select]"
+5. Report what was auto-fixed.
 
 ## Step 6: Output Report
 

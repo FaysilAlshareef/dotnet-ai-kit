@@ -37,6 +37,7 @@ from dotnet_ai_kit.copier import (
     copy_permissions,
     copy_rules,
     copy_skills,
+    verify_permissions,
 )
 from dotnet_ai_kit.detection import describe_architecture
 from dotnet_ai_kit.extensions import (
@@ -449,8 +450,11 @@ def init(
                 f"(mode: {perm_result['mode']}) -> {perm_result['settings_path']}"
             )
     except CopyError as exc:
-        if not json_output:
-            err_console.print(f"[yellow]Permission warning: {exc}[/yellow]")
+        err_console.print(
+            f"[red bold]Error:[/red bold] Failed to apply permissions: {exc}\n"
+            "Run 'dotnet-ai configure' to set permissions after init."
+        )
+        raise typer.Exit(code=1) from exc
 
     # Step 9: Validate development tools
     if not json_output:
@@ -684,6 +688,32 @@ def check(
     console.print(Panel("\n".join(config_panel_lines), title="Config"))
     console.print()
 
+    # Permission consistency check
+    settings_path = target / ".claude" / "settings.json"
+    if settings_path.is_file() and config.permissions_level:
+        expected_count = len(config.managed_permissions) if config.managed_permissions else 0
+        if expected_count > 0:
+            verify_result = verify_permissions(
+                settings_path, config.permissions_level, expected_count
+            )
+            if not verify_result["ok"]:
+                err_console.print(
+                    f"[red bold]Permission mismatch:[/red bold] {verify_result['reason']}\n"
+                    f"  Config says: {config.permissions_level}\n"
+                    f"  Expected: {verify_result['expected']}\n"
+                    f"  Actual:   {verify_result['actual']}\n"
+                    "  Fix: Run 'dotnet-ai upgrade --force' or 'dotnet-ai configure'"
+                )
+            elif verbose:
+                console.print(
+                    f"  [green]Permissions OK:[/green] {verify_result['actual']}"
+                )
+    elif not settings_path.is_file() and config.permissions_level:
+        err_console.print(
+            "[yellow]settings.json not found — permissions not applied.\n"
+            "  Fix: Run 'dotnet-ai upgrade --force'[/yellow]"
+        )
+
     # Version info
     version_path = config_dir / "version.txt"
     if version_path.is_file():
@@ -875,8 +905,10 @@ def upgrade(
                     f"(mode: {perm_result['mode']}) -> {perm_result['settings_path']}"
                 )
         except CopyError as exc:
-            if not json_output:
-                err_console.print(f"[yellow]Permission warning: {exc}[/yellow]")
+            err_console.print(
+                f"[red bold]Error:[/red bold] Failed to apply permissions: {exc}\n"
+                "Run 'dotnet-ai configure' to fix permissions."
+            )
 
     # T051 - JSON output mode
     if json_output:
@@ -1134,8 +1166,12 @@ def configure(
                 f"(mode: {perm_result['mode']}) -> {perm_result['settings_path']}"
             )
     except CopyError as exc:
-        if not json_output:
-            err_console.print(f"[yellow]Permission warning: {exc}[/yellow]")
+        err_console.print(
+            f"[red bold]Error:[/red bold] Failed to apply permissions: {exc}\n"
+            "Config was saved but permissions were NOT applied to settings.json.\n"
+            "Run 'dotnet-ai upgrade --force' to retry."
+        )
+        raise typer.Exit(code=1) from exc
 
     # T051 - JSON output mode
     if json_output:

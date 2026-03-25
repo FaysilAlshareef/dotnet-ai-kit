@@ -61,9 +61,30 @@ Ask about optional integrations:
 - `--minimal`: Only prompt for required fields (company name)
 - `--reset`: Reset all configuration to defaults before prompting
 
-### Step 6: Save and report
+### Step 6: Save and apply permissions
 
-Save the configuration to `.dotnet-ai-kit/config.yml` and report:
+Save the configuration to `.dotnet-ai-kit/config.yml`, then **apply permissions to settings.json** by running the CLI:
+
+```bash
+dotnet-ai configure --no-input --company {company} --permissions {level} --style {style}
+```
+
+This ensures `.claude/settings.json` is updated to match the selected permission level. The CLI:
+- Loads the config.yml you just saved (preserving repos, integrations)
+- Applies the correct permission template to `.claude/settings.json`
+- For **full** mode: writes `"defaultMode": "bypassPermissions"` and 100+ permission entries
+- For **standard** mode: writes ~43 common dev permission entries
+- For **minimal** mode: writes ~8 build/test-only entries
+
+**Do NOT skip this step.** Writing `permissions_level` to config.yml alone does NOT update settings.json. The CLI call is required.
+
+### Step 7: Verify and report
+
+After the CLI runs, verify that `.claude/settings.json` exists and matches the expected level:
+- For **full**: confirm `"defaultMode": "bypassPermissions"` is present
+- For **standard/minimal**: confirm `"defaultMode"` is absent
+
+Report:
 
 ```
 Configuration saved:
@@ -72,6 +93,7 @@ Configuration saved:
   Default Branch: {branch}
   Permission Level: {level}
   Repos: {N} of 5 configured
+  Permissions: applied to .claude/settings.json
 ```
 
 ## Just-in-Time Prompting

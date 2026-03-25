@@ -528,11 +528,95 @@ def copy_permissions(
 
     config.managed_permissions = list(template_entries)
 
+    # Verify write succeeded by reading back
+    if not dry_run and changed:
+        verify_result = verify_permissions(settings_path, level, len(template_entries))
+        if not verify_result["ok"]:
+            raise CopyError(
+                f"Permission verification failed: {verify_result['reason']}. "
+                f"Expected {verify_result['expected']}, got {verify_result['actual']}."
+            )
+
     return {
         "settings_path": str(settings_path),
         "entries_count": len(template_entries),
         "mode": mode or "default",
         "changed": changed,
+    }
+
+
+def verify_permissions(
+    settings_path: Path,
+    expected_level: str,
+    expected_count: int,
+) -> dict[str, Any]:
+    """Verify that settings.json matches the expected permission level.
+
+    Reads the settings file back and checks that the allow list count
+    and defaultMode are consistent with the configured level.
+
+    Args:
+        settings_path: Path to the settings.json file.
+        expected_level: The configured permission level.
+        expected_count: Minimum number of expected allow entries.
+
+    Returns:
+        Dict with 'ok' (bool), 'reason' (str), 'expected', 'actual'.
+    """
+    if not settings_path.is_file():
+        return {
+            "ok": False,
+            "reason": "settings.json not found after write",
+            "expected": f"{expected_count} entries",
+            "actual": "file missing",
+        }
+
+    try:
+        data = json.loads(settings_path.read_text(encoding="utf-8"))
+    except (json.JSONDecodeError, OSError) as exc:
+        return {
+            "ok": False,
+            "reason": f"cannot read settings.json: {exc}",
+            "expected": f"{expected_count} entries",
+            "actual": "unreadable",
+        }
+
+    permissions = data.get("permissions", {})
+    actual_count = len(permissions.get("allow", []))
+    actual_mode = permissions.get("defaultMode")
+
+    # Check entry count (allow some user-added entries, but must have at least the template count)
+    if actual_count < expected_count:
+        return {
+            "ok": False,
+            "reason": "allow list has fewer entries than expected",
+            "expected": f">={expected_count} entries",
+            "actual": f"{actual_count} entries",
+        }
+
+    # Check defaultMode for full level
+    if expected_level == "full" and actual_mode != "bypassPermissions":
+        return {
+            "ok": False,
+            "reason": "full mode requires bypassPermissions but it is missing",
+            "expected": "bypassPermissions",
+            "actual": str(actual_mode),
+        }
+
+    # Check defaultMode is NOT set for non-full levels
+    if expected_level != "full" and actual_mode == "bypassPermissions":
+        return {
+            "ok": False,
+            "reason": f"{expected_level} mode should not have bypassPermissions",
+            "expected": "no defaultMode",
+            "actual": "bypassPermissions",
+        }
+
+    return {
+        "ok": True,
+        "reason": "",
+        "expected": f"{expected_count} entries, level={expected_level}",
+        "actual": f"{actual_count} entries, mode={actual_mode or 'default'}",
     }
 
 

@@ -10,6 +10,7 @@ import yaml
 from typer.testing import CliRunner
 
 from dotnet_ai_kit.cli import app
+from dotnet_ai_kit.copier import CopyError
 
 runner = CliRunner()
 
@@ -1118,6 +1119,55 @@ def test_upgrade_force_refreshes_when_version_matches(tmp_path: Path, monkeypatc
     result = runner.invoke(app, ["upgrade", "--force"], catch_exceptions=False)
     assert result.exit_code == 0
     assert len(list(rules_dir.glob("*.md"))) == len(rule_files_before)
+
+
+def test_configure_fails_loudly_on_permission_error(tmp_path: Path, monkeypatch) -> None:
+    """configure should exit 1 if permissions fail to apply, not swallow the error."""
+    config_dir = tmp_path / ".dotnet-ai-kit"
+    config_dir.mkdir(parents=True)
+    config_path = config_dir / "config.yml"
+    config_path.write_text(
+        "version: '1.0'\nai_tools:\n  - claude\npermissions_level: standard\n"
+        "command_style: both\ncompany:\n  name: 'Test'\n  github_org: ''\n  default_branch: main\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    with patch("dotnet_ai_kit.cli.copy_permissions") as mock_cp:
+        mock_cp.side_effect = CopyError("template not found")
+
+        result = runner.invoke(
+            app,
+            ["configure", "--no-input", "--company", "Test", "--permissions", "full"],
+        )
+
+    assert result.exit_code == 1
+    assert "Failed to apply permissions" in result.output
+
+
+def test_check_detects_permission_mismatch(tmp_path: Path, monkeypatch) -> None:
+    """check should report when settings.json doesn't match config permissions_level."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    # Init with standard
+    runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
+
+    # Manually set config to full but leave settings.json at standard
+    config_path = tmp_path / ".dotnet-ai-kit" / "config.yml"
+    import yaml
+
+    cfg = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    cfg["permissions_level"] = "full"
+    # Set managed_permissions to something with a count
+    cfg["managed_permissions"] = [f"entry{i}" for i in range(100)]
+    config_path.write_text(yaml.dump(cfg), encoding="utf-8")
+
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(app, ["check"], catch_exceptions=False)
+
+    assert result.exit_code == 0
+    assert "mismatch" in result.output.lower() or "bypassPermissions" in result.output
 
 
 def test_configure_respects_existing_permission_default(tmp_path: Path, monkeypatch) -> None:
