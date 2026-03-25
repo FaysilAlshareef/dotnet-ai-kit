@@ -11,9 +11,9 @@ dotnet-ai-kit/
 ├── rules/             # 9 always-loaded convention files (≤100 lines each)
 ├── agents/            # 13 specialist agents (with full skill path references)
 ├── skills/            # 106 skills by domain (≤400 lines each, Agent Skills spec compliant)
-├── commands/          # 26 command templates (≤200 lines each, each loads appropriate agent)
-├── knowledge/         # 11 reference documents
-├── templates/         # 11 project scaffolds (7 microservice + 4 generic)
+├── commands/          # 27 command templates (≤200 lines each, each loads appropriate agent)
+├── knowledge/         # 16 reference documents
+├── templates/         # 13 project scaffolds (9 microservice + 4 generic)
 ├── config/            # 4 permission config templates
 ├── tests/             # pytest test suite (115 test functions, 90% coverage)
 └── planning/          # 18 planning documents (design specs, not shipped)

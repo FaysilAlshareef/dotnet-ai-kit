@@ -150,7 +150,7 @@ implementation, and linked PR creation.
 - 106 skills (loaded on demand, Agent Skills spec compliant)
 - 27 commands (slash commands)
 - 16 knowledge documents (reference material)
-- 11 templates (project scaffolds)
+- 13 templates (project scaffolds)
 
 ## Development Workflow
 

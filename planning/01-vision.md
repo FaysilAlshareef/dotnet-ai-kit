@@ -31,7 +31,7 @@ No configuration needed. The tool auto-detects your company name, architecture, 
 | `/dotnet-ai.undo` | Revert the last step safely |
 | `/dotnet-ai.explain topic` | Learn any pattern with examples |
 
-These 5 commands cover 90% of daily work. The remaining 21 commands give you step-by-step control when you need it (see `04-commands-design.md`).
+These 5 commands cover 90% of daily work. The remaining 22 commands give you step-by-step control when you need it (see `04-commands-design.md`).
 
 ---
 
@@ -56,14 +56,14 @@ I want to...
 
 ## What is dotnet-ai-kit?
 
-An **AI dev tool plugin** that covers the **full development lifecycle** for any .NET project — from a single Clean Architecture API to event-sourced CQRS microservices spanning 6 repositories. It knows your team's patterns, generates code that looks hand-written, and handles everything from feature specification to pull request creation.
+An **AI dev tool plugin** that covers the **full development lifecycle** for any .NET project — from a single Clean Architecture API to event-sourced CQRS microservices spanning 6 repositories, simple REST microservices with database-per-service, or MassTransit-based distributed systems. It knows your team's patterns, generates code that looks hand-written, and handles everything from feature specification to pull request creation.
 
 **One command to build a feature:**
 ```
 /dotnet-ai.do "Add order management with tracking"
 ```
 
-Works with **any .NET project**: Vertical Slice Architecture, Clean Architecture, DDD, Modular Monolith, or CQRS Microservices. Detects your patterns automatically — no configuration required for basic use.
+Works with **any .NET project**: Vertical Slice Architecture, Clean Architecture, DDD, Modular Monolith, CQRS Microservices (event-sourced), Simple REST Microservices (database-per-service), or MassTransit/Dapr-based distributed systems. Detects your patterns automatically — no configuration required for basic use.
 
 ### Supported AI Dev Tools
 
@@ -81,11 +81,11 @@ The tool uses Claude Code's native features — no custom plugin system:
 
 ```
 .claude/
-├── commands/       ← 26 slash commands (each reads relevant skills on demand)
-├── rules/          ← 6 always-loaded coding conventions
+├── commands/       ← 27 slash commands (each reads relevant skills on demand)
+├── rules/          ← 9 always-loaded coding conventions
 CLAUDE.md           ← Project context
-skills/             ← 104 skill files (read by commands when needed)
-knowledge/          ← 11 reference docs (read by commands when needed)
+skills/             ← 106 skill files (read by commands when needed)
+knowledge/          ← 16 reference docs (read by commands when needed)
 ```
 
 Each command includes routing logic: it detects the project type, reads the relevant skill files, and follows those patterns. The 13 "agents" from the planning docs become the routing logic inside commands — not separate files.
@@ -119,7 +119,7 @@ An AI dev tool plugin (starting with Claude Code) that:
 ## Core Design Principles
 
 1. **Simple by Default, Powerful When Needed** - `/dotnet-ai.do` for quick work, full lifecycle for complex features
-2. **Any .NET Project** - Generic (VSA, Clean Arch, DDD) and Microservices (CQRS + Event Sourcing)
+2. **Any .NET Project** - Generic (VSA, Clean Arch, DDD) and Microservices (CQRS + Event Sourcing, Simple REST, MassTransit, Dapr)
 3. **Existing Projects First** - Most work is on existing code, not greenfield
 4. **Multi-Repo When Needed** - Features can span repos. The tool thinks in distributed systems
 5. **Version Tolerant** - Works with .NET 8, 9, 10. Detects and respects what exists
@@ -139,10 +139,10 @@ commands with the user's AI dev tool (Claude Code, Cursor, Copilot, Codex, Antig
 ```
 dotnet-ai-kit/                       # Source repository
 ├── src/                             # CLI tool (dotnet-ai init/check/upgrade)
-├── rules/                           # 6 always-loaded convention files
+├── rules/                           # 9 always-loaded convention files
 ├── agents/                          # 13 specialist agents
-├── skills/                          # 104 skills by domain
-├── commands/                        # 26 command templates
+├── skills/                          # 106 skills by domain
+├── commands/                        # 27 command templates
 ├── knowledge/                       # Reference documents
 ├── templates/                       # Project scaffolding
 └── config/                          # Permission templates
@@ -214,7 +214,7 @@ Full alias table in `04-commands-design.md` Section G.
 | DDD | Domain-Driven Design | Detect & work with | Yes |
 | Modular Monolith | Multi-module single deployment | Detect & work with | Yes |
 
-### Microservices (CQRS + Event Sourcing)
+### Microservices (CQRS + Event Sourcing) — v1.0
 | Type | Description | Existing Support | Create New |
 |------|-------------|-----------------|------------|
 | Command | Event-sourced write side | Detect & work with | Scaffold from template |
@@ -223,6 +223,21 @@ Full alias table in `04-commands-design.md` Section G.
 | Processor | Background event processor | Detect & work with | Scaffold from template |
 | Gateway | REST gateway with Scalar | Detect & work with | Scaffold from template |
 | Control Panel | Blazor WASM module | Detect & work with | Scaffold from template |
+
+### Simple REST Microservices (database-per-service) — v1.1
+| Type | Description | Existing Support | Create New |
+|------|-------------|-----------------|------------|
+| REST Micro | API + EF Core + own database | Planned v1.1 | Scaffold from template |
+| YARP Gateway | Reverse proxy gateway | Planned v1.1 | Scaffold from template |
+
+### Messaging & Distributed Patterns — v1.1+
+| Pattern | Description | Version |
+|---------|-------------|---------|
+| MassTransit | Broker abstraction (RabbitMQ, Kafka, Azure SB, AWS SQS) | v1.1 |
+| Saga / Choreography | Distributed transactions, compensation | v1.2 |
+| Dapr | Sidecar for state, pub/sub, invocation, secrets | v1.2 |
+| SignalR | Real-time push from services to clients | v1.2 |
+| BFF | Backend for Frontend per client type | v1.2 |
 
 ## Cross-Platform Support
 
@@ -303,7 +318,7 @@ One command. Chains specify → plan → implement → review → verify → PR 
 ## v1.0 Additions (March 2026)
 
 - Claude Code plugin format (`.claude-plugin/plugin.json`) for marketplace distribution
-- Agent Skills specification compliance — all 104 SKILL.md files prefixed with `dotnet-ai-`
+- Agent Skills specification compliance — all 106 SKILL.md files prefixed with `dotnet-ai-`
 - 4 safety/quality hooks: pre-bash-guard, post-edit-format, post-scaffold-restore, pre-commit-lint
 - C# LSP MCP configuration (`.mcp.json`) pointing to csharp-ls
 - AI-powered project detection via `/dotnet-ai.detect` smart skill (replaced Python-based detection)

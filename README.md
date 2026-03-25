@@ -305,7 +305,7 @@ The `--global` flag writes to `~/.claude/settings.json` so permissions work acro
 | Domain-Driven Design | `generic-ddd` | Auto |
 | Modular Monolith | `generic-modular-monolith` | Auto |
 
-### CQRS Microservices (Event Sourcing)
+### CQRS Microservices (Event Sourcing) — v1.0
 
 | Service Type | Template | Agent |
 |-------------|----------|-------|
@@ -315,6 +315,17 @@ The `--global` flag writes to `~/.claude/settings.json` so permissions work acro
 | Processor (background) | `processor` | `processor-architect` |
 | Gateway (REST API) | `gateway-consumer` / `gateway-management` | `gateway-architect` |
 | Control Panel (Blazor) | `controlpanel-module` | `controlpanel-architect` |
+
+### Coming in v1.1+
+
+| Pattern | Version | Description |
+|---------|---------|-------------|
+| Simple REST Microservices | v1.1 | Database-per-service, Minimal API, no event sourcing |
+| MassTransit Messaging | v1.1 | RabbitMQ, Kafka, Azure Service Bus, AWS SQS via one API |
+| YARP API Gateway | v1.1 | Microsoft reverse proxy replacing custom gateways |
+| Saga / Choreography | v1.2 | Distributed transactions, compensation logic |
+| Dapr Integration | v1.2 | Sidecar for state, pub/sub, service invocation |
+| SignalR Real-Time | v1.2 | Push notifications from services to clients |
 
 ### Multi-Repo Support
 
