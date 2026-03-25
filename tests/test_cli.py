@@ -986,3 +986,172 @@ def test_extension_remove_not_installed(tmp_path: Path, monkeypatch) -> None:
     result = runner.invoke(app, ["extension-remove", "nonexistent"])
     assert result.exit_code == 1
     assert "not installed" in result.output.lower()
+
+
+# ---------------------------------------------------------------------------
+# Bug fixes: init --force, upgrade permissions, upgrade --force, configure defaults
+# ---------------------------------------------------------------------------
+
+
+def test_init_force_preserves_existing_config(tmp_path: Path) -> None:
+    """init --force should preserve existing config.yml settings (company, repos, permissions)."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    # First init
+    runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
+
+    # Manually set config to full permissions and company name
+    config_path = tmp_path / ".dotnet-ai-kit" / "config.yml"
+    config_path.write_text(
+        "version: '1.0'\n"
+        "company:\n"
+        "  name: 'Acme'\n"
+        "  github_org: 'acme-org'\n"
+        "  default_branch: master\n"
+        "permissions_level: full\n"
+        "ai_tools:\n  - claude\n"
+        "command_style: both\n",
+        encoding="utf-8",
+    )
+
+    # Re-init with --force
+    result = runner.invoke(
+        app, ["init", str(tmp_path), "--ai", "claude", "--force"], catch_exceptions=False
+    )
+    assert result.exit_code == 0, result.output
+
+    # Config should preserve existing values
+    saved = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    assert saved["company"]["name"] == "Acme"
+    assert saved["company"]["github_org"] == "acme-org"
+    assert saved["permissions_level"] == "full"
+
+
+def test_init_force_applies_full_permissions(tmp_path: Path) -> None:
+    """init --force with permissions_level=full should write bypassPermissions to settings.json."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    # First init
+    runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
+
+    # Set permissions to full
+    config_path = tmp_path / ".dotnet-ai-kit" / "config.yml"
+    config_path.write_text(
+        "version: '1.0'\n"
+        "permissions_level: full\n"
+        "ai_tools:\n  - claude\n"
+        "command_style: both\n",
+        encoding="utf-8",
+    )
+
+    # Re-init with --force
+    runner.invoke(
+        app, ["init", str(tmp_path), "--ai", "claude", "--force"], catch_exceptions=False
+    )
+
+    settings_path = tmp_path / ".claude" / "settings.json"
+    assert settings_path.is_file()
+    data = json.loads(settings_path.read_text(encoding="utf-8"))
+    assert data["permissions"]["defaultMode"] == "bypassPermissions"
+    # Full template has 100+ entries
+    assert len(data["permissions"]["allow"]) > 50
+
+
+def test_upgrade_reapplies_permissions_when_level_changes(tmp_path: Path, monkeypatch) -> None:
+    """upgrade should re-apply permissions even when settings.json already has entries."""
+    from dotnet_ai_kit import __version__
+
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    # Init (creates standard permissions in settings.json)
+    runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
+
+    # Change config to full permissions
+    config_path = tmp_path / ".dotnet-ai-kit" / "config.yml"
+    config_path.write_text(
+        "version: '1.0'\n"
+        "permissions_level: full\n"
+        "ai_tools:\n  - claude\n"
+        "command_style: both\n",
+        encoding="utf-8",
+    )
+
+    # Tamper version to trigger upgrade
+    version_file = tmp_path / ".dotnet-ai-kit" / "version.txt"
+    version_file.write_text("0.0.1", encoding="utf-8")
+    monkeypatch.chdir(tmp_path)
+
+    result = runner.invoke(app, ["upgrade"], catch_exceptions=False)
+    assert result.exit_code == 0
+
+    settings_path = tmp_path / ".claude" / "settings.json"
+    data = json.loads(settings_path.read_text(encoding="utf-8"))
+    assert data["permissions"]["defaultMode"] == "bypassPermissions"
+    assert len(data["permissions"]["allow"]) > 50
+
+
+def test_upgrade_force_refreshes_when_version_matches(tmp_path: Path, monkeypatch) -> None:
+    """upgrade --force should refresh files even when version is up to date."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
+    monkeypatch.chdir(tmp_path)
+
+    # Delete a rule file to prove --force re-copies it
+    rules_dir = tmp_path / ".claude" / "rules"
+    rule_files_before = list(rules_dir.glob("*.md"))
+    assert len(rule_files_before) > 0
+    rule_files_before[0].unlink()
+    rules_after_delete = list(rules_dir.glob("*.md"))
+    assert len(rules_after_delete) == len(rule_files_before) - 1
+
+    # Without --force, upgrade does nothing
+    result = runner.invoke(app, ["upgrade"], catch_exceptions=False)
+    assert "up to date" in result.output.lower()
+    assert len(list(rules_dir.glob("*.md"))) == len(rule_files_before) - 1
+
+    # With --force, upgrade refreshes
+    result = runner.invoke(app, ["upgrade", "--force"], catch_exceptions=False)
+    assert result.exit_code == 0
+    assert len(list(rules_dir.glob("*.md"))) == len(rule_files_before)
+
+
+def test_configure_respects_existing_permission_default(tmp_path: Path, monkeypatch) -> None:
+    """configure interactive should default to existing permission level, not hardcoded standard."""
+    config_dir = tmp_path / ".dotnet-ai-kit"
+    config_dir.mkdir(parents=True)
+    config_path = config_dir / "config.yml"
+    config_path.write_text(
+        "version: '1.0'\nai_tools:\n  - claude\npermissions_level: full\n"
+        "command_style: short\ncompany:\n  name: 'Test'\n  github_org: ''\n  default_branch: main\n",
+        encoding="utf-8",
+    )
+    monkeypatch.chdir(tmp_path)
+
+    with (
+        patch("dotnet_ai_kit.cli.Prompt.ask") as mock_prompt,
+        patch("dotnet_ai_kit.cli.questionary") as mock_questionary,
+    ):
+        # Simulate user pressing Enter on all prompts (accepting defaults)
+        def prompt_side_effect(prompt_text, **kwargs):
+            return kwargs.get("default", "")
+
+        mock_prompt.side_effect = prompt_side_effect
+        mock_checkbox = MagicMock()
+        mock_checkbox.ask.return_value = ["claude"]
+        mock_questionary.checkbox.return_value = mock_checkbox
+        mock_questionary.Choice = MagicMock(side_effect=lambda title, **kw: title)
+
+        result = runner.invoke(app, ["configure"], catch_exceptions=False)
+
+    assert result.exit_code == 0, result.output
+
+    saved = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    # Pressing Enter should keep full (default="3" mapped from existing "full")
+    assert saved["permissions_level"] == "full"
+    # Pressing Enter should keep short (default="2" mapped from existing "short")
+    assert saved["command_style"] == "short"
