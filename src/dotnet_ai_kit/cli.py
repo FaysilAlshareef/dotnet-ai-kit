@@ -346,9 +346,18 @@ def init(
     (config_dir / "memory").mkdir(parents=True, exist_ok=True)
     (config_dir / "features").mkdir(parents=True, exist_ok=True)
 
-    # Step 4: Save config
-    config = DotnetAiConfig(ai_tools=ai_tools)
+    # Step 4: Save config (preserve existing config on --force)
     config_path = config_dir / "config.yml"
+    if force and config_path.is_file():
+        try:
+            config = load_config(config_path)
+            if ai:
+                config.ai_tools = ai_tools
+            _verbose_log(verbose, "Loaded existing config (--force preserves settings).")
+        except (FileNotFoundError, ValueError):
+            config = DotnetAiConfig(ai_tools=ai_tools)
+    else:
+        config = DotnetAiConfig(ai_tools=ai_tools)
     save_config(config, config_path)
     if not json_output:
         console.print(f"  Created: {config_path.relative_to(target)}")
@@ -696,6 +705,11 @@ def check(
 
 @app.command()
 def upgrade(
+    force: bool = typer.Option(
+        False,
+        "--force",
+        help="Force upgrade even if version is up to date.",
+    ),
     verbose: bool = typer.Option(
         False,
         "--verbose",
@@ -738,7 +752,7 @@ def upgrade(
     if version_path.is_file():
         old_version = version_path.read_text(encoding="utf-8").strip()
 
-    if old_version == __version__:
+    if old_version == __version__ and not force:
         if json_output:
             print(json.dumps({"status": "up_to_date", "version": __version__}))
         else:
@@ -850,22 +864,12 @@ def upgrade(
     # Update version file
     version_path.write_text(__version__, encoding="utf-8")
 
-    # Detect and fix permission gap (permissions_level set but not applied)
-    settings_path = target / ".claude" / "settings.json"
-    has_permissions = False
-    if settings_path.is_file():
-        try:
-            import json as _json
-
-            _data = _json.loads(settings_path.read_text(encoding="utf-8"))
-            has_permissions = bool(_data.get("permissions", {}).get("allow"))
-        except (ValueError, OSError):
-            pass
-    if not has_permissions and config.permissions_level:
+    # Always re-apply permissions to ensure settings.json matches config.yml
+    if config.permissions_level:
         try:
             perm_result = copy_permissions(target, config, _get_package_dir())
             save_config(config, config_path)
-            if not json_output:
+            if not json_output and perm_result["changed"]:
                 console.print(
                     f"  Permissions: {perm_result['entries_count']} rules applied "
                     f"(mode: {perm_result['mode']}) -> {perm_result['settings_path']}"
@@ -1052,13 +1056,15 @@ def configure(
         config.company.default_branch = default_branch
 
         # Permission level (T040)
+        perm_default_map = {"minimal": "1", "standard": "2", "full": "3"}
+        perm_default = perm_default_map.get(config.permissions_level, "2")
         perm_choice = Prompt.ask(
             "Permission level\n"
             "  [bold]1[/bold]. Minimal   - Only dotnet build/test/restore\n"
             "  [bold]2[/bold]. Standard  - Common dev commands (recommended)\n"
             "  [bold]3[/bold]. Full      - All commands including Docker",
             choices=["1", "2", "3"],
-            default="2",
+            default=perm_default,
         )
         perm_map = {"1": "minimal", "2": "standard", "3": "full"}
         config.permissions_level = perm_map.get(perm_choice, "standard")
@@ -1079,13 +1085,15 @@ def configure(
             config.ai_tools = tools_result
 
         # Command style single-select (T042)
+        style_default_map = {"full": "1", "short": "2", "both": "3"}
+        style_default = style_default_map.get(config.command_style, "3")
         style_choice = Prompt.ask(
             "Command style\n"
             "  [bold]1[/bold]. Full   - Full command names only\n"
             "  [bold]2[/bold]. Short  - Short aliases only\n"
             "  [bold]3[/bold]. Both   - Both full names and short aliases",
             choices=["1", "2", "3"],
-            default="3",
+            default=style_default,
         )
         style_map = {"1": "full", "2": "short", "3": "both"}
         config.command_style = style_map.get(style_choice, "both")
