@@ -13,8 +13,12 @@ if [[ "$HOOK_ENABLED" != "true" ]]; then
   exit 0
 fi
 
-# The edited file path is passed as the first argument
-FILE_PATH="${1:-}"
+# Read file path from Claude Code hook stdin (JSON) or fallback to $1
+if [ ! -t 0 ]; then
+  INPUT_JSON=$(cat)
+  FILE_PATH=$(echo "$INPUT_JSON" | python3 -c "import sys,json;d=json.load(sys.stdin);print(d.get('tool_input',{}).get('file_path',''))" 2>/dev/null || echo "")
+fi
+FILE_PATH="${FILE_PATH:-${1:-}}"
 if [[ -z "$FILE_PATH" ]]; then
   exit 0
 fi

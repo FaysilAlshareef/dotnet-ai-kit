@@ -375,3 +375,8 @@ dist/
 .pytest_cache/
 htmlcov/
 .coverage
+
+# Claude Code local files (not for distribution)
+.claude/settings.local.json
+.claude/projects/
+.claude/commands/
