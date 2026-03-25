@@ -139,6 +139,12 @@ Add missing XML documentation comments to public APIs.
 - Scan: public classes, methods, properties without `///` comments
 - Generate: XML doc comments with `<summary>`, `<param>`, `<returns>`
 - Modify source files in-place (only adds comments, never changes code)
+- After modifications: run `dotnet build` to verify compilation
+- Record all modified files in the active feature's `undo-log.md`:
+  ```
+  ## Docs Code - XML Comments ({DATE})
+  - modified: {file path} (added XML doc comments)
+  ```
 
 ## Subcommand: `feature`
 

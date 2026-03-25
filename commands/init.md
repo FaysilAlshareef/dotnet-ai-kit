@@ -18,7 +18,15 @@ Check if `.dotnet-ai-kit/` directory already exists. If it does, report the curr
 dotnet-ai init . --ai claude $ARGUMENTS
 ```
 
-This creates the config directory, copies commands and rules.
+This creates the config directory, copies commands/rules, and applies permissions to `.claude/settings.json`.
+
+After the command completes, verify:
+1. Exit code was 0 (if non-zero, report the error and stop)
+2. `.dotnet-ai-kit/config.yml` exists
+3. `.dotnet-ai-kit/version.txt` exists
+4. `.claude/settings.json` exists and has permission entries
+
+If `dotnet-ai` is not installed, tell the user: "dotnet-ai CLI not found. Install: `pip install dotnet-ai-kit`"
 
 ### Step 3: Detect project type using AI
 
