@@ -1,0 +1,152 @@
+{
+  "permissions": {
+    "allow": [
+      "Bash(cd)",
+      "Bash(cd *)",
+      "Bash(ls)",
+      "Bash(ls *)",
+      "Bash(dir)",
+      "Bash(dir *)",
+      "Bash(tree)",
+      "Bash(tree *)",
+      "Bash(pwd)",
+      "Bash(find *)",
+      "Bash(cat *)",
+      "Bash(head *)",
+      "Bash(tail *)",
+      "Bash(wc *)",
+      "Bash(cp *)",
+      "Bash(mv *)",
+      "Bash(rm *)",
+      "Bash(mkdir *)",
+      "Bash(touch *)",
+      "Bash(chmod *)",
+      "Bash(stat *)",
+      "Bash(file *)",
+      "Bash(echo *)",
+      "Bash(less *)",
+      "Bash(more *)",
+      "Bash(dotnet)",
+      "Bash(dotnet *)",
+      "Bash(dotnet build *)",
+      "Bash(dotnet test *)",
+      "Bash(dotnet run *)",
+      "Bash(dotnet restore *)",
+      "Bash(dotnet publish *)",
+      "Bash(dotnet format *)",
+      "Bash(dotnet new *)",
+      "Bash(dotnet ef *)",
+      "Bash(dotnet watch *)",
+      "Bash(dotnet clean *)",
+      "Bash(dotnet add *)",
+      "Bash(dotnet remove *)",
+      "Bash(dotnet list *)",
+      "Bash(dotnet tool *)",
+      "Bash(dotnet nuget *)",
+      "Bash(dotnet pack *)",
+      "Bash(dotnet migrate *)",
+      "Bash(git *)",
+      "Bash(git status)",
+      "Bash(git diff)",
+      "Bash(git log)",
+      "Bash(git stash)",
+      "Bash(gh *)",
+      "Bash(npm *)",
+      "Bash(node *)",
+      "Bash(ng *)",
+      "Bash(yarn *)",
+      "Bash(pnpm *)",
+      "Bash(npx *)",
+      "Bash(tsc *)",
+      "Bash(webpack *)",
+      "Bash(vite *)",
+      "Bash(docker *)",
+      "Bash(docker-compose *)",
+      "Bash(docker compose *)",
+      "Bash(podman *)",
+      "Bash(grep *)",
+      "Bash(rg *)",
+      "Bash(ag *)",
+      "Bash(ack *)",
+      "Bash(curl *)",
+      "Bash(wget *)",
+      "Bash(which *)",
+      "Bash(where *)",
+      "Bash(env)",
+      "Bash(env *)",
+      "Bash(set *)",
+      "Bash(export *)",
+      "Bash(sed *)",
+      "Bash(awk *)",
+      "Bash(sort *)",
+      "Bash(uniq *)",
+      "Bash(xargs *)",
+      "Bash(tee *)",
+      "Bash(tr *)",
+      "Bash(cut *)",
+      "Bash(paste *)",
+      "Bash(diff *)",
+      "Bash(patch *)",
+      "Bash(tar *)",
+      "Bash(zip *)",
+      "Bash(unzip *)",
+      "Bash(jq *)",
+      "Bash(yq *)",
+      "Bash(python *)",
+      "Bash(python3 *)",
+      "Bash(pip *)",
+      "Bash(pip3 *)",
+      "Bash(pytest *)",
+      "Bash(ruff *)",
+      "Bash(powershell *)",
+      "Bash(pwsh *)",
+      "Bash(coderabbit *)",
+      "WebSearch",
+      "WebFetch(domain:github.com)",
+      "WebFetch(domain:devblogs.microsoft.com)",
+      "WebFetch(domain:learn.microsoft.com)"
+    ]
+  },
+  "hooks": {
+    "PreToolUse": [
+      {
+        "matcher": "Bash",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash hooks/pre-bash-guard.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash(git commit*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash hooks/pre-commit-lint.sh"
+          }
+        ]
+      }
+    ],
+    "PostToolUse": [
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash hooks/post-edit-format.sh"
+          }
+        ]
+      },
+      {
+        "matcher": "Bash(dotnet new*)",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "bash hooks/post-scaffold-restore.sh"
+          }
+        ]
+      }
+    ]
+  }
+}

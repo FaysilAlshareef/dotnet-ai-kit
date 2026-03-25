@@ -13,8 +13,12 @@ if [[ "$HOOK_ENABLED" != "true" ]]; then
   exit 0
 fi
 
-# The executed command is passed as the first argument
-COMMAND="${1:-}"
+# Read command from Claude Code hook stdin (JSON) or fallback to $1
+if [ ! -t 0 ]; then
+  INPUT_JSON=$(cat)
+  COMMAND=$(echo "$INPUT_JSON" | python3 -c "import sys,json;d=json.load(sys.stdin);print(d.get('tool_input',{}).get('command',''))" 2>/dev/null || echo "")
+fi
+COMMAND="${COMMAND:-${1:-}}"
 if [[ -z "$COMMAND" ]]; then
   exit 0
 fi

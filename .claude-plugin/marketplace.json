@@ -1,0 +1,15 @@
+{
+  "name": "dotnet-ai-kit",
+  "owner": {
+    "name": "Faysil Alshareef",
+    "url": "https://github.com/FaysilAlshareef"
+  },
+  "plugins": [
+    {
+      "name": "dotnet-ai-kit",
+      "source": ".",
+      "description": "Full .NET development lifecycle — 26 commands, 106 skills, 9 rules, 13 agents. SDD workflow, code generation, AI detection for VSA, Clean Arch, DDD, CQRS Microservices.",
+      "version": "1.0.0"
+    }
+  ]
+}

@@ -4,6 +4,8 @@
   "description": "Full .NET development lifecycle — 26 commands, 106 skills, 9 rules, 13 agents. SDD workflow, code generation, AI detection for VSA, Clean Arch, DDD, CQRS Microservices.",
   "author": "Faysil Alshareef",
   "homepage": "https://github.com/FaysilAlshareef/dotnet-ai-kit",
+  "repository": "https://github.com/FaysilAlshareef/dotnet-ai-kit",
+  "license": "MIT",
   "tags": [
     "dotnet",
     "csharp",
