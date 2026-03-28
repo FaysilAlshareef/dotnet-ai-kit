@@ -1,5 +1,6 @@
 ---
 name: dotnet-ai-solid-principles
+alwaysApply: true
 description: >
   SOLID principles with C# examples, decision guidance for when to apply each principle,
   anti-patterns for over-engineering, and practical trade-offs.

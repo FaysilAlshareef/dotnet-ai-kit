@@ -1,5 +1,6 @@
 ---
 name: dotnet-ai-coding-conventions
+alwaysApply: true
 description: >
   Company-agnostic C# coding conventions. File-scoped namespaces, sealed classes,
   expression-bodied members, var usage, async naming, XML doc patterns.

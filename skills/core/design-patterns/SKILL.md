@@ -1,5 +1,6 @@
 ---
 name: dotnet-ai-design-patterns
+alwaysApply: true
 description: >
   Modern C# design pattern catalog with decision guidance, when to use each pattern,
   when NOT to use, and which GoF patterns are replaced by language features.

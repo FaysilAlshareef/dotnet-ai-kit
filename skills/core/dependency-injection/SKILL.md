@@ -1,5 +1,6 @@
 ---
 name: dotnet-ai-dependency-injection
+alwaysApply: true
 description: >
   DI registration patterns, service lifetimes, keyed services, Options pattern,
   decorator pattern, and factory delegates.

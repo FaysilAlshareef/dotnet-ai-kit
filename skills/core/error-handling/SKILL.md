@@ -1,5 +1,6 @@
 ---
 name: dotnet-ai-error-handling
+alwaysApply: true
 description: >
   Domain exception hierarchy, ProblemDetails for REST, RpcException for gRPC,
   interceptor-based mapping, structured error codes, and error logging.

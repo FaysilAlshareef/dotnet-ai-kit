@@ -1,5 +1,6 @@
 ---
 name: dotnet-ai-functional-csharp
+alwaysApply: true
 description: >
   Functional programming patterns in C# — Result types, railway-oriented programming,
   pure functions, immutability, pattern matching, and OOP vs FP decision guidance.

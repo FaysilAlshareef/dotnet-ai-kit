@@ -1,5 +1,6 @@
 ---
 name: dotnet-ai-csharp-idioms
+alwaysApply: true
 description: >
   Modern C# idioms and language features. File-scoped namespaces, records,
   pattern matching, primary constructors, collection expressions.

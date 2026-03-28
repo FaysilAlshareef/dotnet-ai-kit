@@ -1,5 +1,6 @@
 ---
 name: dotnet-ai-async-patterns
+alwaysApply: true
 description: >
   Async/await best practices, CancellationToken propagation, Task patterns,
   ValueTask usage, and common async pitfalls.

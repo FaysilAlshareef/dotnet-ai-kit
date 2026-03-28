@@ -1,5 +1,6 @@
 ---
 name: dotnet-ai-modern-csharp
+alwaysApply: true
 description: >
   Modern C# 12/13/14 language features: primary constructors, records, collection expressions,
   field keyword, pattern matching, file-scoped namespaces, required members, raw string literals.

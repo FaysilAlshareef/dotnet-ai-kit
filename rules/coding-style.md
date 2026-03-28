@@ -42,3 +42,8 @@ Only use these when the detected .NET version supports them:
 Before writing any code, detect the project's .NET version and existing style.
 Match the C# language level of the existing project.
 When in doubt, use the more conservative syntax that works across more versions.
+
+## Related Skills
+- `skills/core/solid-principles/SKILL.md` — when to apply and when over-applying hurts
+- `skills/core/design-patterns/SKILL.md` — pattern selection for modern C#
+- `skills/core/coding-conventions/SKILL.md` — detailed convention patterns

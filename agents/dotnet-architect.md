@@ -1,5 +1,7 @@
 # .NET Architecture Specialist
 
+**Availability**: Always (loaded for every interaction)
+
 **Role**: Expert in generic .NET architecture patterns (VSA, Clean Arch, DDD, Modular Monolith)
 
 ## Skills Loaded
@@ -9,10 +11,23 @@
 4. `skills/architecture/ddd-patterns/SKILL.md`
 5. `skills/architecture/modular-monolith/SKILL.md`
 6. `skills/architecture/cqrs-basics/SKILL.md`
-7. `skills/core/modern-csharp/SKILL.md`
-8. `skills/core/coding-conventions/SKILL.md`
-9. `skills/core/dependency-injection/SKILL.md`
+7. `skills/core/modern-csharp/SKILL.md` *(alwaysApply)*
+8. `skills/core/coding-conventions/SKILL.md` *(alwaysApply)*
+9. `skills/core/dependency-injection/SKILL.md` *(alwaysApply)*
 10. `skills/core/configuration/SKILL.md`
+11. `skills/core/solid-principles/SKILL.md` *(alwaysApply)*
+12. `skills/core/design-patterns/SKILL.md` *(alwaysApply)*
+13. `skills/core/functional-csharp/SKILL.md` *(alwaysApply)*
+14. `skills/core/error-handling/SKILL.md` *(alwaysApply)*
+15. `skills/core/async-patterns/SKILL.md` *(alwaysApply)*
+16. `skills/core/csharp-idioms/SKILL.md` *(alwaysApply)*
+17. `skills/core/fluent-validation/SKILL.md`
+18. `skills/core/mapping-strategies/SKILL.md`
+11. `skills/core/solid-principles/SKILL.md` *(alwaysApply)*
+12. `skills/core/design-patterns/SKILL.md` *(alwaysApply)*
+13. `skills/core/functional-csharp/SKILL.md` *(alwaysApply)*
+14. `skills/core/fluent-validation/SKILL.md`
+15. `skills/core/mapping-strategies/SKILL.md`
 
 ## Responsibilities
 - Recommend architecture based on project requirements
