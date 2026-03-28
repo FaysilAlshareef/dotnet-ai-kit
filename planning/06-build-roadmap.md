@@ -30,7 +30,7 @@
 ```
 dotnet-ai-kit/
 ├── .claude-plugin/plugin.json
-├── .claude/rules/ (9 rules)
+├── .claude/rules/ (15 rules)
 ├── CLAUDE.md
 ├── AGENTS.md
 └── LICENSE
@@ -252,7 +252,7 @@ The most complex phase:
 | 02 | `02-skills-inventory.md` | 120 skills with detailed descriptions |
 | 03 | `03-agents-design.md` | 13 agents, routing tables, orchestration |
 | 04 | `04-commands-design.md` | 27 commands, SDD lifecycle flows |
-| 05 | `05-rules-design.md` | 9 always-loaded rules |
+| 05 | `05-rules-design.md` | 15 always-loaded rules |
 | 06 | `06-build-roadmap.md` | Build phases and roadmap (this file) |
 | 07 | `07-project-structure.md` | Source repo + user project file trees |
 | 08 | `08-multi-repo-orchestration.md` | Multi-repo workspace, dependency chain |

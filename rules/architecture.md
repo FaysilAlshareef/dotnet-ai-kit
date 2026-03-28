@@ -59,3 +59,7 @@ If the project uses a different pattern than expected, follow what exists.
 3. Look for existing patterns: MediatR, CQRS, Event Sourcing, Repository pattern
 4. Identify if the project is microservice-based (gRPC, Service Bus) or monolithic
 5. Apply the rules matching the detected architecture -- never impose a different one
+
+## Related Skills
+- `skills/core/solid-principles/SKILL.md` — DIP for layer boundaries, ISP for focused interfaces
+- `skills/core/design-patterns/SKILL.md` — mediator, strategy, decorator patterns in architecture

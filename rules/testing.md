@@ -61,3 +61,6 @@ Match the existing test style. Never introduce a different test framework.
 2. Identify the test framework (xUnit, NUnit, MSTest, pytest)
 3. Look for existing test utilities (Fakers, Asserts, Fixtures)
 4. Follow the established patterns for all new tests
+
+## Related Skills
+- `skills/core/fluent-validation/SKILL.md` — validation testing patterns

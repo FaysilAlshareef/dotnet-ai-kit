@@ -15,6 +15,12 @@
 10. `skills/security/auth-policies/SKILL.md`
 11. `skills/api/content-negotiation/SKILL.md`
 12. `skills/api/controller-patterns/SKILL.md`
+13. `skills/api/caching-strategies/SKILL.md`
+14. `skills/api/rate-limiting/SKILL.md`
+15. `skills/api/signalr-realtime/SKILL.md`
+16. `skills/api/grpc-design/SKILL.md`
+17. `skills/security/cors-configuration/SKILL.md`
+18. `skills/security/input-sanitization/SKILL.md`
 
 ## Responsibilities
 - Design Minimal API endpoints or Controllers

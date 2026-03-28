@@ -40,3 +40,7 @@ Detect and follow the existing error handling pattern in the project.
 2. Identify whether the project uses Result pattern, exceptions, or ProblemDetails
 3. Follow the established pattern for all new error handling code
 4. If no pattern exists, choose based on the project mode (microservice or generic)
+
+## Related Skills
+- `skills/core/functional-csharp/SKILL.md` — Result<T> pattern, railway-oriented programming
+- `skills/core/fluent-validation/SKILL.md` — standalone validation patterns

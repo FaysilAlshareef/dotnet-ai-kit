@@ -354,7 +354,7 @@ public sealed class OrderServiceImpl : OrderService.OrderServiceBase
 
 ### Error Handling
 
-Map domain exceptions to gRPC status codes consistently:
+Map domain exceptions to gRPC status codes via interceptor (see `skills/microservice/grpc/interceptors/SKILL.md` for full pattern):
 
 | gRPC Status Code | Use When |
 |------------------|----------|
@@ -362,53 +362,14 @@ Map domain exceptions to gRPC status codes consistently:
 | `NotFound` | Entity does not exist |
 | `AlreadyExists` | Duplicate create attempt |
 | `PermissionDenied` | Caller lacks permission |
-| `Unauthenticated` | No valid credentials |
 | `FailedPrecondition` | Business rule violation |
 | `Internal` | Unexpected server error (do not leak details) |
 
-Use an interceptor for centralized error mapping:
-
-```csharp
-public sealed class ExceptionInterceptor : Interceptor
-{
-    public override async Task<TResponse> UnaryServerHandler<TRequest, TResponse>(
-        TRequest request, ServerCallContext context,
-        UnaryServerMethod<TRequest, TResponse> continuation)
-    {
-        try
-        {
-            return await continuation(request, context);
-        }
-        catch (NotFoundException ex)
-        {
-            throw new RpcException(new Status(StatusCode.NotFound, ex.Message));
-        }
-        catch (ValidationException ex)
-        {
-            throw new RpcException(new Status(StatusCode.InvalidArgument, ex.Message));
-        }
-    }
-}
-```
-
 ## 9. Proto Versioning Strategy
 
-- **Non-breaking changes** (add fields, add RPCs, add enum values): do in-place.
-- **Breaking changes** (rename fields, change types, remove RPCs): create a new version (`v2`).
-- Run both versions simultaneously. Migrate clients gradually. Deprecate old version with a timeline.
-- Use `reserved` to mark removed fields so numbers are never reused.
-
-```
-protos/contoso/ordering/v1/order_service.proto   # stable, maintained
-protos/contoso/ordering/v2/order_service.proto   # new version with breaking changes
-```
-
-Register both in `Program.cs`:
-
-```csharp
-app.MapGrpcService<V1.OrderServiceImpl>();
-app.MapGrpcService<V2.OrderServiceImpl>();
-```
+- **Non-breaking** (add fields/RPCs/enum values): do in-place
+- **Breaking** (rename/remove/change types): create new version (`v2`), run both, migrate gradually
+- Use `reserved` to mark removed fields so numbers are never reused
 
 ## 10. Decision Guide
 

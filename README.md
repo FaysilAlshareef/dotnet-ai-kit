@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <code>120 skills</code> · <code>13 agents</code> · <code>27 commands</code> · <code>9 rules</code> · <code>12 architectures</code> · <code>4 safety hooks</code> · <code>13 templates</code>
+  <code>120 skills</code> · <code>13 agents</code> · <code>27 commands</code> · <code>15 rules</code> · <code>12 architectures</code> · <code>4 safety hooks</code> · <code>13 templates</code>
 </p>
 
 ---
@@ -72,7 +72,7 @@ dotnet-ai init . --ai claude
 /plugin install dotnet-ai-kit
 ```
 
-All 27 commands, 120 skills, 13 agents, 9 rules, and 4 safety hooks are available immediately.
+All 27 commands, 120 skills, 13 agents, 15 rules, and 4 safety hooks are available immediately.
 
 <details>
 <summary><b>See plugin install demo</b></summary>
@@ -214,7 +214,7 @@ This single command automatically runs the full 9-phase lifecycle:
 </td></tr>
 </table>
 
-### 9 Convention Rules (Always Active)
+### 15 Convention Rules (Always Active)
 
 | Rule | Purpose |
 |------|---------|
@@ -478,7 +478,7 @@ The tool detects your .NET version from `.csproj` and uses version-appropriate p
 ```
 dotnet-ai-kit/
 ├── commands/          # 27 slash command definitions
-├── rules/             # 9 always-loaded convention rules
+├── rules/             # 15 always-loaded convention rules
 ├── agents/            # 13 specialist agent definitions
 ├── skills/            # 120 skills across 17 categories
 ├── knowledge/         # 16 reference documents
