@@ -1,5 +1,5 @@
 ---
-description: "Create pull requests in all affected repos with linked descriptions"
+description: "Creates a pull request with linked changes. Use when implementation is verified and ready for team review."
 ---
 
 # /dotnet-ai.pr — Pull Request Creation

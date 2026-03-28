@@ -1,5 +1,5 @@
 ---
-description: Interactive configuration wizard for dotnet-ai-kit. Sets company name, repos, permissions, and integrations.
+description: "Opens interactive configuration wizard. Use when changing company name, naming patterns, or permission levels."
 ---
 
 # /dotnet-ai.configure

@@ -1,5 +1,5 @@
 ---
-description: "Generate or update project documentation with 9 subcommands covering README, API, ADR, deployment, and more"
+description: "Generates project documentation. Use when creating README, API docs, ADRs, or deployment guides."
 ---
 
 # Docs

@@ -1,12 +1,13 @@
 ---
-name: dotnet-ai-batch-processing
+name: batch-processing
 description: >
   Batch event processing with BackgroundService, SemaphoreSlim concurrency control,
   AcceptNextSessionAsync, ReceiveMessagesAsync batching, deduplication by SourceId,
   and batch MediatR request. Separate from IHostedService session processor pattern.
   Trigger: batch processing, semaphore, deduplication, BackgroundService, queue listener.
-category: microservice/processor
-agent: processor-architect
+metadata:
+  category: microservice/processor
+  agent: processor-architect
 ---
 
 # Batch Processing — BackgroundService with Session Batching

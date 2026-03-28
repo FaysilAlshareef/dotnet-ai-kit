@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-request-response
+name: request-response
 description: >
   CQRS request/response patterns, FluentValidation integration, Result types,
   and response DTO design.
   Trigger: request response, FluentValidation, validator, DTO, Result.
-category: cqrs
-agent: ef-specialist
+metadata:
+  category: cqrs
+  agent: ef-specialist
 ---
 
 # Request/Response Patterns

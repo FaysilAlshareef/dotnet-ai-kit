@@ -1,12 +1,13 @@
 ---
-name: dotnet-ai-hosted-service
+name: hosted-service
 description: >
   IHostedService with ServiceBusSessionProcessor and paired DLQ processor pattern.
   Covers lifecycle management, exact session processor configuration,
   dead letter sub-processor, graceful shutdown, and error handling.
   Trigger: hosted service, processor, lifecycle, session processor, DLQ.
-category: microservice/processor
-agent: processor-architect
+metadata:
+  category: microservice/processor
+  agent: processor-architect
 ---
 
 # Hosted Service — ServiceBusSessionProcessor Lifecycle

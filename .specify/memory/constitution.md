@@ -1,10 +1,12 @@
 <!--
 Sync Impact Report
 ===================
-- Version change: 1.0.2 → 1.0.3
+- Version change: 1.0.5 → 1.0.6
 - Modified principles: N/A
 - Updated sections:
-  - Technology Constraints: commands 26 → 27 (added /dai.learn), knowledge docs 11 → 16
+  - Technology Constraints: skills 106 → 120
+  - Technology Constraints: rules 9 → 15
+  - Token discipline: rules 9 → 15, budget ~600 → ~900
 - Removed sections: N/A
 - Templates requiring updates: none
 - Follow-up TODOs: none
@@ -112,7 +114,7 @@ The tool MUST prioritize safety and context efficiency:
 **Token discipline**:
 - Skills: maximum 400 lines per file
 - Commands: maximum 200 lines per file
-- Rules: maximum 100 lines per file (9 rules, ~600 lines
+- Rules: maximum 100 lines per file (15 rules, ~900 lines
   total budget)
 - Skills loaded on-demand by commands, not upfront
 - Minimize context window usage while maximizing relevant
@@ -145,9 +147,9 @@ implementation, and linked PR creation.
 - YAML for configuration (`.dotnet-ai-kit/config.yml`)
 
 **Knowledge base composition**:
-- 9 rules (always loaded)
+- 15 rules (always loaded)
 - 13 specialist agents (routing logic in commands)
-- 106 skills (loaded on demand, Agent Skills spec compliant)
+- 120 skills (loaded on demand, Agent Skills spec compliant)
 - 27 commands (slash commands)
 - 16 knowledge documents (reference material)
 - 13 templates (project scaffolds)
@@ -210,4 +212,4 @@ compliance with this constitution. Complexity that violates
 a principle MUST be explicitly justified in the plan's
 Complexity Tracking table.
 
-**Version**: 1.0.3 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-03-26
+**Version**: 1.0.6 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-03-28

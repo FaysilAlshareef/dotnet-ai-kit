@@ -1,12 +1,13 @@
 ---
-name: dotnet-ai-event-handler
+name: event-handler
 description: >
   Query-side event handlers implementing IRequestHandler<Event<T>, bool>. Returns bool
   for message completion. Uses IUnitOfWork with named repository properties, strict
   sequence checking, and idempotent duplicate handling.
   Trigger: event handler, query projection, sequence check, idempotent.
-category: microservice/query
-agent: query-architect
+metadata:
+  category: microservice/query
+  agent: query-architect
 ---
 
 # Event Handler — IRequestHandler<Event<T>, bool>

@@ -1,5 +1,5 @@
 ---
-description: "Review implemented code against standards with optional CodeRabbit integration"
+description: "Reviews code against standards and conventions. Use when implementation is complete and ready for quality check."
 ---
 
 # /dotnet-ai.review — Standards Review

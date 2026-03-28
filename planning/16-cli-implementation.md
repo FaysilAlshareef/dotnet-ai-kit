@@ -404,7 +404,7 @@ Initializing for Claude Code...
   Created: .dotnet-ai-kit/config.yml
   Created: .dotnet-ai-kit/project.yml
   Copied: 27 commands → .claude/commands/
-  Copied: 9 rules → .claude/rules/
+  Copied: 15 rules → .claude/rules/
 
 ✓ dotnet-ai-kit initialized for Claude Code
   Run /dotnet-ai.configure to set up company name and repos
@@ -419,7 +419,7 @@ Mode: Microservice (Command)
 .NET: 10.0
 
 AI Tools:
-  ✓ Claude Code — 27 commands, 9 rules
+  ✓ Claude Code — 27 commands, 15 rules
   ✗ Cursor — not configured
 
 Extensions:

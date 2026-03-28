@@ -1,11 +1,13 @@
 ---
-name: dotnet-ai-error-handling
+name: error-handling
 description: >
   Domain exception hierarchy, ProblemDetails for REST, RpcException for gRPC,
   interceptor-based mapping, structured error codes, and error logging.
   Trigger: error handling, exceptions, problem details, RpcException, error codes.
-category: core
-agent: dotnet-architect
+metadata:
+  category: core
+  agent: dotnet-architect
+  alwaysApply: true
 ---
 
 # Error Handling Patterns

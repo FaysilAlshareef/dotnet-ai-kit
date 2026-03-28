@@ -1,10 +1,11 @@
 ---
-name: dotnet-ai-specification-pattern
+name: specification-pattern
 description: >
   Specification pattern for composable query criteria. ISpecification interface,
   BaseSpecification with expression trees, repository integration.
-category: data
-agent: ef-specialist
+metadata:
+  category: data
+  agent: ef-specialist
 ---
 
 # Specification Pattern

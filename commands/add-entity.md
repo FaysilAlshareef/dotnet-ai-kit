@@ -1,5 +1,5 @@
 ---
-description: "Add a new entity with event handlers to a query-side project (SQL or Cosmos)"
+description: "Generates a query-side entity with handler. Use when adding a new read model for projections."
 ---
 
 # Add Entity

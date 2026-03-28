@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-feature-tracking
+name: feature-tracking
 description: >
   Feature directory structure and status progression for tracking development.
   Covers feature briefs, specs, status files, and multi-service coordination.
   Trigger: feature tracking, status, progress, feature directory.
-category: workflow
-agent: dotnet-architect
+metadata:
+  category: workflow
+  agent: dotnet-architect
 ---
 
 # Feature Tracking — Directory Structure & Status

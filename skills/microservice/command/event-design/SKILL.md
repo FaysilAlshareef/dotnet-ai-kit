@@ -1,12 +1,13 @@
 ---
-name: dotnet-ai-event-design
+name: event-design
 description: >
   Event hierarchy pattern for event-sourced microservices. Covers abstract Event base class,
   generic Event<TData>, IEventData interface, EventType enum, concrete event classes with
   primary constructors, and event data as records.
   Trigger: event sourcing, domain events, event data, event types.
-category: microservice/command
-agent: command-architect
+metadata:
+  category: microservice/command
+  agent: command-architect
 ---
 
 # Event Design -- Event Hierarchy Pattern

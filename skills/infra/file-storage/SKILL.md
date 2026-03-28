@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-file-storage
+name: file-storage
 description: >
   File storage abstraction with Azure Blob Storage and local file system support.
   Covers IFileStorage interface, blob operations, and SAS token generation.
   Trigger: file storage, blob storage, Azure Blob, file upload, download.
-category: infra
-agent: dotnet-architect
+metadata:
+  category: infra
+  agent: dotnet-architect
 ---
 
 # File Storage — Azure Blob & Local Abstraction

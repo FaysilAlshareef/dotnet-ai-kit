@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-changelog-gen
+name: changelog-gen
 description: >
   Changelog generation from git history using Keep a Changelog format.
   Covers conventional commits, semantic versioning, and release notes.
   Trigger: changelog, release notes, conventional commits, version, CHANGELOG.
-category: docs
-agent: docs-engineer
+metadata:
+  category: docs
+  agent: docs-engineer
 ---
 
 # Changelog Generation — Keep a Changelog Format

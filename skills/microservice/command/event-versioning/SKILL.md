@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-event-versioning
+name: event-versioning
 description: >
   Event schema evolution for Event<TData> pattern. Covers backward-compatible changes,
   upcasting, versioned event data classes, migration strategies, and snapshot compatibility.
   Trigger: event versioning, event migration, schema evolution, upcaster, event version.
-category: microservice/command
-agent: command-architect
+metadata:
+  category: microservice/command
+  agent: command-architect
 ---
 
 # Event Versioning — Schema Evolution

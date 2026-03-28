@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-query-string-bindable
+name: query-string-bindable
 description: >
   URL-synchronized filter models for control panel data grids. Covers
   QueryStringBindable base class, two-way URL binding, and PropertyChanged notification.
   Trigger: query string, URL filter, bindable, filter model, URL sync.
-category: microservice/controlpanel
-agent: controlpanel-architect
+metadata:
+  category: microservice/controlpanel
+  agent: controlpanel-architect
 ---
 
 # QueryStringBindable — URL-Synchronized Filters

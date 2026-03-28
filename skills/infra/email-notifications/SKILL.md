@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-email-notifications
+name: email-notifications
 description: >
   Email service abstraction with template rendering. Covers IEmailService interface,
   SendGrid/SES integration, HTML templates, and queue-based sending.
   Trigger: email, notification, SendGrid, SES, template, SMTP.
-category: infra
-agent: dotnet-architect
+metadata:
+  category: infra
+  agent: dotnet-architect
 ---
 
 # Email Notifications — Service Abstraction & Templates

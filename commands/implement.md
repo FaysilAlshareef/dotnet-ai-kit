@@ -1,5 +1,5 @@
 ---
-description: "Execute implementation tasks from the task list with build verification"
+description: "Executes all planned implementation tasks. Use when ready to generate code from the task list."
 ---
 
 # /dotnet-ai.implement — Execute Implementation

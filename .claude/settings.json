@@ -114,7 +114,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash hooks/pre-bash-guard.sh"
+            "command": "bash hooks/pre-bash-guard.sh",
+            "timeout": 10,
+            "statusMessage": "Checking command safety..."
           }
         ]
       },
@@ -123,7 +125,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash hooks/pre-commit-lint.sh"
+            "command": "bash hooks/pre-commit-lint.sh",
+            "timeout": 30,
+            "statusMessage": "Verifying code formatting..."
           }
         ]
       }
@@ -134,7 +138,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash hooks/post-edit-format.sh"
+            "command": "bash hooks/post-edit-format.sh",
+            "timeout": 30,
+            "statusMessage": "Formatting C# file..."
           }
         ]
       },
@@ -143,7 +149,9 @@
         "hooks": [
           {
             "type": "command",
-            "command": "bash hooks/post-scaffold-restore.sh"
+            "command": "bash hooks/post-scaffold-restore.sh",
+            "timeout": 15,
+            "statusMessage": "Restoring packages..."
           }
         ]
       }

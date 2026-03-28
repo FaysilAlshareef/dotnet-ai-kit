@@ -1,12 +1,13 @@
 ---
-name: dotnet-ai-gateway-endpoint
+name: gateway-endpoint
 description: >
   REST controllers in gateway that delegate to gRPC backend services. Covers
   ControllerBaseV1 inheritance, gRPC client injection, inline request/response mapping,
   Paginated<T>, and authorization attributes.
   Trigger: gateway controller, REST endpoint, gRPC client call, API endpoint.
-category: microservice/gateway
-agent: gateway-architect
+metadata:
+  category: microservice/gateway
+  agent: gateway-architect
 ---
 
 # Gateway Endpoint — REST to gRPC Bridge

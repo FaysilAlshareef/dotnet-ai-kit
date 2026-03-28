@@ -1,10 +1,11 @@
 ---
-name: dotnet-ai-audit-trail
+name: audit-trail
 description: >
   Audit trail with IAuditable interface and EF Core interceptor.
   Automatic CreatedAt/UpdatedAt/CreatedBy/UpdatedBy population.
-category: data
-agent: ef-specialist
+metadata:
+  category: data
+  agent: ef-specialist
 ---
 
 # Audit Trail

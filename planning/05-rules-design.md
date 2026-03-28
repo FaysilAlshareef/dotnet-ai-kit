@@ -9,7 +9,7 @@ Each rule file includes YAML frontmatter with `alwaysApply: true` and a `descrip
 
 ---
 
-## Rule Files (9 rules)
+## Rule Files (15 rules)
 
 ### 1. `.claude/rules/naming.md` - Naming Conventions
 

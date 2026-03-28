@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-restful-controllers
+name: controller-patterns
 description: >
   Controller-based API design, action results, model binding, routing,
   and MediatR integration patterns.
   Trigger: controller, ControllerBase, ApiController, action result, REST.
-category: api
-agent: api-designer
+metadata:
+  category: api
+  agent: api-designer
 ---
 
 # Controller Patterns

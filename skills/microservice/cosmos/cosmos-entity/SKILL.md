@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-cosmos-entity
+name: cosmos-entity
 description: >
   Cosmos DB entity design with IContainerDocument, hierarchical partition keys,
   discriminator pattern, and ETag concurrency. Covers entity modeling for NoSQL documents.
   Trigger: cosmos entity, partition key, discriminator, IContainerDocument, NoSQL.
-category: microservice/cosmos
-agent: cosmos-architect
+metadata:
+  category: microservice/cosmos
+  agent: cosmos-architect
 ---
 
 # Cosmos Entity — IContainerDocument Pattern

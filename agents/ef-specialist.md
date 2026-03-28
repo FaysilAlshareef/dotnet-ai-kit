@@ -12,6 +12,7 @@
 7. `skills/cqrs/query-generator/SKILL.md`
 8. `skills/cqrs/pipeline-behaviors/SKILL.md`
 9. `skills/cqrs/notification-handlers/SKILL.md`
+10. `skills/core/fluent-validation/SKILL.md`
 
 ## Responsibilities
 - Design DbContext with proper entity configurations

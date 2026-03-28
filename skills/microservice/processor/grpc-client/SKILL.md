@@ -1,12 +1,13 @@
 ---
-name: dotnet-ai-grpc-client
+name: grpc-client
 description: >
   GrpcClientFactory registration with AddGrpcClient using (provider, client) callback,
   IOptions<ExternalServicesOptions> for URL resolution, and RetryCallerService wrapper
   for resilient gRPC calls with retry loop.
   Trigger: gRPC client, client factory, external service, cross-service call, retry.
-category: microservice/processor
-agent: processor-architect
+metadata:
+  category: microservice/processor
+  agent: processor-architect
 ---
 
 # gRPC Client -- Cross-Service Communication

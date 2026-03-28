@@ -1,5 +1,5 @@
 ---
-description: "Save mid-session progress by committing changes and writing a checkpoint handoff"
+description: "Saves a progress checkpoint for session handoff. Use when pausing work to resume in a later session."
 ---
 
 # Checkpoint

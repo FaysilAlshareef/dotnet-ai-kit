@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-db-transactions
+name: db-transactions
 description: >
   Database transaction management, isolation levels, EF Core transactions,
   and cross-context coordination patterns.
   Trigger: transaction, isolation level, SaveChanges, commit, rollback.
-category: data
-agent: ef-specialist
+metadata:
+  category: data
+  agent: ef-specialist
 ---
 
 # Database Transactions

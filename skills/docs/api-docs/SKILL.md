@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-api-docs
+name: api-docs
 description: >
   OpenAPI enrichment and Markdown API reference generation. Covers operation
   summaries, request/response examples, and gateway documentation patterns.
   Trigger: API documentation, OpenAPI, API reference, endpoint docs.
-category: docs
-agent: docs-engineer
+metadata:
+  category: docs
+  agent: docs-engineer
 ---
 
 # API Docs — OpenAPI Enrichment & Reference

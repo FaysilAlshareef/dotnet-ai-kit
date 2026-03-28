@@ -1,12 +1,13 @@
 ---
-name: dotnet-ai-ef-core-basics
+name: ef-core-basics
 description: >
   Entity Framework Core fundamentals. DbContext configuration, entity
   configuration with IEntityTypeConfiguration, value converters, and
   connection resiliency.
   Trigger: EF Core, DbContext, entity configuration, database, ORM.
-category: data
-agent: ef-specialist
+metadata:
+  category: data
+  agent: ef-specialist
 ---
 
 # EF Core Basics

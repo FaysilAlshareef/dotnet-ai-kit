@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-cosmos-repository
+name: cosmos-repository
 description: >
   Cosmos DB repository pattern with LINQ queries, FeedIterator for pagination,
   point reads, and RU monitoring. Covers container-based data access patterns.
   Trigger: cosmos repository, LINQ query, FeedIterator, point read, RU.
-category: microservice/cosmos
-agent: cosmos-architect
+metadata:
+  category: microservice/cosmos
+  agent: cosmos-architect
 ---
 
 # Cosmos Repository — LINQ Queries & Data Access

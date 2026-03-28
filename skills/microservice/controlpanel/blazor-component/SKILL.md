@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-blazor-component
+name: blazor-component
 description: >
   MudBlazor components for control panel pages. Covers MudDataGrid with server-side
   data, MudDialog for forms, loading states, and gateway integration.
   Trigger: Blazor, MudBlazor, MudDataGrid, data grid, dialog, form.
-category: microservice/controlpanel
-agent: controlpanel-architect
+metadata:
+  category: microservice/controlpanel
+  agent: controlpanel-architect
 ---
 
 # Blazor Component — MudBlazor Page Patterns

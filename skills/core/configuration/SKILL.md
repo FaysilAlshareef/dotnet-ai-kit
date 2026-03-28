@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-configuration
+name: configuration
 description: >
   IConfiguration, Options pattern, appsettings layering, user secrets,
   environment variables, and ValidateOnStart.
   Trigger: configuration, options, appsettings, secrets, IOptions, environment.
-category: core
-agent: dotnet-architect
+metadata:
+  category: core
+  agent: dotnet-architect
 ---
 
 # Configuration & Options Pattern

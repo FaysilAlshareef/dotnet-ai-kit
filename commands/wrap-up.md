@@ -1,5 +1,5 @@
 ---
-description: "End session with comprehensive commits, handoff document, and session summary"
+description: "Ends session with summary and handoff notes. Use when finishing work for the day or handing off to a teammate."
 ---
 
 # Wrap Up

@@ -67,3 +67,6 @@ builder.Services.AddOptions<ServiceBusOptions>()
 3. Verify all options classes have `public const string SectionName`
 4. Look for `?? "fallback"` patterns on config reads — remove and require config
 5. Check for raw `GetConnectionString()` calls — wrap in typed options
+
+## Related Skills
+- `skills/core/dependency-injection/SKILL.md` — DI lifetimes, Options pattern integration

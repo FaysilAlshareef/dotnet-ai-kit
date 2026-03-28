@@ -1,5 +1,5 @@
 ---
-description: "Break an implementation plan into executable tasks organized by phase"
+description: "Breaks the plan into ordered executable tasks. Use when ready to start coding after planning."
 ---
 
 # /dotnet-ai.tasks — Task Generation

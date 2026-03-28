@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-repository-patterns
+name: repository-patterns
 description: >
   Repository pattern with Unit of Work, specification pattern, generic and
   specialized repositories, and proper EF Core integration.
   Trigger: repository, unit of work, specification, IRepository, data access.
-category: data
-agent: ef-specialist
+metadata:
+  category: data
+  agent: ef-specialist
 ---
 
 # Repository & Unit of Work Patterns

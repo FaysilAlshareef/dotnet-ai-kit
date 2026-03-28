@@ -1,5 +1,5 @@
 ---
-description: "Add a new aggregate with initial event(s) to a command-side project"
+description: "Generates an event-sourced aggregate with events. Use when adding a new command-side domain entity."
 ---
 
 # Add Aggregate

@@ -1,5 +1,5 @@
 ---
-description: "Run build, test, and format verification pipeline per affected repo"
+description: "Verifies build, tests, and formatting pass. Use when validating implementation before creating a PR."
 ---
 
 # /dotnet-ai.verify — Verification Pipeline

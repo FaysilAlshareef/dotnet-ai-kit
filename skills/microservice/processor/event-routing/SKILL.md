@@ -1,12 +1,13 @@
 ---
-name: dotnet-ai-event-routing
+name: event-routing
 description: >
   Subject-based event routing with inline switch statement, typed HandleAsync,
   MediatR dispatch, and Serilog LogContext enrichment. No separate EventRouter
   or EventDeserializer class -- routing is inline in each listener.
   Trigger: event routing, subject dispatch, MediatR send, HandleAsync, deserialize.
-category: microservice/processor
-agent: processor-architect
+metadata:
+  category: microservice/processor
+  agent: processor-architect
 ---
 
 # Event Routing — Subject-Based Inline Dispatch

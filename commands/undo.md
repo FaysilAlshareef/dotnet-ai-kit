@@ -1,5 +1,5 @@
 ---
-description: "Revert the last code generation action or specific task with dry-run and confirmation"
+description: "Reverts the last AI-generated changes safely. Use when the last action produced incorrect results."
 ---
 
 # Undo

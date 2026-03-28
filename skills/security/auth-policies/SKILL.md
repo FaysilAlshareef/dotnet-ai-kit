@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-auth-policies
+name: auth-policies
 description: >
   Policy-based authorization with custom requirements, handlers,
   and permission-based access control.
   Trigger: authorization, policy, permission, HasPermission, requirement, handler.
-category: security
-agent: api-designer
+metadata:
+  category: security
+  agent: api-designer
 ---
 
 # Policy-Based Authorization

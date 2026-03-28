@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-serilog-structured
+name: serilog-structured
 description: >
   Serilog configuration with two-stage bootstrap, structured logging,
   enrichers, Seq sink, and request logging middleware.
   Trigger: Serilog, structured logging, logging, Seq, enricher, log.
-category: observability
-agent: devops-engineer
+metadata:
+  category: observability
+  agent: devops-engineer
 ---
 
 # Serilog Structured Logging

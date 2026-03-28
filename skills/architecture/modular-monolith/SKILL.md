@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-modular-monolith
+name: modular-monolith
 description: >
   Modular monolith architecture. Module isolation, inter-module communication,
   shared kernel, and migration path to microservices.
   Trigger: modular monolith, modules, module isolation, module communication.
-category: architecture
-agent: dotnet-architect
+metadata:
+  category: architecture
+  agent: dotnet-architect
 ---
 
 # Modular Monolith

@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-health-checks
+name: health-checks
 description: >
   ASP.NET Core health check endpoints, custom health checks,
   Kubernetes probes, and health check UI.
   Trigger: health check, liveness, readiness, probe, /health.
-category: observability
-agent: devops-engineer
+metadata:
+  category: observability
+  agent: devops-engineer
 ---
 
 # Health Checks

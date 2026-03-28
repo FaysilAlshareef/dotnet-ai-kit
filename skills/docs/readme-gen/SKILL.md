@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-readme-gen
+name: readme-gen
 description: >
   README generation from project analysis. Covers badges, setup instructions,
   architecture diagrams, and API summaries for per-repo and umbrella READMEs.
   Trigger: README, project documentation, badges, setup, getting started.
-category: docs
-agent: docs-engineer
+metadata:
+  category: docs
+  agent: docs-engineer
 ---
 
 # README Generation — Project Analysis

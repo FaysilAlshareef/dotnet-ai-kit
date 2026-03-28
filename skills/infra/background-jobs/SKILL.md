@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-background-jobs
+name: background-jobs
 description: >
   Background job patterns with Hangfire, hosted services, and recurring tasks.
   Covers job scheduling, persistent store, and fire-and-forget patterns.
   Trigger: background job, Hangfire, recurring task, scheduled job, cron.
-category: infra
-agent: dotnet-architect
+metadata:
+  category: infra
+  agent: dotnet-architect
 ---
 
 # Background Jobs — Hangfire & Hosted Services

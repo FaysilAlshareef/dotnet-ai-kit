@@ -1,5 +1,5 @@
 ---
-description: "Explain architecture patterns, code patterns, or tool commands with examples and diagrams"
+description: "Explains code patterns with examples. Use when learning architecture patterns or understanding existing code."
 ---
 
 # Explain

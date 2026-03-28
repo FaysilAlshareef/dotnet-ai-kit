@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-circuit-breaker
+name: circuit-breaker
 description: >
   Circuit breaker pattern for preventing cascading failures.
   Health degradation detection, half-open state, and recovery.
   Trigger: circuit breaker, cascading failure, half-open, break duration.
-category: resilience
-agent: api-designer
+metadata:
+  category: resilience
+  agent: api-designer
 ---
 
 # Circuit Breaker Pattern

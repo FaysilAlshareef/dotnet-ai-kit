@@ -1,5 +1,5 @@
 ---
-description: "Generate complete CRUD operations for an entity with architecture-aware code generation"
+description: "Generates full CRUD stack for an entity. Use when adding complete create/read/update/delete operations."
 ---
 
 # Add CRUD

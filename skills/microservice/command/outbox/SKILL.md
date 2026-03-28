@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-outbox
+name: outbox
 description: >
   Outbox pattern for reliable event publishing. Covers OutboxMessage entity with Event FK,
   CommitEventService with IUnitOfWork, and ServiceBusPublisher with lock + Task.Run + batch
   processing. Trigger: outbox, event publishing, service bus, at-least-once delivery.
-category: microservice/command
-agent: command-architect
+metadata:
+  category: microservice/command
+  agent: command-architect
 ---
 
 # Outbox Pattern -- Reliable Event Publishing
