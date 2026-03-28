@@ -287,7 +287,7 @@ AGENT_CONFIG = {
 
 | Category | Count | Max Lines |
 |----------|-------|-----------|
-| Rules | 6 | 100 each |
+| Rules | 15 | 100 each |
 | Agents | 13 | ~3 KB each |
 | Skills | 104 | 400 each |
 | Commands | 26 | 200 each |

@@ -24,7 +24,8 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `implement.md` routes to all 13 agents via project-type + task-type routing matrix
 - Code-gen commands (`add-aggregate`, `add-entity`, `add-event`, `add-endpoint`, `add-page`, `add-tests`, `add-crud`) load domain-specific specialist agents
 - Lifecycle commands (`review`, `docs`, `verify`, `analyze`, `plan`, `tasks`, `specify`, `clarify`) load purpose-specific agents
-- 9 always-loaded coding convention rules (architecture, coding-style, configuration, error-handling, existing-projects, localization, naming, testing, tool-calls)
+- 15 always-loaded coding convention rules (architecture, coding-style, configuration, error-handling, existing-projects, localization, naming, testing, tool-calls)
+- 6 enforcement rules: security, async-concurrency, data-access, api-design, observability, performance (total: 15 rules)
 - 4 safety/quality hooks: pre-bash-guard (blocks dangerous commands), post-edit-format (auto-format .cs), post-scaffold-restore (auto dotnet restore), pre-commit-lint (format verification)
 - Hook toggleability — each hook can be independently enabled/disabled via settings
 - 13 project scaffold templates (9 microservice + 4 generic: Clean Arch, DDD, Modular Monolith, VSA)

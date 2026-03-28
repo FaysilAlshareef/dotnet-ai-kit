@@ -34,7 +34,7 @@ This document organizes the project's build phases into versioned releases and p
 
 | Component | Count |
 |-----------|-------|
-| Rules | 6 |
+| Rules | 15 |
 | Agents | 13 |
 | Skills | 116 |
 | Commands | 27 |

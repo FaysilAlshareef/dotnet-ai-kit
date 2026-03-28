@@ -30,13 +30,13 @@
 ```
 dotnet-ai-kit/
 ├── .claude-plugin/plugin.json
-├── .claude/rules/ (9 rules)
+├── .claude/rules/ (15 rules)
 ├── CLAUDE.md
 ├── AGENTS.md
 └── LICENSE
 ```
 
-### 1.2 Rules (6 files, ~600 lines total)
+### 1.2 Rules (15 files, ~900 lines total)
 1. `naming.md` - Naming conventions (company-agnostic, uses config)
 2. `coding-style.md` - C# style (version-aware, not version-forcing)
 3. `localization.md` - Resource files, never plain strings

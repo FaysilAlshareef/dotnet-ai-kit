@@ -8,7 +8,7 @@ dotnet-ai-kit/
 ├── .mcp.json          # MCP server config (csharp-ls for C# intelligence)
 ├── src/               # CLI tool (Python 3.10+, typer + pydantic + jinja2 + rich)
 ├── hooks/             # 4 Claude Code hooks (bash-guard, edit-format, scaffold-restore, commit-lint)
-├── rules/             # 9 always-loaded convention files (≤100 lines each)
+├── rules/             # 15 always-loaded convention files (≤100 lines each)
 ├── agents/            # 13 specialist agents (with full skill path references)
 ├── skills/            # 116 skills by domain (≤400 lines each, Agent Skills spec compliant)
 ├── commands/          # 27 command templates (≤200 lines each, each loads appropriate agent)
