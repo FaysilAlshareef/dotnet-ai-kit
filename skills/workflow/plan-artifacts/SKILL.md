@@ -1,5 +1,5 @@
 ---
-name: dotnet-ai-plan-artifacts
+name: plan-artifacts
 description: "Supporting artifact generation for complex features in /dotnet-ai.plan"
 ---
 

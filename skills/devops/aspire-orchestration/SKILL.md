@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-aspire-orchestration
+name: aspire-orchestration
 description: >
   .NET Aspire for local development orchestration and service defaults. Covers
   AppHost configuration, service discovery, and local resource provisioning.
   Trigger: Aspire, orchestration, service defaults, local development, AppHost.
-category: devops
-agent: devops-engineer
+metadata:
+  category: devops
+  agent: devops-engineer
 ---
 
 # Aspire Orchestration — Local Development

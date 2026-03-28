@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-mudblazor-patterns
+name: mudblazor-patterns
 description: >
   MudBlazor theming, dialog patterns, snackbar integration, and common component
   usage for control panel applications.
   Trigger: MudBlazor, theme, dialog, snackbar, expansion panel, card.
-category: microservice/controlpanel
-agent: controlpanel-architect
+metadata:
+  category: microservice/controlpanel
+  agent: controlpanel-architect
 ---
 
 # MudBlazor Patterns — Theming, Dialogs, Snackbar

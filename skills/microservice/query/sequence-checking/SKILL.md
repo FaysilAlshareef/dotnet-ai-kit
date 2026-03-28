@@ -1,12 +1,13 @@
 ---
-name: dotnet-ai-sequence-checking
+name: sequence-checking
 description: >
   Inline sequence validation for idempotent event handlers. Covers the exact guard pattern
   using Sequence != @event.Sequence - 1, returning true for already-processed duplicates,
   and false for out-of-order gaps. No helper class — logic is inlined in each handler.
   Trigger: sequence check, idempotent, event ordering, gap detection.
-category: microservice/query
-agent: query-architect
+metadata:
+  category: microservice/query
+  agent: query-architect
 ---
 
 # Sequence Checking — Inline Idempotent Guard

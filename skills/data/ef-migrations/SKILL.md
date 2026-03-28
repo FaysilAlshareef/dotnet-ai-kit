@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-ef-migrations
+name: ef-migrations
 description: >
   EF Core migration strategy, CI/CD migration application, data seeding,
   idempotent scripts, and migration best practices.
   Trigger: migration, database migration, seed data, schema change, EF migration.
-category: data
-agent: ef-specialist
+metadata:
+  category: data
+  agent: ef-specialist
 ---
 
 # EF Core Migrations

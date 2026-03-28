@@ -1,10 +1,11 @@
 ---
-name: dotnet-ai-cqrs-command-generator
+name: command-generator
 description: >
   CQRS command pattern: command record + handler + validator using
   MediatR and FluentValidation. Three-section file organization.
-category: cqrs
-agent: ef-specialist
+metadata:
+  category: cqrs
+  agent: ef-specialist
 ---
 
 # CQRS Command Generator

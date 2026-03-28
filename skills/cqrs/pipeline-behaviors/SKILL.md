@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-pipeline-behaviors
+name: pipeline-behaviors
 description: >
   MediatR pipeline behaviors for validation, logging, performance monitoring,
   and transaction management.
   Trigger: pipeline behavior, IPipelineBehavior, validation behavior, logging behavior.
-category: cqrs
-agent: ef-specialist
+metadata:
+  category: cqrs
+  agent: ef-specialist
 ---
 
 # Pipeline Behaviors

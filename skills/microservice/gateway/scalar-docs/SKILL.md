@@ -1,12 +1,13 @@
 ---
-name: dotnet-ai-scalar-docs
+name: scalar-docs
 description: >
   Scalar API documentation for gateway endpoints. Covers AddOpenApiDocumentation,
   AddBaseScalarApiDocumentation, OpenApiDocEntry, BearerSecuritySchemeTransformer,
   ScalarBasicAuthMiddleware, and Pentagon rate limiting.
   Trigger: Scalar, API docs, OpenAPI, documentation UI, Pentagon.
-category: microservice/gateway
-agent: gateway-architect
+metadata:
+  category: microservice/gateway
+  agent: gateway-architect
 ---
 
 # Scalar Docs — API Documentation & Rate Limiting

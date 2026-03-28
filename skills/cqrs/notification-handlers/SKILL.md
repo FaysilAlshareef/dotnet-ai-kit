@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-notification-handlers
+name: notification-handlers
 description: >
   Domain event dispatch using MediatR notifications. Multiple handlers per event,
   dispatch after persistence, and idempotent handling.
   Trigger: domain event, notification, INotification, event handler, publish.
-category: cqrs
-agent: ef-specialist
+metadata:
+  category: cqrs
+  agent: ef-specialist
 ---
 
 # Notification Handlers (Domain Events)

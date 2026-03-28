@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-unit-testing
+name: unit-testing
 description: >
   Unit testing patterns with xUnit, NSubstitute/Moq, and FluentAssertions.
   Covers Arrange-Act-Assert, test naming, mocking strategies, and test organization.
   Trigger: unit test, xUnit, NSubstitute, Moq, FluentAssertions, AAA.
-category: testing
-agent: test-engineer
+metadata:
+  category: testing
+  agent: test-engineer
 ---
 
 # Unit Testing — xUnit, Mocking, Assertions

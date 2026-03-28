@@ -1,12 +1,13 @@
 ---
-name: dotnet-ai-listener-pattern
+name: listener-pattern
 description: >
   Service Bus session-based listener as IHostedService. Uses ServiceBusSessionProcessor
   with specific config, paired dead-letter processor, subject-based routing via switch
   expression, typed HandleAsync<T> deserialization, and LogContext enrichment.
   Trigger: service bus listener, session processor, event routing, hosted service.
-category: microservice/query
-agent: query-architect
+metadata:
+  category: microservice/query
+  agent: query-architect
 ---
 
 # Listener Pattern — ServiceBusSessionProcessor + DLQ Processor

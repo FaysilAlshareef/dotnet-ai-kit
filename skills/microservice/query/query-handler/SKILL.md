@@ -1,12 +1,13 @@
 ---
-name: dotnet-ai-query-handler
+name: query-handler
 description: >
   MediatR query handlers using IUnitOfWork with named repository properties. Repositories
   encapsulate filtering, pagination, and sorting. Single-entity queries use FindAsync
   with DTO mapping. List queries delegate to repository methods returning output DTOs.
   Trigger: query handler, pagination, filtering, read operations.
-category: microservice/query
-agent: query-architect
+metadata:
+  category: microservice/query
+  agent: query-architect
 ---
 
 # Query Handler — IUnitOfWork with Repository Queries

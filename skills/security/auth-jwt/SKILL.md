@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-auth-jwt
+name: auth-jwt
 description: >
   JWT authentication setup, token generation with claims, refresh token flow,
   and token validation configuration.
   Trigger: JWT, authentication, token, Bearer, claims, refresh token.
-category: security
-agent: api-designer
+metadata:
+  category: security
+  agent: api-designer
 ---
 
 # JWT Authentication

@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-review-checklist
+name: review-checklist
 description: >
   Standards review categories and severity ratings for code review.
   Covers architecture, security, performance, and testing review criteria.
   Trigger: review checklist, standards, code quality, review criteria.
-category: quality
-agent: reviewer
+metadata:
+  category: quality
+  agent: reviewer
 ---
 
 # Review Checklist — Standards & Severity Ratings

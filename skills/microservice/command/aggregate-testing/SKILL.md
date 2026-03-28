@@ -1,12 +1,13 @@
 ---
-name: dotnet-ai-aggregate-testing
+name: aggregate-testing
 description: >
   Testing patterns for event-sourced aggregates. Covers CustomConstructorFaker with Bogus,
   event faker patterns, assertion extensions, and integration test patterns with
   WebApplicationFactory, DbContextHelper, and GrpcClientHelper.
   Trigger: aggregate test, faker, test data, assertion, command testing.
-category: microservice/command
-agent: test-engineer
+metadata:
+  category: microservice/command
+  agent: test-engineer
 ---
 
 # Aggregate Testing -- CustomConstructorFaker and Test Patterns

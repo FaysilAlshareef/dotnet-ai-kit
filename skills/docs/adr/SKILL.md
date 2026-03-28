@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-adr
+name: adr
 description: >
   Architecture Decision Records using MADR format. Covers numbered sequence,
   status lifecycle, decision documentation, and cross-references.
   Trigger: ADR, architecture decision, MADR, decision record.
-category: docs
-agent: docs-engineer
+metadata:
+  category: docs
+  agent: docs-engineer
 ---
 
 # ADR — Architecture Decision Records

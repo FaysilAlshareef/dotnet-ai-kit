@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-mediatr-handlers
+name: mediatr-handlers
 description: >
   MediatR IRequest, IRequestHandler, and INotificationHandler patterns.
   Command and query handler creation, registration, and dispatch.
   Trigger: MediatR, IRequest, IRequestHandler, handler, Send.
-category: cqrs
-agent: ef-specialist
+metadata:
+  category: cqrs
+  agent: ef-specialist
 ---
 
 # MediatR Handlers

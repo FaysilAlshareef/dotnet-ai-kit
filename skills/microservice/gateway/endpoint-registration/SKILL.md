@@ -1,12 +1,13 @@
 ---
-name: dotnet-ai-endpoint-registration
+name: endpoint-registration
 description: >
   Service registration for gateway gRPC clients. Covers ServicesURLsOptions with
   validated properties, AddGrpcClient with RegisterUrl helper, RegisterInterceptors,
   and AddServicesURLsOptions pattern.
   Trigger: gateway registration, gRPC client factory, service URL, ValidateOnStart.
-category: microservice/gateway
-agent: gateway-architect
+metadata:
+  category: microservice/gateway
+  agent: gateway-architect
 ---
 
 # Endpoint Registration — gRPC Client Factory Setup

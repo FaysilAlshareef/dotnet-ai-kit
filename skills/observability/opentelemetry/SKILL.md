@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-opentelemetry
+name: opentelemetry
 description: >
   OpenTelemetry integration for distributed tracing, custom metrics,
   and OTLP exporters. ASP.NET Core, EF Core, and HttpClient instrumentation.
   Trigger: OpenTelemetry, tracing, metrics, OTLP, distributed tracing, observability.
-category: observability
-agent: devops-engineer
+metadata:
+  category: observability
+  agent: devops-engineer
 ---
 
 # OpenTelemetry Traces & Metrics

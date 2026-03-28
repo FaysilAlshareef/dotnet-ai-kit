@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-dockerfile
+name: dockerfile
 description: >
   Multi-stage Docker builds for .NET applications. Covers layer caching optimization,
   non-root user, health checks, and .NET-specific Dockerfile patterns.
   Trigger: Dockerfile, Docker, container, multi-stage build, container image.
-category: devops
-agent: devops-engineer
+metadata:
+  category: devops
+  agent: devops-engineer
 ---
 
 # Dockerfile — Multi-Stage .NET Builds

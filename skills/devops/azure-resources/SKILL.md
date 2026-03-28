@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-azure-resources
+name: azure-resources
 description: >
   Azure resource provisioning for microservices. Covers Service Bus topics/subscriptions,
   Cosmos DB accounts, SQL Server databases, and resource organization.
   Trigger: Azure Service Bus, Cosmos DB, SQL Server, Azure resources, provisioning.
-category: devops
-agent: devops-engineer
+metadata:
+  category: devops
+  agent: devops-engineer
 ---
 
 # Azure Resources — Service Bus, Cosmos DB, SQL Server

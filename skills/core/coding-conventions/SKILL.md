@@ -1,10 +1,12 @@
 ---
-name: dotnet-ai-coding-conventions
+name: coding-conventions
 description: >
   Company-agnostic C# coding conventions. File-scoped namespaces, sealed classes,
   expression-bodied members, var usage, async naming, XML doc patterns.
-category: core
-agent: dotnet-architect
+metadata:
+  category: core
+  agent: dotnet-architect
+  alwaysApply: true
 ---
 
 # Coding Conventions

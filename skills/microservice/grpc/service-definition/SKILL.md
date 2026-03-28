@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-service-definition
+name: service-definition
 description: >
   Proto file design and gRPC service implementation patterns. Covers proto service/message
   definitions, service class inheritance, MediatR integration, and mapping extensions.
   Trigger: proto file, gRPC service, protobuf, service definition, rpc.
-category: microservice/grpc
-agent: command-architect
+metadata:
+  category: microservice/grpc
+  agent: command-architect
 ---
 
 # Service Definition — Proto Files & Implementation

@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-architecture-docs
+name: architecture-docs
 description: >
   Architecture overview documentation with Mermaid diagrams. Covers service
   topology, event flows, data flows, and system architecture documentation.
   Trigger: architecture docs, Mermaid diagram, system overview, service map.
-category: docs
-agent: docs-engineer
+metadata:
+  category: docs
+  agent: docs-engineer
 ---
 
 # Architecture Docs — Overview & Diagrams

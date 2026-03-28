@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-minimal-api
+name: minimal-api
 description: >
   Minimal API endpoints, route groups, endpoint filters, TypedResults,
   and auto-discovery patterns.
   Trigger: minimal API, endpoints, MapGet, MapPost, route group, TypedResults.
-category: api
-agent: api-designer
+metadata:
+  category: api
+  agent: api-designer
 ---
 
 # Minimal API Endpoints

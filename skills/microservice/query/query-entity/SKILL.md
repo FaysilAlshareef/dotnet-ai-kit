@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-query-entity
+name: query-entity
 description: >
   Query-side entity pattern with private setters, event-based constructors, behavior methods
   with (TData data, int sequence) signature, and sequence tracking for idempotency.
   Trigger: query entity, read model, projection, private setters, sequence.
-category: microservice/query
-agent: query-architect
+metadata:
+  category: microservice/query
+  agent: query-architect
 ---
 
 # Query Entity — Event-Projected Read Model

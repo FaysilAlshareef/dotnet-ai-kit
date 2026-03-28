@@ -1,11 +1,13 @@
 ---
-name: dotnet-ai-modern-csharp
+name: modern-csharp
 description: >
   Modern C# 12/13/14 language features: primary constructors, records, collection expressions,
   field keyword, pattern matching, file-scoped namespaces, required members, raw string literals.
   Trigger: C# features, primary constructor, record, collection expression, pattern matching, field keyword.
-category: core
-agent: dotnet-architect
+metadata:
+  category: core
+  agent: dotnet-architect
+  alwaysApply: true
 ---
 
 # Modern C# Features

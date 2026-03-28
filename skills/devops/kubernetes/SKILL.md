@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-kubernetes
+name: kubernetes
 description: >
   Kubernetes manifests for .NET microservices. Covers Deployment, Service, ConfigMap,
   Secret, health probes, and token placeholders for CI/CD pipelines.
   Trigger: Kubernetes, K8s, deployment, service, manifest, pod.
-category: devops
-agent: devops-engineer
+metadata:
+  category: devops
+  agent: devops-engineer
 ---
 
 # Kubernetes — Deployment Manifests

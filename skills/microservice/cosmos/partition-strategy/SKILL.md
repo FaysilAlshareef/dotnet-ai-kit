@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-partition-strategy
+name: partition-strategy
 description: >
   Cosmos DB partition key strategy with composite/hierarchical keys, cross-partition
   query patterns, and hot partition avoidance. Covers design decisions for data distribution.
   Trigger: partition key, composite key, data distribution, cross-partition query.
-category: microservice/cosmos
-agent: cosmos-architect
+metadata:
+  category: microservice/cosmos
+  agent: cosmos-architect
 ---
 
 # Partition Strategy — Hierarchical Partition Keys

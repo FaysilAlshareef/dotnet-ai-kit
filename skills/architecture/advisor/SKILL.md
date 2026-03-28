@@ -1,10 +1,11 @@
 ---
-name: dotnet-ai-architecture-advisor
+name: advisor
 description: >
   Architecture recommendation questionnaire. Evaluates project needs and
   recommends VSA, Clean Architecture, DDD, Modular Monolith, or Microservices.
-category: architecture
-agent: dotnet-architect
+metadata:
+  category: architecture
+  agent: dotnet-architect
 ---
 
 # Architecture Advisor

@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-architectural-fitness
+name: architectural-fitness
 description: >
   Architecture tests with NetArchTest for enforcing dependency rules and
   project structure conventions. Covers layer dependency validation and naming rules.
   Trigger: architecture test, NetArchTest, dependency rule, fitness function.
-category: quality
-agent: reviewer
+metadata:
+  category: quality
+  agent: reviewer
 ---
 
 # Architectural Fitness — NetArchTest & Dependency Rules

@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-onboarding
+name: onboarding
 description: >
   Developer onboarding documentation generation. Covers setup guides, architecture
   overview, development workflow, and common tasks for new team members.
   Trigger: onboarding, developer guide, setup guide, getting started.
-category: docs
-agent: docs-engineer
+metadata:
+  category: docs
+  agent: docs-engineer
 ---
 
 # Onboarding — Developer Documentation

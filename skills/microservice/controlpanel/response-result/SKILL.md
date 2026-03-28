@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-response-result
+name: response-result
 description: >
   ResponseResult<T> pattern with Switch for success/failure handling. Covers
   SuccessResult, FailedResult, ProblemDetails parsing, and UI integration.
   Trigger: ResponseResult, Switch pattern, error handling, result pattern.
-category: microservice/controlpanel
-agent: controlpanel-architect
+metadata:
+  category: microservice/controlpanel
+  agent: controlpanel-architect
 ---
 
 # ResponseResult<T> — Switch Pattern

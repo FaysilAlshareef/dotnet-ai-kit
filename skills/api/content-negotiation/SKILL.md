@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-content-negotiation
+name: content-negotiation
 description: >
   Content type negotiation, custom formatters, Accept headers,
   and response format configuration.
   Trigger: content negotiation, Accept header, formatter, content type, media type.
-category: api
-agent: api-designer
+metadata:
+  category: api
+  agent: api-designer
 ---
 
 # Content Negotiation

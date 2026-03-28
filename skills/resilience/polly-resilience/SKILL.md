@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-polly-resilience
+name: polly-resilience
 description: >
   Polly v8 resilience pipelines with Microsoft.Extensions.Http.Resilience.
   Retry, timeout, fallback, hedging, and composable strategies.
   Trigger: Polly, resilience, resilience pipeline, HTTP resilience, fault tolerance.
-category: resilience
-agent: api-designer
+metadata:
+  category: resilience
+  agent: api-designer
 ---
 
 # Polly Resilience Pipelines

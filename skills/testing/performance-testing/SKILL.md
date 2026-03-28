@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-performance-testing
+name: performance-testing
 description: >
   Performance testing with BenchmarkDotNet, load testing, and Test.Live projects
   for Service Bus throughput validation. Covers hot path optimization and baselines.
   Trigger: benchmark, performance test, load test, throughput, Test.Live.
-category: testing
-agent: test-engineer
+metadata:
+  category: testing
+  agent: test-engineer
 ---
 
 # Performance Testing — Benchmarks & Load Tests

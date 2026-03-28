@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-data-protection
+name: data-protection
 description: >
   ASP.NET Core Data Protection API for encryption at rest, key management,
   secure cookie protection, and sensitive data handling.
   Trigger: data protection, encryption, protect, unprotect, key management, DPAPI.
-category: security
-agent: api-designer
+metadata:
+  category: security
+  agent: api-designer
 ---
 
 # Data Protection API

@@ -1,11 +1,12 @@
 ---
-name: dotnet-ai-diagram-gen
+name: diagram-gen
 description: >
   Mermaid diagram generation patterns for architecture documentation. Covers
   service topology, event flows, sequence diagrams, and class diagrams.
   Trigger: Mermaid, diagram, flowchart, sequence diagram, class diagram.
-category: docs
-agent: docs-engineer
+metadata:
+  category: docs
+  agent: docs-engineer
 ---
 
 # Diagram Generation — Mermaid Patterns
