@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <code>120 skills</code> · <code>13 agents</code> · <code>27 commands</code> · <code>15 rules</code> · <code>12 architectures</code> · <code>4 safety hooks</code> · <code>13 templates</code>
+  <code>120 skills</code> · <code>13 agents</code> · <code>27 commands</code> · <code>15 rules</code> · <code>12 architectures</code> · <code>4 safety hooks</code> · <code>14 templates</code>
 </p>
 
 ---
