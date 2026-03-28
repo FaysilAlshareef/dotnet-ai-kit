@@ -1,5 +1,5 @@
 ---
-description: "Show feature progress dashboard with lifecycle status, task completion, and next-step suggestions"
+description: "Shows current feature progress and phase. Use when checking where you are in the SDD lifecycle."
 ---
 
 # Status

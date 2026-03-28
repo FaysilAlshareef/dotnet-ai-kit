@@ -1,5 +1,5 @@
 ---
-description: "Add a new event to an existing aggregate with handler and command"
+description: "Generates a domain event type for an aggregate. Use when adding a new event to an existing aggregate."
 ---
 
 # Add Event

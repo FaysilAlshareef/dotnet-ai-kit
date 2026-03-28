@@ -1,5 +1,5 @@
 ---
-description: "Create an implementation plan from a feature specification"
+description: "Generates an implementation plan from the spec. Use when ready to design the technical approach."
 ---
 
 # /dotnet-ai.plan — Implementation Planning

@@ -36,7 +36,7 @@ This document organizes the project's build phases into versioned releases and p
 |-----------|-------|
 | Rules | 6 |
 | Agents | 13 |
-| Skills | 104 |
+| Skills | 120 |
 | Commands | 27 |
 | Knowledge Docs | 16 |
 | Templates | 11 |
@@ -54,6 +54,12 @@ This document organizes the project's build phases into versioned releases and p
 - Agent Skills spec compliance
 - 4 hooks (bash-guard, edit-format, scaffold-restore, commit-lint)
 - C# LSP MCP config (.mcp.json)
+- 4 missing cross-cutting skills created: event-catalogue, feature-flags, multi-tenancy, grpc-design
+- Plugin.json schema fixed: tags→keywords, author→object
+- 27 command descriptions rewritten with auto-invocation triggers
+- Security & Permissions section added to README
+- Hook timeouts and statusMessage added to all 4 hooks
+- AGENTS.md created for cross-tool project context
 
 ---
 
@@ -119,6 +125,22 @@ This document organizes the project's build phases into versioned releases and p
 | `rest-microservice-patterns.md` | Database-per-service, API composition, inter-service communication without event sourcing |
 | `yarp-gateway-patterns.md` | YARP configuration, route matching, transforms, service discovery |
 
+### v1.1 Messaging Ecosystem Update
+
+| # | Feature | Effort | Value | Details |
+|---|---------|--------|-------|---------|
+| M1 | NServiceBus Support | Medium | High | Enterprise-grade paid messaging (promoted from v2.0). Primary alternative for teams needing commercial support. |
+| M2 | MassTransit v9 Licensing | Low | Critical | MassTransit v9 is commercial ($400+/mo or free under $1M revenue). v8 EOL end of 2026. Document licensing and migration paths. |
+| M3 | Wolverine Messaging | Medium | High | Free open-source messaging alternative. Consumers, producers, saga support. Recommended for new projects avoiding MassTransit licensing. |
+
+### v1.1 Platform Updates
+
+| # | Feature | Effort | Value | Details |
+|---|---------|--------|-------|---------|
+| P1 | .NET 10 LTS Support | Medium | Very High | Explicit template/detection support for .NET 10 LTS. C# 14 features: field-backed properties, null-conditional assignment. |
+| P2 | Aspire Deep Patterns | High | High | Module isolation, observability dashboard, Polly-based resilience, Directory.Build.props standards, CI/CD best practices. |
+| P3 | Cross-Tool AGENTS.md | Medium | High | Cursor (.cursorrules + AGENTS.md), Copilot (.github/copilot-instructions.md + AGENTS.md), Codex (AGENTS.md native), Windsurf (.windsurf/rules/ + AGENTS.md). |
+
 ### v1.1 Additional Features
 
 - Roslyn MCP tools (semantic .NET code analysis -- find_symbol, find_references, get_diagnostics, detect_antipatterns, find_dead_code)
@@ -167,6 +189,15 @@ This document organizes the project's build phases into versioned releases and p
 | `dapr-patterns.md` | Dapr building blocks, sidecar architecture, .NET SDK, Aspire integration |
 | `signalr-patterns.md` | Real-time communication, hub design, scaling, group management |
 
+### v1.2 New Additions (from v1.0 audit)
+
+| # | Feature | Effort | Value | Details |
+|---|---------|--------|-------|---------|
+| N1 | Semantic Kernel | Medium | High | architecture/semantic-kernel skill for AI-augmented microservices. Production-ready, Agent Framework at RC. |
+| N2 | Wolverine Full Support | Medium | High | Full messaging skills: consumers, producers, saga state machines. Free alternative as MassTransit v8 EOL approaches. |
+| N3 | GraphQL (HotChocolate) | High | Medium | Promoted from v2.0. Apollo Federation v2 support, schema-first, subscriptions, DataLoader. |
+| N4 | Blazor United Templates | Medium | Medium | Unified server/client rendering, 40% WASM payload reduction via AOT, RendererInfo patterns. |
+
 ---
 
 ## v1.3 — Operations, Observability & Reliability
@@ -209,6 +240,8 @@ This document organizes the project's build phases into versioned releases and p
 ## v2.0 — Platform Evolution
 
 **Goal**: Major evolution — alternative architectures, cloud-native, migration patterns, and AI integration.
+
+> **Note**: GraphQL (HotChocolate) promoted to v1.2. NServiceBus promoted to v1.1.
 
 | # | Feature | Effort | Value | Details |
 |---|---------|--------|-------|---------|
@@ -293,3 +326,12 @@ dotnet-ai changelog
 ```
 
 Each version is tagged in git. The `dotnet-ai upgrade` command detects the installed version and copies only new/changed files.
+
+---
+
+### Out of Scope
+
+| Feature | Reason |
+|---------|--------|
+| .NET MAUI | Client-side mobile/desktop development — tool is server-focused |
+| Semantic Kernel (v1.0/v1.1) | Deferred to v1.2 when Agent Framework reaches GA |

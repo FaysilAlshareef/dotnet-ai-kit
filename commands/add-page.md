@@ -1,5 +1,5 @@
 ---
-description: "Add a Blazor page with data grid, filters, and gateway facade to the control panel"
+description: "Generates a Blazor page with data grid. Use when adding a new control panel UI page."
 ---
 
 # Add Page

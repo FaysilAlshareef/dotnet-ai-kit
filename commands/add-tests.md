@@ -1,5 +1,5 @@
 ---
-description: "Generate tests for existing untested code by detecting frameworks and following project patterns"
+description: "Generates test suite for existing code. Use when adding unit or integration tests to untested code."
 ---
 
 # Add Tests

@@ -1,5 +1,5 @@
 ---
-description: Initialize dotnet-ai-kit in a .NET project. Uses AI detection, copies commands/rules, creates config.
+description: "Initializes dotnet-ai-kit in a .NET project. Use when setting up a new project for AI-assisted development."
 ---
 
 # /dotnet-ai.init

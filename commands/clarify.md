@@ -1,5 +1,5 @@
 ---
-description: "Scan spec for ambiguities, ask targeted questions, update spec in place"
+description: "Resolves ambiguities in a feature specification. Use when the spec has unclear or conflicting requirements."
 ---
 
 # /dotnet-ai.clarify — Resolve Specification Ambiguities

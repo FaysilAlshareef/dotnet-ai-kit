@@ -1,5 +1,5 @@
 ---
-description: Scan the current .NET project and generate a persistent project constitution with detected architecture, domain model, conventions, and patterns.
+description: "Generates a project constitution from detected patterns. Use when persisting project knowledge across sessions."
 ---
 
 # /dotnet-ai.learn

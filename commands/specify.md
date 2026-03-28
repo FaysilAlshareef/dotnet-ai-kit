@@ -1,5 +1,5 @@
 ---
-description: "Create a feature specification from a natural language description"
+description: "Creates a feature specification from a description. Use when starting a new feature or user story."
 ---
 
 # /dotnet-ai.specify — Feature Specification

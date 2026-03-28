@@ -84,7 +84,7 @@ The tool uses Claude Code's native features — no custom plugin system:
 ├── commands/       ← 27 slash commands (each reads relevant skills on demand)
 ├── rules/          ← 9 always-loaded coding conventions
 CLAUDE.md           ← Project context
-skills/             ← 106 skill files (read by commands when needed)
+skills/             ← 120 skill files (read by commands when needed)
 knowledge/          ← 16 reference docs (read by commands when needed)
 ```
 
@@ -141,7 +141,7 @@ dotnet-ai-kit/                       # Source repository
 ├── src/                             # CLI tool (dotnet-ai init/check/upgrade)
 ├── rules/                           # 9 always-loaded convention files
 ├── agents/                          # 13 specialist agents
-├── skills/                          # 106 skills by domain
+├── skills/                          # 120 skills by domain
 ├── commands/                        # 27 command templates
 ├── knowledge/                       # Reference documents
 ├── templates/                       # Project scaffolding
@@ -318,7 +318,7 @@ One command. Chains specify → plan → implement → review → verify → PR 
 ## v1.0 Additions (March 2026)
 
 - Claude Code plugin format (`.claude-plugin/plugin.json`) for marketplace distribution
-- Agent Skills specification compliance — all 106 SKILL.md files prefixed with `dotnet-ai-`
+- Agent Skills specification compliance — all 120 SKILL.md files prefixed with `dotnet-ai-`
 - 4 safety/quality hooks: pre-bash-guard, post-edit-format, post-scaffold-restore, pre-commit-lint
 - C# LSP MCP configuration (`.mcp.json`) pointing to csharp-ls
 - AI-powered project detection via `/dotnet-ai.detect` smart skill (replaced Python-based detection)

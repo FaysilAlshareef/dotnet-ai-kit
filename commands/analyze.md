@@ -1,5 +1,5 @@
 ---
-description: "Read-only consistency analysis of feature artifacts before implementation"
+description: "Analyzes plan consistency before coding. Use when validating spec-plan-task alignment."
 ---
 
 # /dotnet-ai.analyze — Consistency Check

@@ -1,5 +1,5 @@
 ---
-description: "One-command feature builder that chains the full SDD lifecycle automatically"
+description: "Runs the full SDD lifecycle from spec to PR. Use when building a complete feature end-to-end."
 ---
 
 # /dotnet-ai.do — One-Command Feature Builder

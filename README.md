@@ -2,7 +2,7 @@
   <img src="assets/banner-github.svg" alt="dotnet-ai-kit banner" width="900"/>
 </p>
 
-<h3 align="center">The AI brain for .NET — 106 skills, 13 agents, one command to ship features</h3>
+<h3 align="center">The AI brain for .NET — 120 skills, 13 agents, one command to ship features</h3>
 
 <p align="center">
   <a href="https://github.com/FaysilAlshareef/dotnet-ai-kit/releases"><img src="https://img.shields.io/badge/version-1.0.0-7B3FF2?style=flat-square" alt="Version"></a>
@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <code>106 skills</code> · <code>13 agents</code> · <code>27 commands</code> · <code>9 rules</code> · <code>12 architectures</code> · <code>4 safety hooks</code> · <code>13 templates</code>
+  <code>120 skills</code> · <code>13 agents</code> · <code>27 commands</code> · <code>9 rules</code> · <code>12 architectures</code> · <code>4 safety hooks</code> · <code>13 templates</code>
 </p>
 
 ---
@@ -72,7 +72,7 @@ dotnet-ai init . --ai claude
 /plugin install dotnet-ai-kit
 ```
 
-All 27 commands, 106 skills, 13 agents, 9 rules, and 4 safety hooks are available immediately.
+All 27 commands, 120 skills, 13 agents, 9 rules, and 4 safety hooks are available immediately.
 
 <details>
 <summary><b>See plugin install demo</b></summary>
@@ -89,6 +89,43 @@ dotnet tool install -g csharp-ls
 ```
 
 Enables semantic code navigation via MCP — ~10x fewer tokens than grep-based analysis.
+
+---
+
+## Security & Permissions
+
+### What the Plugin Accesses
+
+- **Reads**: `.csproj`, `.sln`, source files (for architecture detection and code generation)
+- **Writes**: Generated code files, configuration in `.dotnet-ai-kit/`, feature specs in `specs/`
+- **Executes**: `dotnet` CLI commands (build, test, format, restore, new)
+
+### Safety Hooks (4 automatic guards)
+
+| Hook | Event | What It Does |
+|------|-------|-------------|
+| **bash-guard** | Before any bash command | Blocks 20+ dangerous patterns (`rm -rf /`, `DROP TABLE`, `format C:`, etc.) |
+| **commit-lint** | Before `git commit` | Verifies C# formatting passes before allowing commit |
+| **edit-format** | After editing `.cs` files | Auto-runs `dotnet format` on the changed file |
+| **scaffold-restore** | After `dotnet new` | Auto-runs `dotnet restore` to resolve packages |
+
+All hooks can be disabled via environment variables (e.g., `DOTNET_AI_HOOK_BASH_GUARD=false`).
+
+### Permission Levels
+
+| Level | Scope | Best For |
+|-------|-------|---------|
+| **Minimal** | `dotnet build`, `dotnet test`, `git status` only | CI/CD environments, read-only review |
+| **Standard** | + `git`, `gh`, file operations, search tools | Daily development (recommended) |
+| **Full** | All working directory operations | Trusted environments with full autonomy |
+
+### What the Plugin Does NOT Do
+
+- Never deploys to any environment (deployments are handled by CI/CD pipelines)
+- Never pushes to remote without explicit user confirmation
+- Never deletes files outside the working directory
+- Never accesses network services beyond configured domains (github.com, learn.microsoft.com)
+- Never modifies `.git/` internals or CI/CD pipeline configuration without asking
 
 ---
 
@@ -133,7 +170,7 @@ This single command automatically runs the full 9-phase lifecycle:
 <table>
 <tr><td>
 
-### 106 Skills (17 categories)
+### 120 Skills (17 categories)
 
 | Category | Count |
 |----------|:-----:|
@@ -443,7 +480,7 @@ dotnet-ai-kit/
 ├── commands/          # 27 slash command definitions
 ├── rules/             # 9 always-loaded convention rules
 ├── agents/            # 13 specialist agent definitions
-├── skills/            # 106 skills across 17 categories
+├── skills/            # 120 skills across 17 categories
 ├── knowledge/         # 16 reference documents
 ├── templates/         # 13 project templates (Jinja2)
 ├── hooks/             # 4 safety hooks

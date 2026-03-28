@@ -8,7 +8,7 @@
 | **dotnet-claude-kit** | ~20 adapted | Modern C#, Architecture, APIs, Resilience, Observability |
 | **dotnet-clean-architecture-skills** | ~10 adapted | Clean Arch, DDD, Repository, Pipeline, Dapper |
 
-**Total: ~106 skills** (deduplicated, merged where overlap exists)
+**Total: ~120 skills** (deduplicated, merged where overlap exists)
 > For the 27 command definitions, see `04-commands-design.md`. For the command alias system, see Section G in that file.
 
 ---
@@ -290,7 +290,7 @@ The `/dotnet-ai.init` or `/dotnet-ai.configure` command detects or asks which mo
 
 ---
 
-## TOTAL: 106 skills
+## TOTAL: 120 skills
 
 | Category | Count | Source |
 |----------|-------|--------|
@@ -316,7 +316,7 @@ The `/dotnet-ai.init` or `/dotnet-ai.configure` command detects or asks which mo
 | Code Quality & Review | 3 | Mixed |
 | Cross-Cutting Additions | 10 | Mixed |
 | Documentation | 8 | Mixed |
-| **TOTAL** | **106** | |
+| **TOTAL** | **120** | |
 
 ---
 

@@ -1,5 +1,5 @@
 ---
-description: "Add a REST endpoint to a gateway project with gRPC client integration"
+description: "Generates an API endpoint with request/response. Use when adding a new REST or Minimal API route."
 ---
 
 # Add Endpoint

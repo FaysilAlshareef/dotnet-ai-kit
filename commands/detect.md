@@ -1,5 +1,5 @@
 ---
-description: Detect and classify the current .NET project type using AI analysis. Saves results to project.yml.
+description: "Detects project architecture, .NET version, and patterns. Use when initializing or learning project structure."
 ---
 
 # /dotnet-ai.detect
