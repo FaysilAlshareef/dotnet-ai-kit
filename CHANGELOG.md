@@ -10,13 +10,14 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - 27 slash commands for the full SDD lifecycle, code generation, smart workflows, and session management
 - `/dotnet-ai.learn` (`/dai.learn`) command — generates a persistent project constitution at `.dotnet-ai-kit/memory/constitution.md` with detected architecture, domain model, naming conventions, key packages, and established patterns. Chains `/dai.detect` internally. Supports `--update` to refresh and `--dry-run` to preview.
 - 5 architecture knowledge reference documents: CQRS patterns, DDD patterns, Clean Architecture patterns, Vertical Slice Architecture patterns, Modular Monolith patterns
-- Plugin manifest (`plugin.json`) now enumerates all 27 commands, 13 agents, 106 skills (by category), and 4 hooks for marketplace discoverability
+- Plugin manifest (`plugin.json`) now enumerates all 27 commands, 13 agents, 116 skills (by category), and 4 hooks for marketplace discoverability
 - Extension hook execution — `after_install` hooks declared in extension manifests now execute via `subprocess.run()` after successful install
 - Extension `min_cli_version` validation — install rejects extensions that require a newer CLI version
 - `NamingConfig.domain` field — configurable domain name for template rendering (set via `naming.domain` in `config.yml`), replaces hardcoded "Domain" placeholder in scaffolded projects
 - Constitution Check gate in `/dai.plan` wired to `.dotnet-ai-kit/memory/constitution.md` — validates plan compliance against project-specific principles
 - `service-map.md` as explicit output of `/dai.specify` for microservice-mode features (Mermaid diagram, per-service summary, affected repos)
-- 106 skills across 17 categories covering core .NET, architecture, API, data, CQRS, microservices, testing, DevOps, docs, and more
+- 116 skills across 17 categories covering core .NET, architecture, API, data, CQRS, microservices, testing, DevOps, docs, and more
+- 10 paradigm and best-practice skills: solid-principles, design-patterns, functional-csharp, fluent-validation, mapping-strategies, caching-strategies, rate-limiting, signalr-realtime, cors-configuration, input-sanitization
 - 13 specialist agents with skill routing tables (dotnet-architect, api-designer, ef-specialist, command-architect, query-architect, cosmos-architect, gateway-architect, processor-architect, controlpanel-architect, test-engineer, reviewer, devops-engineer, docs-engineer)
 - All 13 agents wired to all 27 commands — each command loads the appropriate specialist agent(s) by project type and task type
 - Agent skill paths updated from shorthand to full `skills/` directory paths for reliable resolution
@@ -31,7 +32,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - 4 permission config templates (minimal, standard, full, MCP) with auto-apply to `.claude/settings.json`
 - AI-powered project detection via `/dotnet-ai.detect` smart skill
 - Claude Code plugin format (`.claude-plugin/plugin.json`) for marketplace distribution
-- Agent Skills specification compliance — all 106 SKILL.md files have `dotnet-ai-` prefixed names for cross-agent compatibility (16+ tools)
+- Agent Skills specification compliance — all 116 SKILL.md files have `dotnet-ai-` prefixed names for cross-agent compatibility (16+ tools)
 - C# LSP MCP configuration (`.mcp.json`) pointing to csharp-ls for semantic code intelligence
 - Skills and agents are now copied to projects during `init` and `upgrade` (git-tracked alongside commands and rules)
 - Python CLI (`dotnet-ai`) with `--version` flag, init, check, upgrade, configure, and extension management commands

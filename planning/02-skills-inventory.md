@@ -1,7 +1,7 @@
 # dotnet-ai-kit - Skills Inventory
 
 > **Note**: This document contains detailed skill descriptions from scanned internal projects.
-> For the complete 106-skill inventory including generic .NET skills, see `11-expanded-skills-inventory.md`.
+> For the complete 116-skill inventory including generic .NET skills, see `11-expanded-skills-inventory.md`.
 > For the 27 command definitions, see `04-commands-design.md`.
 
 ## Skill Format
@@ -27,7 +27,7 @@ Sections: Core Principles, Patterns (code examples), Anti-patterns, Decision Gui
 | **dotnet-claude-kit** | ~20 adapted | Modern C#, Architecture, APIs, Resilience, Observability |
 | **dotnet-clean-architecture-skills** | ~10 adapted | Clean Arch, DDD, Repository, Pipeline, Dapper |
 
-**Total: ~106 skills** (deduplicated, merged where overlap exists)
+**Total: ~116 skills** (deduplicated, merged where overlap exists)
 
 ---
 
@@ -742,4 +742,4 @@ These feed into the microservice-specific skills (Categories 9-15).
 | Code Quality & Review | 3 | Mixed |
 | Cross-Cutting Additions | 10 | Mixed |
 | Documentation | 8 | Mixed |
-| **TOTAL** | **106** | |
+| **TOTAL** | **116** | |

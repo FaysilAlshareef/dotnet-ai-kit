@@ -1,7 +1,7 @@
 {
   "name": "dotnet-ai-kit",
   "version": "1.0.0",
-  "description": "Full .NET development lifecycle — 27 commands, 106 skills, 9 rules, 13 agents. SDD workflow, code generation, AI detection for VSA, Clean Arch, DDD, CQRS Microservices.",
+  "description": "Full .NET development lifecycle — 27 commands, 116 skills, 9 rules, 13 agents. SDD workflow, code generation, AI detection for VSA, Clean Arch, DDD, CQRS Microservices.",
   "author": "Faysil Alshareef",
   "homepage": "https://github.com/FaysilAlshareef/dotnet-ai-kit",
   "repository": "https://github.com/FaysilAlshareef/dotnet-ai-kit",
@@ -64,11 +64,11 @@
     {"name": "test-engineer", "role": "Designs and implements unit, integration, and E2E test suites"}
   ],
   "skills_summary": {
-    "total": 106,
+    "total": 116,
     "categories": {
-      "api": 7,
+      "api": 10,
       "architecture": 6,
-      "core": 7,
+      "core": 12,
       "cqrs": 6,
       "data": 8,
       "detection": 1,
@@ -79,7 +79,7 @@
       "observability": 3,
       "quality": 3,
       "resilience": 3,
-      "security": 3,
+      "security": 5,
       "testing": 4,
       "workflow": 7
     }

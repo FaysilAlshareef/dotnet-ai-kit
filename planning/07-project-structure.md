@@ -37,7 +37,7 @@ dotnet-ai-kit/
 │   ├── reviewer.md                              # Code review specialist
 │   └── docs-engineer.md                         # Documentation specialist
 │
-├── skills/                                      # ~106 skills (max 400 lines each)
+├── skills/                                      # ~116 skills (max 400 lines each)
 │   ├── core/                                    # Language & style (4)
 │   ├── architecture/                            # Architecture patterns (5)
 │   ├── api/                                     # Web API (5)
@@ -145,7 +145,7 @@ dotnet-ai-kit/
 │
 └── planning/                                    # Planning documents (not shipped, 18 files)
     ├── 01-vision.md                             # Vision, principles, supported tools
-    ├── 02-skills-inventory.md                   # 106 skills with descriptions
+    ├── 02-skills-inventory.md                   # 116 skills with descriptions
     ├── 03-agents-design.md                      # 13 agents, routing, orchestration
     ├── 04-commands-design.md                    # 27 commands, SDD lifecycle flows
     ├── 05-rules-design.md                       # 9 always-loaded rules

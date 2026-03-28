@@ -33,7 +33,7 @@ hooks/                    # Claude Code hooks (bash-guard, edit-format, scaffold
 commands/                 # Slash command templates (max 200 lines each)
 rules/                    # Always-loaded convention rules (max 100 lines each)
 agents/                   # Specialist agent definitions
-skills/                   # 106 skills organized by category (Agent Skills spec compliant)
+skills/                   # 116 skills organized by category (Agent Skills spec compliant)
 templates/                # Project scaffolding templates + config-template.yml
 config/                   # Permission JSON configs (minimal, standard, full, mcp)
 knowledge/                # Reference documents

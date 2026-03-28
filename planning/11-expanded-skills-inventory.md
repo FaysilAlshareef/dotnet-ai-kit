@@ -8,7 +8,7 @@
 | **dotnet-claude-kit** | ~20 adapted | Modern C#, Architecture, APIs, Resilience, Observability |
 | **dotnet-clean-architecture-skills** | ~10 adapted | Clean Arch, DDD, Repository, Pipeline, Dapper |
 
-**Total: ~106 skills** (deduplicated, merged where overlap exists)
+**Total: ~116 skills** (deduplicated, merged where overlap exists)
 > For the 27 command definitions, see `04-commands-design.md`. For the command alias system, see Section G in that file.
 
 ---
@@ -35,7 +35,7 @@ The `/dotnet-ai.init` or `/dotnet-ai.configure` command detects or asks which mo
 
 ---
 
-## CATEGORY 1: Core Language & Style (4 skills)
+## CATEGORY 1: Core Language & Style (9 skills)
 
 | # | Skill | Source | Description |
 |---|-------|--------|-------------|
@@ -43,6 +43,11 @@ The `/dotnet-ai.init` or `/dotnet-ai.configure` command detects or asks which mo
 | 2 | `core/coding-conventions` | Original | Company-agnostic naming, file-scoped namespaces, sealed classes, expression bodies |
 | 3 | `core/dependency-injection` | dotnet-claude-kit | Keyed services, scoped/transient/singleton, decorator pattern, factory delegates |
 | 4 | `core/configuration` | dotnet-claude-kit | Options pattern, IOptionsSnapshot, secrets management, ValidateOnStart |
+| 102 | `core/solid-principles` | Original | SOLID principles with decision guidance, anti-patterns, when to use/not use |
+| 103 | `core/design-patterns` | Original | Modern C# pattern catalog, GoF replacements, decision guide |
+| 104 | `core/functional-csharp` | Original | Result<T>, ROP, pure functions, immutability, OOP vs FP matrix |
+| 105 | `core/fluent-validation` | Original | Standalone FluentValidation, DI registration, auto-validation |
+| 106 | `core/mapping-strategies` | Original | Manual-first mapping, AutoMapper/Mapster comparison |
 
 ---
 
@@ -58,7 +63,7 @@ The `/dotnet-ai.init` or `/dotnet-ai.configure` command detects or asks which mo
 
 ---
 
-## CATEGORY 3: Web API (5 skills)
+## CATEGORY 3: Web API (8 skills)
 
 | # | Skill | Source | Description |
 |---|-------|--------|-------------|
@@ -67,6 +72,9 @@ The `/dotnet-ai.init` or `/dotnet-ai.configure` command detects or asks which mo
 | 12 | `api/versioning` | dotnet-claude-kit | Asp.Versioning strategies (URL/header/query) |
 | 13 | `api/openapi` | dotnet-claude-kit | Native OpenAPI support, transformers, security schemes |
 | 14 | `api/scalar` | dotnet-claude-kit | Scalar UI setup, themes, authentication prefill |
+| 107 | `api/caching-strategies` | Original | Output cache, IDistributedCache, HybridCache, ETag, invalidation |
+| 108 | `api/rate-limiting` | Original | .NET 7+ AddRateLimiter, fixed/sliding/token/concurrency |
+| 109 | `api/signalr-realtime` | Original | Hub design, typed clients, groups, Redis backplane, JS/.NET client |
 
 ---
 
@@ -103,13 +111,15 @@ The `/dotnet-ai.init` or `/dotnet-ai.configure` command detects or asks which mo
 
 ---
 
-## CATEGORY 7: Security (3 skills)
+## CATEGORY 7: Security (5 skills)
 
 | # | Skill | Source | Description |
 |---|-------|--------|-------------|
 | 27 | `security/jwt-authentication` | clean-arch-skills | Token generation, validation, refresh tokens, claims |
 | 28 | `security/permission-authorization` | clean-arch-skills | HasPermission attribute, policy provider, handlers |
 | 29 | `security/security-scan` | dotnet-claude-kit | CVEs, secrets detection, OWASP patterns, auth audit |
+| 110 | `security/cors-configuration` | Original | AddCors policies, credentials, preflight, per-endpoint |
+| 111 | `security/input-sanitization` | Original | XSS prevention, CSP headers, HtmlSanitizer, security headers |
 
 ---
 
@@ -290,17 +300,17 @@ The `/dotnet-ai.init` or `/dotnet-ai.configure` command detects or asks which mo
 
 ---
 
-## TOTAL: 106 skills
+## TOTAL: 116 skills
 
 | Category | Count | Source |
 |----------|-------|--------|
-| Core Language & Style | 4 | Generic |
+| Core Language & Style | 9 | Generic |
 | Architecture | 5 | Generic |
-| Web API | 5 | Generic |
+| Web API | 8 | Generic |
 | Data Access | 5 | Generic |
 | CQRS & Messaging (generic) | 4 | Generic |
 | Error Handling & Resilience | 3 | Generic |
-| Security | 3 | Generic |
+| Security | 5 | Generic |
 | Observability | 3 | Generic |
 | Microservice - Event Sourcing | 6 | Our Patterns |
 | Microservice - Query Side | 5 | Our Patterns |
@@ -316,7 +326,7 @@ The `/dotnet-ai.init` or `/dotnet-ai.configure` command detects or asks which mo
 | Code Quality & Review | 3 | Mixed |
 | Cross-Cutting Additions | 10 | Mixed |
 | Documentation | 8 | Mixed |
-| **TOTAL** | **106** | |
+| **TOTAL** | **116** | |
 
 ---
 

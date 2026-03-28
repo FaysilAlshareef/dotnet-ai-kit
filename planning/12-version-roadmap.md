@@ -36,7 +36,7 @@ This document organizes the project's build phases into versioned releases and p
 |-----------|-------|
 | Rules | 6 |
 | Agents | 13 |
-| Skills | 104 |
+| Skills | 116 |
 | Commands | 27 |
 | Knowledge Docs | 16 |
 | Templates | 11 |
@@ -54,6 +54,18 @@ This document organizes the project's build phases into versioned releases and p
 - Agent Skills spec compliance
 - 4 hooks (bash-guard, edit-format, scaffold-restore, commit-lint)
 - C# LSP MCP config (.mcp.json)
+- Marketplace support (marketplace.json, hook registration in settings.json)
+- 10 paradigm & best-practice skills (spec 011):
+  - `core/solid-principles` — SOLID + anti-patterns + decision guide
+  - `core/design-patterns` — Modern C# pattern catalog + replacements
+  - `core/functional-csharp` — Result<T>, ROP, OOP vs FP decision matrix
+  - `core/fluent-validation` — Standalone FluentValidation patterns
+  - `core/mapping-strategies` — Manual-first mapping guidance
+  - `api/caching-strategies` — Output cache, IDistributedCache, ETag
+  - `api/rate-limiting` — .NET 7+ AddRateLimiter()
+  - `api/signalr-realtime` — Hub patterns + client integration
+  - `security/cors-configuration` — AddCors() policies
+  - `security/input-sanitization` — XSS prevention, CSP headers
 
 ---
 
@@ -128,6 +140,15 @@ This document organizes the project's build phases into versioned releases and p
 - New project detection: "rest-micro" type in `/dai.detect` smart skill
 - Agent routing update: simple REST microservices routed to dotnet-architect + api-designer (not command/query architects)
 
+### v1.1 Audit Gap Skills (from v1.0 paradigm audit)
+
+| Skill | Category | Agent | Description |
+|-------|----------|-------|-------------|
+| `testing/architecture-testing` | Testing | test-engineer | ArchUnitNET — verify dependency rules automatically |
+| `observability/correlation-ids` | Observability | devops-engineer | Correlation ID propagation across services |
+| `infra/feature-flags` | Infrastructure | dotnet-architect | Microsoft.FeatureManagement patterns |
+| `api/graphql` | API | api-designer | HotChocolate schema-first, subscriptions, DataLoader (promoted from v2.0) |
+
 ---
 
 ## v1.2 — Distributed Patterns & Dapr
@@ -141,6 +162,13 @@ This document organizes the project's build phases into versioned releases and p
 | 12 | SignalR Real-Time | Medium | Medium | Push notifications from services to clients, hub patterns, group management, scaling with Redis backplane |
 | 13 | BFF (Backend for Frontend) | Medium | Medium | Separate API layers per client type (web, mobile, admin), field projection, client-specific aggregation |
 | 14 | Blazor Server / Hybrid Support | Medium | Medium | Server-side rendering, Blazor United, hybrid rendering modes |
+
+### v1.2 Audit Gap Skills (from v1.0 paradigm audit)
+
+| Skill | Category | Agent | Description |
+|-------|----------|-------|-------------|
+| `data/soft-deletes` | Data | ef-specialist | EF Core global query filters, IsDeleted pattern |
+| `architecture/multi-tenancy` | Architecture | dotnet-architect | Tenant isolation, data partitioning, per-tenant DB |
 
 ### New Skills for v1.2
 
@@ -182,6 +210,13 @@ This document organizes the project's build phases into versioned releases and p
 | 19 | Service Discovery | Medium | Medium | Consul, Eureka integration beyond K8s/Aspire DNS-based discovery |
 | 20 | Cost Optimization Skills | Low | Medium | Azure cost analysis, right-sizing, reserved instances, RU budgeting for Cosmos |
 
+### v1.3 Audit Gap Skills (from v1.0 paradigm audit)
+
+| Skill | Category | Agent | Description |
+|-------|----------|-------|-------------|
+| `testing/property-based-testing` | Testing | test-engineer | FsCheck — property-based testing for .NET |
+| `core/span-memory` | Core | dotnet-architect | Span<T>, Memory<T>, stackalloc for hot paths |
+
 ### New Skills for v1.3
 
 | Skill | Category | Agent |
@@ -222,6 +257,13 @@ This document organizes the project's build phases into versioned releases and p
 | 28 | AI-Assisted Code Review | Medium | High | Custom ML models for pattern detection beyond CodeRabbit |
 | 29 | Plugin Marketplace | High | High | Community extensions, version management, dependency resolution |
 | 30 | NServiceBus / Wolverine | Medium | Medium | Enterprise service bus patterns as alternative to MassTransit |
+
+### v2.0 Audit Gap Skills (from v1.0 paradigm audit)
+
+| Skill | Category | Agent | Description |
+|-------|----------|-------|-------------|
+| `core/source-generators` | Core | dotnet-architect | Roslyn source generators for code generation |
+| `core/reactive-dotnet` | Core | dotnet-architect | Rx.NET, IObservable, reactive extensions |
 
 ### New Skills for v2.0
 

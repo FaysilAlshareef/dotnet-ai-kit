@@ -2,7 +2,7 @@
   <img src="assets/banner-github.svg" alt="dotnet-ai-kit banner" width="900"/>
 </p>
 
-<h3 align="center">The AI brain for .NET — 106 skills, 13 agents, one command to ship features</h3>
+<h3 align="center">The AI brain for .NET — 116 skills, 13 agents, one command to ship features</h3>
 
 <p align="center">
   <a href="https://github.com/FaysilAlshareef/dotnet-ai-kit/releases"><img src="https://img.shields.io/badge/version-1.0.0-7B3FF2?style=flat-square" alt="Version"></a>
@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <code>106 skills</code> · <code>13 agents</code> · <code>27 commands</code> · <code>9 rules</code> · <code>12 architectures</code> · <code>4 safety hooks</code> · <code>13 templates</code>
+  <code>116 skills</code> · <code>13 agents</code> · <code>27 commands</code> · <code>9 rules</code> · <code>12 architectures</code> · <code>4 safety hooks</code> · <code>13 templates</code>
 </p>
 
 ---
@@ -72,7 +72,7 @@ dotnet-ai init . --ai claude
 /plugin install dotnet-ai-kit
 ```
 
-All 27 commands, 106 skills, 13 agents, 9 rules, and 4 safety hooks are available immediately.
+All 27 commands, 116 skills, 13 agents, 9 rules, and 4 safety hooks are available immediately.
 
 <details>
 <summary><b>See plugin install demo</b></summary>
@@ -133,7 +133,7 @@ This single command automatically runs the full 9-phase lifecycle:
 <table>
 <tr><td>
 
-### 106 Skills (17 categories)
+### 116 Skills (17 categories)
 
 | Category | Count |
 |----------|:-----:|
@@ -443,7 +443,7 @@ dotnet-ai-kit/
 ├── commands/          # 27 slash command definitions
 ├── rules/             # 9 always-loaded convention rules
 ├── agents/            # 13 specialist agent definitions
-├── skills/            # 106 skills across 17 categories
+├── skills/            # 116 skills across 17 categories
 ├── knowledge/         # 16 reference documents
 ├── templates/         # 13 project templates (Jinja2)
 ├── hooks/             # 4 safety hooks

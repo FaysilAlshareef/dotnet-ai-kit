@@ -249,7 +249,7 @@ The most complex phase:
 | Doc | File | Purpose |
 |-----|------|---------|
 | 01 | `01-vision.md` | Vision, principles, supported tools |
-| 02 | `02-skills-inventory.md` | 106 skills with detailed descriptions |
+| 02 | `02-skills-inventory.md` | 116 skills with detailed descriptions |
 | 03 | `03-agents-design.md` | 13 agents, routing tables, orchestration |
 | 04 | `04-commands-design.md` | 27 commands, SDD lifecycle flows |
 | 05 | `05-rules-design.md` | 9 always-loaded rules |
