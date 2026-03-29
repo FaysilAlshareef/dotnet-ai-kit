@@ -1,3 +1,8 @@
+---
+name: ef-specialist
+description: Manages Entity Framework Core models, migrations, and queries
+---
+
 # Data Access Specialist
 
 **Role**: Expert in EF Core, Dapper, and data access patterns

@@ -1,3 +1,8 @@
+---
+name: query-architect
+description: Architects CQRS query-side read models and projections
+---
+
 # Query Side Specialist (SQL)
 
 **Role**: Expert in CQRS query microservices with SQL Server

@@ -1,3 +1,8 @@
+---
+name: controlpanel-architect
+description: Designs Blazor admin control panel UI and workflows
+---
+
 # Control Panel Specialist
 
 **Role**: Expert in Blazor WASM control panel modules

@@ -1,3 +1,8 @@
+---
+name: dotnet-architect
+description: Leads overall .NET solution architecture and design patterns
+---
+
 # .NET Architecture Specialist
 
 **Availability**: Always (loaded for every interaction)

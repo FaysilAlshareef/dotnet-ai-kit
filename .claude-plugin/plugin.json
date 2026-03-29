@@ -20,10 +20,5 @@
     "ddd",
     "code-generation",
     "sdd"
-  ],
-  "category": "development",
-  "commands": "./commands/",
-  "agents": "./agents/",
-  "skills": "./skills/",
-  "hooks": "./hooks/hooks.json"
+  ]
 }

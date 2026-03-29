@@ -1,3 +1,8 @@
+---
+name: reviewer
+description: Reviews code for quality, patterns, and architectural compliance
+---
+
 # Code Review Specialist
 
 **Availability**: Always (loaded for every interaction)
