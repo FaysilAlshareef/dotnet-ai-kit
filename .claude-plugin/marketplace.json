@@ -7,7 +7,10 @@
   "plugins": [
     {
       "name": "dotnet-ai-kit",
-      "source": "FaysilAlshareef/dotnet-ai-kit",
+      "source": {
+        "source": "github",
+        "repo": "FaysilAlshareef/dotnet-ai-kit"
+      },
       "description": "Full .NET development lifecycle — 27 commands, 120 skills, 15 rules, 13 agents. SDD workflow, code generation, AI detection for VSA, Clean Arch, DDD, CQRS Microservices.",
       "version": "1.0.0"
     }
