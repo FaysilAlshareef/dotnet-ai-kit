@@ -1255,3 +1255,39 @@ def test_configure_repos_flag_ssh_url(tmp_path: Path, monkeypatch) -> None:
     config_path = tmp_path / ".dotnet-ai-kit" / "config.yml"
     saved = yaml.safe_load(config_path.read_text(encoding="utf-8"))
     assert saved["repos"]["gateway"] == "github:acme/gw"
+
+
+def test_configure_recopy_on_style_change(tmp_path: Path, monkeypatch) -> None:
+    """Configure --style must re-copy commands so style changes take effect immediately."""
+    _setup_config_dir(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    # Force standalone mode so full-prefix files are written
+    with patch("dotnet_ai_kit.cli._detect_plugin_mode", return_value=False):
+        # First configure with 'both' to create both command sets
+        result = runner.invoke(
+            app,
+            ["configure", "--no-input", "--company", "TestCo", "--style", "both"],
+            catch_exceptions=False,
+        )
+        assert result.exit_code == 0, result.output
+
+        cmds = tmp_path / ".claude" / "commands"
+        assert cmds.is_dir(), "Commands directory should exist"
+        full_before = list(cmds.glob("dotnet-ai.*.md"))
+        short_before = list(cmds.glob("dai.*.md"))
+        assert len(full_before) > 0, "Expected dotnet-ai.*.md files after both style"
+        assert len(short_before) > 0, "Expected dai.*.md files after both style"
+
+        # Now change to 'short' — should clean up dotnet-ai.*.md
+        result = runner.invoke(
+            app,
+            ["configure", "--no-input", "--company", "TestCo", "--style", "short"],
+            catch_exceptions=False,
+        )
+        assert result.exit_code == 0, result.output
+
+        full_after = list(cmds.glob("dotnet-ai.*.md"))
+        short_after = list(cmds.glob("dai.*.md"))
+        assert len(full_after) == 0, f"Stale dotnet-ai.*.md files remain: {full_after}"
+        assert len(short_after) > 0, "Expected dai.*.md files after short style"

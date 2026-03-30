@@ -85,6 +85,11 @@ Command style:
   3. Both   - Both full names and short aliases (default)
 ```
 
+**Plugin mode behavior**: When installed as a Claude Code plugin, `dotnet-ai-kit:*` commands are always served by the plugin system. Style changes only affect which local command files are written:
+- `full` in plugin mode: no files copied (plugin serves full commands)
+- `short` or `both` in plugin mode: only `dai.*.md` short aliases are copied
+- Style changes always clean up old command files before writing new ones
+
 ### Step 6: Integrations (optional)
 
 - **CodeRabbit**: Enable automated code review integration?

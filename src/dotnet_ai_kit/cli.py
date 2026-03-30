@@ -115,6 +115,16 @@ def _get_package_dir() -> Path:
     return pkg_dir.parent.parent
 
 
+def _detect_plugin_mode() -> bool:
+    """Check whether dotnet-ai-kit is running as a Claude Code plugin.
+
+    Returns True when ``.claude-plugin/plugin.json`` exists in the
+    package source directory, indicating the plugin system already
+    serves full-prefix commands.
+    """
+    return (_get_package_dir() / ".claude-plugin" / "plugin.json").is_file()
+
+
 def _find_commands_source() -> Path:
     """Find the commands source directory in the package."""
     pkg = _get_package_dir()
@@ -379,6 +389,7 @@ def init(
     rules_source = _find_rules_source()
     skills_source = _find_skills_source()
     agents_source = _find_agents_source()
+    is_plugin = _detect_plugin_mode()
 
     total_cmds = 0
     total_rules = 0
@@ -407,7 +418,9 @@ def init(
         elif tool_name == "codex":
             cmd_count = copy_commands_codex(commands_source, target, tool_config)
         else:
-            cmd_count = copy_commands(commands_source, target, tool_config, config)
+            cmd_count = copy_commands(
+                commands_source, target, tool_config, config, is_plugin=is_plugin,
+            )
             rule_count = copy_rules(rules_source, target, tool_config)
 
         # Copy skills and agents for all tools
@@ -813,6 +826,7 @@ def upgrade(
     rules_source = _find_rules_source()
     skills_source = _find_skills_source()
     agents_source = _find_agents_source()
+    is_plugin = _detect_plugin_mode()
 
     # T058 - Dry run: show what WOULD be done
     if dry_run:
@@ -882,7 +896,9 @@ def upgrade(
         elif tool_name == "codex":
             total_cmds += copy_commands_codex(commands_source, target, tool_config)
         else:
-            total_cmds += copy_commands(commands_source, target, tool_config, config)
+            total_cmds += copy_commands(
+                commands_source, target, tool_config, config, is_plugin=is_plugin,
+            )
             total_rules += copy_rules(rules_source, target, tool_config)
 
         # Re-copy skills and agents for all tools
@@ -1311,6 +1327,32 @@ def configure(
             "Run 'dotnet-ai upgrade --force' to retry."
         )
         raise typer.Exit(code=1) from exc
+
+    # Re-copy commands so style changes take effect immediately
+    commands_source = _find_commands_source()
+    rules_source = _find_rules_source()
+    is_plugin = _detect_plugin_mode()
+    total_cmds = 0
+
+    for tool_name in config.ai_tools:
+        try:
+            tool_config = get_agent_config(tool_name)
+        except ValueError:
+            continue
+
+        if tool_name == "cursor":
+            total_cmds += copy_commands_cursor(
+                commands_source, target, tool_config, rules_source,
+            )
+        elif tool_name == "codex":
+            total_cmds += copy_commands_codex(commands_source, target, tool_config)
+        else:
+            total_cmds += copy_commands(
+                commands_source, target, tool_config, config, is_plugin=is_plugin,
+            )
+
+    if not json_output and total_cmds:
+        console.print(f"  Commands: {total_cmds} files updated (style: {config.command_style})")
 
     # T051 - JSON output mode
     if json_output:

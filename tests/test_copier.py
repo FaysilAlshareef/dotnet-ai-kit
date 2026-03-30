@@ -168,6 +168,180 @@ def test_copy_commands_no_commands_dir(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
+# copy_commands — cleanup on style change (T003-T006)
+# ---------------------------------------------------------------------------
+
+_AGENT_CFG: dict[str, str] = {
+    "commands_dir": ".claude/commands",
+    "command_ext": ".md",
+    "command_prefix": "dotnet-ai",
+    "args_placeholder": "$ARGUMENTS",
+}
+
+
+def test_cleanup_on_style_change_both_to_short(tmp_path: Path) -> None:
+    """Switching from 'both' to 'short' must remove all dotnet-ai.*.md files."""
+    source = tmp_path / "commands_src"
+    _create_command_files(source, ["specify", "plan"])
+    target = tmp_path / "project"
+    target.mkdir()
+
+    # First run with 'both'
+    config_both = DotnetAiConfig(ai_tools=["claude"], command_style="both")
+    copy_commands(source, target, _AGENT_CFG, config_both)
+    cmds = target / ".claude" / "commands"
+    assert (cmds / "dotnet-ai.specify.md").is_file()
+
+    # Switch to 'short'
+    config_short = DotnetAiConfig(ai_tools=["claude"], command_style="short")
+    copy_commands(source, target, _AGENT_CFG, config_short)
+
+    assert not list(cmds.glob("dotnet-ai.*.md"))
+    assert len(list(cmds.glob("dai.*.md"))) == 2
+
+
+def test_cleanup_on_style_change_full_to_short(tmp_path: Path) -> None:
+    """Switching from 'full' to 'short' must remove all dotnet-ai.*.md files."""
+    source = tmp_path / "commands_src"
+    _create_command_files(source, ["specify"])
+    target = tmp_path / "project"
+    target.mkdir()
+
+    config_full = DotnetAiConfig(ai_tools=["claude"], command_style="full")
+    copy_commands(source, target, _AGENT_CFG, config_full)
+
+    config_short = DotnetAiConfig(ai_tools=["claude"], command_style="short")
+    copy_commands(source, target, _AGENT_CFG, config_short)
+
+    cmds = target / ".claude" / "commands"
+    assert not list(cmds.glob("dotnet-ai.*.md"))
+    assert len(list(cmds.glob("dai.*.md"))) == 1
+
+
+def test_cleanup_on_style_change_short_to_full(tmp_path: Path) -> None:
+    """Switching from 'short' to 'full' must remove all dai.*.md files."""
+    source = tmp_path / "commands_src"
+    _create_command_files(source, ["specify"])
+    target = tmp_path / "project"
+    target.mkdir()
+
+    config_short = DotnetAiConfig(ai_tools=["claude"], command_style="short")
+    copy_commands(source, target, _AGENT_CFG, config_short)
+
+    config_full = DotnetAiConfig(ai_tools=["claude"], command_style="full")
+    copy_commands(source, target, _AGENT_CFG, config_full)
+
+    cmds = target / ".claude" / "commands"
+    assert not list(cmds.glob("dai.*.md"))
+    assert len(list(cmds.glob("dotnet-ai.*.md"))) == 1
+
+
+def test_cleanup_preserves_user_files(tmp_path: Path) -> None:
+    """Cleanup must not delete user-created command files."""
+    source = tmp_path / "commands_src"
+    _create_command_files(source, ["specify"])
+    target = tmp_path / "project"
+    target.mkdir()
+
+    config = DotnetAiConfig(ai_tools=["claude"], command_style="full")
+    copy_commands(source, target, _AGENT_CFG, config)
+
+    # Create a user file
+    cmds = target / ".claude" / "commands"
+    user_file = cmds / "my-custom.md"
+    user_file.write_text("my custom command", encoding="utf-8")
+
+    # Re-run with different style
+    config_short = DotnetAiConfig(ai_tools=["claude"], command_style="short")
+    copy_commands(source, target, _AGENT_CFG, config_short)
+
+    assert user_file.is_file()
+    assert user_file.read_text(encoding="utf-8") == "my custom command"
+
+
+# ---------------------------------------------------------------------------
+# copy_commands — full content short aliases (T008)
+# ---------------------------------------------------------------------------
+
+
+def test_short_aliases_have_full_content_in_both_mode(tmp_path: Path) -> None:
+    """In 'both' mode, dai.*.md must have the same content as dotnet-ai.*.md."""
+    source = tmp_path / "commands_src"
+    _create_command_files(source, ["specify"])
+    target = tmp_path / "project"
+    target.mkdir()
+
+    config = DotnetAiConfig(ai_tools=["claude"], command_style="both")
+    copy_commands(source, target, _AGENT_CFG, config)
+
+    cmds = target / ".claude" / "commands"
+    full_content = (cmds / "dotnet-ai.specify.md").read_text(encoding="utf-8")
+    short_content = (cmds / "dai.specify.md").read_text(encoding="utf-8")
+
+    assert "Run the specify command" in short_content
+    assert "See /dotnet-ai" not in short_content
+    assert short_content == full_content
+
+
+# ---------------------------------------------------------------------------
+# copy_commands — plugin mode (T013-T015)
+# ---------------------------------------------------------------------------
+
+
+def test_plugin_mode_skips_full_commands(tmp_path: Path) -> None:
+    """Plugin mode with 'both' must write only dai.*.md, not dotnet-ai.*.md."""
+    source = tmp_path / "commands_src"
+    _create_command_files(source, ["specify", "plan"])
+    target = tmp_path / "project"
+    target.mkdir()
+
+    config = DotnetAiConfig(ai_tools=["claude"], command_style="both")
+    count = copy_commands(source, target, _AGENT_CFG, config, is_plugin=True)
+
+    cmds = target / ".claude" / "commands"
+    assert count == 2  # only dai files
+    assert not list(cmds.glob("dotnet-ai.*.md"))
+    assert len(list(cmds.glob("dai.*.md"))) == 2
+    # Verify full content
+    content = (cmds / "dai.specify.md").read_text(encoding="utf-8")
+    assert "Run the specify command" in content
+
+
+def test_plugin_mode_full_style_writes_nothing(tmp_path: Path) -> None:
+    """Plugin mode with 'full' must write zero files."""
+    source = tmp_path / "commands_src"
+    _create_command_files(source, ["specify"])
+    target = tmp_path / "project"
+    target.mkdir()
+
+    config = DotnetAiConfig(ai_tools=["claude"], command_style="full")
+    count = copy_commands(source, target, _AGENT_CFG, config, is_plugin=True)
+
+    assert count == 0
+    cmds = target / ".claude" / "commands"
+    assert not list(cmds.glob("dotnet-ai.*.md"))
+    assert not list(cmds.glob("dai.*.md"))
+
+
+def test_plugin_mode_short_style_writes_dai_only(tmp_path: Path) -> None:
+    """Plugin mode with 'short' must write only dai.*.md with full content."""
+    source = tmp_path / "commands_src"
+    _create_command_files(source, ["specify"])
+    target = tmp_path / "project"
+    target.mkdir()
+
+    config = DotnetAiConfig(ai_tools=["claude"], command_style="short")
+    count = copy_commands(source, target, _AGENT_CFG, config, is_plugin=True)
+
+    assert count == 1
+    cmds = target / ".claude" / "commands"
+    assert not list(cmds.glob("dotnet-ai.*.md"))
+    assert (cmds / "dai.specify.md").is_file()
+    content = (cmds / "dai.specify.md").read_text(encoding="utf-8")
+    assert "Run the specify command" in content
+
+
+# ---------------------------------------------------------------------------
 # copy_rules
 # ---------------------------------------------------------------------------
 

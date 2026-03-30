@@ -30,6 +30,8 @@ After the command completes, verify:
 
 If `dotnet-ai` is not installed, tell the user: "dotnet-ai CLI not found. Install: `pip install dotnet-ai-kit`"
 
+**Plugin mode**: When running as a plugin, full-prefix commands (`dotnet-ai.*.md`) are NOT copied to `.claude/commands/` because the plugin system already serves them as `dotnet-ai-kit:*`. Only short aliases (`dai.*.md`) are copied when the command style includes "short".
+
 ### Step 3: Detect project type using AI
 
 After the CLI init completes, run project detection using the `/dotnet-ai.detect` command workflow:
