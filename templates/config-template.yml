@@ -28,10 +28,12 @@ naming:
   namespace: "{Company}.{Domain}.{Side}.{Layer}"
 
 # Repository paths for microservice roles
-# Each value is either:
-#   - A local filesystem path (absolute or relative)
-#   - A GitHub reference: github:org/repo
+# Each value accepts three formats (auto-normalized on save):
+#   - Local filesystem path: ../sibling-repo or /absolute/path
+#   - GitHub HTTPS URL: https://github.com/org/repo (normalized to github:org/repo)
+#   - Git SSH URL: git@github.com:org/repo.git (normalized to github:org/repo)
 #   - null if not configured
+# Run /dai.configure to auto-detect sibling repos
 repos:
   command: null
   query: null

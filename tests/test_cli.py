@@ -1205,3 +1205,53 @@ def test_configure_respects_existing_permission_default(tmp_path: Path, monkeypa
     assert saved["permissions_level"] == "full"
     # Pressing Enter should keep short (default="2" mapped from existing "short")
     assert saved["command_style"] == "short"
+
+
+# ---------------------------------------------------------------------------
+# --repos flag (T028)
+# ---------------------------------------------------------------------------
+
+
+def test_configure_repos_flag_normalizes_urls(tmp_path: Path, monkeypatch) -> None:
+    """--repos flag should normalize GitHub URLs to github:org/repo format."""
+    _setup_config_dir(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    result = runner.invoke(
+        app,
+        [
+            "configure",
+            "--no-input",
+            "--company", "TestCo",
+            "--repos", "command=https://github.com/acme/cmd,query=../query-svc",
+        ],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == 0, result.output
+    config_path = tmp_path / ".dotnet-ai-kit" / "config.yml"
+    saved = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    assert saved["repos"]["command"] == "github:acme/cmd"
+    assert saved["repos"]["query"] == "../query-svc"
+
+
+def test_configure_repos_flag_ssh_url(tmp_path: Path, monkeypatch) -> None:
+    """--repos flag should normalize git SSH URLs."""
+    _setup_config_dir(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    result = runner.invoke(
+        app,
+        [
+            "configure",
+            "--no-input",
+            "--company", "TestCo",
+            "--repos", "gateway=git@github.com:acme/gw.git",
+        ],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == 0, result.output
+    config_path = tmp_path / ".dotnet-ai-kit" / "config.yml"
+    saved = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    assert saved["repos"]["gateway"] == "github:acme/gw"

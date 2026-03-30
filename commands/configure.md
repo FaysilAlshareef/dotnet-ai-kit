@@ -21,19 +21,30 @@ Prompt for company name if not already set:
 - **GitHub org**: Optional, used for `github:org/repo` references
 - **Default branch**: main/master/develop (default: main)
 
-### Step 3: Repository paths (optional)
+### Step 3: Repository paths (microservice mode only)
 
-If this is a microservice project, prompt for repo paths:
-- Command service repo
-- Query service repo
-- Processor service repo
-- Gateway service repo
-- Control Panel repo
+If detected mode is NOT microservice (check `.dotnet-ai-kit/project.yml`), skip this step entirely.
 
-Each can be:
-- Local path: `/path/to/repo` or `../sibling-repo`
-- GitHub reference: `github:org/repo-name`
-- Skip (null): press Enter to skip
+**Step 3a — Auto-detect sibling repos**: Scan `../` for directories that contain `.git/` and at least one `.sln`, `.slnx`, or `.csproj` file. For each found repo, attempt quick classification:
+- `AggregateRoot` or `EventSourcedAggregate` in `*.cs` → **command**
+- `IRequestHandler<Event<` or event handler projection patterns → **query**
+- `Blazor` in `.csproj` or `*.razor` files → **controlpanel**
+- gRPC `Protos/` dir + client registrations → **gateway**
+- `IHostedService` + event listener patterns → **processor**
+- None matched → **unclassified**
+
+Present detected repos: "Found sibling repos: ../company-query → query (detected), ../company-gateway → gateway (detected)". Ask: "Accept detected repos? [Y/n/edit]"
+
+**Step 3b — Prompt per role**: For each role (command, query, processor, gateway, controlpanel): if auto-detected, show as default. If not, prompt with three input options:
+1. Local path (e.g., `../sibling-repo`)
+2. GitHub URL (e.g., `https://github.com/org/repo`) — normalized to `github:org/repo`
+3. Skip (press Enter)
+
+Also accepts git SSH URLs (`git@github.com:org/repo.git`) — normalized to `github:org/repo`.
+
+**Step 3c — Validate**: For local paths: check directory exists, contains `.git/`, contains `.sln`/`.slnx`/`.csproj`. For GitHub URLs: optionally verify with `gh repo view org/repo --json name`. If validation fails, warn but allow user to proceed.
+
+**Step 3d — Save** validated repos to `config.yml` repos section.
 
 ### Step 4: Permission level
 

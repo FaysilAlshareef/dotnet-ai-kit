@@ -108,6 +108,10 @@ Follow this execution flow:
        is_negative: false
    ```
 
+6b. **Sibling repo scan** (optional)
+
+   Scan `../` for sibling directories that are git repos (contain `.git/`) with `.sln`, `.slnx`, or `.csproj` files. Report as "Sibling repos found:" with detected type if classifiable (command, query, gateway, controlpanel, processor, or unclassified). This feeds context into `/dotnet-ai.configure`.
+
 7. **Report completion**
    ```
    Project detection saved to .dotnet-ai-kit/project.yml

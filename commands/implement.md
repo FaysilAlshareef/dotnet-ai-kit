@@ -111,7 +111,9 @@ If NOT resuming:
    - If local path exists and is a git repo: use it directly.
    - If path is a GitHub URL (`github:org/repo`): clone via `gh repo clone {org/repo} repos/{local-name}`.
    - If path is null: prompt user for clone URL or local path.
-3. Verify each resolved repo has a valid `.sln` or `.csproj`.
+3. Verify each resolved repo has a valid `.sln`, `.slnx`, or `.csproj`.
+4. After cloning via `github:org/repo`, update `config.yml` with the resolved local path so future runs don't re-clone.
+5. For each secondary repo, check for `.dotnet-ai-kit/briefs/{source-repo-name}/{NNN}-{name}/feature-brief.md`. If exists: load for context. If missing (just cloned): project the brief now from primary spec/plan/tasks.
 
 ### 5b: Branch and Execute in Dependency Order
 
@@ -128,6 +130,7 @@ For each repo in dependency order:
 5. After all tasks for this repo: run `dotnet test`.
 6. Mark tasks complete in the shared `tasks.md` with repo context.
 7. Log actions to `undo-log.md` with `**Repo**: {repo-name}`.
+8. Update the secondary repo's `feature-brief.md`: mark completed tasks as `- [x]`, update phase to "Implementing". When all tasks done: phase "Implemented". On failure: phase "Blocked — T{NNN} failed: {error}". Auto-commit with `chore: update feature brief {NNN}-{name} — {phase}`. Skip auto-commit if repo has uncommitted changes.
 
 Query and Processor repos may execute in parallel after Command completes.
 Gateway waits for Query (needs proto definitions). ControlPanel waits for Gateway.

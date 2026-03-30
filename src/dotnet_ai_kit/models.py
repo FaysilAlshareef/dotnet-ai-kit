@@ -58,6 +58,10 @@ _CSHARP_IDENTIFIER_RE = re.compile(r"^[A-Za-z_][A-Za-z0-9_]*$")
 # Valid GitHub org/user pattern
 _GITHUB_ORG_RE = re.compile(r"^[A-Za-z0-9]([A-Za-z0-9\-]*[A-Za-z0-9])?$")
 
+# GitHub URL normalization patterns
+_GITHUB_HTTPS_RE = re.compile(r"^https?://github\.com/([^/]+)/([^/.]+?)(?:\.git)?/?$")
+_GITHUB_SSH_RE = re.compile(r"^git@github\.com:([^/]+)/([^/.]+?)(?:\.git)?$")
+
 
 class CompanyConfig(BaseModel):
     """Company-level configuration used in namespaces and repo naming."""
@@ -148,13 +152,30 @@ class ReposConfig(BaseModel):
     @field_validator("command", "query", "processor", "gateway", "controlpanel", mode="before")
     @classmethod
     def validate_repo_path(cls, v: Optional[str]) -> Optional[str]:
-        """Validate repo path: None, 'github:org/repo', or non-empty string."""
+        """Validate and normalize repo path.
+
+        Accepts: None, local path, 'github:org/repo',
+        GitHub HTTPS URL, or git SSH URL.
+        GitHub URLs are normalized to 'github:org/repo' format.
+        """
         if v is None:
             return v
         if not isinstance(v, str) or not v.strip():
             msg = "Repo path must be None, 'github:org/repo', or non-empty."
             raise ValueError(msg)
-        return v.strip()
+        v = v.strip()
+
+        # Normalize GitHub HTTPS URLs → github:org/repo
+        m = _GITHUB_HTTPS_RE.match(v)
+        if m:
+            return f"github:{m.group(1)}/{m.group(2)}"
+
+        # Normalize git SSH URLs → github:org/repo
+        m = _GITHUB_SSH_RE.match(v)
+        if m:
+            return f"github:{m.group(1)}/{m.group(2)}"
+
+        return v
 
 
 
@@ -316,4 +337,83 @@ class DetectedProject(BaseModel):
     def validate_confidence_score(cls, v: float) -> float:
         if v < 0.0 or v > 1.0:
             raise ValueError(f"confidence_score must be between 0.0 and 1.0, got {v}")
+        return v
+
+
+# ---------------------------------------------------------------------------
+# Feature Brief model (for cross-repo brief projection)
+# ---------------------------------------------------------------------------
+
+_BRIEF_PHASES = {
+    "specified",
+    "planned",
+    "tasks-generated",
+    "implementing",
+    "implemented",
+    "blocked",
+}
+
+
+class FeatureBrief(BaseModel):
+    """Projected feature brief written to secondary repos.
+
+    Stored in .dotnet-ai-kit/briefs/{source-repo}/{NNN}-{name}/feature-brief.md.
+    """
+
+    feature_name: str = Field(description="Feature display name.")
+    feature_id: str = Field(description="Feature ID in NNN-short-name format.")
+    projected_date: str = Field(description="ISO date when the brief was projected.")
+    phase: str = Field(
+        default="specified",
+        description="Lifecycle phase: specified, planned, tasks-generated, implementing, implemented, blocked.",
+    )
+    source_repo: str = Field(description="Source repo directory name.")
+    source_path: str = Field(description="Local path or github:org/repo of source repo.")
+    source_feature_path: str = Field(
+        description="Relative path to source feature dir (e.g. .dotnet-ai-kit/features/001-name/).",
+    )
+    role: str = Field(default="", description="This repo's role in the feature.")
+    required_changes: list[str] = Field(
+        default_factory=list,
+        description="List of required changes for this repo.",
+    )
+    events_produces: list[str] = Field(
+        default_factory=list,
+        description="Events this repo produces.",
+    )
+    events_consumes: list[str] = Field(
+        default_factory=list,
+        description="Events this repo consumes.",
+    )
+    tasks: list[dict] = Field(
+        default_factory=list,
+        description="Filtered task list: each dict has id, description, file, done.",
+    )
+    blocked_by: list[str] = Field(
+        default_factory=list,
+        description="Upstream repos that must complete first.",
+    )
+    blocks: list[str] = Field(
+        default_factory=list,
+        description="Downstream repos waiting on this repo.",
+    )
+    implementation_approach: str = Field(
+        default="",
+        description="Architecture decisions relevant to this repo from plan.",
+    )
+
+    @field_validator("phase")
+    @classmethod
+    def validate_phase(cls, v: str) -> str:
+        if v.lower() not in _BRIEF_PHASES:
+            raise ValueError(f"phase must be one of {_BRIEF_PHASES}, got '{v}'")
+        return v.lower()
+
+    @field_validator("feature_id")
+    @classmethod
+    def validate_feature_id(cls, v: str) -> str:
+        if not re.match(r"^\d{3}-[a-z0-9-]+$", v):
+            raise ValueError(
+                f"feature_id must match NNN-short-name format (e.g. '001-order-export'), got '{v}'"
+            )
         return v

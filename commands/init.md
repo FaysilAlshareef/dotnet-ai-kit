@@ -12,6 +12,8 @@ Initialize dotnet-ai-kit in the current project directory.
 
 Check if `.dotnet-ai-kit/` directory already exists. If it does, report the current state and ask if the user wants to reinitialize with `--force`.
 
+Also check if `.dotnet-ai-kit/briefs/` exists with content. If it does, warn: "This repo has linked features from other repos (in .dotnet-ai-kit/briefs/). They will be preserved." Init and reinit (`--force`) MUST never delete, modify, or overwrite the `briefs/` directory or its contents.
+
 ### Step 2: Run the CLI init
 
 ```

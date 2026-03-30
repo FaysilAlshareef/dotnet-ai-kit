@@ -87,6 +87,12 @@ For each affected repo, review changed files against these checks:
 - Appropriate use of `AsNoTracking()` for read queries
 - Severity: MEDIUM for performance issues
 
+### Check 9: Brief Compliance (microservice secondary repos)
+When reviewing a secondary repo, look for feature briefs in `.dotnet-ai-kit/briefs/*/` matching the current feature. Load the brief and compare actual changes (`git diff`) against:
+- Brief's "Required Changes" — flag changes not listed in the brief (scope creep)
+- Brief's "Tasks" — flag brief items with no corresponding code changes (incomplete)
+- Severity: MEDIUM for scope creep, HIGH for missing brief items
+
 ## Step 4: CodeRabbit Integration (Optional)
 
 Unless `--skip-coderabbit` is set:

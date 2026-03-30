@@ -134,6 +134,10 @@ After each answer:
 
 If `--dry-run`: show all questions but do NOT update spec.md. Print what would change.
 
+## Step 5b: Update Projected Briefs (microservice mode)
+
+After updating spec.md, if any clarification answers affect secondary repos (changed events, entity definitions, or service boundaries), re-project updated briefs to affected secondary repos. Update the brief's "Required Changes" and "Events" sections with clarified information. Phase stays "Specified". Auto-commit with `chore: update feature brief {NNN}-{name} — specified`. Skip auto-commit if repo has uncommitted changes.
+
 ## Step 6: Completion Report
 
 After all questions are answered (or user exits early):

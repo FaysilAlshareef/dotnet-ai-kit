@@ -101,6 +101,11 @@ feature: {NNN}-{short-name}
 | gateway | feature/001-orders | 2 commits | in progress |
 | controlpanel | feature/001-orders | 1 commit | in progress |
 
+## Projected Briefs Status
+| Repo | Feature | Brief Status |
+|------|---------|-------------|
+| {repo} | {NNN}-{name} | current / stale / missing |
+
 ## Resume Instructions
 1. Run /dotnet-ai.status 001 to see current state
 2. Run /dotnet-ai.implement --resume to continue from T011

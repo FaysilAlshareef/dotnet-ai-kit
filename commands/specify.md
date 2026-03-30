@@ -33,7 +33,7 @@ Load all skills listed in the agent's Skills Loaded section.
 1. Read `.dotnet-ai-kit/config.yml` if it exists. Extract `project_mode` (generic | microservice).
 2. If no config, scan the current directory:
    - Multiple repo references or `repos:` config → **microservice**
-   - Single `.sln` / `.csproj` → **generic**
+   - Single `.sln` / `.slnx` / `.csproj` → **generic**
 3. If `--verbose`, print: "Detected mode: {mode}"
 
 ## Step 2: Check for Existing Features
@@ -46,8 +46,8 @@ Load all skills listed in the agent's Skills Loaded section.
 
 ## Step 3: Create Feature Directory
 
-1. Determine next feature number: scan `.dotnet-ai-kit/features/` for highest NNN, increment.
-   - Feature numbers are per-repo. Scan ONLY the current repo's `.dotnet-ai-kit/features/` directory. Do not inherit or reference numbers from other repos. If no features exist in this repo, start at 001.
+1. Determine next feature number: scan ONLY `.dotnet-ai-kit/features/` for highest NNN, increment.
+   - Feature numbers are per-repo. Scan ONLY `.dotnet-ai-kit/features/`. NEVER scan `.dotnet-ai-kit/briefs/` — those are projected features from other repos with their own independent numbering. If no features exist in `features/`, start at 001.
 2. Generate short-name from `$ARGUMENTS` (lowercase, hyphenated, max 4 words).
    - Example: "Add order management" → `order-management`
 3. Create directory: `.dotnet-ai-kit/features/{NNN}-{short-name}/`
@@ -147,6 +147,21 @@ Create `checklists/requirements.md` in the feature directory:
 - [ ] All affected repos identified
 - [ ] Events defined with data schemas
 - [ ] Service communication patterns specified
+- [ ] Feature briefs projected to secondary repos
+
+### Step 4b: Project Feature Briefs (microservice mode)
+
+For each repo listed in `service-map.md` (except the current/primary repo):
+1. Resolve repo path from `config.yml` repos section.
+2. Determine source repo name: current repo's directory name (e.g., `company-domain-command`).
+3. If local path exists for the target repo:
+   - Create `{target-repo}/.dotnet-ai-kit/briefs/{source-repo-name}/{NNN}-{short-name}/`
+   - Write `feature-brief.md` with: Feature ID, Projected date, Phase "Specified", Source Repo name/path, This Repo's Role (from service-map), Required Changes (filtered), Events Produces/Consumes.
+   - Auto-commit: `chore: project feature brief {NNN}-{name} from {source-repo-name}`. Skip auto-commit if secondary repo has uncommitted changes (warn instead).
+4. If `github:org/repo` (not cloned locally): skip, note "Brief not projected — not cloned locally".
+5. If repo path is null: skip, note "Brief not projected — repo not configured".
+
+Report: "Projected feature briefs to {N} repos: {list}"
 
 ## Step 6: Report
 
