@@ -135,6 +135,39 @@ grep -r "Protobuf Include" --include="*.csproj" .
 git remote -v
 ```
 
+## Feature Brief Projection
+
+When a feature spans multiple repos, the primary repo projects a **feature-brief.md** to each affected secondary repo. Briefs live in a separate `briefs/` directory, NOT in `features/`:
+
+```
+.dotnet-ai-kit/
+├── features/          ← LOCAL features (this repo's numbering)
+└── briefs/            ← PROJECTED from other repos
+    └── {source-repo}/ ← namespaced by source repo name
+        └── {NNN}-{name}/
+            └── feature-brief.md
+```
+
+### Lifecycle Phase Updates
+
+| Phase | Action | Brief Phase |
+|-------|--------|-------------|
+| `/dai.specify` | Create brief with role, changes, events | Specified |
+| `/dai.clarify` | Update if events/entities/boundaries changed | Specified |
+| `/dai.plan` | Add Implementation Approach section | Planned |
+| `/dai.tasks` | Add filtered task list for this repo | Tasks Generated |
+| `/dai.implement` | Mark tasks done, track progress | Implementing → Implemented |
+
+### Key Rules
+
+- Briefs are **self-contained** — work without access to the primary repo
+- Projection is **best-effort** — skip if repo not cloned, never block primary workflow
+- Projection is **idempotent** — re-running any phase overwrites stale briefs
+- `features/` and `briefs/` numbering are **independent** — no collisions
+- `/dai.init` **never touches** `briefs/`
+- Briefs are **auto-committed** to the secondary repo for team visibility
+- Skip auto-commit if secondary repo has uncommitted changes
+
 ## Adding to Existing Project
 
 1. **Identify all affected repositories** before starting

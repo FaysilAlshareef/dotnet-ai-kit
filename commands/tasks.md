@@ -184,9 +184,9 @@ Next: /dotnet-ai.analyze     (check consistency before implementing)
       /dotnet-ai.implement   (start implementing)
 ```
 
-## Cross-Repo Feature Tracking
+## Cross-Repo Feature Tracking (microservice mode)
 
-For microservice mode, create `spec-link.md` in each secondary repo's `.dotnet-ai-kit/features/{feature-name}/` directory with feature name, source repo path, primary spec path, and creation date.
+For each secondary repo in `service-map.md`, resolve path from `config.yml`. If local path exists: update `feature-brief.md` in `.dotnet-ai-kit/briefs/{source-repo-name}/{NNN}-{name}/` (create if missing) with filtered `[Repo:this-repo]` tasks, dependencies, and phase "Tasks Generated". Auto-commit with `chore: update feature brief {NNN}-{name} — tasks-generated`. Skip auto-commit if repo has uncommitted changes. If repo not cloned: skip with note.
 
 ## Dry-Run / Error Handling
 

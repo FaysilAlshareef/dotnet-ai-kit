@@ -115,6 +115,16 @@ def _get_package_dir() -> Path:
     return pkg_dir.parent.parent
 
 
+def _detect_plugin_mode() -> bool:
+    """Check whether dotnet-ai-kit is running as a Claude Code plugin.
+
+    Returns True when ``.claude-plugin/plugin.json`` exists in the
+    package source directory, indicating the plugin system already
+    serves full-prefix commands.
+    """
+    return (_get_package_dir() / ".claude-plugin" / "plugin.json").is_file()
+
+
 def _find_commands_source() -> Path:
     """Find the commands source directory in the package."""
     pkg = _get_package_dir()
@@ -379,6 +389,7 @@ def init(
     rules_source = _find_rules_source()
     skills_source = _find_skills_source()
     agents_source = _find_agents_source()
+    is_plugin = _detect_plugin_mode()
 
     total_cmds = 0
     total_rules = 0
@@ -407,7 +418,9 @@ def init(
         elif tool_name == "codex":
             cmd_count = copy_commands_codex(commands_source, target, tool_config)
         else:
-            cmd_count = copy_commands(commands_source, target, tool_config, config)
+            cmd_count = copy_commands(
+                commands_source, target, tool_config, config, is_plugin=is_plugin,
+            )
             rule_count = copy_rules(rules_source, target, tool_config)
 
         # Copy skills and agents for all tools
@@ -813,6 +826,7 @@ def upgrade(
     rules_source = _find_rules_source()
     skills_source = _find_skills_source()
     agents_source = _find_agents_source()
+    is_plugin = _detect_plugin_mode()
 
     # T058 - Dry run: show what WOULD be done
     if dry_run:
@@ -882,7 +896,9 @@ def upgrade(
         elif tool_name == "codex":
             total_cmds += copy_commands_codex(commands_source, target, tool_config)
         else:
-            total_cmds += copy_commands(commands_source, target, tool_config, config)
+            total_cmds += copy_commands(
+                commands_source, target, tool_config, config, is_plugin=is_plugin,
+            )
             total_rules += copy_rules(rules_source, target, tool_config)
 
         # Re-copy skills and agents for all tools
@@ -944,6 +960,109 @@ def upgrade(
 # configure command
 # ---------------------------------------------------------------------------
 
+_REPO_ROLES = ("command", "query", "processor", "gateway", "controlpanel")
+
+_REPO_HEURISTICS: list[tuple[str, str]] = [
+    # (glob/grep pattern hint, classified type)
+    ("AggregateRoot", "command"),
+    ("EventSourcedAggregate", "command"),
+    ("IRequestHandler<Event<", "query"),
+    ("EventHandler", "query"),
+    (".razor", "controlpanel"),
+    ("Protos/", "gateway"),
+    ("IHostedService", "processor"),
+]
+
+
+def _scan_sibling_repos(target: Path) -> dict[str, str]:
+    """Scan ../ for sibling git repos and attempt quick classification.
+
+    Returns a dict of {directory_name: detected_type_or_'unclassified'}.
+    """
+    parent = target.parent
+    if not parent.is_dir():
+        return {}
+
+    results: dict[str, str] = {}
+    count = 0
+    for child in sorted(parent.iterdir()):
+        if count >= 20:
+            break
+        if child == target or not child.is_dir():
+            continue
+        if not (child / ".git").is_dir():
+            continue
+        # Check for .sln, .slnx, or .csproj
+        has_dotnet = (
+            any(child.glob("*.sln"))
+            or any(child.glob("*.slnx"))
+            or any(child.glob("**/*.csproj"))
+        )
+        if not has_dotnet:
+            continue
+        count += 1
+        # Quick classification by grepping for key patterns
+        classified = "unclassified"
+        for pattern, repo_type in _REPO_HEURISTICS:
+            # Check if pattern appears in any .cs or .csproj file
+            for ext in ("**/*.cs", "**/*.csproj"):
+                for f in child.glob(ext):
+                    try:
+                        content = f.read_text(encoding="utf-8", errors="ignore")
+                        if pattern in content:
+                            classified = repo_type
+                            break
+                    except OSError:
+                        continue
+                if classified != "unclassified":
+                    break
+            if classified != "unclassified":
+                break
+        results[child.name] = classified
+    return results
+
+
+def _configure_repos(
+    config: "DotnetAiConfig",
+    target: Path,
+    console: Console,
+    verbose: bool,
+) -> None:
+    """Interactive repo configuration with auto-detection."""
+    from dotnet_ai_kit.models import DotnetAiConfig  # noqa: F811
+
+    detected = _scan_sibling_repos(target)
+    if detected:
+        console.print("  [dim]Detected sibling repos:[/dim]")
+        for name, rtype in detected.items():
+            console.print(f"    ../{name} → {rtype}")
+        console.print()
+
+    from dotnet_ai_kit.models import ReposConfig
+
+    repo_updates: dict[str, str | None] = {}
+    for role in _REPO_ROLES:
+        current = getattr(config.repos, role, None)
+        # Try to find a detected match for this role
+        suggestion = current or ""
+        if not suggestion:
+            for name, rtype in detected.items():
+                if rtype == role:
+                    suggestion = f"../{name}"
+                    break
+
+        value = Prompt.ask(
+            f"  {role.capitalize()} repo (path, GitHub URL, or Enter to skip)",
+            default=suggestion,
+        )
+        value = value.strip() if value else ""
+        repo_updates[role] = value or None
+
+    # Reconstruct ReposConfig to trigger pydantic validators (URL normalization)
+    current_repos = config.repos.model_dump()
+    current_repos.update(repo_updates)
+    config.repos = ReposConfig(**current_repos)
+
 
 @app.command()
 def configure(
@@ -986,6 +1105,11 @@ def configure(
         None,
         "--style",
         help="Command style (full/short/both).",
+    ),
+    repos: Optional[str] = typer.Option(
+        None,
+        "--repos",
+        help="Comma-separated repo mappings (e.g. command=../cmd,query=../qry).",
     ),
     reset: bool = typer.Option(
         False,
@@ -1056,6 +1180,21 @@ def configure(
             config.ai_tools = [t.strip() for t in tools.split(",") if t.strip()]
         if style is not None:
             config.command_style = style
+        if repos is not None:
+            repo_updates: dict[str, str | None] = {}
+            for mapping in repos.split(","):
+                mapping = mapping.strip()
+                if "=" in mapping:
+                    role, path = mapping.split("=", 1)
+                    role = role.strip().lower()
+                    if role in _REPO_ROLES:
+                        repo_updates[role] = path.strip() or None
+            # Reconstruct ReposConfig to trigger pydantic validators (URL normalization)
+            from dotnet_ai_kit.models import ReposConfig
+
+            current = config.repos.model_dump()
+            current.update(repo_updates)
+            config.repos = ReposConfig(**current)
     elif minimal:
         # --minimal mode: only prompt for company name, use defaults for everything else
         company_name = Prompt.ask(
@@ -1086,6 +1225,20 @@ def configure(
             default=config.company.default_branch,
         )
         config.company.default_branch = default_branch
+
+        # Repo configuration (microservice mode only)
+        project_path = config_dir / "project.yml"
+        is_microservice = False
+        if project_path.is_file():
+            try:
+                proj = load_project(project_path)
+                is_microservice = proj.mode == "microservice"
+            except (FileNotFoundError, ValueError):
+                pass
+
+        if is_microservice:
+            console.print("\n[bold]Repository Paths[/bold] (microservice mode)\n")
+            _configure_repos(config, target, console, verbose)
 
         # Permission level (T040)
         perm_default_map = {"minimal": "1", "standard": "2", "full": "3"}
@@ -1139,6 +1292,8 @@ def configure(
         console.print(f"  Permissions: {config.permissions_level}")
         console.print(f"  AI Tools: {', '.join(config.ai_tools) if config.ai_tools else '(none)'}")
         console.print(f"  Command Style: {config.command_style}")
+        repo_count = sum(1 for r in _REPO_ROLES if getattr(config.repos, r, None))
+        console.print(f"  Repos: {repo_count} of {len(_REPO_ROLES)} configured")
         console.print(f"  Config path: {config_path}")
         console.print("\n[dim]No changes were made (dry run).[/dim]")
         return
@@ -1173,6 +1328,32 @@ def configure(
         )
         raise typer.Exit(code=1) from exc
 
+    # Re-copy commands so style changes take effect immediately
+    commands_source = _find_commands_source()
+    rules_source = _find_rules_source()
+    is_plugin = _detect_plugin_mode()
+    total_cmds = 0
+
+    for tool_name in config.ai_tools:
+        try:
+            tool_config = get_agent_config(tool_name)
+        except ValueError:
+            continue
+
+        if tool_name == "cursor":
+            total_cmds += copy_commands_cursor(
+                commands_source, target, tool_config, rules_source,
+            )
+        elif tool_name == "codex":
+            total_cmds += copy_commands_codex(commands_source, target, tool_config)
+        else:
+            total_cmds += copy_commands(
+                commands_source, target, tool_config, config, is_plugin=is_plugin,
+            )
+
+    if not json_output and total_cmds:
+        console.print(f"  Commands: {total_cmds} files updated (style: {config.command_style})")
+
     # T051 - JSON output mode
     if json_output:
         print(
@@ -1202,6 +1383,8 @@ def configure(
     summary.add_row("Permissions", config.permissions_level)
     summary.add_row("AI Tools", ", ".join(config.ai_tools) if config.ai_tools else "(none)")
     summary.add_row("Command Style", config.command_style)
+    repo_count = sum(1 for r in _REPO_ROLES if getattr(config.repos, r, None))
+    summary.add_row("Repos", f"{repo_count} of {len(_REPO_ROLES)} configured")
     console.print(summary)
 
     # Validate development tools

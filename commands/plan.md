@@ -83,6 +83,16 @@ Load `skills/workflow/plan-templates/SKILL.md` for mode-specific plan structure.
 Load `skills/workflow/plan-artifacts/SKILL.md` for research.md, data-model.md,
 contracts/, and quickstart.md generation guidance.
 
+## Step 7b: Update Projected Briefs (microservice mode)
+
+For each secondary repo with an existing brief in `.dotnet-ai-kit/briefs/{source-repo-name}/{NNN}-{name}/`:
+1. Append or update "Implementation Approach" section with architecture decisions relevant to that repo.
+2. Update "Required Changes" with technical approach from plan.md.
+3. If `data-model.md` was generated, include relevant entity details for that repo.
+4. Update phase to "Planned". If brief doesn't exist yet (repo cloned after specify), create it now with all available info.
+
+Auto-commit with `chore: update feature brief {NNN}-{name} — planned`. Skip auto-commit if repo has uncommitted changes.
+
 ## Step 8: Report
 
 ```

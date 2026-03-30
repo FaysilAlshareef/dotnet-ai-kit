@@ -49,6 +49,19 @@ For each feature, check existence and content of:
 - `handoff.md` -- session handoff (checkpoint or wrap-up)
 - `undo-log.md` -- undo history
 
+### Step 2b: Detect Linked Features
+
+Scan `.dotnet-ai-kit/briefs/` for all source repo subdirectories and their feature briefs. Display them separately from local features:
+
+```
+Linked Features (from other repos):
+  [company-domain-command] 001-order-management   Phase: Tasks Generated | Tasks: 0/4
+  [company-domain-command] 002-invoice-export      Phase: Planned
+  [company-domain-gateway] 002-user-sync           Phase: Specified
+```
+
+If `--verbose`: show the full brief content. The `--all` flag should include both local and linked features.
+
 ### Step 3: Calculate Lifecycle Progress
 
 Determine which lifecycle stages are complete, in-progress, or pending:

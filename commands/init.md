@@ -12,6 +12,8 @@ Initialize dotnet-ai-kit in the current project directory.
 
 Check if `.dotnet-ai-kit/` directory already exists. If it does, report the current state and ask if the user wants to reinitialize with `--force`.
 
+Also check if `.dotnet-ai-kit/briefs/` exists with content. If it does, warn: "This repo has linked features from other repos (in .dotnet-ai-kit/briefs/). They will be preserved." Init and reinit (`--force`) MUST never delete, modify, or overwrite the `briefs/` directory or its contents.
+
 ### Step 2: Run the CLI init
 
 ```
@@ -27,6 +29,8 @@ After the command completes, verify:
 4. `.claude/settings.json` exists and has permission entries
 
 If `dotnet-ai` is not installed, tell the user: "dotnet-ai CLI not found. Install: `pip install dotnet-ai-kit`"
+
+**Plugin mode**: When running as a plugin, full-prefix commands (`dotnet-ai.*.md`) are NOT copied to `.claude/commands/` because the plugin system already serves them as `dotnet-ai-kit:*`. Only short aliases (`dai.*.md`) are copied when the command style includes "short".
 
 ### Step 3: Detect project type using AI
 

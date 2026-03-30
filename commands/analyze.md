@@ -121,6 +121,11 @@ These passes inspect both feature artifacts AND actual code across repos listed 
 - Event handlers are idempotent (sequence-based dedup in query, client-sent ID in command).
 - Severity: MEDIUM for missing idempotency.
 
+**Pass 11: Brief Consistency** (microservice mode)
+- For each secondary repo reachable via `config.yml`, scan `.dotnet-ai-kit/briefs/{source-repo-name}/{NNN}-{name}/feature-brief.md`.
+- Verify brief matches current spec/plan/tasks: events, required changes, task list.
+- Severity: HIGH for stale briefs (spec changed after projection), MEDIUM for minor drift.
+
 ## Step 4: Compile Report
 
 Maximum 50 findings. If more found, keep the highest severity and note "N additional findings suppressed."

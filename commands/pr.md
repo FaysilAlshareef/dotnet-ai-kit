@@ -50,7 +50,8 @@ For each repo, generate a PR body:
 ```markdown
 ## Summary
 
-{1-2 sentence feature summary from spec.md}
+{For secondary repos: "Part of cross-repo feature: {NNN}-{name} (from {source-repo})"}
+{1-2 sentence feature summary from spec.md or from feature-brief.md}
 
 **Feature**: {NNN}-{short-name}
 **Mode**: {generic|microservice}
@@ -63,9 +64,10 @@ For each repo, generate a PR body:
 
 ## Related PRs
 
-{Microservice mode only — cross-links to PRs in other repos}
+{Microservice mode — cross-links to PRs in other repos}
 - [{other-repo}#{pr-number}]({pr-url}) — {brief description}
 {Or "Will be linked after all PRs are created" if creating simultaneously}
+{For secondary repos: include merge-order dependencies from feature-brief.md "Dependencies" section — which repo PRs must merge first}
 
 ## Test Results
 

@@ -106,6 +106,7 @@ repo: gateway
 - Shows diff preview before any destructive operation.
 - Requires confirmation unless `--force` is used.
 - If a file was further modified after the task: warn and ask whether to proceed.
+- **Projected briefs are NOT automatically reverted.** If a feature projected `feature-brief.md` files to secondary repos, those briefs and their auto-commits remain. To clean up briefs, manually delete `{secondary-repo}/.dotnet-ai-kit/briefs/{source-repo}/{NNN}-{name}/` and revert the auto-commit in each secondary repo.
 
 ## Dry-Run Behavior
 

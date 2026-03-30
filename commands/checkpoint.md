@@ -83,6 +83,9 @@ message: {custom message or "Mid-session checkpoint"}
 ## Blocked Items
 - (none, or list any blockers)
 
+## Projected Briefs Status
+- {repo}: {NNN}-{name} — current / stale / missing
+
 ## Current Context
 - Working on: {current task or area}
 - Branch: feature/{NNN}-{short-name}

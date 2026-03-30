@@ -54,21 +54,49 @@ def render_template(template_path: Path, output_path: Path, context: dict[str, A
     output_path.write_text(rendered, encoding="utf-8")
 
 
+def _clean_managed_commands(commands_dir: Path) -> int:
+    """Delete all tool-managed command files from the commands directory.
+
+    Removes files matching ``dotnet-ai.*.md`` and ``dai.*.md`` patterns.
+    User-created files with other naming patterns are preserved.
+
+    Args:
+        commands_dir: Directory to clean.
+
+    Returns:
+        Number of files deleted.
+    """
+    if not commands_dir.is_dir():
+        return 0
+
+    deleted = 0
+    for pattern in ("dotnet-ai.*.md", "dai.*.md"):
+        for f in commands_dir.glob(pattern):
+            f.unlink()
+            deleted += 1
+    return deleted
+
+
 def copy_commands(
     source_dir: Path,
     target_dir: Path,
     agent_config: dict[str, Any],
     config: DotnetAiConfig,
+    *,
+    is_plugin: bool = False,
 ) -> int:
     """Copy command files from the source to the AI tool's commands directory.
 
-    Handles command_style (full/short/both) by creating alias files for short names.
+    Cleans up previously managed files before writing to prevent stale
+    duplicates when the command style changes.  In plugin mode, full-prefix
+    files are skipped because the plugin system already serves them.
 
     Args:
         source_dir: Directory containing command template .md files.
         target_dir: Root of the user's project.
         agent_config: Configuration dict for the target AI tool.
         config: The dotnet-ai-kit configuration.
+        is_plugin: If True, skip writing full-prefix (dotnet-ai.*) files.
 
     Returns:
         Number of command files copied.
@@ -79,6 +107,13 @@ def copy_commands(
 
     commands_dir = target_dir / commands_dir_rel
     commands_dir.mkdir(parents=True, exist_ok=True)
+
+    # Always clean managed files first to prevent stale duplicates
+    _clean_managed_commands(commands_dir)
+
+    # In plugin mode with full style, plugin serves everything — nothing to copy
+    if is_plugin and config.command_style == "full":
+        return 0
 
     prefix = agent_config.get("command_prefix", "dotnet-ai")
     ext = agent_config.get("command_ext", ".md")
@@ -100,32 +135,17 @@ def copy_commands(
         # Full command name: dotnet-ai.specify.md
         full_name = f"{prefix}.{cmd_name}{ext}"
 
-        if config.command_style in ("full", "both"):
+        if not is_plugin and config.command_style in ("full", "both"):
             out_path = commands_dir / full_name
             out_path.write_text(content, encoding="utf-8")
             count += 1
 
         if config.command_style in ("short", "both"):
-            # Short alias: dai.specify.md that includes/references the full command
             short_prefix = "dai"
             short_name = f"{short_prefix}.{cmd_name}{ext}"
             short_path = commands_dir / short_name
-
-            if config.command_style == "short":
-                # Write the actual content with short name
-                short_path.write_text(content, encoding="utf-8")
-                count += 1
-            elif config.command_style == "both":
-                # Write an alias that references the full command
-                alias_content = (
-                    f"---\n"
-                    f"description: Alias for /{prefix}.{cmd_name}\n"
-                    f"---\n\n"
-                    f"See /{prefix}.{cmd_name} for full documentation.\n\n"
-                    f"Run /{prefix}.{cmd_name} with the same arguments.\n"
-                )
-                short_path.write_text(alias_content, encoding="utf-8")
-                count += 1
+            short_path.write_text(content, encoding="utf-8")
+            count += 1
 
     return count
 
