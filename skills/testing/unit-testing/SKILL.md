@@ -4,6 +4,7 @@ description: >
   Unit testing patterns with xUnit, NSubstitute/Moq, and FluentAssertions.
   Covers Arrange-Act-Assert, test naming, mocking strategies, and test organization.
   Trigger: unit test, xUnit, NSubstitute, Moq, FluentAssertions, AAA.
+when-to-use: "When writing unit tests, creating fakers, assertion extensions"
 metadata:
   category: testing
   agent: test-engineer

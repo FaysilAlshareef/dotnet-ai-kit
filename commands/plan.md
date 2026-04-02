@@ -112,6 +112,19 @@ Next: /dotnet-ai.tasks or /dotnet-ai.analyze
 
 When `--dry-run`: print plan content, show file paths, do NOT write files, prefix `[DRY-RUN]`.
 
+## Secondary Repo Branch Safety
+
+When updating projected briefs in linked secondary repos:
+1. Read linked repos from `.dotnet-ai-kit/config.yml` repos section
+2. For each linked repo with a local path:
+   - Run `git -C {repo_path} rev-parse --abbrev-ref HEAD` to check current branch
+   - If on main/master/develop: run `git -C {repo_path} checkout -b chore/brief-{NNN}-{name}`
+   - If `chore/brief-{NNN}-{name}` already exists: run `git -C {repo_path} checkout chore/brief-{NNN}-{name}` (reuse the branch created by specify)
+   - If working directory dirty (`git -C {repo_path} status --porcelain` returns output): warn and skip
+3. After writing the brief file, stage and commit on the chore branch
+4. NEVER commit directly to main, master, or develop branches
+5. Optionally offer PR creation for the chore branch
+
 ## Error Handling
 
 - Missing spec: direct to `/dotnet-ai.specify`

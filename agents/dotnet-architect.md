@@ -1,6 +1,14 @@
 ---
 name: dotnet-architect
 description: Leads overall .NET solution architecture and design patterns
+role: advisory
+expertise:
+  - clean-architecture
+  - vertical-slice
+  - ddd-patterns
+  - modular-monolith
+complexity: high
+max_iterations: 20
 ---
 
 # .NET Architecture Specialist

@@ -53,6 +53,30 @@ AGENT_CONFIG: dict[str, dict[str, Any]] = {
 # Cursor, Copilot, Codex planned for v1.1.
 SUPPORTED_AI_TOOLS: frozenset[str] = frozenset({"claude"})
 
+# Per-tool transformation mapping for universal agent frontmatter.
+# Agent source files use tool-agnostic fields (role, expertise, complexity,
+# max_iterations). This map converts them to tool-specific frontmatter
+# during deployment via copy_agents().
+AGENT_FRONTMATTER_MAP: dict[str, dict[str, Any]] = {
+    "claude": {
+        "role": {
+            "advisory": {"disallowedTools": ["Write", "Edit"]},
+            "implementation": {},
+            "testing": {},
+            "review": {"disallowedTools": ["Write", "Edit"]},
+        },
+        "expertise": lambda skills: {"skills": skills},
+        "complexity": {
+            "high": {"effort": "high", "model": "opus"},
+            "medium": {"effort": "medium", "model": "sonnet"},
+            "low": {"effort": "low", "model": "haiku"},
+        },
+        "max_iterations": lambda n: {"maxTurns": n},
+    },
+    # v1.0.1: "cursor": { ... }
+    # v1.0.1: "copilot": { ... }
+}
+
 
 def get_agent_config(tool: str) -> dict[str, Any]:
     """Get the configuration dictionary for a specific AI tool.

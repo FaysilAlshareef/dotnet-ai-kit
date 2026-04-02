@@ -1,5 +1,7 @@
 ---
 description: "Analyzes plan consistency before coding. Use when validating spec-plan-task alignment."
+context: 'fork'
+agent: general-purpose
 ---
 
 # /dotnet-ai.analyze — Consistency Check

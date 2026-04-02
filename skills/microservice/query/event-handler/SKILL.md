@@ -5,6 +5,7 @@ description: >
   for message completion. Uses IUnitOfWork with named repository properties, strict
   sequence checking, and idempotent duplicate handling.
   Trigger: event handler, query projection, sequence check, idempotent.
+when-to-use: "When creating or modifying event handlers on query side, sequence checking"
 metadata:
   category: microservice/query
   agent: query-architect

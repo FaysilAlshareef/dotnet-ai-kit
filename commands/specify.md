@@ -179,11 +179,19 @@ Next: /dotnet-ai.clarify    (resolve ambiguities)
 
 ## Dry-Run Behavior
 
-When `--dry-run` is active:
-- Print all generated content to the terminal
-- Show file paths that WOULD be created
-- Do NOT create any directories or files
-- Prefix output with `[DRY-RUN]`
+When `--dry-run`: print all generated content, show file paths that WOULD be created, do NOT write files, prefix `[DRY-RUN]`.
+
+## Secondary Repo Branch Safety
+
+When projecting feature briefs to linked secondary repos:
+1. Read linked repos from `.dotnet-ai-kit/config.yml` repos section
+2. For each linked repo with a local path:
+   - Run `git -C {repo_path} rev-parse --abbrev-ref HEAD` to check current branch
+   - If on main/master/develop: `git -C {repo_path} checkout -b chore/brief-{NNN}-{name}`
+   - If `chore/brief-{NNN}-{name}` already exists: `git -C {repo_path} checkout chore/brief-{NNN}-{name}`
+   - If working directory dirty (`git -C {repo_path} status --porcelain`): warn and skip
+3. After writing the brief, stage and commit on the chore branch
+4. NEVER commit directly to main, master, or develop branches
 
 ## Error Handling
 

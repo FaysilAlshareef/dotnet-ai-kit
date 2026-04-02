@@ -5,6 +5,7 @@ description: >
   event faker patterns, assertion extensions, and integration test patterns with
   WebApplicationFactory, DbContextHelper, and GrpcClientHelper.
   Trigger: aggregate test, faker, test data, assertion, command testing.
+when-to-use: "When writing tests for event-sourced aggregates"
 metadata:
   category: microservice/command
   agent: test-engineer

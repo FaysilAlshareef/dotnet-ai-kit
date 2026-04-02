@@ -1,6 +1,15 @@
 ---
 name: controlpanel-architect
 description: Designs Blazor admin control panel UI and workflows
+role: advisory
+expertise:
+  - blazor-component
+  - gateway-facade
+  - mudblazor-patterns
+  - query-string-bindable
+  - response-result
+complexity: high
+max_iterations: 20
 ---
 
 # Control Panel Specialist

@@ -391,6 +391,18 @@ def init(
     agents_source = _find_agents_source()
     is_plugin = _detect_plugin_mode()
 
+    # Load detected_paths from project.yml for skill token resolution
+    _init_detected_paths = None
+    _init_project_yml = target / ".dotnet-ai-kit" / "project.yml"
+    if _init_project_yml.is_file():
+        try:
+            import yaml
+
+            _init_proj = yaml.safe_load(_init_project_yml.read_text(encoding="utf-8")) or {}
+            _init_detected_paths = _init_proj.get("detected_paths")
+        except Exception:
+            pass
+
     total_cmds = 0
     total_rules = 0
     total_skills = 0
@@ -425,9 +437,9 @@ def init(
 
         # Copy skills and agents for all tools
         if skills_source.is_dir():
-            skill_count = copy_skills(skills_source, target, tool_config)
+            skill_count = copy_skills(skills_source, target, tool_config, detected_paths=_init_detected_paths)
         if agents_source.is_dir():
-            agent_count = copy_agents(agents_source, target, tool_config)
+            agent_count = copy_agents(agents_source, target, tool_config, tool_name=tool_name)
 
         total_cmds += cmd_count
         total_rules += rule_count
@@ -854,6 +866,18 @@ def upgrade(
         console.print("\n[dim]No changes were made (dry run).[/dim]")
         return
 
+    # Load detected_paths for skill token resolution
+    _upg_detected_paths = None
+    _upg_project_yml = target / ".dotnet-ai-kit" / "project.yml"
+    if _upg_project_yml.is_file():
+        try:
+            import yaml
+
+            _upg_proj = yaml.safe_load(_upg_project_yml.read_text(encoding="utf-8")) or {}
+            _upg_detected_paths = _upg_proj.get("detected_paths")
+        except Exception:
+            pass
+
     total_cmds = 0
     total_rules = 0
     total_skills = 0
@@ -903,9 +927,39 @@ def upgrade(
 
         # Re-copy skills and agents for all tools
         if skills_source.is_dir():
-            total_skills += copy_skills(skills_source, target, tool_config)
+            total_skills += copy_skills(skills_source, target, tool_config, detected_paths=_upg_detected_paths)
         if agents_source.is_dir():
-            total_agents += copy_agents(agents_source, target, tool_config)
+            total_agents += copy_agents(agents_source, target, tool_config, tool_name=tool_name)
+
+    # Deploy architecture profile and hook
+    _upgrade_profile_path = None
+    project_yml = target / ".dotnet-ai-kit" / "project.yml"
+    if project_yml.is_file():
+        try:
+            import yaml
+
+            project_data = yaml.safe_load(project_yml.read_text(encoding="utf-8")) or {}
+            _project_type = project_data.get("project_type", "generic")
+            _confidence = project_data.get("confidence", "low")
+            for tool_name in config.ai_tools:
+                try:
+                    from dotnet_ai_kit.copier import copy_profile
+
+                    _p = copy_profile(target, tool_name, _project_type, _get_package_dir(), confidence=_confidence)
+                    if _p and tool_name == "claude":
+                        _upgrade_profile_path = _p
+                except (FileNotFoundError, ValueError):
+                    pass
+        except Exception:
+            pass
+
+    if _upgrade_profile_path and "claude" in config.ai_tools:
+        try:
+            from dotnet_ai_kit.copier import copy_hook
+
+            copy_hook(target, _upgrade_profile_path, _get_package_dir())
+        except Exception:
+            pass
 
     # Update version file
     version_path.write_text(__version__, encoding="utf-8")
@@ -1029,7 +1083,6 @@ def _configure_repos(
     verbose: bool,
 ) -> None:
     """Interactive repo configuration with auto-detection."""
-    from dotnet_ai_kit.models import DotnetAiConfig  # noqa: F811
 
     detected = _scan_sibling_repos(target)
     if detected:
@@ -1353,6 +1406,46 @@ def configure(
 
     if not json_output and total_cmds:
         console.print(f"  Commands: {total_cmds} files updated (style: {config.command_style})")
+
+    # Deploy architecture profile based on detected project type
+    project_yml = target / ".dotnet-ai-kit" / "project.yml"
+    project_type = "generic"
+    confidence = "low"
+    if project_yml.is_file():
+        try:
+            import yaml
+
+            project_data = yaml.safe_load(project_yml.read_text(encoding="utf-8")) or {}
+            project_type = project_data.get("project_type", "generic")
+            confidence = project_data.get("confidence", "low")
+        except Exception:
+            pass  # Use defaults
+
+    _deployed_profile_path = None
+    for tool_name in config.ai_tools:
+        try:
+            from dotnet_ai_kit.copier import copy_profile
+
+            profile_path = copy_profile(
+                target, tool_name, project_type, _get_package_dir(), confidence=confidence,
+            )
+            if profile_path and not json_output:
+                console.print(f"  Profile: {project_type} -> {profile_path.relative_to(target)}")
+            if profile_path and tool_name == "claude":
+                _deployed_profile_path = profile_path
+        except (FileNotFoundError, ValueError):
+            pass  # Profile not available yet — skip silently
+
+    # Deploy Claude Code prompt hook if profile was deployed
+    if _deployed_profile_path and "claude" in config.ai_tools:
+        try:
+            from dotnet_ai_kit.copier import copy_hook
+
+            if copy_hook(target, _deployed_profile_path, _get_package_dir()):
+                if not json_output:
+                    console.print("  Hook: architecture enforcement hook deployed")
+        except Exception:
+            pass  # Hook deployment is optional
 
     # T051 - JSON output mode
     if json_output:

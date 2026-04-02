@@ -6,7 +6,6 @@ import pytest
 
 from dotnet_ai_kit.models import FeatureBrief, ReposConfig
 
-
 # ---------------------------------------------------------------------------
 # T003: URL normalization tests for ReposConfig.validate_repo_path
 # ---------------------------------------------------------------------------

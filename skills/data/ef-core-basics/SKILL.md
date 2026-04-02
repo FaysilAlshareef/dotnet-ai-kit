@@ -5,6 +5,7 @@ description: >
   configuration with IEntityTypeConfiguration, value converters, and
   connection resiliency.
   Trigger: EF Core, DbContext, entity configuration, database, ORM.
+when-to-use: "When configuring EF Core DbContext, entity configurations, migrations"
 metadata:
   category: data
   agent: ef-specialist

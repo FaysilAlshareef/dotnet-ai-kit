@@ -219,6 +219,10 @@ class DotnetAiConfig(BaseModel):
         default="both",
         description="Command file style: full, short, or both.",
     )
+    linked_from: Optional[str] = Field(
+        default=None,
+        description="Path to the primary repo that deployed tooling to this secondary repo.",
+    )
 
     @field_validator("permissions_level")
     @classmethod
@@ -295,6 +299,10 @@ class DetectedProject(BaseModel):
         default_factory=list,
         description="Top 3 signals that contributed most to classification (serialized).",
     )
+    detected_paths: Optional[dict[str, str]] = Field(
+        default=None,
+        description="Logical path categories mapped to filesystem paths relative to project root.",
+    )
 
     @field_validator("mode")
     @classmethod
@@ -365,7 +373,10 @@ class FeatureBrief(BaseModel):
     projected_date: str = Field(description="ISO date when the brief was projected.")
     phase: str = Field(
         default="specified",
-        description="Lifecycle phase: specified, planned, tasks-generated, implementing, implemented, blocked.",
+        description=(
+            "Lifecycle phase: specified, planned, tasks-generated,"
+            " implementing, implemented, blocked."
+        ),
     )
     source_repo: str = Field(description="Source repo directory name.")
     source_path: str = Field(description="Local path or github:org/repo of source repo.")

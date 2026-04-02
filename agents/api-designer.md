@@ -1,6 +1,15 @@
 ---
 name: api-designer
 description: Designs REST and gRPC API contracts and endpoint conventions
+role: advisory
+expertise:
+  - minimal-api
+  - controllers
+  - versioning
+  - openapi-scalar
+  - rate-limiting
+complexity: medium
+max_iterations: 15
 ---
 
 # REST API Design Specialist

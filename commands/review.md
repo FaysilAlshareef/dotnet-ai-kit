@@ -1,5 +1,7 @@
 ---
 description: "Reviews code against standards and conventions. Use when implementation is complete and ready for quality check."
+context: 'fork'
+agent: reviewer
 ---
 
 # /dotnet-ai.review — Standards Review

@@ -1,6 +1,16 @@
 ---
 name: query-architect
 description: Architects CQRS query-side read models and projections
+role: advisory
+expertise:
+  - query-entity
+  - event-handler
+  - listener-pattern
+  - query-handler
+  - sequence-checking
+  - event-versioning
+complexity: high
+max_iterations: 20
 ---
 
 # Query Side Specialist (SQL)

@@ -162,15 +162,11 @@ For generic .NET projects, organize by architectural layer:
 
 ## Task Format Rules
 
-`[P]` means this task can execute in parallel with other `[P]` tasks in the same phase — it modifies different files and has no dependencies on incomplete tasks within the phase.
-
 - Every task has a unique ID: `T001`, `T002`, etc.
-- `[P]` = can run in parallel with the previous task (different files, no dependency)
-- `[depends: T{N}]` = blocked until T{N} completes
-- `[Repo:{name}]` = which repository (microservice mode only)
+- `[P]` = can run in parallel (different files, no dependency within the phase)
+- `[depends: T{N}]` = blocked until T{N} completes; `[Repo:{name}]` = target repo (microservice)
 - Tasks without markers depend on the previous task (sequential default)
-- Include exact file paths where the work will happen
-- Each task should be completable in one step (create one file or modify one file)
+- Include exact file paths; each task should be completable in one step
 
 ## Step 5: Report
 
@@ -186,11 +182,19 @@ Next: /dotnet-ai.analyze     (check consistency before implementing)
 
 ## Cross-Repo Feature Tracking (microservice mode)
 
-For each secondary repo in `service-map.md`, resolve path from `config.yml`. If local path exists: update `feature-brief.md` in `.dotnet-ai-kit/briefs/{source-repo-name}/{NNN}-{name}/` (create if missing) with filtered `[Repo:this-repo]` tasks, dependencies, and phase "Tasks Generated". Auto-commit with `chore: update feature brief {NNN}-{name} — tasks-generated`. Skip auto-commit if repo has uncommitted changes. If repo not cloned: skip with note.
+For each secondary repo in `service-map.md`, resolve path from `config.yml`. If local path exists: update `feature-brief.md` in `.dotnet-ai-kit/briefs/{source-repo-name}/{NNN}-{name}/` (create if missing) with filtered `[Repo:this-repo]` tasks, dependencies, and phase "Tasks Generated". Auto-commit with `chore: update feature brief {NNN}-{name} — tasks-generated`. If repo not cloned: skip with note.
+
+### Secondary Repo Branch Safety
+
+Before committing to any linked secondary repo:
+1. Run `git -C {repo_path} rev-parse --abbrev-ref HEAD` to check current branch
+2. If on main/master/develop: `git -C {repo_path} checkout -b chore/brief-{NNN}-{name}`
+3. If `chore/brief-{NNN}-{name}` already exists: reuse it (checkout, do not create new)
+4. If working directory dirty (`git -C {repo_path} status --porcelain`): warn and skip
+5. NEVER commit directly to main, master, or develop — always use the chore branch
 
 ## Dry-Run / Error Handling
 
-- `--dry-run`: Print full task list, do NOT create tasks.md, prefix with `[DRY-RUN]`
-- Missing plan.md: direct user to `/dotnet-ai.plan`
-- Missing spec.md: direct user to `/dotnet-ai.specify`
+- `--dry-run`: print task list, do NOT create tasks.md, prefix `[DRY-RUN]`
+- Missing plan.md: direct to `/dotnet-ai.plan`; missing spec.md: direct to `/dotnet-ai.specify`
 - Microservice without service-map.md: warn, generate tasks from plan.md only

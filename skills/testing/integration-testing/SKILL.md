@@ -4,6 +4,7 @@ description: >
   Integration testing with WebApplicationFactory, TestContainers, and test fixtures.
   Covers in-memory database setup, fixture sharing, and end-to-end test patterns.
   Trigger: integration test, WebApplicationFactory, TestContainers, fixture.
+when-to-use: "When writing integration tests with WebApplicationFactory"
 metadata:
   category: testing
   agent: test-engineer

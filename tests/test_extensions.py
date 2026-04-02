@@ -7,8 +7,6 @@ from pathlib import Path
 import pytest
 import yaml
 
-from unittest.mock import patch
-
 from dotnet_ai_kit.extensions import (
     ExtensionError,
     _parse_version_tuple,

@@ -1062,7 +1062,6 @@ def test_init_force_applies_full_permissions(tmp_path: Path) -> None:
 
 def test_upgrade_reapplies_permissions_when_level_changes(tmp_path: Path, monkeypatch) -> None:
     """upgrade should re-apply permissions even when settings.json already has entries."""
-    from dotnet_ai_kit import __version__
 
     _create_dotnet_project(tmp_path)
     _create_claude_dir(tmp_path)

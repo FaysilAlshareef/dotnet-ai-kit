@@ -1,5 +1,7 @@
 ---
 description: "Verifies build, tests, and formatting pass. Use when validating implementation before creating a PR."
+context: 'fork'
+agent: general-purpose
 ---
 
 # /dotnet-ai.verify — Verification Pipeline
