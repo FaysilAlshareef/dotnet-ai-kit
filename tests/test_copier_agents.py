@@ -61,6 +61,14 @@ class TestTransformAgentFrontmatter:
         result = _transform_agent_frontmatter(fm, mapping)
         assert "disallowedTools" not in result
 
+    def test_testing_role_no_disallowed_tools(self) -> None:
+        from dotnet_ai_kit.agents import AGENT_FRONTMATTER_MAP
+
+        mapping = AGENT_FRONTMATTER_MAP["claude"]
+        fm = {"name": "test", "role": "testing"}
+        result = _transform_agent_frontmatter(fm, mapping)
+        assert "disallowedTools" not in result
+
     def test_review_role_adds_disallowed_tools(self) -> None:
         from dotnet_ai_kit.agents import AGENT_FRONTMATTER_MAP
 
@@ -152,6 +160,8 @@ class TestCopyAgentsIntegration:
         assert fm["model"] == "opus"
         assert fm["maxTurns"] == 20
         assert "Agent body" not in fm  # body preserved separately
+        # Verify body text survives transformation
+        assert "Some instructions here." in deployed
 
     def test_unsupported_tool_logs_warning(
         self, tmp_path: Path, caplog: pytest.LogCaptureFixture,

@@ -34,9 +34,12 @@ from dotnet_ai_kit.copier import (
     copy_commands,
     copy_commands_codex,
     copy_commands_cursor,
+    copy_hook,
     copy_permissions,
+    copy_profile,
     copy_rules,
     copy_skills,
+    deploy_to_linked_repos,
     verify_permissions,
 )
 from dotnet_ai_kit.detection import describe_architecture
@@ -437,9 +440,15 @@ def init(
 
         # Copy skills and agents for all tools
         if skills_source.is_dir():
-            skill_count = copy_skills(skills_source, target, tool_config, detected_paths=_init_detected_paths)
+            skill_count = copy_skills(
+                skills_source, target, tool_config,
+                detected_paths=_init_detected_paths,
+            )
         if agents_source.is_dir():
-            agent_count = copy_agents(agents_source, target, tool_config, tool_name=tool_name)
+            agent_count = copy_agents(
+                agents_source, target, tool_config,
+                tool_name=tool_name,
+            )
 
         total_cmds += cmd_count
         total_rules += rule_count
@@ -927,9 +936,15 @@ def upgrade(
 
         # Re-copy skills and agents for all tools
         if skills_source.is_dir():
-            total_skills += copy_skills(skills_source, target, tool_config, detected_paths=_upg_detected_paths)
+            total_skills += copy_skills(
+                skills_source, target, tool_config,
+                detected_paths=_upg_detected_paths,
+            )
         if agents_source.is_dir():
-            total_agents += copy_agents(agents_source, target, tool_config, tool_name=tool_name)
+            total_agents += copy_agents(
+                agents_source, target, tool_config,
+                tool_name=tool_name,
+            )
 
     # Deploy architecture profile and hook
     _upgrade_profile_path = None
@@ -938,14 +953,17 @@ def upgrade(
         try:
             import yaml
 
-            project_data = yaml.safe_load(project_yml.read_text(encoding="utf-8")) or {}
+            project_data = (
+                yaml.safe_load(project_yml.read_text(encoding="utf-8")) or {}
+            )
             _project_type = project_data.get("project_type", "generic")
             _confidence = project_data.get("confidence", "low")
             for tool_name in config.ai_tools:
                 try:
-                    from dotnet_ai_kit.copier import copy_profile
-
-                    _p = copy_profile(target, tool_name, _project_type, _get_package_dir(), confidence=_confidence)
+                    _p = copy_profile(
+                        target, tool_name, _project_type,
+                        _get_package_dir(), confidence=_confidence,
+                    )
                     if _p and tool_name == "claude":
                         _upgrade_profile_path = _p
                 except (FileNotFoundError, ValueError):
@@ -955,11 +973,25 @@ def upgrade(
 
     if _upgrade_profile_path and "claude" in config.ai_tools:
         try:
-            from dotnet_ai_kit.copier import copy_hook
-
             copy_hook(target, _upgrade_profile_path, _get_package_dir())
         except Exception:
             pass
+
+    # Deploy tooling to linked secondary repos (FR-012)
+    has_local_repos = any(
+        getattr(config.repos, r, None)
+        and not getattr(config.repos, r, "").startswith("github:")
+        for r in ("command", "query", "processor", "gateway", "controlpanel")
+    )
+    if has_local_repos:
+        upgrade_branch = f"chore/dotnet-ai-kit-upgrade-{__version__}"
+        try:
+            deploy_to_linked_repos(
+                target, config, __version__, _get_package_dir(),
+                branch_name=upgrade_branch,
+            )
+        except Exception:
+            pass  # Logged inside deploy_to_linked_repos
 
     # Update version file
     version_path.write_text(__version__, encoding="utf-8")
@@ -1415,7 +1447,9 @@ def configure(
         try:
             import yaml
 
-            project_data = yaml.safe_load(project_yml.read_text(encoding="utf-8")) or {}
+            project_data = (
+                yaml.safe_load(project_yml.read_text(encoding="utf-8")) or {}
+            )
             project_type = project_data.get("project_type", "generic")
             confidence = project_data.get("confidence", "low")
         except Exception:
@@ -1424,13 +1458,15 @@ def configure(
     _deployed_profile_path = None
     for tool_name in config.ai_tools:
         try:
-            from dotnet_ai_kit.copier import copy_profile
-
             profile_path = copy_profile(
-                target, tool_name, project_type, _get_package_dir(), confidence=confidence,
+                target, tool_name, project_type,
+                _get_package_dir(), confidence=confidence,
             )
             if profile_path and not json_output:
-                console.print(f"  Profile: {project_type} -> {profile_path.relative_to(target)}")
+                console.print(
+                    f"  Profile: {project_type} -> "
+                    f"{profile_path.relative_to(target)}"
+                )
             if profile_path and tool_name == "claude":
                 _deployed_profile_path = profile_path
         except (FileNotFoundError, ValueError):
@@ -1439,13 +1475,43 @@ def configure(
     # Deploy Claude Code prompt hook if profile was deployed
     if _deployed_profile_path and "claude" in config.ai_tools:
         try:
-            from dotnet_ai_kit.copier import copy_hook
-
             if copy_hook(target, _deployed_profile_path, _get_package_dir()):
                 if not json_output:
-                    console.print("  Hook: architecture enforcement hook deployed")
+                    console.print(
+                        "  Hook: architecture enforcement hook deployed"
+                    )
         except Exception:
             pass  # Hook deployment is optional
+
+    # Deploy tooling to linked secondary repos (FR-008)
+    has_local_repos = any(
+        getattr(config.repos, r, None)
+        and not getattr(config.repos, r, "").startswith("github:")
+        for r in ("command", "query", "processor", "gateway", "controlpanel")
+    )
+    if has_local_repos:
+        try:
+            results = deploy_to_linked_repos(
+                target, config, __version__, _get_package_dir(),
+            )
+            if not json_output:
+                for r in results:
+                    status_color = {
+                        "deployed": "green",
+                        "upgraded": "green",
+                        "skipped": "yellow",
+                        "failed": "red",
+                    }.get(r["status"], "dim")
+                    console.print(
+                        f"  Linked repo {r['repo']}: "
+                        f"[{status_color}]{r['status']}[/{status_color}]"
+                        f" ({r['reason']})"
+                    )
+        except Exception as exc:
+            if not json_output:
+                err_console.print(
+                    f"[yellow]Multi-repo deployment error: {exc}[/yellow]"
+                )
 
     # T051 - JSON output mode
     if json_output:

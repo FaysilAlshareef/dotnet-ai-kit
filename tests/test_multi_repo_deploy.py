@@ -68,6 +68,119 @@ class TestDeployToLinkedRepos:
         assert len(results) == 1
         assert results[0]["status"] in ("deployed", "upgraded")
 
+    def test_older_version_repo_upgraded(
+        self, mock_run: object, tmp_path: Path,
+    ) -> None:
+        primary = tmp_path / "primary"
+        primary.mkdir()
+        secondary = tmp_path / "secondary"
+        secondary.mkdir()
+        pkg = tmp_path / "pkg"
+
+        _init_secondary_repo(secondary, version="0.9")  # Older
+        _create_package_profiles(pkg)
+
+        mock_run.return_value.stdout = ""
+        mock_run.return_value.returncode = 0
+
+        config = DotnetAiConfig(
+            repos=ReposConfig(query=str(secondary)),
+            ai_tools=["claude"],
+        )
+
+        results = deploy_to_linked_repos(primary, config, "1.0", pkg)
+
+        assert len(results) == 1
+        assert results[0]["status"] == "upgraded"
+        assert results[0]["reason"] == "success"
+
+    def test_same_version_repo_deployed(
+        self, mock_run: object, tmp_path: Path,
+    ) -> None:
+        primary = tmp_path / "primary"
+        primary.mkdir()
+        secondary = tmp_path / "secondary"
+        secondary.mkdir()
+        pkg = tmp_path / "pkg"
+
+        _init_secondary_repo(secondary, version="1.0")  # Same
+        _create_package_profiles(pkg)
+
+        mock_run.return_value.stdout = ""
+        mock_run.return_value.returncode = 0
+
+        config = DotnetAiConfig(
+            repos=ReposConfig(query=str(secondary)),
+            ai_tools=["claude"],
+        )
+
+        results = deploy_to_linked_repos(primary, config, "1.0", pkg)
+
+        assert len(results) == 1
+        assert results[0]["status"] == "deployed"
+        assert results[0]["reason"] == "success"
+
+    def test_branch_created_with_correct_name(
+        self, mock_run: object, tmp_path: Path,
+    ) -> None:
+        primary = tmp_path / "primary"
+        primary.mkdir()
+        secondary = tmp_path / "secondary"
+        secondary.mkdir()
+        pkg = tmp_path / "pkg"
+
+        _init_secondary_repo(secondary)
+        _create_package_profiles(pkg)
+
+        mock_run.return_value.stdout = ""
+        mock_run.return_value.returncode = 0
+
+        config = DotnetAiConfig(
+            repos=ReposConfig(query=str(secondary)),
+            ai_tools=["claude"],
+        )
+
+        deploy_to_linked_repos(
+            primary, config, "1.0", pkg,
+            branch_name="chore/dotnet-ai-kit-setup",
+        )
+
+        # Verify git checkout -b was called with the branch name
+        checkout_calls = [
+            call
+            for call in mock_run.call_args_list
+            if call[0][0][:3] == ["git", "checkout", "-b"]
+        ]
+        assert len(checkout_calls) == 1
+        assert checkout_calls[0][0][0][3] == "chore/dotnet-ai-kit-setup"
+
+    def test_multi_digit_version_comparison(
+        self, mock_run: object, tmp_path: Path,
+    ) -> None:
+        """BUG-1 regression: 9.0 should not be newer than 10.0."""
+        primary = tmp_path / "primary"
+        primary.mkdir()
+        secondary = tmp_path / "secondary"
+        secondary.mkdir()
+        pkg = tmp_path / "pkg"
+
+        _init_secondary_repo(secondary, version="9.0")
+        _create_package_profiles(pkg)
+
+        mock_run.return_value.stdout = ""
+        mock_run.return_value.returncode = 0
+
+        config = DotnetAiConfig(
+            repos=ReposConfig(query=str(secondary)),
+            ai_tools=["claude"],
+        )
+
+        results = deploy_to_linked_repos(primary, config, "10.0", pkg)
+
+        assert len(results) == 1
+        # 9.0 < 10.0 — should upgrade, NOT skip as "newer"
+        assert results[0]["status"] == "upgraded"
+
     def test_uninitialized_repo_skipped(self, mock_run: object, tmp_path: Path) -> None:
         primary = tmp_path / "primary"
         primary.mkdir()

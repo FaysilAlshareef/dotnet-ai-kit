@@ -515,7 +515,9 @@ def test_permission_json_files_use_space_syntax() -> None:
                     f"{perm_file.name} uses colon syntax: {entry!r}. "
                     "Expected space syntax like 'Bash(dotnet build *)'"
                 )
-                assert entry.endswith(")"), f"{perm_file.name} has unexpected entry format: {entry!r}"
+                assert entry.endswith(")"), (
+                    f"{perm_file.name} has unexpected entry format: {entry!r}"
+                )
             else:
                 # Non-Bash entries: WebSearch, WebFetch(domain:...), Edit(...), etc.
                 valid_prefixes = ("WebSearch", "WebFetch(", "Edit(", "Agent(")
@@ -1176,7 +1178,8 @@ def test_configure_respects_existing_permission_default(tmp_path: Path, monkeypa
     config_path = config_dir / "config.yml"
     config_path.write_text(
         "version: '1.0'\nai_tools:\n  - claude\npermissions_level: full\n"
-        "command_style: short\ncompany:\n  name: 'Test'\n  github_org: ''\n  default_branch: main\n",
+        "command_style: short\ncompany:\n  name: 'Test'\n"
+        "  github_org: ''\n  default_branch: main\n",
         encoding="utf-8",
     )
     monkeypatch.chdir(tmp_path)

@@ -42,6 +42,21 @@ class CopyError(Exception):
     """Raised when a file copy operation fails."""
 
 
+def _parse_version(version_str: str) -> tuple[int, ...]:
+    """Parse a version string into a tuple of integers for comparison.
+
+    Handles versions like "1.0", "10.2.3", etc. Non-numeric parts are
+    treated as 0.
+    """
+    parts: list[int] = []
+    for part in version_str.split("."):
+        try:
+            parts.append(int(part))
+        except ValueError:
+            parts.append(0)
+    return tuple(parts)
+
+
 def render_template(template_path: Path, output_path: Path, context: dict[str, Any]) -> None:
     """Render a Jinja2 template file to an output path.
 
@@ -321,10 +336,11 @@ def _resolve_detected_path_tokens(
     filtered = []
     for line in lines:
         stripped = line.strip()
-        # Remove paths: lines with empty value (just "paths:" or 'paths: ""' or "paths: ''")
+        # Remove paths: lines with empty or glob-only value after token resolution
         if stripped.startswith("paths:"):
             value = stripped[len("paths:"):].strip().strip("\"'")
-            if not value or value.endswith("/**/*.cs") and value.startswith("/**/*.cs"):
+            # Empty, or starts with a glob wildcard (token resolved to empty)
+            if not value or value.startswith("/") or value.startswith("*"):
                 continue
         filtered.append(line)
 
@@ -737,7 +753,10 @@ def deploy_to_linked_repos(
             if version_path.is_file():
                 secondary_version = version_path.read_text(encoding="utf-8").strip()
 
-            if secondary_version and secondary_version > tool_version:
+            if (
+                secondary_version
+                and _parse_version(secondary_version) > _parse_version(tool_version)
+            ):
                 msg = f"Secondary repo {repo_path} has newer version {secondary_version}."
                 logger.warning(msg)
                 results.append({
@@ -781,18 +800,50 @@ def deploy_to_linked_repos(
                 cwd=repo_path, capture_output=True, text=True,
             )
 
-            # Deploy tooling for each configured AI tool
+            # Read secondary detected_paths for skill token resolution
+            sec_detected_paths = proj_data.get("detected_paths")
+
+            # Deploy full tooling stack for each configured AI tool
+            commands_dir = package_dir / "commands"
+            rules_dir_src = package_dir / "rules"
+            skills_dir_src = package_dir / "skills"
+            agents_dir_src = package_dir / "agents"
+
             for tool_name in config.ai_tools:
                 try:
                     tool_config = get_agent_config(tool_name)
                 except ValueError:
                     continue
 
+                # Deploy commands
+                if commands_dir.is_dir():
+                    copy_commands(
+                        commands_dir, repo_path, tool_config, config,
+                    )
+
+                # Deploy rules
+                if rules_dir_src.is_dir():
+                    copy_rules(rules_dir_src, repo_path, tool_config)
+
                 # Deploy profile
                 copy_profile(
                     repo_path, tool_name, sec_project_type,
                     package_dir, confidence=sec_confidence,
                 )
+
+                # Deploy skills
+                if skills_dir_src.is_dir():
+                    copy_skills(
+                        skills_dir_src, repo_path, tool_config,
+                        detected_paths=sec_detected_paths,
+                    )
+
+                # Deploy agents
+                if agents_dir_src.is_dir():
+                    copy_agents(
+                        agents_dir_src, repo_path, tool_config,
+                        tool_name=tool_name,
+                    )
 
                 # Deploy hook (Claude only)
                 if tool_name == "claude":
@@ -825,11 +876,11 @@ def deploy_to_linked_repos(
                 cwd=repo_path, capture_output=True, text=True,
             )
 
-            action = (
-                "upgraded"
-                if secondary_version and secondary_version < tool_version
-                else "deployed"
+            was_upgraded = (
+                secondary_version
+                and _parse_version(secondary_version) < _parse_version(tool_version)
             )
+            action = "upgraded" if was_upgraded else "deployed"
             results.append({"repo": str(repo_path), "status": action, "reason": "success"})
 
         except Exception as exc:

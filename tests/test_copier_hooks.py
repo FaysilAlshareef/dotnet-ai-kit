@@ -5,6 +5,8 @@ from __future__ import annotations
 import json
 from pathlib import Path
 
+import pytest
+
 from dotnet_ai_kit.copier import copy_hook
 
 
@@ -151,6 +153,49 @@ class TestCopyHookPromptEmbedding:
         hooks = settings["hooks"]["PreToolUse"]
         assert len(hooks) == 1  # Old replaced, not duplicated
         assert "new constraint" in hooks[0]["prompt"]
+
+
+class TestCopyHookFileScope:
+    """Verify .NET file scope filter is present in real hook template."""
+
+    def test_real_template_contains_dotnet_file_extensions(
+        self, tmp_path: Path,
+    ) -> None:
+        """FR-019: hook MUST only validate .NET files."""
+        pkg = Path(__file__).resolve().parent.parent
+        template = pkg / "templates" / "hook-prompt-template.md"
+        if not template.is_file():
+            pytest.skip("hook-prompt-template.md not found in package")
+
+        content = template.read_text(encoding="utf-8")
+        for ext in (".cs", ".csproj", ".sln", ".razor", ".proto", ".cshtml"):
+            assert ext in content, (
+                f"Hook template missing .NET extension {ext}"
+            )
+
+    def test_hook_prompt_uses_real_template_with_scope(
+        self, tmp_path: Path,
+    ) -> None:
+        """Verify rendered prompt includes the file scope filter."""
+        pkg = Path(__file__).resolve().parent.parent
+        template = pkg / "templates" / "hook-prompt-template.md"
+        if not template.is_file():
+            pytest.skip("hook-prompt-template.md not found in package")
+
+        target = tmp_path / "project"
+        profile = _create_profile(
+            target / ".claude/rules/architecture-profile.md",
+            "- NEVER use two aggregates",
+        )
+
+        copy_hook(target, profile, pkg)
+
+        settings = json.loads(
+            (target / ".claude/settings.json").read_text(encoding="utf-8")
+        )
+        prompt = settings["hooks"]["PreToolUse"][0]["prompt"]
+        assert ".cs" in prompt
+        assert '{"ok": true}' in prompt
 
 
 class TestCopyHookSkipConditions:

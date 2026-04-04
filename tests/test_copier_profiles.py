@@ -142,8 +142,40 @@ class TestCopyProfileErrors:
             copy_profile(target, "claude", "command", pkg)
 
 
+class TestCopyProfileFallbackContent:
+    """Verify fallback profile content is correct."""
+
+    def test_empty_type_uses_generic_content(self, tmp_path: Path) -> None:
+        pkg = tmp_path / "pkg"
+        _setup_all_profiles(pkg)
+        target = tmp_path / "project"
+
+        result = copy_profile(target, "claude", "", pkg)
+        assert result is not None
+        generic_content = (
+            (pkg / "profiles/generic/generic.md").read_text(encoding="utf-8")
+        )
+        deployed_content = result.read_text(encoding="utf-8")
+        assert deployed_content == generic_content
+
+
 class TestProfileLineCounts:
-    """Verify all real profile files are under 100 lines (when they exist)."""
+    """Verify all real profile files are under 100 lines."""
 
     def test_profile_map_has_12_entries(self) -> None:
         assert len(PROFILE_MAP) == 12
+
+    def test_all_real_profiles_under_100_lines(self) -> None:
+        """FR-002: Each profile MUST be under 100 lines."""
+        package_root = Path(__file__).resolve().parent.parent
+        for project_type, rel_path in PROFILE_MAP.items():
+            profile_path = package_root / rel_path
+            if not profile_path.is_file():
+                continue  # Skip if not yet created
+            line_count = len(
+                profile_path.read_text(encoding="utf-8").splitlines()
+            )
+            assert line_count <= 100, (
+                f"Profile {rel_path} has {line_count} lines "
+                f"(max 100) for project_type={project_type}"
+            )

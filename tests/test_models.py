@@ -137,7 +137,12 @@ class TestFeatureBrief:
     def test_tasks_with_data(self) -> None:
         kwargs = _valid_brief_kwargs()
         kwargs["tasks"] = [
-            {"id": "T006", "description": "Create Order entity", "file": "src/Entities/Order.cs", "done": False},
+            {
+                "id": "T006",
+                "description": "Create Order entity",
+                "file": "src/Entities/Order.cs",
+                "done": False,
+            },
         ]
         brief = FeatureBrief(**kwargs)
         assert len(brief.tasks) == 1
