@@ -7,6 +7,7 @@ description: >
 metadata:
   category: quality
   agent: reviewer
+  when-to-use: "When performing code reviews using standards checklists and severity ratings"
 ---
 
 # Review Checklist — Standards & Severity Ratings

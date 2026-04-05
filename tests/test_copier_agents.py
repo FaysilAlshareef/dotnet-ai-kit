@@ -138,14 +138,18 @@ class TestCopyAgentsIntegration:
         target = tmp_path / "project"
         tool_config = {"agents_dir": ".claude/agents"}
 
-        _create_agent(source, "test-agent", {
-            "name": "test-agent",
-            "description": "A test agent",
-            "role": "advisory",
-            "expertise": ["skill-a", "skill-b"],
-            "complexity": "high",
-            "max_iterations": 20,
-        })
+        _create_agent(
+            source,
+            "test-agent",
+            {
+                "name": "test-agent",
+                "description": "A test agent",
+                "role": "advisory",
+                "expertise": ["skill-a", "skill-b"],
+                "complexity": "high",
+                "max_iterations": 20,
+            },
+        )
 
         count = copy_agents(source, target, tool_config, tool_name="claude")
         assert count == 1
@@ -164,7 +168,9 @@ class TestCopyAgentsIntegration:
         assert "Some instructions here." in deployed
 
     def test_unsupported_tool_logs_warning(
-        self, tmp_path: Path, caplog: pytest.LogCaptureFixture,
+        self,
+        tmp_path: Path,
+        caplog: pytest.LogCaptureFixture,
     ) -> None:
         source = tmp_path / "agents"
         target = tmp_path / "project"

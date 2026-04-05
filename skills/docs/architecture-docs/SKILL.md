@@ -7,6 +7,7 @@ description: >
 metadata:
   category: docs
   agent: docs-engineer
+  when-to-use: "When creating architecture overview documentation or Mermaid diagrams"
 ---
 
 # Architecture Docs — Overview & Diagrams

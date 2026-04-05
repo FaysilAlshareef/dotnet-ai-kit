@@ -563,3 +563,55 @@ features/NNN-feature-name/event-catalogue/
 5. **Repo Consistency**: Repos referenced in tasks.md must match service-map.md
 6. **Date Format**: Always YYYY-MM-DD
 7. **Generic Mode**: Files marked "(microservice only)" are not created. Generic mode uses Architecture Scope instead of Service Map.
+
+---
+
+## 9. feature-brief.md — Cross-Repo Feature Projection *(microservice only)*
+
+Created by: `/dotnet-ai.specify`
+Written to: Each secondary repo at `.dotnet-ai-kit/features/{NNN}-{name}/feature-brief.md`
+Read by: `/dai.plan`, `/dai.implement` in each secondary repo
+
+### Schema
+
+```markdown
+---
+feature_id: "NNN-short-name"
+feature_name: "Human Readable Name"
+phase: "Specified | Planned | In-Progress | Completed"
+projected_date: "YYYY-MM-DD"
+source_repo: "company-domain-command"
+source_repo_path: "/absolute/or/github:org/repo"
+this_repo_role: "query | processor | gateway | controlpanel | command"
+---
+
+# Feature Brief: {Feature Title}
+
+## Required Changes for This Repo
+
+{Filtered subset of changes relevant to this repo's role.
+Derived from spec.md Service Map section.}
+
+## Events Consumed
+
+| Event | Source Service | Contract Location |
+|-------|---------------|-------------------|
+| OrderCreated | command | contracts/events/order-created.proto |
+
+## Events Produced
+
+| Event | Consumers | Contract Location |
+|-------|-----------|-------------------|
+| OrderProjected | gateway | contracts/events/order-projected.proto |
+
+## Notes
+
+{Any cross-repo coordination notes for this repo.}
+```
+
+### Constraints
+
+- `feature_id` MUST match the primary repo's feature directory name exactly
+- `phase` is updated by each lifecycle command as it runs in the secondary repo
+- `this_repo_role` MUST match the role in `service-map.md`
+- `events_consumed` / `events_produced` lists are filtered from the primary's spec.md — only events relevant to this repo are included

@@ -7,6 +7,7 @@ description: >
 metadata:
   category: workflow
   agent: dotnet-architect
+  when-to-use: "When managing session checkpoints, wrap-ups, or context handoffs"
 ---
 
 # Session Management — Checkpoint, Wrap-Up, Handoff

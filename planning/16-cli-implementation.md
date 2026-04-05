@@ -11,14 +11,15 @@ The `dotnet-ai` CLI is a Python tool that initializes dotnet-ai-kit into .NET pr
 ### Package Structure
 ```
 src/dotnet_ai_kit/
-├── __init__.py              # CLI entry point (click/typer)
-├── cli.py                   # Command definitions
-├── agents.py                # AGENT_CONFIG per AI tool
-├── extensions.py            # Extension manager
-├── detection.py             # Project type detection
-├── config.py                # Config schema + validation
-├── copier.py                # File copy + template rendering
-└── models.py                # Pydantic models for config
+├── __init__.py              # Package version (__version__)
+├── agents.py                # AGENT_CONFIG per AI tool + detection + unsupported tool warning
+├── cli.py                   # Typer CLI: init, check, upgrade, configure, extension-*, changelog
+├── config.py                # YAML config load/save (atomic writes via Path.replace)
+├── copier.py                # File copy + Jinja2 + deploy_to_linked_repos + copy_profile + copy_hook
+├── detection.py             # Detection helpers (grep, architecture descriptions)
+├── extensions.py            # Extension install/remove/list (CatalogInstallError, rule conflict check)
+├── models.py                # Pydantic v2 models (DotnetAiConfig, DetectedProject, FeatureBrief, etc.)
+└── utils.py                 # Shared: parse_version(), HOOK_MODEL, HOOK_TIMEOUT_MS
 ```
 
 ### Dependencies
@@ -111,17 +112,25 @@ Interactive configuration wizard.
 4. Validate all inputs
 5. Write to `.dotnet-ai-kit/config.yml`
 
-### `dotnet-ai extension add|remove|list`
+### `dotnet-ai extension-add`, `extension-remove`, `extension-list`
 
-Manages extensions.
+Manages extensions. Commands are hyphenated (not space-separated subcommands).
 
-**Subcommands:**
-- `add <name>` — Install from catalog (GitHub-based)
-- `add --dev <path>` — Install from local directory
-- `remove <name>` — Uninstall extension
-- `list` — Show installed extensions with status
+- `extension-add --dev <path>` — Install from local directory (catalog planned for v1.1; non-`--dev` calls show a user-friendly message)
+- `extension-remove <name>` — Uninstall extension
+- `extension-list` — Show installed extensions (prints help message if none installed)
 
 See **Extension System** section for details.
+
+### `dotnet-ai changelog`
+
+Prints `CHANGELOG.md` from the package directory if it exists. Falls back to listing the 5 most recent git tags with dates. Always exits 0.
+
+### `dotnet-ai configure` — Additional Behaviour
+
+- **Init guard**: Exits code 1 if `.dotnet-ai-kit/` directory does not exist, unless `--dry-run` (shows default config preview without requiring init).
+- **Re-deploy on save**: After saving config, re-copies commands (with updated `command_style`), rules, skills, and agents so changes take effect immediately.
+- **`--permissions` on init**: The `init` command also accepts `--permissions minimal|standard|full` to apply a permission level without a separate configure call.
 
 ---
 
@@ -268,19 +277,17 @@ repos:                        # Optional, can be set per-feature
   gateway: null
   controlpanel: null
 
-integrations:
-  coderabbit:
-    enabled: false
-    auto_fix: false
-    severity_threshold: "warning"
+# External tool integrations deferred to v1.1
+# integrations: ...
 
-permissions:
-  level: "standard"           # minimal/standard/full
+permissions_level: "standard"  # minimal/standard/full (flat key, not nested)
 
 ai_tools:                     # Detected or configured
   - claude
 
 command_style: "both"           # full | short | both
+
+linked_from: null             # Set by deploy_to_linked_repos() in secondary repos
 ```
 
 ### Validation Rules (Pydantic)
@@ -288,8 +295,9 @@ command_style: "both"           # full | short | both
 - `company.github_org`: Optional, valid GitHub org name
 - `company.default_branch`: Default "main"
 - `repos.*`: Either null, local path (exists), or `github:{org}/{repo}`
-- `permissions.level`: One of minimal/standard/full
+- `permissions_level`: One of minimal/standard/full (flat key — was `permissions.level` in early design, now a top-level field)
 - `ai_tools`: At least one tool
+- Unknown top-level keys: Logged as WARNING (via `DotnetAiConfig.model_validator`) but do not cause load failure
 
 ---
 
@@ -297,11 +305,13 @@ command_style: "both"           # full | short | both
 
 ### Extension Discovery
 ```bash
-dotnet-ai extension add jira          # From catalog (GitHub-based)
-dotnet-ai extension add --dev ./ext   # Local development
-dotnet-ai extension list              # Show installed
-dotnet-ai extension remove jira       # Uninstall
+# Catalog-based installs not yet available (v1.1); shows user-friendly message with --dev hint
+dotnet-ai extension-add --dev ./ext   # Install from local directory (--dev required)
+dotnet-ai extension-list              # Show installed (prints help message if none)
+dotnet-ai extension-remove jira       # Uninstall
 ```
+
+**Note**: CLI commands are hyphenated (`extension-add`, `extension-remove`, `extension-list`), not space-separated subcommands.
 
 ### Extension Manifest (extension.yml)
 ```yaml
@@ -380,7 +390,7 @@ extensions:
 | Error | Message | Resolution |
 |-------|---------|------------|
 | No .NET project found | "No .sln or .csproj files found in {path}" | Run in a .NET project directory |
-| AI tool not detected | "No AI tool detected. Use --ai flag" | Specify --ai claude/cursor/copilot/codex |
+| AI tool not detected | Auto-defaults to claude with info message | Use `--ai claude` to be explicit |
 | Config already exists | "dotnet-ai-kit already initialized. Use --force to reinitialize" | Use --force or dotnet-ai upgrade |
 | Invalid company name | "Company name must be a valid C# identifier" | Use letters, digits, underscore |
 | Repo not found | "Repo path {path} does not exist" | Check path or use github: prefix |
@@ -404,11 +414,14 @@ Initializing for Claude Code...
   Created: .dotnet-ai-kit/config.yml
   Created: .dotnet-ai-kit/project.yml
   Copied: 27 commands → .claude/commands/
-  Copied: 15 rules → .claude/rules/
+  Copied: 16 rules → .claude/rules/
+  Copied: 120 skills → .claude/skills/
+  Copied: 13 agents → .claude/agents/
 
 ✓ dotnet-ai-kit initialized for Claude Code
-  Run /dotnet-ai.configure to set up company name and repos
+  Run dotnet-ai configure to set up company name and repos
 ```
+**New flags**: `--permissions minimal|standard|full` applies permission level during init (no separate configure call needed). Defaults to claude if no AI tool detected.
 
 ### `dotnet-ai check`
 ```
@@ -418,15 +431,21 @@ Project: Acme.Order.Commands
 Mode: Microservice (Command)
 .NET: 10.0
 
-AI Tools:
-  ✓ Claude Code — 27 commands, 15 rules
-  ✗ Cursor — not configured
+┌─ AI Tools ──────────────────────────────────────────────────────────────┐
+│ Tool        Status      Cmds  Rules  Skills  Agents  Profile    Hook    │
+│ Claude Code configured  27    16     120     13      deployed   deployed│
+└─────────────────────────────────────────────────────────────────────────┘
 
 Extensions:
   ✓ azure-devops v1.0.0 — 1 command
 
 Config:
-  ✓ Company: Acme
-  ✓ GitHub Org: acme-corp
-  ⚠ Repos: 3 of 5 configured
+  Company: Acme
+  GitHub Org: acme-corp
+  Repos: 3 of 5 configured
+  Linked from: N/A
+  Detected paths: 6 categories
+  Permissions: standard
 ```
+**`--verbose` adds**: Profile file path and hook model/timeout for deployed tools.
+**`--json` adds**: Full `tools`, `linked_from`, `detected_paths`, `linked_repos` output.

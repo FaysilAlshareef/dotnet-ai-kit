@@ -7,6 +7,7 @@ description: >
 metadata:
   category: api
   agent: api-designer
+  when-to-use: "When configuring API versioning strategies or sunset policies"
 ---
 
 # API Versioning

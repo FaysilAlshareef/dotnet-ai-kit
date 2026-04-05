@@ -7,6 +7,7 @@ description: >
 metadata:
   category: security
   agent: api-designer
+  when-to-use: "When configuring JWT authentication, token generation, or refresh token flows"
 ---
 
 # JWT Authentication

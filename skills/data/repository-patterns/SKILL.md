@@ -7,6 +7,7 @@ description: >
 metadata:
   category: data
   agent: ef-specialist
+  when-to-use: "When implementing repository pattern, Unit of Work, or data access abstractions"
 ---
 
 # Repository & Unit of Work Patterns

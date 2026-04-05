@@ -34,8 +34,7 @@ class TestResolveDetectedPathTokens:
 
     def test_multiple_tokens_all_resolve(self) -> None:
         content = (
-            'paths: "${detected_paths.aggregates}/**/*.cs"\n'
-            'extra: "${detected_paths.events}/stuff"'
+            'paths: "${detected_paths.aggregates}/**/*.cs"\nextra: "${detected_paths.events}/stuff"'
         )
         paths = {"aggregates": "Domain/Core", "events": "Domain/Events"}
         result = _resolve_detected_path_tokens(content, paths)
@@ -58,7 +57,9 @@ class TestCopySkillsIntegration:
         tool_config = {"skills_dir": ".claude/skills"}
 
         _create_skill(
-            source, "microservice/command", "aggregate-design",
+            source,
+            "microservice/command",
+            "aggregate-design",
             '---\nname: aggregate-design\npaths: "${detected_paths.aggregates}/**/*.cs"\n'
             'when-to-use: "When working on aggregates"\n---\n\n# Aggregate Design\n',
         )
@@ -94,7 +95,9 @@ class TestCopySkillsIntegration:
         tool_config = {"skills_dir": ".claude/skills"}
 
         _create_skill(
-            source, "test", "skill",
+            source,
+            "test",
+            "skill",
             '---\nname: test\npaths: "${detected_paths.cosmos}/**/*.cs"\n---\n\n# Body\n',
         )
 

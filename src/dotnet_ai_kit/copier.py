@@ -8,6 +8,7 @@ projects from templates.
 from __future__ import annotations
 
 import json
+import logging
 import re
 import shutil
 from pathlib import Path
@@ -16,6 +17,9 @@ from typing import Any, Optional
 import jinja2
 
 from dotnet_ai_kit.models import DotnetAiConfig
+from dotnet_ai_kit.utils import HOOK_MODEL, HOOK_TIMEOUT_MS, parse_version
+
+logger = logging.getLogger(__name__)
 
 # Maps project_type → profile source path (relative to package root).
 # Only ONE profile is deployed per project.
@@ -37,24 +41,25 @@ PROFILE_MAP: dict[str, str] = {
 }
 FALLBACK_PROFILE = "profiles/generic/generic.md"
 
+COMMAND_SHORT_ALIASES: dict[str, str] = {
+    "specify": "spec",
+    "analyze": "check",
+    "implement": "go",
+    "add-aggregate": "agg",
+    "add-entity": "entity",
+    "add-event": "event",
+    "add-endpoint": "ep",
+    "add-crud": "crud",
+    "add-page": "page",
+    "add-tests": "tests",
+    "configure": "config",
+    "checkpoint": "save",
+    "wrap-up": "done",
+}
+
 
 class CopyError(Exception):
     """Raised when a file copy operation fails."""
-
-
-def _parse_version(version_str: str) -> tuple[int, ...]:
-    """Parse a version string into a tuple of integers for comparison.
-
-    Handles versions like "1.0", "10.2.3", etc. Non-numeric parts are
-    treated as 0.
-    """
-    parts: list[int] = []
-    for part in version_str.split("."):
-        try:
-            parts.append(int(part))
-        except ValueError:
-            parts.append(0)
-    return tuple(parts)
 
 
 def render_template(template_path: Path, output_path: Path, context: dict[str, Any]) -> None:
@@ -177,7 +182,8 @@ def copy_commands(
 
         if config.command_style in ("short", "both"):
             short_prefix = "dai"
-            short_name = f"{short_prefix}.{cmd_name}{ext}"
+            short_alias = COMMAND_SHORT_ALIASES.get(cmd_name, cmd_name)
+            short_name = f"{short_prefix}.{short_alias}{ext}"
             short_path = commands_dir / short_name
             short_path.write_text(content, encoding="utf-8")
             count += 1
@@ -325,6 +331,7 @@ def _resolve_detected_path_tokens(
     Returns:
         Content with tokens resolved or paths line removed.
     """
+
     def _replace_token(match: re.Match) -> str:
         key = match.group(1)
         return detected_paths.get(key, "")
@@ -338,9 +345,18 @@ def _resolve_detected_path_tokens(
         stripped = line.strip()
         # Remove paths: lines with empty or glob-only value after token resolution
         if stripped.startswith("paths:"):
-            value = stripped[len("paths:"):].strip().strip("\"'")
+            value = stripped[len("paths:") :].strip().strip("\"'")
             # Empty, or starts with a glob wildcard (token resolved to empty)
             if not value or value.startswith("/") or value.startswith("*"):
+                # Extract the original token key from the line for logging
+                import re as _re
+
+                token_match = _re.search(r"\$\{detected_paths\.(\w+)\}", line)
+                key = token_match.group(1) if token_match else "unknown"
+                logger.debug(
+                    "Removing paths: line — token %s resolved to empty",
+                    key,
+                )
                 continue
         filtered.append(line)
 
@@ -650,14 +666,16 @@ def copy_hook(
     # Remove existing architecture hook if present
     pre_tool_use = [h for h in pre_tool_use if h.get("_source") != "dotnet-ai-kit-arch"]
 
-    pre_tool_use.append({
-        "_source": "dotnet-ai-kit-arch",
-        "type": "prompt",
-        "matcher": "Write|Edit",
-        "prompt": prompt,
-        "model": "claude-haiku-4-5-20251001",
-        "timeout": 15000,
-    })
+    pre_tool_use.append(
+        {
+            "_source": "dotnet-ai-kit-arch",
+            "type": "prompt",
+            "matcher": "Write|Edit",
+            "prompt": prompt,
+            "model": HOOK_MODEL,
+            "timeout": HOOK_TIMEOUT_MS,
+        }
+    )
 
     hooks["PreToolUse"] = pre_tool_use
     settings["hooks"] = hooks
@@ -718,20 +736,28 @@ def deploy_to_linked_repos(
         if repo_path_str.startswith("github:"):
             logger.warning(
                 "Skipping remote repo %s (%s) — not cloned locally.",
-                role, repo_path_str,
+                role,
+                repo_path_str,
             )
-            results.append({
-                "repo": repo_path_str, "status": "skipped", "reason": "remote URL",
-            })
+            results.append(
+                {
+                    "repo": repo_path_str,
+                    "status": "skipped",
+                    "reason": "remote URL",
+                }
+            )
             continue
 
         repo_path = Path(repo_path_str)
         if not repo_path.is_dir():
             logger.warning("Cannot access %s — not found.", repo_path)
-            results.append({
-                "repo": str(repo_path), "status": "skipped",
-                "reason": "directory not found",
-            })
+            results.append(
+                {
+                    "repo": str(repo_path),
+                    "status": "skipped",
+                    "reason": "directory not found",
+                }
+            )
             continue
 
         try:
@@ -741,10 +767,13 @@ def deploy_to_linked_repos(
             if not config_path.is_file() or not project_yml.is_file():
                 msg = f"Run 'dotnet-ai init' and '/dai.detect' in {repo_path} first."
                 logger.warning(msg)
-                results.append({
-                    "repo": str(repo_path), "status": "skipped",
-                    "reason": "not initialized",
-                })
+                results.append(
+                    {
+                        "repo": str(repo_path),
+                        "status": "skipped",
+                        "reason": "not initialized",
+                    }
+                )
                 continue
 
             # Version check
@@ -753,36 +782,44 @@ def deploy_to_linked_repos(
             if version_path.is_file():
                 secondary_version = version_path.read_text(encoding="utf-8").strip()
 
-            if (
-                secondary_version
-                and _parse_version(secondary_version) > _parse_version(tool_version)
-            ):
+            if secondary_version and parse_version(secondary_version) > parse_version(tool_version):
                 msg = f"Secondary repo {repo_path} has newer version {secondary_version}."
                 logger.warning(msg)
-                results.append({
-                    "repo": str(repo_path), "status": "skipped",
-                    "reason": "newer version",
-                })
+                results.append(
+                    {
+                        "repo": str(repo_path),
+                        "status": "skipped",
+                        "reason": "newer version",
+                    }
+                )
                 continue
 
             if dry_run:
-                results.append({
-                    "repo": str(repo_path), "status": "dry-run",
-                    "reason": "would deploy",
-                })
+                results.append(
+                    {
+                        "repo": str(repo_path),
+                        "status": "dry-run",
+                        "reason": "would deploy",
+                    }
+                )
                 continue
 
             # Check for dirty working directory
             git_status = subprocess.run(
                 ["git", "status", "--porcelain"],
-                cwd=repo_path, capture_output=True, text=True,
+                cwd=repo_path,
+                capture_output=True,
+                text=True,
             )
             if git_status.stdout.strip():
                 logger.warning("Skipping %s — dirty working directory.", repo_path)
-                results.append({
-                    "repo": str(repo_path), "status": "skipped",
-                    "reason": "dirty working directory",
-                })
+                results.append(
+                    {
+                        "repo": str(repo_path),
+                        "status": "skipped",
+                        "reason": "dirty working directory",
+                    }
+                )
                 continue
 
             # Read secondary project type
@@ -792,12 +829,16 @@ def deploy_to_linked_repos(
             # Create branch
             subprocess.run(
                 ["git", "checkout", "-b", branch_name],
-                cwd=repo_path, capture_output=True, text=True,
+                cwd=repo_path,
+                capture_output=True,
+                text=True,
             )
             # If branch exists, just checkout
             subprocess.run(
                 ["git", "checkout", branch_name],
-                cwd=repo_path, capture_output=True, text=True,
+                cwd=repo_path,
+                capture_output=True,
+                text=True,
             )
 
             # Read secondary detected_paths for skill token resolution
@@ -809,16 +850,26 @@ def deploy_to_linked_repos(
             skills_dir_src = package_dir / "skills"
             agents_dir_src = package_dir / "agents"
 
-            for tool_name in config.ai_tools:
+            # Load secondary config once — used for command_style and ai_tools
+            _sec_raw = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+            sec_style = _sec_raw.get("command_style", "both")
+            sec_ai_tools: list[str] = _sec_raw.get("ai_tools") or config.ai_tools
+
+            for tool_name in sec_ai_tools:
                 try:
                     tool_config = get_agent_config(tool_name)
                 except ValueError:
                     continue
 
-                # Deploy commands
+                # Deploy commands — use secondary repo's own command_style
                 if commands_dir.is_dir():
+                    sec_config = config.model_copy()
+                    sec_config.command_style = sec_style
                     copy_commands(
-                        commands_dir, repo_path, tool_config, config,
+                        commands_dir,
+                        repo_path,
+                        tool_config,
+                        sec_config,
                     )
 
                 # Deploy rules
@@ -827,30 +878,35 @@ def deploy_to_linked_repos(
 
                 # Deploy profile
                 copy_profile(
-                    repo_path, tool_name, sec_project_type,
-                    package_dir, confidence=sec_confidence,
+                    repo_path,
+                    tool_name,
+                    sec_project_type,
+                    package_dir,
+                    confidence=sec_confidence,
                 )
 
                 # Deploy skills
                 if skills_dir_src.is_dir():
                     copy_skills(
-                        skills_dir_src, repo_path, tool_config,
+                        skills_dir_src,
+                        repo_path,
+                        tool_config,
                         detected_paths=sec_detected_paths,
                     )
 
                 # Deploy agents
                 if agents_dir_src.is_dir():
                     copy_agents(
-                        agents_dir_src, repo_path, tool_config,
+                        agents_dir_src,
+                        repo_path,
+                        tool_config,
                         tool_name=tool_name,
                     )
 
                 # Deploy hook (Claude only)
                 if tool_name == "claude":
                     rules_dir = tool_config.get("rules_dir", ".claude/rules")
-                    profile_deployed = (
-                        repo_path / rules_dir / "architecture-profile.md"
-                    )
+                    profile_deployed = repo_path / rules_dir / "architecture-profile.md"
                     if profile_deployed.is_file():
                         copy_hook(repo_path, profile_deployed, package_dir)
 
@@ -866,19 +922,32 @@ def deploy_to_linked_repos(
             version_path.parent.mkdir(parents=True, exist_ok=True)
             version_path.write_text(tool_version, encoding="utf-8")
 
-            # Stage and commit
+            # Stage and commit — use secondary's ai_tools to determine directories
+            staged_dirs: set[str] = {".dotnet-ai-kit/"}
+            for _tool in sec_ai_tools:
+                try:
+                    _tc = get_agent_config(_tool)
+                    for _key in ("rules_dir", "commands_dir", "skills_dir", "agents_dir"):
+                        _d = _tc.get(_key, "")
+                        if _d:
+                            staged_dirs.add(_d.split("/")[0] + "/")
+                except ValueError:
+                    pass
             subprocess.run(
-                ["git", "add", ".claude/", ".dotnet-ai-kit/"],
-                cwd=repo_path, capture_output=True, text=True,
+                ["git", "add"] + sorted(staged_dirs),
+                cwd=repo_path,
+                capture_output=True,
+                text=True,
             )
             subprocess.run(
                 ["git", "commit", "-m", "chore: deploy dotnet-ai-kit tooling"],
-                cwd=repo_path, capture_output=True, text=True,
+                cwd=repo_path,
+                capture_output=True,
+                text=True,
             )
 
-            was_upgraded = (
-                secondary_version
-                and _parse_version(secondary_version) < _parse_version(tool_version)
+            was_upgraded = secondary_version and parse_version(secondary_version) < parse_version(
+                tool_version
             )
             action = "upgraded" if was_upgraded else "deployed"
             results.append({"repo": str(repo_path), "status": action, "reason": "success"})

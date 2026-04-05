@@ -7,6 +7,7 @@ description: >
 metadata:
   category: api
   agent: api-designer
+  when-to-use: "When configuring content type negotiation, custom formatters, or Accept headers"
 ---
 
 # Content Negotiation

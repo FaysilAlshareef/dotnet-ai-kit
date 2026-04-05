@@ -4,10 +4,11 @@ description: >
   Query-side entity pattern with private setters, event-based constructors, behavior methods
   with (TData data, int sequence) signature, and sequence tracking for idempotency.
   Trigger: query entity, read model, projection, private setters, sequence.
-when-to-use: "When creating or modifying read-model entities with private setters"
 metadata:
   category: microservice/query
   agent: query-architect
+  when-to-use: "When creating or modifying read-model entities with private setters"
+  paths: "${detected_paths.entities}/**/*.cs"
 ---
 
 # Query Entity — Event-Projected Read Model

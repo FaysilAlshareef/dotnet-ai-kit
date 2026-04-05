@@ -6,6 +6,7 @@ description: >
 metadata:
   category: api
   agent: api-designer
+  when-to-use: "When creating RESTful API controllers with authorization and ProblemDetails"
 ---
 
 # Controller Patterns

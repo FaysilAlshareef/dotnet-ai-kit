@@ -7,6 +7,7 @@ description: >
 metadata:
   category: cqrs
   agent: ef-specialist
+  when-to-use: "When implementing domain event dispatch using MediatR notification handlers"
 ---
 
 # Notification Handlers (Domain Events)

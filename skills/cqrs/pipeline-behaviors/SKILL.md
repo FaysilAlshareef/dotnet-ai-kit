@@ -7,6 +7,7 @@ description: >
 metadata:
   category: cqrs
   agent: ef-specialist
+  when-to-use: "When creating MediatR pipeline behaviors for validation, logging, or transactions"
 ---
 
 # Pipeline Behaviors

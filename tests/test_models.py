@@ -2,9 +2,11 @@
 
 from __future__ import annotations
 
+import logging
+
 import pytest
 
-from dotnet_ai_kit.models import FeatureBrief, ReposConfig
+from dotnet_ai_kit.models import DetectedProject, DotnetAiConfig, FeatureBrief, ReposConfig
 
 # ---------------------------------------------------------------------------
 # T003: URL normalization tests for ReposConfig.validate_repo_path
@@ -147,3 +149,36 @@ class TestFeatureBrief:
         brief = FeatureBrief(**kwargs)
         assert len(brief.tasks) == 1
         assert brief.tasks[0]["id"] == "T006"
+
+
+# ---------------------------------------------------------------------------
+# T006: DetectedProject.detected_paths validator warning tests
+# ---------------------------------------------------------------------------
+
+
+def test_detected_paths_warns_on_unknown_keys(caplog) -> None:
+    """detected_paths with unknown keys should log a warning."""
+    import logging
+
+    with caplog.at_level(logging.WARNING):
+        proj = DetectedProject(detected_paths={"aggregates": "src/Agg", "unknown_key": "src/X"})
+    assert proj.detected_paths is not None
+    assert "unknown_key" in proj.detected_paths
+    assert "Unknown detected_paths key" in caplog.text
+    assert "unknown_key" in caplog.text
+
+
+def test_detected_paths_no_warning_for_known_keys(caplog) -> None:
+    """detected_paths with only known keys should not warn."""
+    import logging
+
+    with caplog.at_level(logging.WARNING):
+        DetectedProject(detected_paths={"aggregates": "src/Agg", "entities": "src/E"})
+    assert "Unknown detected_paths key" not in caplog.text
+
+
+def test_dotnet_ai_config_warns_on_unknown_top_level_key(caplog) -> None:
+    """DotnetAiConfig should log a WARNING for unknown top-level config keys."""
+    with caplog.at_level(logging.WARNING):
+        DotnetAiConfig(**{"foo": "bar", "company": {"name": "Acme"}})
+    assert "foo" in caplog.text

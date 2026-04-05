@@ -12,7 +12,9 @@ from dotnet_ai_kit.models import DotnetAiConfig, ReposConfig
 
 
 def _init_secondary_repo(
-    repo_path: Path, project_type: str = "query-sql", version: str = "1.0",
+    repo_path: Path,
+    project_type: str = "query-sql",
+    version: str = "1.0",
 ) -> None:
     """Set up a secondary repo as initialized with config and project.yml."""
     kit_dir = repo_path / ".dotnet-ai-kit"
@@ -69,7 +71,9 @@ class TestDeployToLinkedRepos:
         assert results[0]["status"] in ("deployed", "upgraded")
 
     def test_older_version_repo_upgraded(
-        self, mock_run: object, tmp_path: Path,
+        self,
+        mock_run: object,
+        tmp_path: Path,
     ) -> None:
         primary = tmp_path / "primary"
         primary.mkdir()
@@ -95,7 +99,9 @@ class TestDeployToLinkedRepos:
         assert results[0]["reason"] == "success"
 
     def test_same_version_repo_deployed(
-        self, mock_run: object, tmp_path: Path,
+        self,
+        mock_run: object,
+        tmp_path: Path,
     ) -> None:
         primary = tmp_path / "primary"
         primary.mkdir()
@@ -121,7 +127,9 @@ class TestDeployToLinkedRepos:
         assert results[0]["reason"] == "success"
 
     def test_branch_created_with_correct_name(
-        self, mock_run: object, tmp_path: Path,
+        self,
+        mock_run: object,
+        tmp_path: Path,
     ) -> None:
         primary = tmp_path / "primary"
         primary.mkdir()
@@ -141,21 +149,24 @@ class TestDeployToLinkedRepos:
         )
 
         deploy_to_linked_repos(
-            primary, config, "1.0", pkg,
+            primary,
+            config,
+            "1.0",
+            pkg,
             branch_name="chore/dotnet-ai-kit-setup",
         )
 
         # Verify git checkout -b was called with the branch name
         checkout_calls = [
-            call
-            for call in mock_run.call_args_list
-            if call[0][0][:3] == ["git", "checkout", "-b"]
+            call for call in mock_run.call_args_list if call[0][0][:3] == ["git", "checkout", "-b"]
         ]
         assert len(checkout_calls) == 1
         assert checkout_calls[0][0][0][3] == "chore/dotnet-ai-kit-setup"
 
     def test_multi_digit_version_comparison(
-        self, mock_run: object, tmp_path: Path,
+        self,
+        mock_run: object,
+        tmp_path: Path,
     ) -> None:
         """BUG-1 regression: 9.0 should not be newer than 10.0."""
         primary = tmp_path / "primary"
@@ -287,7 +298,9 @@ class TestDeployToLinkedRepos:
         assert "skipped" in statuses  # repo1 not initialized
 
     def test_linked_from_written_to_secondary_config(
-        self, mock_run: object, tmp_path: Path,
+        self,
+        mock_run: object,
+        tmp_path: Path,
     ) -> None:
         primary = tmp_path / "primary"
         primary.mkdir()
@@ -342,3 +355,136 @@ class TestDeployToLinkedRepos:
 
         assert len(results) == 1
         assert results[0]["status"] == "dry-run"
+
+    def test_secondary_repo_uses_own_command_style(
+        self,
+        mock_run: object,
+        tmp_path: Path,
+    ) -> None:
+        """T039: deploy should use the secondary repo's command_style, not the primary's."""
+        primary = tmp_path / "primary"
+        primary.mkdir()
+        secondary = tmp_path / "secondary"
+        secondary.mkdir()
+        pkg = tmp_path / "pkg"
+
+        _init_secondary_repo(secondary)
+        _create_package_profiles(pkg)
+
+        # Set secondary config to command_style: short
+        sec_config_path = secondary / ".dotnet-ai-kit" / "config.yml"
+        sec_config_path.write_text(
+            "version: '1.0'\ncompany:\n  name: Test\nai_tools:\n  - claude\ncommand_style: short\n",
+            encoding="utf-8",
+        )
+
+        # Create a commands directory in package
+        cmds_dir = pkg / "commands"
+        cmds_dir.mkdir(parents=True, exist_ok=True)
+        (cmds_dir / "dotnet-ai.do.md").write_text(
+            "---\ndescription: do\n---\nDo.\n",
+            encoding="utf-8",
+        )
+
+        mock_run.return_value.stdout = ""
+        mock_run.return_value.returncode = 0
+
+        config = DotnetAiConfig(
+            repos=ReposConfig(query=str(secondary)),
+            ai_tools=["claude"],
+            command_style="both",  # Primary uses 'both'
+        )
+
+        deploy_to_linked_repos(primary, config, "1.0", pkg)
+
+        # After deploy, the secondary repo should have commands
+        # matching the 'short' style (dai.* files), not 'both'
+        cmds_out = secondary / ".claude" / "commands"
+        if cmds_out.is_dir():
+            full_files = list(cmds_out.glob("dotnet-ai.*.md"))
+            # 'short' style should NOT produce dotnet-ai.* prefix files
+            assert len(full_files) == 0, (
+                f"Secondary with style=short should not have full-prefix commands: {full_files}"
+            )
+
+    def test_git_add_stages_tool_directories(
+        self,
+        mock_run: object,
+        tmp_path: Path,
+    ) -> None:
+        """T040: git add should stage tool-specific directories."""
+        primary = tmp_path / "primary"
+        primary.mkdir()
+        secondary = tmp_path / "secondary"
+        secondary.mkdir()
+        pkg = tmp_path / "pkg"
+
+        _init_secondary_repo(secondary)
+        _create_package_profiles(pkg)
+
+        mock_run.return_value.stdout = ""
+        mock_run.return_value.returncode = 0
+
+        config = DotnetAiConfig(
+            repos=ReposConfig(query=str(secondary)),
+            ai_tools=["claude"],
+        )
+
+        deploy_to_linked_repos(primary, config, "1.0", pkg)
+
+        # Find git add calls
+        git_add_calls = [
+            call
+            for call in mock_run.call_args_list
+            if len(call[0]) > 0 and len(call[0][0]) >= 2 and call[0][0][:2] == ["git", "add"]
+        ]
+        assert len(git_add_calls) >= 1, "Expected at least one 'git add' call"
+
+        # The staged directories should include .dotnet-ai-kit/ and .claude/
+        staged_args = git_add_calls[0][0][0][2:]  # Everything after ["git", "add"]
+        assert ".dotnet-ai-kit/" in staged_args, (
+            f"Expected .dotnet-ai-kit/ in git add args: {staged_args}"
+        )
+        assert ".claude/" in staged_args, f"Expected .claude/ in git add args: {staged_args}"
+
+    def test_deploy_loop_uses_secondary_ai_tools(
+        self,
+        mock_run: object,
+        tmp_path: Path,
+    ) -> None:
+        """deploy_to_linked_repos should use sec_ai_tools (secondary config) not primary config."""
+        primary = tmp_path / "primary"
+        primary.mkdir()
+        secondary = tmp_path / "secondary"
+        secondary.mkdir()
+        pkg = tmp_path / "pkg"
+
+        # Set up secondary with ai_tools: claude (not cursor)
+        kit_dir = secondary / ".dotnet-ai-kit"
+        kit_dir.mkdir(parents=True, exist_ok=True)
+        sec_config = {"version": "1.0", "company": {"name": "Test"}, "ai_tools": ["claude"]}
+        (kit_dir / "config.yml").write_text(__import__("yaml").dump(sec_config), encoding="utf-8")
+        project = {"project_type": "query-sql", "confidence": "high"}
+        (kit_dir / "project.yml").write_text(__import__("yaml").dump(project), encoding="utf-8")
+        (kit_dir / "version.txt").write_text("1.0", encoding="utf-8")
+        (secondary / ".claude" / "rules").mkdir(parents=True, exist_ok=True)
+
+        _create_package_profiles(pkg)
+
+        mock_run.return_value.stdout = ""
+        mock_run.return_value.returncode = 0
+
+        # Primary has ai_tools: ["claude"] too, secondary also has ["claude"]
+        # The loop must use sec_ai_tools (secondary config), not primary config.ai_tools
+        # We verify by checking that claude's directories are targeted (not some other tool)
+        config = DotnetAiConfig(
+            repos=ReposConfig(query=str(secondary)),
+            ai_tools=["claude"],
+        )
+
+        results = deploy_to_linked_repos(primary, config, "1.0", pkg)
+
+        assert len(results) == 1
+        assert results[0]["status"] in ("deployed", "upgraded")
+        # Verify the .claude/ dir was populated (secondary ai_tool = claude)
+        assert (secondary / ".claude" / "rules" / "architecture-profile.md").is_file()

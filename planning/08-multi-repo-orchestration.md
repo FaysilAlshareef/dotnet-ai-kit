@@ -332,3 +332,81 @@ When service-map shows "CREATE NEW":
 
   Created and pushed. Continuing with implementation...
 ```
+
+---
+
+## Tooling Deployment to Secondary Repos
+
+When `dotnet-ai configure` or `deploy_to_linked_repos()` runs for a multi-repo project, the tool automatically deploys its full tooling stack to each configured secondary repository. This ensures every repo has consistent commands, rules, skills, and enforcement.
+
+### `deploy_to_linked_repos()` Function
+
+Called by `configure` when local secondary repos are detected. For each secondary repo:
+
+1. **Version check** — skip if secondary has a newer CLI version
+2. **Dirty check** — skip if secondary has uncommitted changes
+3. **Branch creation** — creates/checks out `chore/brief-deploy-{version}` branch
+4. **Full tooling deploy**:
+   - Commands (using secondary's own `command_style` from its `config.yml`)
+   - Rules
+   - Architecture profile via `copy_profile()` (based on secondary's `project_type`)
+   - Skills with token resolution for secondary's `detected_paths`
+   - Agents
+   - PreToolUse enforcement hook via `copy_hook()` (Claude only)
+5. **Write `linked_from`** — records primary repo path in secondary's `config.yml`
+6. **Atomic commit** — stages tool directories and commits with `chore: deploy dotnet-ai-kit tooling`
+
+### Key Design Points
+
+- **Secondary `ai_tools`**: Deployment targets the secondary repo's own configured `ai_tools`, not the primary's. If secondary uses `cursor`, cursor files are deployed.
+- **Secondary `command_style`**: Commands are deployed in the style configured for the secondary repo (full/short/both).
+- **`linked_from` field**: Marks secondary repos as linked, enabling cross-repo status reporting in `check`.
+
+### Architecture Profile (`copy_profile()`)
+
+Deploys an architecture-specific guidance file to the AI tool's rules directory:
+
+```
+{rules_dir}/architecture-profile.md
+```
+
+The profile is selected based on `project_type` from `project.yml`. For example:
+- `command` → `profiles/microservice/command.md`
+- `query-sql` → `profiles/microservice/query-sql.md`
+- `clean-arch` → `profiles/generic/clean-arch.md`
+
+### Enforcement Hook (`copy_hook()`)
+
+Injects a `PreToolUse` hook into `.claude/settings.json` that runs a Haiku model check before every Write/Edit operation:
+
+```json
+{
+  "_source": "dotnet-ai-kit-arch",
+  "type": "prompt",
+  "matcher": "Write|Edit",
+  "prompt": "{architecture-profile-content}",
+  "model": "claude-haiku-4-5-20251001",
+  "timeout": 15000
+}
+```
+
+The `_source` tag allows safe removal/replacement on subsequent deploys.
+
+### `FeatureBrief` Model
+
+During `/dai.specify`, a `feature-brief.md` is written to each affected secondary repo at `.dotnet-ai-kit/features/{NNN}-{name}/feature-brief.md`. Fields:
+- `feature_id` — NNN-short-name (matches primary feature ID)
+- `feature_name` — human-readable name
+- `phase` — current lifecycle phase (Specified, Planned, etc.)
+- `source_repo` — primary repo name/path
+- `this_repo_role` — this repo's role in the service map
+- `projected_date` — expected delivery date
+- `required_changes` — filtered change list for this repo
+- `events_produced` / `events_consumed` — cross-service event contracts
+
+### Branch Safety
+
+All SDD lifecycle commands that touch secondary repos (specify, clarify, plan, tasks, implement) include a "Secondary Repo Branch Safety" section ensuring:
+- If on main/master/develop: create `chore/brief-{NNN}-{name}` branch
+- If branch already exists: check out existing branch
+- If dirty working directory: warn and skip that repo

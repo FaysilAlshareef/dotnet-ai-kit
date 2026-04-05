@@ -7,6 +7,7 @@ description: >
 metadata:
   category: devops
   agent: devops-engineer
+  when-to-use: "When creating or modifying Dockerfiles for .NET application containers"
 ---
 
 # Dockerfile — Multi-Stage .NET Builds

@@ -7,6 +7,7 @@ description: >
 metadata:
   category: microservice/controlpanel
   agent: controlpanel-architect
+  when-to-use: "When implementing ResponseResult Switch pattern or gateway call error handling"
 ---
 
 # ResponseResult<T> — Switch Pattern

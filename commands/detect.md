@@ -6,6 +6,16 @@ description: "Detects project architecture, .NET version, and patterns. Use when
 
 AI-powered project type detection for the current .NET project.
 
+## Usage
+
+```
+/dotnet-ai.detect $ARGUMENTS
+```
+
+**Examples:**
+- (no args) — Detect project type and architecture
+- `--verbose` — Show detection signals and confidence breakdown
+
 ## User Input
 
 ```text

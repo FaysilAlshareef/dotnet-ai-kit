@@ -9,6 +9,16 @@ agent: general-purpose
 You are an AI coding assistant executing the `/dotnet-ai.analyze` command.
 This command is **READ-ONLY**. You MUST NOT modify any files.
 
+## Usage
+
+```
+/dotnet-ai.analyze $ARGUMENTS
+```
+
+**Examples:**
+- (no args) — Analyze current feature against spec/plan/tasks
+- `--verbose` — Show detailed check output per pass
+
 ## Input
 
 Flags: `--dry-run` (preview analysis scope), `--verbose` (diagnostic output),
@@ -69,15 +79,11 @@ Load all skills listed in the agent's Skills Loaded section.
 - Severity: MEDIUM for inconsistencies, LOW for style deviations
 
 **Pass 3: Coverage Gaps**
-- Every requirement in spec has at least one task
-- Every task traces back to a requirement or user story
-- No orphaned tasks (tasks with no purpose in the spec)
-- No orphaned requirements (requirements with no implementation)
+- Every requirement has a task; every task traces to a requirement (no orphans either direction)
 - Severity: HIGH for missing tasks, MEDIUM for missing traceability
 
 **Pass 4: Concurrency**
-- Entities that may be updated concurrently have row version / concurrency tokens
-- Aggregate roots have concurrency handling in the plan
+- Entities updated concurrently have row version/concurrency tokens; aggregate roots have concurrency handling.
 - Severity: HIGH if missing for shared entities, MEDIUM otherwise
 
 ### Microservice Passes (in addition to above)
@@ -86,11 +92,8 @@ These passes inspect both feature artifacts AND actual code across repos listed 
 `config.yml` / `service-map.md`. Read each repo directory as needed (read-only).
 
 **Pass 5: Event Consistency**
-- Scan command repo for event classes published by aggregates (inheriting `Event<T>`).
-- Scan query repo for `IRequestHandler<Event<T>, bool>` implementations.
-- Scan processor repo for listener routing that references each event.
-- Report: CRITICAL if an event has zero handlers, HIGH if data schema properties
-  in the event class do not match the handler's expected fields.
+- Scan command repo for published events, query repo for handlers, processor repo for routing.
+- CRITICAL if event has zero handlers; HIGH if event schema mismatches handler expected fields.
 
 **Pass 6: Proto Consistency**
 - Collect `.proto` files from command and query repos (server definitions).

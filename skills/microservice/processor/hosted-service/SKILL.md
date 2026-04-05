@@ -8,6 +8,7 @@ description: >
 metadata:
   category: microservice/processor
   agent: processor-architect
+  when-to-use: "When creating or modifying IHostedService with ServiceBusSessionProcessor lifecycle"
 ---
 
 # Hosted Service — ServiceBusSessionProcessor Lifecycle

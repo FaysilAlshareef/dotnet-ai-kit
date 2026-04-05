@@ -53,6 +53,8 @@ packages = ["src/dotnet_ai_kit"]
 "knowledge" = "dotnet_ai_kit/bundled/knowledge"
 "templates" = "dotnet_ai_kit/bundled/templates"
 "config" = "dotnet_ai_kit/bundled/config"
+"profiles" = "dotnet_ai_kit/bundled/profiles"
+"prompts" = "dotnet_ai_kit/bundled/prompts"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

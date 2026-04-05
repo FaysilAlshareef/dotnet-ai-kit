@@ -7,6 +7,7 @@ description: >
 metadata:
   category: microservice/controlpanel
   agent: controlpanel-architect
+  when-to-use: "When configuring MudBlazor theming, dialogs, or snackbar integration"
 ---
 
 # MudBlazor Patterns — Theming, Dialogs, Snackbar

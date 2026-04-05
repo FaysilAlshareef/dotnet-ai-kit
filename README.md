@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <code>120 skills</code> · <code>13 agents</code> · <code>27 commands</code> · <code>15 rules</code> · <code>12 architectures</code> · <code>4 safety hooks</code> · <code>14 templates</code>
+  <code>120 skills</code> · <code>13 agents</code> · <code>27 commands</code> · <code>16 rules</code> · <code>12 architectures</code> · <code>4 safety hooks</code> · <code>13 templates</code>
 </p>
 
 ---
@@ -72,7 +72,7 @@ dotnet-ai init . --ai claude
 /plugin install dotnet-ai-kit
 ```
 
-All 27 commands, 120 skills, 13 agents, 15 rules, and 4 safety hooks are available immediately.
+All 27 commands, 120 skills, 13 agents, 16 rules, and 4 safety hooks are available immediately.
 
 <details>
 <summary><b>See plugin install demo</b></summary>
@@ -175,20 +175,20 @@ This single command automatically runs the full 9-phase lifecycle:
 | Category | Count |
 |----------|:-----:|
 | Microservice | 33 |
+| Core (C#) | 12 |
+| API | 11 |
 | Data (EF Core) | 8 |
 | Docs | 8 |
-| API | 7 |
-| Workflow | 7 |
-| Architecture | 6 |
-| Core (C#) | 7 |
+| Architecture | 7 |
 | CQRS | 6 |
 | DevOps | 5 |
+| Security | 5 |
+| Workflow | 5 |
+| Infrastructure | 4 |
 | Testing | 4 |
-| Security | 3 |
 | Observability | 3 |
-| Resilience | 3 |
 | Quality | 3 |
-| Infrastructure | 3 |
+| Resilience | 3 |
 | Detection | 1 |
 
 </td><td>
@@ -214,17 +214,24 @@ This single command automatically runs the full 9-phase lifecycle:
 </td></tr>
 </table>
 
-### 15 Convention Rules (Always Active)
+### 16 Convention Rules (Always Active)
 
 | Rule | Purpose |
 |------|---------|
+| `api-design` | REST conventions, versioning, error responses |
 | `architecture` | Enforces architectural boundaries |
+| `async-concurrency` | Async/await patterns, CancellationToken propagation |
 | `coding-style` | Code formatting and patterns |
 | `configuration` | Options pattern, ValidateOnStart |
+| `data-access` | EF Core patterns, repository structure |
 | `error-handling` | Exception handling, validation |
 | `existing-projects` | Respects your existing codebase patterns |
 | `localization` | Resource files, culture handling |
+| `multi-repo` | Event contract ownership, cross-repo branch naming, deploy order |
 | `naming` | C# naming conventions, namespaces |
+| `observability` | Structured logging, metrics, tracing |
+| `performance` | Query optimization, caching patterns |
+| `security` | Auth, secrets, input validation |
 | `testing` | Test naming, AAA structure, CQRS patterns |
 | `tool-calls` | Sequential tool usage, verification |
 
@@ -446,17 +453,18 @@ The core knowledge (rules, skills, agents, commands) is portable across AI tools
 ## Extension System
 
 ```bash
-# Install a community extension
-dotnet-ai extension install {name}
-
-# Install from local development
-dotnet-ai extension install --dev ./my-extension
+# Install from a local directory (catalog support planned for v1.1)
+dotnet-ai extension-add --dev ./my-extension
 
 # List installed extensions
-dotnet-ai extension list
+dotnet-ai extension-list
+
+# Remove an extension
+dotnet-ai extension-remove my-extension
 ```
 
 Extensions use manifest validation (JSON schema) for safety and compatibility.
+Catalog-based installs (`dotnet-ai extension-add <name>`) show a user-friendly message directing you to `--dev`.
 
 ---
 
@@ -478,7 +486,7 @@ The tool detects your .NET version from `.csproj` and uses version-appropriate p
 ```
 dotnet-ai-kit/
 ├── commands/          # 27 slash command definitions
-├── rules/             # 15 always-loaded convention rules
+├── rules/             # 16 always-loaded convention rules
 ├── agents/            # 13 specialist agent definitions
 ├── skills/            # 120 skills across 17 categories
 ├── knowledge/         # 16 reference documents
@@ -486,7 +494,7 @@ dotnet-ai-kit/
 ├── hooks/             # 4 safety hooks
 ├── config/            # 4 permission level configs
 ├── src/               # Python CLI source (Typer + Pydantic v2)
-├── tests/             # 158 test functions
+├── tests/             # 307 tests (280 baseline + 27 new in v1.0.0 hardening)
 └── .claude-plugin/    # Claude Code plugin manifest
 ```
 

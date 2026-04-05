@@ -9,6 +9,7 @@ description: >
 metadata:
   category: microservice/command
   agent: command-architect
+  when-to-use: "When configuring EF Core event store, discriminator mapping, or outbox message tables"
 ---
 
 # Event Store -- EF Core Configuration

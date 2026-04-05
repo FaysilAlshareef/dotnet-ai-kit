@@ -7,6 +7,7 @@ description: >
 metadata:
   category: microservice/grpc
   agent: command-architect
+  when-to-use: "When creating or modifying gRPC service definitions or protobuf files"
 ---
 
 # Service Definition — Proto Files & Implementation

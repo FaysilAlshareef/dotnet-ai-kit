@@ -70,6 +70,26 @@ def test_load_config_invalid_yaml(tmp_path: Path) -> None:
         load_config(bad_path)
 
 
+def test_load_config_yaml_error_produces_value_error(tmp_path: Path) -> None:
+    """Corrupted YAML should raise ValueError with user-friendly message."""
+    config_file = tmp_path / "config.yml"
+    config_file.write_text("invalid: yaml: [broken", encoding="utf-8")
+
+    with pytest.raises(ValueError, match="Invalid YAML syntax"):
+        load_config(config_file)
+
+
+def test_save_config_no_tmp_after_success(tmp_path: Path) -> None:
+    """save_config should write atomically — no .tmp file should remain after success."""
+    config = DotnetAiConfig(ai_tools=["claude"])
+    path = tmp_path / "config.yml"
+
+    save_config(config, path)
+
+    assert path.is_file()
+    assert not path.with_suffix(".tmp").exists()
+
+
 def test_load_config_empty_file(tmp_path: Path) -> None:
     """load_config should return defaults for empty YAML file."""
     empty_path = tmp_path / "empty.yml"

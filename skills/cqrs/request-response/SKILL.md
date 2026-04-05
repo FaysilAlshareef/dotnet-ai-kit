@@ -7,6 +7,7 @@ description: >
 metadata:
   category: cqrs
   agent: ef-specialist
+  when-to-use: "When designing CQRS request/response patterns with FluentValidation and Result types"
 ---
 
 # Request/Response Patterns

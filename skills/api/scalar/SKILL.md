@@ -6,6 +6,7 @@ description: >
 metadata:
   category: api
   agent: api-designer
+  when-to-use: "When setting up Scalar API documentation with authentication and theming"
 ---
 
 # Scalar API Documentation

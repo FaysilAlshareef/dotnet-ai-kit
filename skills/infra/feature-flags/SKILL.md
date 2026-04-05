@@ -7,6 +7,7 @@ description: >
 metadata:
   category: infra
   agent: dotnet-architect
+  when-to-use: "When implementing feature flags, percentage rollouts, or feature toggles"
 ---
 
 # Feature Flags — Microsoft.FeatureManagement

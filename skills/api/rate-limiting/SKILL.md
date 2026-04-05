@@ -7,6 +7,7 @@ description: >
 metadata:
   category: api
   agent: api-designer
+  when-to-use: "When implementing rate limiting policies or throttling for API endpoints"
 ---
 
 # Rate Limiting

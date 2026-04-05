@@ -17,7 +17,7 @@ Create a REST endpoint in a gateway project with controller action, gRPC client 
 - `"POST /api/v1/orders"` -- Explicit HTTP method and path
 - `Order --operations "list,get,create,update,delete"` -- Full CRUD endpoints
 - `Order --dry-run` -- Show code without writing
-- `Order --dry-run` -- Show file list only
+- `Order --list` -- Show file list only
 - `Order --verbose` -- Show detection details
 
 ## Flags
@@ -27,7 +27,7 @@ Create a REST endpoint in a gateway project with controller action, gRPC client 
 | `--operations "op1,op2,..."` | Which CRUD operations to generate (default: inferred) |
 | `--version v{N}` | API version (default: detected from existing endpoints) |
 | `--dry-run` | Display generated code without writing to disk |
-| `--dry-run` | List files that would be created/modified |
+| `--list` | List files that would be created/modified with descriptions, no code output |
 | `--verbose` | Show detection steps and pattern matching details |
 
 ## Pre-Generation
@@ -101,4 +101,4 @@ Parse `$ARGUMENTS`: if input looks like `"METHOD /path"`, extract method and rou
 ## Preview / Dry-Run Behavior
 
 - `--dry-run`: Show all generated code with file path headers. No writes.
-- `--dry-run`: List files only. No code output, no writes.
+- `--list`: List files only. No code output, no writes.

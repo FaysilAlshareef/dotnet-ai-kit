@@ -7,6 +7,16 @@ description: "Breaks the plan into ordered executable tasks. Use when ready to s
 You are an AI coding assistant executing the `/dotnet-ai.tasks` command.
 Your job is to generate a structured task list from an implementation plan.
 
+## Usage
+
+```
+/dotnet-ai.tasks $ARGUMENTS
+```
+
+**Examples:**
+- (no args) — Generate tasks.md from current plan
+- `--dry-run` — Preview task structure without writing
+
 ## Input
 
 Flags: `--dry-run` (preview without writing), `--verbose` (diagnostic output)
@@ -64,10 +74,7 @@ Create `tasks.md` in the feature directory. Organize tasks by phase:
 
 ## Phase 2: Command Side
 
-**CONSTRAINT**: Command side is event-sourced. Generate ONLY:
-- Aggregates, Events, Value Objects, Enums, Domain Exceptions
-- NEVER create entities, projections, read models, or lookup tables
-- If the command side needs to query external state, add a gRPC client call task in Infrastructure tasks
+**CONSTRAINT**: Event-sourced — generate ONLY Aggregates, Events, Value Objects, Enums, Domain Exceptions. NEVER create entities/projections. Use gRPC client tasks for external state queries.
 
 - [ ] T003 [Repo:command] Create {Aggregate} with {Event} event
       File: src/{Domain}/Aggregates/{Aggregate}.cs
@@ -156,8 +163,7 @@ For generic .NET projects, organize by architectural layer:
 - [ ] T015 Integration tests for endpoints
 
 ## Phase 7: Polish
-- [ ] T016 Code cleanup and XML docs
-- [ ] T017 Update project documentation
+- [ ] T016 [P] Code cleanup, XML docs, and project documentation
 ```
 
 ## Task Format Rules
@@ -176,8 +182,7 @@ Tasks generated for {NNN}-{short-name}.
 - Parallel opportunities: {count} tasks marked [P]
 - {Microservice: across {R} repositories}
 
-Next: /dotnet-ai.analyze     (check consistency before implementing)
-      /dotnet-ai.implement   (start implementing)
+Next: /dotnet-ai.analyze (consistency check) or /dotnet-ai.implement (start coding)
 ```
 
 ## Cross-Repo Feature Tracking (microservice mode)
@@ -186,12 +191,7 @@ For each secondary repo in `service-map.md`, resolve path from `config.yml`. If 
 
 ### Secondary Repo Branch Safety
 
-Before committing to any linked secondary repo:
-1. Run `git -C {repo_path} rev-parse --abbrev-ref HEAD` to check current branch
-2. If on main/master/develop: `git -C {repo_path} checkout -b chore/brief-{NNN}-{name}`
-3. If `chore/brief-{NNN}-{name}` already exists: reuse it (checkout, do not create new)
-4. If working directory dirty (`git -C {repo_path} status --porcelain`): warn and skip
-5. NEVER commit directly to main, master, or develop — always use the chore branch
+Before committing: check branch with `git -C {repo_path} rev-parse --abbrev-ref HEAD`. If on main/master/develop, create or reuse `chore/brief-{NNN}-{name}`. If dirty (`status --porcelain`): warn and skip. NEVER commit to main/master/develop.
 
 ## Dry-Run / Error Handling
 

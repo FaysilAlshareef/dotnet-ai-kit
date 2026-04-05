@@ -5,11 +5,11 @@ description: >
   aggregate loading/creation via IUnitOfWork and ICommitEventService, command records with
   domain command interfaces, and gRPC service mapping.
   Trigger: command handler, MediatR, CQRS command, business logic.
-when-to-use: "When creating or modifying command handlers using MediatR IRequestHandler"
-paths: "${detected_paths.handlers}/**/*.cs"
 metadata:
   category: microservice/command
   agent: command-architect
+  when-to-use: "When creating or modifying command handlers using MediatR IRequestHandler"
+  paths: "${detected_paths.handlers}/**/*.cs"
 ---
 
 # Command Handler -- MediatR Command Pattern

@@ -7,6 +7,7 @@ description: >
 metadata:
   category: api
   agent: api-designer
+  when-to-use: "When creating or modifying controller-based API endpoints with MediatR integration"
 ---
 
 # Controller Patterns

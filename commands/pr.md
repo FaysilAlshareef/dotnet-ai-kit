@@ -7,6 +7,16 @@ description: "Creates a pull request with linked changes. Use when implementatio
 You are an AI coding assistant executing the `/dotnet-ai.pr` command.
 Your job is to create or update pull requests for the implemented feature.
 
+## Usage
+
+```
+/dotnet-ai.pr $ARGUMENTS
+```
+
+**Examples:**
+- (no args) — Create PRs for all affected repos in current feature
+- `--dry-run` — Show PR details without creating them
+
 ## Input
 
 Flags: `--dry-run` (preview PR content without creating), `--verbose` (diagnostic output),

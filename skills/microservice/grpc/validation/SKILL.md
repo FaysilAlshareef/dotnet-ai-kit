@@ -7,6 +7,7 @@ description: >
 metadata:
   category: microservice/grpc
   agent: command-architect
+  when-to-use: "When writing FluentValidation validators for gRPC request messages"
 ---
 
 # Validation — FluentValidation + gRPC

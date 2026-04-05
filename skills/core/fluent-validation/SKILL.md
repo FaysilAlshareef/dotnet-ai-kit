@@ -7,6 +7,7 @@ description: >
 metadata:
   category: core
   agent: dotnet-architect
+  when-to-use: "When writing input validation rules using FluentValidation"
 ---
 
 # FluentValidation (Standalone)

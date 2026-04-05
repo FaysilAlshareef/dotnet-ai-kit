@@ -7,6 +7,7 @@ description: >
 metadata:
   category: workflow
   agent: reviewer
+  when-to-use: "When performing code reviews or configuring automated review workflows"
 ---
 
 # Code Review Workflow — Checklist & Automation

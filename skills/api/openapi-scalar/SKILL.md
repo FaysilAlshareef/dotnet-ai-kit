@@ -7,6 +7,7 @@ description: >
 metadata:
   category: api
   agent: api-designer
+  when-to-use: "When configuring OpenAPI spec generation or Scalar API documentation UI"
 ---
 
 # OpenAPI & Scalar API Documentation

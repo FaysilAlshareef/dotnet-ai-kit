@@ -8,6 +8,7 @@ description: >
 metadata:
   category: microservice/processor
   agent: processor-architect
+  when-to-use: "When implementing batch event processing with BackgroundService and session batching"
 ---
 
 # Batch Processing — BackgroundService with Session Batching

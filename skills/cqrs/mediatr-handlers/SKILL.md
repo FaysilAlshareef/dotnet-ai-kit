@@ -7,6 +7,7 @@ description: >
 metadata:
   category: cqrs
   agent: ef-specialist
+  when-to-use: "When creating or modifying MediatR request handlers or notification handlers"
 ---
 
 # MediatR Handlers

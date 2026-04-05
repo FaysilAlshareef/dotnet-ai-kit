@@ -7,6 +7,7 @@ description: >
 metadata:
   category: architecture
   agent: dotnet-architect
+  when-to-use: "When implementing multi-tenant architecture, tenant isolation, or tenant resolution"
 ---
 
 # Multi-Tenancy
@@ -397,4 +398,3 @@ internal sealed class TenantConnectionFactory(
 ## References
 
 - https://learn.microsoft.com/en-us/ef/core/miscellaneous/multitenancy
-- https://learn.microsoft.com/en-us/azure/architecture/guide/multitenant/overview

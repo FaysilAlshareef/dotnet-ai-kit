@@ -4,10 +4,11 @@ description: >
   Cosmos DB entity design with IContainerDocument, hierarchical partition keys,
   discriminator pattern, and ETag concurrency. Covers entity modeling for NoSQL documents.
   Trigger: cosmos entity, partition key, discriminator, IContainerDocument, NoSQL.
-when-to-use: "When creating or modifying Cosmos DB entities, partition keys, discriminators"
 metadata:
   category: microservice/cosmos
   agent: cosmos-architect
+  when-to-use: "When creating or modifying Cosmos DB entities, partition keys, discriminators"
+  paths: "${detected_paths.cosmos_entities}/**/*.cs"
 ---
 
 # Cosmos Entity — IContainerDocument Pattern

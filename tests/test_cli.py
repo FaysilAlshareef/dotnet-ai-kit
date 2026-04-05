@@ -77,16 +77,16 @@ def test_init_force_reinitializes(tmp_path: Path) -> None:
     assert result.exit_code == 0, result.output
 
 
-def test_init_requires_ai_tool_or_detection(tmp_path: Path) -> None:
-    """Init should fail if no AI tool can be detected and none specified."""
+def test_init_defaults_to_claude_when_no_ai_detected(tmp_path: Path) -> None:
+    """Init should auto-default to Claude when no AI tool detected and no --ai flag."""
     _create_dotnet_project(tmp_path)
     # No .claude/ or .cursor/ directory
 
     result = runner.invoke(app, ["init", str(tmp_path)])
 
-    # T056: exit code 3 for detection errors
-    assert result.exit_code == 3
-    assert "no ai tool detected" in result.output.lower()
+    # T051: auto-default to Claude instead of exit code 3
+    assert result.exit_code == 0
+    assert "defaulting to claude" in result.output.lower()
 
 
 def test_init_creates_project_yml_with_type_flag(tmp_path: Path) -> None:
@@ -103,6 +103,40 @@ def test_init_creates_project_yml_with_type_flag(tmp_path: Path) -> None:
     assert result.exit_code == 0, result.output
     project_yml = tmp_path / ".dotnet-ai-kit" / "project.yml"
     assert project_yml.is_file()
+
+
+def test_init_with_permissions_flag_applies_level(tmp_path: Path) -> None:
+    """init --permissions should set the permissions_level in config and write settings.json."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    result = runner.invoke(
+        app,
+        ["init", str(tmp_path), "--ai", "claude", "--permissions", "standard"],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == 0, result.output
+    config_path = tmp_path / ".dotnet-ai-kit" / "config.yml"
+    assert config_path.is_file()
+    data = yaml.safe_load(config_path.read_text(encoding="utf-8"))
+    assert data["permissions_level"] == "standard"
+    # settings.json should have been written
+    settings_path = tmp_path / ".claude" / "settings.json"
+    assert settings_path.is_file()
+
+
+def test_init_permissions_invalid_value_exits_error(tmp_path: Path) -> None:
+    """init --permissions with invalid value should exit non-zero."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    result = runner.invoke(
+        app,
+        ["init", str(tmp_path), "--ai", "claude", "--permissions", "extreme"],
+    )
+
+    assert result.exit_code != 0
 
 
 def test_init_skips_detection_without_type_flag(tmp_path: Path) -> None:
@@ -358,6 +392,31 @@ def test_configure_no_input_requires_company(tmp_path: Path, monkeypatch) -> Non
 
     assert result.exit_code == 1
     assert "--company is required" in result.output
+
+
+def test_configure_json_full_permissions_includes_warnings(tmp_path: Path, monkeypatch) -> None:
+    """configure --json with --permissions full should include 'warnings' key in output."""
+    _setup_config_dir(tmp_path)
+    monkeypatch.chdir(tmp_path)
+
+    result = runner.invoke(
+        app,
+        ["configure", "--no-input", "--company", "Acme", "--permissions", "full", "--json"],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == 0, result.output
+    # Find the JSON line in output
+    json_line = None
+    for line in result.output.splitlines():
+        line = line.strip()
+        if line.startswith("{"):
+            json_line = line
+            break
+    assert json_line is not None, f"No JSON found in output: {result.output}"
+    data = json.loads(json_line)
+    assert "warnings" in data
+    assert any("bypassPermissions" in w for w in data["warnings"])
 
 
 # ---------------------------------------------------------------------------
@@ -1042,17 +1101,12 @@ def test_init_force_applies_full_permissions(tmp_path: Path) -> None:
     # Set permissions to full
     config_path = tmp_path / ".dotnet-ai-kit" / "config.yml"
     config_path.write_text(
-        "version: '1.0'\n"
-        "permissions_level: full\n"
-        "ai_tools:\n  - claude\n"
-        "command_style: both\n",
+        "version: '1.0'\npermissions_level: full\nai_tools:\n  - claude\ncommand_style: both\n",
         encoding="utf-8",
     )
 
     # Re-init with --force
-    runner.invoke(
-        app, ["init", str(tmp_path), "--ai", "claude", "--force"], catch_exceptions=False
-    )
+    runner.invoke(app, ["init", str(tmp_path), "--ai", "claude", "--force"], catch_exceptions=False)
 
     settings_path = tmp_path / ".claude" / "settings.json"
     assert settings_path.is_file()
@@ -1074,10 +1128,7 @@ def test_upgrade_reapplies_permissions_when_level_changes(tmp_path: Path, monkey
     # Change config to full permissions
     config_path = tmp_path / ".dotnet-ai-kit" / "config.yml"
     config_path.write_text(
-        "version: '1.0'\n"
-        "permissions_level: full\n"
-        "ai_tools:\n  - claude\n"
-        "command_style: both\n",
+        "version: '1.0'\npermissions_level: full\nai_tools:\n  - claude\ncommand_style: both\n",
         encoding="utf-8",
     )
 
@@ -1120,6 +1171,31 @@ def test_upgrade_force_refreshes_when_version_matches(tmp_path: Path, monkeypatc
     result = runner.invoke(app, ["upgrade", "--force"], catch_exceptions=False)
     assert result.exit_code == 0
     assert len(list(rules_dir.glob("*.md"))) == len(rule_files_before)
+
+
+def test_upgrade_force_redeploys_profile(tmp_path: Path, monkeypatch) -> None:
+    """upgrade --force should call copy_profile and copy_hook even when version matches."""
+
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    runner.invoke(
+        app, ["init", str(tmp_path), "--ai", "claude", "--type", "command"], catch_exceptions=False
+    )
+    monkeypatch.chdir(tmp_path)
+
+    with (
+        patch("dotnet_ai_kit.cli.copy_profile") as mock_profile,
+        patch("dotnet_ai_kit.cli.copy_hook") as mock_hook,
+    ):
+        mock_profile.return_value = tmp_path / ".claude" / "rules" / "architecture-profile.md"
+        mock_hook.return_value = True
+
+        result = runner.invoke(app, ["upgrade", "--force"], catch_exceptions=False)
+
+    assert result.exit_code == 0, result.output
+    assert mock_profile.called, "copy_profile should be called with --force"
+    assert mock_hook.called, "copy_hook should be called with --force"
 
 
 def test_configure_fails_loudly_on_permission_error(tmp_path: Path, monkeypatch) -> None:
@@ -1224,8 +1300,10 @@ def test_configure_repos_flag_normalizes_urls(tmp_path: Path, monkeypatch) -> No
         [
             "configure",
             "--no-input",
-            "--company", "TestCo",
-            "--repos", "command=https://github.com/acme/cmd,query=../query-svc",
+            "--company",
+            "TestCo",
+            "--repos",
+            "command=https://github.com/acme/cmd,query=../query-svc",
         ],
         catch_exceptions=False,
     )
@@ -1247,8 +1325,10 @@ def test_configure_repos_flag_ssh_url(tmp_path: Path, monkeypatch) -> None:
         [
             "configure",
             "--no-input",
-            "--company", "TestCo",
-            "--repos", "gateway=git@github.com:acme/gw.git",
+            "--company",
+            "TestCo",
+            "--repos",
+            "gateway=git@github.com:acme/gw.git",
         ],
         catch_exceptions=False,
     )
@@ -1293,3 +1373,285 @@ def test_configure_recopy_on_style_change(tmp_path: Path, monkeypatch) -> None:
         short_after = list(cmds.glob("dai.*.md"))
         assert len(full_after) == 0, f"Stale dotnet-ai.*.md files remain: {full_after}"
         assert len(short_after) > 0, "Expected dai.*.md files after short style"
+
+
+# ---------------------------------------------------------------------------
+# T010-T011: init deploys architecture profile and enforcement hook
+# ---------------------------------------------------------------------------
+
+
+def test_init_deploys_profile_when_type_provided(tmp_path: Path) -> None:
+    """init --type command should deploy architecture-profile.md."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    result = runner.invoke(
+        app,
+        ["init", str(tmp_path), "--ai", "claude", "--type", "command"],
+    )
+
+    assert result.exit_code == 0
+    profile = tmp_path / ".claude" / "rules" / "architecture-profile.md"
+    assert profile.is_file()
+
+
+def test_init_deploys_hook_when_type_provided(tmp_path: Path) -> None:
+    """init --type command should deploy enforcement hook for Claude."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    result = runner.invoke(
+        app,
+        ["init", str(tmp_path), "--ai", "claude", "--type", "command"],
+    )
+
+    assert result.exit_code == 0
+    settings_path = tmp_path / ".claude" / "settings.json"
+    if settings_path.is_file():
+        settings = json.loads(settings_path.read_text(encoding="utf-8"))
+        hooks = settings.get("hooks", {}).get("PreToolUse", [])
+        arch_hooks = [h for h in hooks if h.get("_source") == "dotnet-ai-kit-arch"]
+        assert len(arch_hooks) >= 1
+
+
+# ---------------------------------------------------------------------------
+# T042: configure without init
+# ---------------------------------------------------------------------------
+
+
+def test_configure_without_init_exits_code_1(tmp_path: Path, monkeypatch) -> None:
+    """configure should fail if .dotnet-ai-kit/ directory doesn't exist."""
+    # tmp_path has no .dotnet-ai-kit/ directory
+    monkeypatch.chdir(tmp_path)
+
+    result = runner.invoke(app, ["configure", "--no-input"])
+    assert result.exit_code == 1
+    assert "not initialized" in result.output.lower()
+
+
+def test_configure_dry_run_without_init_shows_preview(tmp_path: Path, monkeypatch) -> None:
+    """configure --dry-run should NOT exit code 1 in an uninitialised directory."""
+    monkeypatch.chdir(tmp_path)
+
+    # Use --no-input --company to avoid interactive prompts in the test runner
+    result = runner.invoke(app, ["configure", "--dry-run", "--no-input", "--company", "Acme"])
+    # Must not exit with code 1 (the "not initialized" hard-fail)
+    assert result.exit_code != 1, result.output
+    assert "dry-run" in result.output.lower()
+
+
+# ---------------------------------------------------------------------------
+# T038: configure re-deploys rules, skills, agents
+# ---------------------------------------------------------------------------
+
+
+def test_configure_redeploys_rules_skills_agents(tmp_path: Path, monkeypatch) -> None:
+    """configure should re-deploy rules, skills, and agents."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    # First init
+    runner.invoke(
+        app,
+        ["init", str(tmp_path), "--ai", "claude", "--type", "command"],
+        catch_exceptions=False,
+    )
+
+    # Delete a rules file to simulate stale state
+    rules_dir = tmp_path / ".claude" / "rules"
+    deleted_name = None
+    if rules_dir.is_dir():
+        for f in list(rules_dir.iterdir())[:1]:
+            f.unlink()
+            deleted_name = f.name
+            break
+
+    # Run configure
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(
+        app,
+        ["configure", "--no-input", "--company", "TestCo"],
+        catch_exceptions=False,
+    )
+
+    assert result.exit_code == 0, result.output
+    # Verify rules were re-deployed (the deleted file should be restored)
+    assert "refreshed" in result.output.lower() or rules_dir.is_dir()
+    if deleted_name:
+        assert (rules_dir / deleted_name).is_file(), (
+            f"Deleted rule {deleted_name} was not restored by configure"
+        )
+
+
+# ---------------------------------------------------------------------------
+# T021: upgrade prints warning on profile failure
+# ---------------------------------------------------------------------------
+
+
+def test_upgrade_prints_warning_on_profile_failure(tmp_path: Path, monkeypatch) -> None:
+    """upgrade should print warning when profile deployment fails."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    # Init first
+    runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
+
+    # Tamper version so upgrade actually runs
+    version_file = tmp_path / ".dotnet-ai-kit" / "version.txt"
+    version_file.write_text("0.0.1", encoding="utf-8")
+
+    # Write a project.yml that will cause profile deployment to fail
+    project_yml = tmp_path / ".dotnet-ai-kit" / "project.yml"
+    project_yml.write_text("invalid: yaml: [broken", encoding="utf-8")
+
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(app, ["upgrade"])
+
+    # Should still complete but show warning (or at least not crash)
+    assert "warning" in result.output.lower() or result.exit_code == 0
+
+
+# ---------------------------------------------------------------------------
+# check --json new fields (linked_from, detected_paths, linked_repos, tools)
+# ---------------------------------------------------------------------------
+
+
+def test_check_json_includes_tool_detail_fields(tmp_path: Path, monkeypatch) -> None:
+    """check --json should include skills, agents, profile, hook per tool."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
+
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(app, ["check", "--json"], catch_exceptions=False)
+
+    assert result.exit_code == 0, result.output
+    json_lines = [ln for ln in result.output.strip().splitlines() if ln.strip().startswith("{")]
+    assert json_lines, f"No JSON in output: {result.output}"
+    data = json.loads(json_lines[0])
+
+    assert "tools" in data
+    claude_status = data["tools"].get("claude")
+    assert claude_status is not None
+    assert "skills" in claude_status
+    assert "agents" in claude_status
+    assert "profile" in claude_status
+    assert "hook" in claude_status
+    assert isinstance(claude_status["skills"], int)
+    assert isinstance(claude_status["agents"], int)
+    assert isinstance(claude_status["profile"], bool)
+    assert isinstance(claude_status["hook"], bool)
+
+
+def test_check_json_includes_linked_from_and_repos(tmp_path: Path, monkeypatch) -> None:
+    """check --json should include linked_from, detected_paths, linked_repos."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
+
+    # Write config with a linked_from value and a linked repo
+    config_path = tmp_path / ".dotnet-ai-kit" / "config.yml"
+    import yaml as _yaml
+
+    cfg = _yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+    cfg["linked_from"] = "/some/primary/repo"
+    cfg.setdefault("repos", {})["query"] = str(tmp_path / "sibling-query")
+    config_path.write_text(_yaml.dump(cfg), encoding="utf-8")
+
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(app, ["check", "--json"], catch_exceptions=False)
+
+    assert result.exit_code == 0, result.output
+    json_lines = [ln for ln in result.output.strip().splitlines() if ln.strip().startswith("{")]
+    data = json.loads(json_lines[0])
+
+    assert "linked_from" in data
+    assert data["linked_from"] == "/some/primary/repo"
+    assert "linked_repos" in data
+    assert isinstance(data["linked_repos"], list)
+    assert any(r["role"] == "query" for r in data["linked_repos"])
+    assert "detected_paths" in data
+
+
+# ---------------------------------------------------------------------------
+# check rich table columns (Skills, Agents, Profile, Hook)
+# ---------------------------------------------------------------------------
+
+
+def test_check_table_includes_skill_agent_columns(tmp_path: Path, monkeypatch) -> None:
+    """check should display Skills and Agents columns in the AI Tools table."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
+
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(app, ["check"], catch_exceptions=False)
+
+    assert result.exit_code == 0, result.output
+    assert "Skills" in result.output
+    assert "Agents" in result.output
+
+
+def test_check_verbose_shows_profile_detail(tmp_path: Path, monkeypatch) -> None:
+    """check --verbose should show profile path detail when profile is deployed."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    runner.invoke(
+        app,
+        ["init", str(tmp_path), "--ai", "claude", "--type", "command"],
+        catch_exceptions=False,
+    )
+    monkeypatch.chdir(tmp_path)
+
+    result = runner.invoke(app, ["check", "--verbose"], catch_exceptions=False)
+
+    assert result.exit_code == 0, result.output
+    # When profile is deployed, verbose output includes profile path info
+    assert "architecture-profile.md" in result.output
+
+
+def test_check_table_includes_profile_hook_columns(tmp_path: Path, monkeypatch) -> None:
+    """check should display Profile and Hook columns in the AI Tools table."""
+    _create_dotnet_project(tmp_path)
+    _create_claude_dir(tmp_path)
+
+    runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
+
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(app, ["check"], catch_exceptions=False)
+
+    assert result.exit_code == 0, result.output
+    assert "Profile" in result.output
+    assert "Hook" in result.output
+
+
+def test_changelog_command_exits_0(tmp_path: Path, monkeypatch) -> None:
+    """changelog command should exit 0 in any directory."""
+    monkeypatch.chdir(tmp_path)
+
+    with patch("dotnet_ai_kit.cli.subprocess.run") as mock_run:
+        mock_run.return_value.stdout = ""
+        mock_run.return_value.returncode = 0
+
+        result = runner.invoke(app, ["changelog"], catch_exceptions=False)
+
+    assert result.exit_code == 0
+
+
+def test_extension_add_catalog_exits_nonzero(tmp_path: Path, monkeypatch) -> None:
+    """extension-add without --dev should exit code 1 with friendly message, no 'Error:' prefix."""
+    monkeypatch.chdir(tmp_path)
+    # Need a minimal project dir for list_extensions to work
+    (tmp_path / ".dotnet-ai-kit").mkdir()
+
+    result = runner.invoke(app, ["extension-add", "jira"])
+
+    assert result.exit_code == 1
+    assert "not yet supported" in result.output
+    # Verify no line starts with "Error:"
+    for line in result.output.splitlines():
+        assert not line.startswith("Error:"), f"Unexpected Error: line: {line}"

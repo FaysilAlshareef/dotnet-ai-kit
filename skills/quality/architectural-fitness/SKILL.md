@@ -7,6 +7,7 @@ description: >
 metadata:
   category: quality
   agent: reviewer
+  when-to-use: "When writing architecture fitness tests with NetArchTest or dependency rules"
 ---
 
 # Architectural Fitness — NetArchTest & Dependency Rules

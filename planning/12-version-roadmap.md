@@ -14,33 +14,35 @@ This document organizes the project's build phases into versioned releases and p
 
 | Phase | Focus | Status |
 |-------|-------|--------|
-| 1 | Foundation (plugin structure, rules, AGENTS.md) | Planned |
-| 2 | Configuration (config.yml, permissions) | Planned |
-| 3 | Knowledge (16 reference documents) | Planned |
-| 4 | Core + Workflow Skills (8 core + 3 workflow + 9 gap-analysis) | Planned |
-| 5 | SDD Planning Commands (specify, clarify, plan, tasks, analyze) | Planned |
-| 6 | Command Skills (6 command-side skills + agent) | Planned |
-| 7 | Query Skills (5 query + 4 cosmos skills + agents) | Planned |
-| 8 | Other Skills (processor, gateway, controlpanel, testing) | Planned |
-| 9 | Implementation (implement command + multi-repo orchestration) | Planned |
-| 10 | Review System (review + CodeRabbit + verify) | Planned |
-| 11 | Code Generation (add-aggregate, add-entity, add-event, etc.) | Planned |
-| 12 | PR & Session (pr, checkpoint, wrap-up) | Planned |
-| 13 | Templates (11 project scaffolds: 7 microservice + 4 generic) | Planned |
-| 14 | Permissions (permission configs) | Planned |
-| 15 | Documentation System (8 docs skills + agent + command) | Planned |
+| 1 | Foundation (plugin structure, rules, AGENTS.md) | Complete |
+| 2 | Configuration (config.yml, permissions) | Complete |
+| 3 | Knowledge (16 reference documents) | Complete |
+| 4 | Core + Workflow Skills (8 core + 3 workflow + 9 gap-analysis) | Complete |
+| 5 | SDD Planning Commands (specify, clarify, plan, tasks, analyze) | Complete |
+| 6 | Command Skills (6 command-side skills + agent) | Complete |
+| 7 | Query Skills (5 query + 4 cosmos skills + agents) | Complete |
+| 8 | Other Skills (processor, gateway, controlpanel, testing) | Complete |
+| 9 | Implementation (implement command + multi-repo orchestration) | Complete |
+| 10 | Review System (review + CodeRabbit + verify) | Complete |
+| 11 | Code Generation (add-aggregate, add-entity, add-event, etc.) | Complete |
+| 12 | PR & Session (pr, checkpoint, wrap-up) | Complete |
+| 13 | Templates (13 project scaffold dirs: 9 microservice + 4 generic) | Complete |
+| 14 | Permissions (permission configs) | Complete |
+| 15 | Documentation System (8 docs skills + agent + command) | Complete |
 
 ### v1.0 Deliverables Summary
 
 | Component | Count |
 |-----------|-------|
-| Rules | 6 |
+| Rules | **16** |
 | Agents | 13 |
 | Skills | 120 |
 | Commands | 27 |
 | Knowledge Docs | 16 |
-| Templates | 11 |
+| Templates (scaffold dirs) | 13 |
 | Permission Configs | 4 |
+| CLI Commands | **8** (init, check, upgrade, configure, extension-add, extension-remove, extension-list, changelog) |
+| Test Functions | **307** |
 
 ### v1.0 Scope Boundaries
 
@@ -60,6 +62,9 @@ This document organizes the project's build phases into versioned releases and p
 - Security & Permissions section added to README
 - Hook timeouts and statusMessage added to all 4 hooks
 - AGENTS.md created for cross-tool project context
+- **spec-015**: Architecture enforcement (6 new rules), `copy_profile()`, `copy_hook()`, `deploy_to_linked_repos()`, `linked_from` config field, `FeatureBrief` model, secondary repo branch safety in 5 commands, secondary `command_style` and `ai_tools` awareness
+- **spec-016**: `check` command expanded with Skills/Agents/Profile/Hook columns and linked repo status; configure guard; configure re-deploys; `_get_tool_status()` helper; `after_remove` hook execution; `detected_paths` validator; alias fixes (`configure→config`, `add-crud→crud`, `add-page→page`); `--list` flag disambiguation
+- **spec-017**: `utils.py` + `parse_version()` + `HOOK_MODEL`/`HOOK_TIMEOUT_MS` constants; `CatalogInstallError` friendly message; `rules/multi-repo.md` (rule #16); `dotnet-ai changelog` command; `init --permissions` flag; atomic config writes; verbose logging for skipped ops; configure dry-run guard; `extension-list` empty state; bypassPermissions in JSON; check --verbose enrichment; rule name conflict detection; DotnetAiConfig unknown key warning; 14 command Usage+Examples sections; 2 skill category fields
 
 ---
 

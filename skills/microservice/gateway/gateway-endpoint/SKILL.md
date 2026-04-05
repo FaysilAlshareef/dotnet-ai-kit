@@ -5,10 +5,11 @@ description: >
   ControllerBaseV1 inheritance, gRPC client injection, inline request/response mapping,
   Paginated<T>, and authorization attributes.
   Trigger: gateway controller, REST endpoint, gRPC client call, API endpoint.
-when-to-use: "When creating or modifying REST controllers or gRPC service endpoints"
 metadata:
   category: microservice/gateway
   agent: gateway-architect
+  when-to-use: "When creating or modifying REST controllers or gRPC service endpoints"
+  paths: "${detected_paths.controllers}/**/*.cs"
 ---
 
 # Gateway Endpoint — REST to gRPC Bridge

@@ -2,10 +2,36 @@
 
 from __future__ import annotations
 
+import logging
 import re
 from typing import Optional
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator
+from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+
+logger = logging.getLogger(__name__)
+
+# ---------------------------------------------------------------------------
+# Known path keys for detected_paths validation
+# ---------------------------------------------------------------------------
+
+KNOWN_PATH_KEYS: frozenset[str] = frozenset(
+    {
+        "aggregates",
+        "events",
+        "commands",
+        "handlers",
+        "entities",
+        "tests",
+        "test_live",
+        "persistence",
+        "controllers",
+        "cosmos_entities",
+        "cosmos_repositories",
+        "features",
+        "pages",
+        "components",
+    }
+)
 
 # ---------------------------------------------------------------------------
 # Detection signal models (used by signal-based detection pipeline)
@@ -178,6 +204,19 @@ class ReposConfig(BaseModel):
         return v
 
 
+_KNOWN_CONFIG_KEYS: frozenset[str] = frozenset(
+    {
+        "version",
+        "company",
+        "naming",
+        "repos",
+        "permissions_level",
+        "ai_tools",
+        "command_style",
+        "linked_from",
+    }
+)
+
 
 class DotnetAiConfig(BaseModel):
     """Main configuration model for dotnet-ai-kit.
@@ -186,6 +225,20 @@ class DotnetAiConfig(BaseModel):
     """
 
     model_config = ConfigDict(extra="ignore")
+
+    @model_validator(mode="before")
+    @classmethod
+    def warn_unknown_keys(cls, values: object) -> object:
+        """Log a warning for any unrecognised top-level config keys."""
+        if isinstance(values, dict):
+            for key in values:
+                if key not in _KNOWN_CONFIG_KEYS:
+                    logger.warning(
+                        "Unknown config key '%s' will be ignored. Known keys: %s",
+                        key,
+                        ", ".join(sorted(_KNOWN_CONFIG_KEYS)),
+                    )
+        return values
 
     version: str = Field(
         default="1.0",
@@ -345,6 +398,19 @@ class DetectedProject(BaseModel):
     def validate_confidence_score(cls, v: float) -> float:
         if v < 0.0 or v > 1.0:
             raise ValueError(f"confidence_score must be between 0.0 and 1.0, got {v}")
+        return v
+
+    @field_validator("detected_paths")
+    @classmethod
+    def validate_detected_paths(cls, v: dict[str, str] | None) -> dict[str, str] | None:
+        if v is not None:
+            for key in v:
+                if key not in KNOWN_PATH_KEYS:
+                    logger.warning(
+                        "Unknown detected_paths key: %s. Known keys: %s",
+                        key,
+                        ", ".join(sorted(KNOWN_PATH_KEYS)),
+                    )
         return v
 
 

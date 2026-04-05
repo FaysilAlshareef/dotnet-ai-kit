@@ -6,6 +6,7 @@ description: >
 metadata:
   category: data
   agent: ef-specialist
+  when-to-use: "When implementing specification pattern for composable query criteria"
 ---
 
 # Specification Pattern

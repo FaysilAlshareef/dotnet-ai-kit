@@ -7,17 +7,33 @@ dotnet-ai-kit/
 │
 ├── src/                                         # CLI tool source
 │   └── dotnet_ai_kit/
-│       ├── __init__.py                          # CLI entry point (init, check, extension)
-│       ├── agents.py                            # Agent config per AI tool
-│       └── extensions.py                        # Extension manager & command registration
+│       ├── __init__.py                          # Package version
+│       ├── agents.py                            # AGENT_CONFIG per AI tool + detection
+│       ├── cli.py                               # Typer CLI commands (init, check, upgrade, configure, extension-*, changelog)
+│       ├── config.py                            # YAML config load/save with atomic writes
+│       ├── copier.py                            # File copy + Jinja2 template rendering + deploy_to_linked_repos
+│       ├── detection.py                         # Detection helpers (grep, architecture descriptions)
+│       ├── extensions.py                        # Extension install/remove/list
+│       ├── models.py                            # Pydantic v2 models (DotnetAiConfig, DetectedProject, FeatureBrief, etc.)
+│       └── utils.py                             # Shared utilities: parse_version(), HOOK_MODEL, HOOK_TIMEOUT_MS
 │
-├── rules/                                       # Always-loaded conventions (~600 lines total)
-│   ├── naming.md                                # Company-agnostic naming (uses config)
+├── rules/                                       # Always-loaded conventions (16 rules, ~826 lines total)
+│   ├── api-design.md                            # REST conventions, versioning, error responses
+│   ├── architecture.md                          # Layer boundaries, CQRS, event sourcing
+│   ├── async-concurrency.md                     # Async/await patterns, CancellationToken
 │   ├── coding-style.md                          # Version-aware C# style
+│   ├── configuration.md                         # Options pattern, ValidateOnStart
+│   ├── data-access.md                           # EF Core patterns, repository structure
+│   ├── error-handling.md                        # IProblemDetailsProvider, Switch pattern
+│   ├── existing-projects.md                     # Detect, respect, extend rules
 │   ├── localization.md                          # Resource file usage
-│   ├── error-handling.md                        # IProblemDetailsProvider, Switch
-│   ├── architecture.md                          # Layer boundaries, CQRS
-│   └── existing-projects.md                     # Detect, respect, extend rules
+│   ├── multi-repo.md                            # Event contracts, branch naming, deploy order
+│   ├── naming.md                                # Company-agnostic naming (uses config)
+│   ├── observability.md                         # Structured logging, metrics, tracing
+│   ├── performance.md                           # Query optimization, caching
+│   ├── security.md                              # Auth, secrets, input validation
+│   ├── testing.md                               # Test naming, AAA structure, CQRS patterns
+│   └── tool-calls.md                            # Sequential tool usage, verification
 │
 ├── agents/                                      # 13 specialist agents (~3 KB each)
 │   │  # Generic .NET

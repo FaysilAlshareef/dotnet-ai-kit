@@ -7,6 +7,7 @@ description: >
 metadata:
   category: testing
   agent: test-engineer
+  when-to-use: "When writing performance benchmarks, load tests, or throughput validation"
 ---
 
 # Performance Testing — Benchmarks & Load Tests

@@ -7,6 +7,7 @@ description: >
 metadata:
   category: microservice/cosmos
   agent: cosmos-architect
+  when-to-use: "When creating or modifying Cosmos DB repository classes or LINQ queries"
 ---
 
 # Cosmos Repository — LINQ Queries & Data Access

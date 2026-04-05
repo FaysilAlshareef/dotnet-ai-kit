@@ -8,6 +8,7 @@ description: >
 metadata:
   category: microservice/query
   agent: query-architect
+  when-to-use: "When implementing inline sequence validation for idempotent event handlers"
 ---
 
 # Sequence Checking — Inline Idempotent Guard

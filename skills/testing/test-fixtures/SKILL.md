@@ -7,6 +7,7 @@ description: >
 metadata:
   category: testing
   agent: test-engineer
+  when-to-use: "When creating test data fakers, assertion extensions, or test helper utilities"
 ---
 
 # Test Fixtures — Fakers, Assertions, Helpers

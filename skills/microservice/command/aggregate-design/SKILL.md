@@ -4,11 +4,11 @@ description: >
   Aggregate root pattern for event-sourced microservices. Covers Aggregate<T> base class,
   LoadFromHistory replay, ApplyChange for new events, factory methods, and domain invariants.
   Trigger: aggregate, event sourcing, domain model, CQRS command side.
-when-to-use: "When creating or modifying event-sourced aggregates, factory methods, Apply methods"
-paths: "${detected_paths.aggregates}/**/*.cs"
 metadata:
   category: microservice/command
   agent: command-architect
+  when-to-use: "When creating or modifying event-sourced aggregates, factory methods, Apply methods"
+  paths: "${detected_paths.aggregates}/**/*.cs"
 ---
 
 # Aggregate Design -- Event-Sourced Aggregate Root

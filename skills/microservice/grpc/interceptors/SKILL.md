@@ -7,6 +7,7 @@ description: >
 metadata:
   category: microservice/grpc
   agent: command-architect
+  when-to-use: "When creating or modifying gRPC interceptors for exception mapping, culture, or claims"
 ---
 
 # Interceptors — Cross-Cutting gRPC Concerns

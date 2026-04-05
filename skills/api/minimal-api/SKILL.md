@@ -7,6 +7,7 @@ description: >
 metadata:
   category: api
   agent: api-designer
+  when-to-use: "When creating minimal API endpoints, route groups, or endpoint filters"
 ---
 
 # Minimal API Endpoints

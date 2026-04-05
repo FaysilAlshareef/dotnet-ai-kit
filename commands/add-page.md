@@ -17,7 +17,7 @@ Create a Blazor page in the control panel project with MudDataGrid, filter model
 - `Orders --module Sales` -- Specify the module/section
 - `Orders --operations "list,create,edit,delete"` -- Page capabilities
 - `Orders --dry-run` -- Show code without writing
-- `Orders --dry-run` -- Show file list only
+- `Orders --list` -- Show file list only
 - `Orders --verbose` -- Show detection details
 
 ## Flags
@@ -27,7 +27,7 @@ Create a Blazor page in the control panel project with MudDataGrid, filter model
 | `--module {ModuleName}` | Module or section for the page (detected or prompted if omitted) |
 | `--operations "op1,op2,..."` | Page capabilities (default: list,create) |
 | `--dry-run` | Display generated code without writing to disk |
-| `--dry-run` | List files that would be created/modified |
+| `--list` | List files that would be created/modified with descriptions, no code output |
 | `--verbose` | Show detection steps and pattern matching details |
 
 ## Pre-Generation
@@ -109,4 +109,4 @@ Parse `$ARGUMENTS` to extract `{PageName}` (PascalCase plural). Derive singular 
 ## Preview / Dry-Run Behavior
 
 - `--dry-run`: Show all generated code with file path headers. No writes.
-- `--dry-run`: List files only. No code output, no writes.
+- `--list`: List files only. No code output, no writes.

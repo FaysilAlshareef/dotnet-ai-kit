@@ -5,11 +5,11 @@ description: >
   generic Event<TData>, IEventData interface, EventType enum, concrete event classes with
   primary constructors, and event data as records.
   Trigger: event sourcing, domain events, event data, event types.
-when-to-use: "When creating or modifying domain events, event data records, EventType enums"
-paths: "${detected_paths.events}/**/*.cs"
 metadata:
   category: microservice/command
   agent: command-architect
+  when-to-use: "When creating or modifying domain events, event data records, EventType enums"
+  paths: "${detected_paths.events}/**/*.cs"
 ---
 
 # Event Design -- Event Hierarchy Pattern

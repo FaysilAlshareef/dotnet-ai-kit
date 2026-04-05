@@ -6,6 +6,7 @@ description: >
 metadata:
   category: cqrs
   agent: ef-specialist
+  when-to-use: "When generating CQRS command records with handler and validator scaffolding"
 ---
 
 # CQRS Command Generator

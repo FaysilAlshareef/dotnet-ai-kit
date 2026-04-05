@@ -7,6 +7,7 @@ description: >
 metadata:
   category: security
   agent: api-designer
+  when-to-use: "When implementing policy-based authorization or permission-based access control"
 ---
 
 # Policy-Based Authorization

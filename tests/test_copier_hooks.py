@@ -44,9 +44,7 @@ class TestCopyHookConstraintExtraction:
         result = copy_hook(target, profile, pkg)
 
         assert result is True
-        settings = json.loads(
-            (target / ".claude/settings.json").read_text(encoding="utf-8")
-        )
+        settings = json.loads((target / ".claude/settings.json").read_text(encoding="utf-8"))
         hook = settings["hooks"]["PreToolUse"][0]
         assert "NEVER do bad things" in hook["prompt"]
         assert "ALWAYS do good things" in hook["prompt"]
@@ -80,9 +78,7 @@ class TestCopyHookPromptEmbedding:
         settings_dir = target / ".claude"
         settings_dir.mkdir(parents=True, exist_ok=True)
         existing = {"hooks": {"PreToolUse": [{"type": "command", "command": "echo hi"}]}}
-        (settings_dir / "settings.json").write_text(
-            json.dumps(existing), encoding="utf-8"
-        )
+        (settings_dir / "settings.json").write_text(json.dumps(existing), encoding="utf-8")
 
         profile = _create_profile(
             target / ".claude/rules/architecture-profile.md",
@@ -92,9 +88,7 @@ class TestCopyHookPromptEmbedding:
 
         copy_hook(target, profile, pkg)
 
-        settings = json.loads(
-            (target / ".claude/settings.json").read_text(encoding="utf-8")
-        )
+        settings = json.loads((target / ".claude/settings.json").read_text(encoding="utf-8"))
         hooks = settings["hooks"]["PreToolUse"]
         # Should have existing hook + new arch hook
         assert len(hooks) == 2
@@ -113,9 +107,7 @@ class TestCopyHookPromptEmbedding:
 
         copy_hook(target, profile, pkg)
 
-        settings = json.loads(
-            (target / ".claude/settings.json").read_text(encoding="utf-8")
-        )
+        settings = json.loads((target / ".claude/settings.json").read_text(encoding="utf-8"))
         hook = settings["hooks"]["PreToolUse"][0]
         assert hook["model"] == "claude-haiku-4-5-20251001"
         assert hook["timeout"] == 15000
@@ -130,14 +122,10 @@ class TestCopyHookPromptEmbedding:
         settings_dir.mkdir(parents=True, exist_ok=True)
         existing = {
             "hooks": {
-                "PreToolUse": [
-                    {"_source": "dotnet-ai-kit-arch", "type": "prompt", "prompt": "old"}
-                ]
+                "PreToolUse": [{"_source": "dotnet-ai-kit-arch", "type": "prompt", "prompt": "old"}]
             }
         }
-        (settings_dir / "settings.json").write_text(
-            json.dumps(existing), encoding="utf-8"
-        )
+        (settings_dir / "settings.json").write_text(json.dumps(existing), encoding="utf-8")
 
         profile = _create_profile(
             target / ".claude/rules/architecture-profile.md",
@@ -147,9 +135,7 @@ class TestCopyHookPromptEmbedding:
 
         copy_hook(target, profile, pkg)
 
-        settings = json.loads(
-            (target / ".claude/settings.json").read_text(encoding="utf-8")
-        )
+        settings = json.loads((target / ".claude/settings.json").read_text(encoding="utf-8"))
         hooks = settings["hooks"]["PreToolUse"]
         assert len(hooks) == 1  # Old replaced, not duplicated
         assert "new constraint" in hooks[0]["prompt"]
@@ -159,7 +145,8 @@ class TestCopyHookFileScope:
     """Verify .NET file scope filter is present in real hook template."""
 
     def test_real_template_contains_dotnet_file_extensions(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         """FR-019: hook MUST only validate .NET files."""
         pkg = Path(__file__).resolve().parent.parent
@@ -169,12 +156,11 @@ class TestCopyHookFileScope:
 
         content = template.read_text(encoding="utf-8")
         for ext in (".cs", ".csproj", ".sln", ".razor", ".proto", ".cshtml"):
-            assert ext in content, (
-                f"Hook template missing .NET extension {ext}"
-            )
+            assert ext in content, f"Hook template missing .NET extension {ext}"
 
     def test_hook_prompt_uses_real_template_with_scope(
-        self, tmp_path: Path,
+        self,
+        tmp_path: Path,
     ) -> None:
         """Verify rendered prompt includes the file scope filter."""
         pkg = Path(__file__).resolve().parent.parent
@@ -190,9 +176,7 @@ class TestCopyHookFileScope:
 
         copy_hook(target, profile, pkg)
 
-        settings = json.loads(
-            (target / ".claude/settings.json").read_text(encoding="utf-8")
-        )
+        settings = json.loads((target / ".claude/settings.json").read_text(encoding="utf-8"))
         prompt = settings["hooks"]["PreToolUse"][0]["prompt"]
         assert ".cs" in prompt
         assert '{"ok": true}' in prompt

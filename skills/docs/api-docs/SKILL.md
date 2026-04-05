@@ -7,6 +7,7 @@ description: >
 metadata:
   category: docs
   agent: docs-engineer
+  when-to-use: "When enriching OpenAPI specs or generating API reference documentation"
 ---
 
 # API Docs — OpenAPI Enrichment & Reference

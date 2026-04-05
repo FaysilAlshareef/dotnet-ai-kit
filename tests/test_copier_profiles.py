@@ -53,9 +53,18 @@ class TestCopyProfileSelection:
 
     def test_each_project_type_has_profile(self) -> None:
         expected_types = {
-            "command", "query-sql", "query-cosmos", "processor",
-            "gateway", "controlpanel", "hybrid", "vsa",
-            "clean-arch", "ddd", "modular-monolith", "generic",
+            "command",
+            "query-sql",
+            "query-cosmos",
+            "processor",
+            "gateway",
+            "controlpanel",
+            "hybrid",
+            "vsa",
+            "clean-arch",
+            "ddd",
+            "modular-monolith",
+            "generic",
         }
         assert set(PROFILE_MAP.keys()) == expected_types
 
@@ -152,9 +161,7 @@ class TestCopyProfileFallbackContent:
 
         result = copy_profile(target, "claude", "", pkg)
         assert result is not None
-        generic_content = (
-            (pkg / "profiles/generic/generic.md").read_text(encoding="utf-8")
-        )
+        generic_content = (pkg / "profiles/generic/generic.md").read_text(encoding="utf-8")
         deployed_content = result.read_text(encoding="utf-8")
         assert deployed_content == generic_content
 
@@ -172,9 +179,7 @@ class TestProfileLineCounts:
             profile_path = package_root / rel_path
             if not profile_path.is_file():
                 continue  # Skip if not yet created
-            line_count = len(
-                profile_path.read_text(encoding="utf-8").splitlines()
-            )
+            line_count = len(profile_path.read_text(encoding="utf-8").splitlines())
             assert line_count <= 100, (
                 f"Profile {rel_path} has {line_count} lines "
                 f"(max 100) for project_type={project_type}"

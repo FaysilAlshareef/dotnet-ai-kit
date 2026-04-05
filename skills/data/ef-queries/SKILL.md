@@ -7,6 +7,7 @@ description: >
 metadata:
   category: data
   agent: ef-specialist
+  when-to-use: "When writing or optimizing EF Core LINQ queries, projections, or raw SQL"
 ---
 
 # EF Core Query Patterns

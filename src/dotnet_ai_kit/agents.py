@@ -6,8 +6,11 @@ command prefixes) and provides detection and lookup utilities.
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 # Agent configuration per supported AI tool.
 # Each entry describes where commands and rules live for that tool.
@@ -95,6 +98,12 @@ def get_agent_config(tool: str) -> dict[str, Any]:
     if key not in AGENT_CONFIG:
         supported = ", ".join(sorted(AGENT_CONFIG.keys()))
         raise ValueError(f"Unknown AI tool '{tool}'. Supported tools: {supported}")
+    if key not in SUPPORTED_AI_TOOLS:
+        logger.warning(
+            "Tool '%s' is recognised but not fully supported in v1.0. "
+            "Full support planned for v1.1.",
+            tool,
+        )
     return AGENT_CONFIG[key]
 
 

@@ -7,6 +7,7 @@ description: >
 metadata:
   category: architecture
   agent: dotnet-architect
+  when-to-use: "When organizing code by feature using Vertical Slice Architecture"
 ---
 
 # Vertical Slice Architecture

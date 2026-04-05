@@ -8,6 +8,7 @@ description: >
 metadata:
   category: microservice/query
   agent: query-architect
+  when-to-use: "When creating or modifying MediatR query handlers with IUnitOfWork repositories"
 ---
 
 # Query Handler — IUnitOfWork with Repository Queries

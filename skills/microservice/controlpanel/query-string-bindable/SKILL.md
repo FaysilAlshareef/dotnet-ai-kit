@@ -7,6 +7,7 @@ description: >
 metadata:
   category: microservice/controlpanel
   agent: controlpanel-architect
+  when-to-use: "When implementing URL-synchronized filter models or QueryStringBindable patterns"
 ---
 
 # QueryStringBindable — URL-Synchronized Filters

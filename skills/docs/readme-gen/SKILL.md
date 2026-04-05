@@ -7,6 +7,7 @@ description: >
 metadata:
   category: docs
   agent: docs-engineer
+  when-to-use: "When generating README files with badges, setup instructions, and architecture diagrams"
 ---
 
 # README Generation — Project Analysis
