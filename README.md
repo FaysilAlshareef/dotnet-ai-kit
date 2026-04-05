@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <code>120 skills</code> · <code>13 agents</code> · <code>27 commands</code> · <code>16 rules</code> · <code>12 architectures</code> · <code>4 safety hooks</code> · <code>13 templates</code>
+  <code>120 skills</code> · <code>13 agents</code> · <code>27 commands</code> · <code>16 rules</code> · <code>12 profiles</code> · <code>16 knowledge docs</code> · <code>4 safety hooks</code> · <code>8 CLI commands</code>
 </p>
 
 ---
@@ -45,8 +45,17 @@ When you use AI coding assistants on .NET projects, the AI doesn't know your arc
 # Install the CLI
 uv tool install dotnet-ai-kit --from git+https://github.com/FaysilAlshareef/dotnet-ai-kit.git
 
+# Check version
+dotnet-ai --version
+
 # Initialize your project (auto-detects architecture)
 dotnet-ai init . --ai claude
+
+# Initialize with permissions applied in one step
+dotnet-ai init . --ai claude --permissions standard
+
+# Preview everything before it runs
+dotnet-ai init . --ai claude --dry-run
 
 # Build a complete feature with one command
 /dai.do "Add order management with tracking"
@@ -82,13 +91,24 @@ All 27 commands, 120 skills, 13 agents, 16 rules, and 4 safety hooks are availab
 </p>
 </details>
 
-### Optional: C# Language Intelligence
+### Optional: C# Language Intelligence (MCP)
 
 ```bash
 dotnet tool install -g csharp-ls
 ```
 
 Enables semantic code navigation via MCP — ~10x fewer tokens than grep-based analysis.
+
+The included `.mcp.json` configures `csharp-ls` as an MCP server automatically. Once installed, the AI can:
+
+| Capability | What It Does |
+|------------|-------------|
+| `find_symbol` | Navigate to any class, method, or interface by name |
+| `find_references` | Find all usages of a symbol across the solution |
+| `get_diagnostics` | See compiler errors and warnings in real time |
+| Semantic analysis | Understand inheritance, interfaces, and type relationships |
+
+Without `csharp-ls`, the AI uses grep-based analysis which works but uses significantly more context tokens on large codebases.
 
 ---
 
@@ -244,6 +264,8 @@ This single command automatically runs the full 9-phase lifecycle:
 | `post-scaffold-restore.sh` | Auto-runs `dotnet restore` after scaffolding |
 | `pre-commit-lint.sh` | Verifies formatting before git commit |
 
+All hooks can be disabled via environment variables (e.g., `DOTNET_AI_HOOK_BASH_GUARD=false`).
+
 <details>
 <summary><b>See safety hooks in action</b></summary>
 <br/>
@@ -251,6 +273,63 @@ This single command automatically runs the full 9-phase lifecycle:
   <img src="assets/gif/cc-05-safety-hooks.gif" alt="Safety hooks in Claude Code" width="720"/>
 </p>
 </details>
+
+### Architecture Enforcement Hook (Claude Code)
+
+After running `/dai.detect`, an additional **PreToolUse enforcement hook** is deployed into `.claude/settings.json`. Before every Write or Edit operation, a fast Haiku model check runs against your architecture profile — catching pattern violations before they're written, not in code review.
+
+```json
+{
+  "type": "prompt",
+  "matcher": "Write|Edit",
+  "model": "claude-haiku-4-5-20251001",
+  "timeout": 15000
+}
+```
+
+This hook is tied to your **architecture profile** — a project-specific constraint file (one of 12 profiles) that's deployed to your AI tool's rules directory based on your detected project type. See [Architecture Profiles](#architecture-profiles-12) below.
+
+### Architecture Profiles (12)
+
+After `/dai.detect` identifies your project type, an architecture-specific guidance file is deployed to the AI tool's rules directory. This profile stays active for every session — the AI behaves like a specialist in your exact pattern without being told every time.
+
+| Profile | Architecture | Key Constraints |
+|---------|-------------|-----------------|
+| `command` | CQRS Command | Aggregates, event sourcing, outbox pattern |
+| `query-sql` | CQRS Query (SQL) | Read models, event handlers, EF Core projections |
+| `query-cosmos` | CQRS Query (Cosmos) | Cosmos DB entities, private setters, sequence tracking |
+| `processor` | Background Processor | Service Bus consumers, dead-letter handling |
+| `gateway` | API Gateway | gRPC clients, REST endpoints, Scalar, no direct DB |
+| `controlpanel` | Blazor WASM | ResponseResult<T> pattern, gateway facade |
+| `hybrid` | Hybrid service | Mixed command/query patterns |
+| `vsa` | Vertical Slice | Feature folders, minimal abstractions |
+| `clean-arch` | Clean Architecture | 4-layer boundaries, no cross-layer shortcuts |
+| `ddd` | Domain-Driven Design | Aggregates, value objects, domain events |
+| `modular-monolith` | Modular Monolith | Module isolation, no cross-module direct DB access |
+| `generic` | Generic .NET | General .NET best practices |
+
+### 16 Knowledge Reference Documents
+
+The AI loads these on demand during complex tasks — you never need to manually reference them.
+
+| Document | Topics Covered |
+|----------|---------------|
+| `cqrs-patterns.md` | Command/query separation, aggregate design |
+| `event-sourcing-flow.md` | Event store, projection pipeline, replay |
+| `event-versioning.md` | Schema evolution, upcasting, backward compatibility |
+| `outbox-pattern.md` | Transactional outbox, reliable message publishing |
+| `service-bus-patterns.md` | Azure Service Bus, sessions, dead-letter reprocessing |
+| `cosmos-patterns.md` | Cosmos DB modeling, partition keys, RU optimization |
+| `grpc-patterns.md` | Proto files, interceptors, streaming |
+| `dead-letter-reprocessing.md` | DLQ monitoring, replay strategies |
+| `ddd-patterns.md` | Entities, aggregates, domain events, bounded contexts |
+| `clean-architecture-patterns.md` | Layer dependencies, use cases, repositories |
+| `vsa-patterns.md` | Feature slices, vertical organization |
+| `modular-monolith-patterns.md` | Module contracts, inter-module communication |
+| `deployment-patterns.md` | Docker, K8s manifests, GitHub Actions |
+| `testing-patterns.md` | Unit, integration, WebApplicationFactory |
+| `concurrency-patterns.md` | Async/await, channels, SemaphoreSlim |
+| `documentation-standards.md` | XML docs, README conventions, ADR format |
 
 ### 3 Permission Levels
 
@@ -263,17 +342,63 @@ Permissions are automatically applied to `.claude/settings.json` when you run `i
 | **Full** | `bypassPermissions` (no prompts) | All dev commands: .NET, git, npm, docker, search, utilities |
 
 ```bash
-# Set during init
-dotnet-ai init . --ai claude
+# Set during init (one step — no separate configure needed)
+dotnet-ai init . --ai claude --permissions standard
 
 # Change anytime
 dotnet-ai configure --permissions full
 
-# Apply globally (all repos)
+# Apply globally to all repos on your machine
 dotnet-ai configure --permissions full --global
+
+# Preview what will change without applying
+dotnet-ai configure --permissions standard --dry-run
+
+# CI/CD non-interactive mode
+dotnet-ai configure --no-input --company Acme --permissions standard
 ```
 
 The `--global` flag writes to `~/.claude/settings.json` so permissions work across all repositories without per-project setup.
+
+Before any permission change, the existing `.claude/settings.json` is backed up to `.dotnet-ai-kit/backups/` automatically. Selecting **Full** mode shows a warning because it enables `bypassPermissions` — all AI operations run without confirmation prompts. This warning also appears in `--json` output for audit trail purposes.
+
+---
+
+## CLI Commands (dotnet-ai)
+
+The `dotnet-ai` CLI manages installation and configuration. It's separate from the slash commands used inside Claude Code.
+
+| Command | Key Flags | What It Does |
+|---------|-----------|-------------|
+| `dotnet-ai init` | `--ai claude` `--type <type>` `--permissions <level>` `--force` `--dry-run` `--json` | Initialize tooling in your project. Auto-detects architecture. |
+| `dotnet-ai check` | `--verbose` `--json` | Report current state: skills, agents, profile, hook, linked repos per AI tool. |
+| `dotnet-ai upgrade` | `--force` `--dry-run` `--json` | Re-deploy latest commands, rules, skills, agents, profile, and hook. |
+| `dotnet-ai configure` | `--no-input` `--company` `--style` `--repos` `--permissions` `--global` `--minimal` `--reset` `--dry-run` `--json` | Interactive wizard or CI/CD one-liner to set company, repos, permissions, command style. |
+| `dotnet-ai changelog` | — | Show CHANGELOG.md or recent version tags with dates. |
+| `dotnet-ai extension-add` | `--dev <path>` | Install a local extension. |
+| `dotnet-ai extension-remove` | `<name>` | Uninstall an extension. |
+| `dotnet-ai extension-list` | — | List installed extensions with status. |
+
+**Common flag patterns:**
+
+```bash
+# Preview any change without writing files
+dotnet-ai init . --dry-run
+dotnet-ai configure --dry-run --no-input --company Acme
+
+# Get machine-readable output for CI/CD scripts
+dotnet-ai check --json
+dotnet-ai upgrade --json
+
+# Force-refresh tooling even when version matches
+dotnet-ai upgrade --force
+
+# Configure command style: full = dotnet-ai.*, short = dai.*, both = deploy both
+dotnet-ai configure --style short
+
+# Set all repo paths inline
+dotnet-ai configure --no-input --company Acme --repos "command=../cmd,query=../qry"
+```
 
 ---
 
@@ -334,7 +459,17 @@ The `--global` flag writes to `~/.claude/settings.json` so permissions work acro
 | `/dotnet-ai.checkpoint` | `/dai.save` | Save session state |
 | `/dotnet-ai.wrap-up` | `/dai.done` | Finalize session |
 
-> All commands support `--dry-run` and `--verbose` flags.
+> All slash commands support `--dry-run` to preview and `--verbose` for step-by-step output.
+
+#### Feature Workspace & Session Resume
+
+Features are tracked in `.dotnet-ai-kit/features/NNN-name/`. If you close Claude Code mid-feature, `/dai.status` shows exactly where you left off:
+
+```
+Feature: 001-order-management
+Phase: implement (6/12 tasks complete)
+Next: T007 — Add OrderProjectedHandler in Query service
+```
 
 ---
 
@@ -388,6 +523,54 @@ dotnet-ai-kit automatically detects all affected repos, generates code in each o
   <img src="assets/gif/cc-06-microservice.gif" alt="Microservice generation in Claude Code" width="720"/>
 </p>
 </details>
+
+#### Automatic Tooling Sync
+
+When you run `dotnet-ai configure` in a multi-repo project, the full tooling stack is automatically synced to every configured secondary repository:
+
+- ✅ Commands deployed using **each repo's own** command style
+- ✅ 16 rules, 120 skills, 13 agents deployed
+- ✅ Architecture profile matched to each repo's project type
+- ✅ PreToolUse enforcement hook configured per repo
+- ✅ Branch `chore/brief-deploy-*` created and committed automatically
+- ✅ `linked_from` recorded in each secondary's config
+
+#### FeatureBrief Projection
+
+When `/dai.specify` runs on a multi-repo feature, it writes a `feature-brief.md` to every affected secondary repository — giving each team a filtered view of:
+
+- Their repo's role in the service map
+- Required changes (filtered to their service only)
+- Events they produce and consume
+- Implementation approach for their layer
+
+This means developers in each repo see only what's relevant to them, with full traceability back to the primary spec.
+
+#### Branch Safety
+
+All lifecycle commands automatically protect secondary repos:
+
+```
+If on main/master/develop → create chore/brief-NNN-name branch
+If branch exists → check it out
+If dirty working directory → warn and skip that repo
+```
+
+#### Feature Workspace
+
+Every feature lives in `.dotnet-ai-kit/features/NNN-name/`:
+
+```
+.dotnet-ai-kit/features/
+└── 001-order-management/
+    ├── spec.md         ← requirements (specify)
+    ├── plan.md         ← implementation plan (plan)
+    ├── tasks.md        ← executable task list (tasks)
+    ├── service-map.md  ← affected repos + roles (specify)
+    └── event-flow.md   ← event contracts (plan)
+```
+
+Features survive session restarts. `/dai.status` shows where you left off and what comes next.
 
 ---
 
@@ -456,15 +639,46 @@ The core knowledge (rules, skills, agents, commands) is portable across AI tools
 # Install from a local directory (catalog support planned for v1.1)
 dotnet-ai extension-add --dev ./my-extension
 
-# List installed extensions
+# List installed extensions (shows help message if none installed)
 dotnet-ai extension-list
 
 # Remove an extension
 dotnet-ai extension-remove my-extension
 ```
 
-Extensions use manifest validation (JSON schema) for safety and compatibility.
-Catalog-based installs (`dotnet-ai extension-add <name>`) show a user-friendly message directing you to `--dev`.
+### Extension Manifest (`extension.yml`)
+
+```yaml
+extension:
+  id: "my-extension"
+  name: "My Extension"
+  version: "1.0.0"
+  min_cli_version: "1.0.0"   # Rejected if CLI is older
+
+provides:
+  commands:
+    - name: "dotnet-ai.myext.run"
+      file: "commands/run.md"
+      description: "Run my extension command"
+  rules:
+    - file: "rules/my-conventions.md"
+
+hooks:
+  after_install:
+    - "dotnet restore"         # Runs after successful install
+  after_remove:
+    - "dotnet clean"           # Runs after removal
+```
+
+### What the extension system enforces
+
+- **`min_cli_version`** — install is rejected if the CLI is older than required
+- **Command name conflicts** — two extensions cannot register the same command name
+- **Rule file conflicts** — two extensions cannot ship rules with the same filename
+- **Lifecycle hooks** — `after_install` runs on success; failure blocks the install. `after_remove` runs on removal; failure raises an error with cleanup instructions
+- **Registry locking** — concurrent installs are safely serialized via file lock
+
+Catalog-based installs (`dotnet-ai extension-add <name>`) show a user-friendly hint directing to `--dev`. Full catalog support is planned for v1.1.
 
 ---
 
@@ -483,6 +697,8 @@ The tool detects your .NET version from `.csproj` and uses version-appropriate p
 
 ## Project Structure
 
+### Tool Repository
+
 ```
 dotnet-ai-kit/
 ├── commands/          # 27 slash command definitions
@@ -490,13 +706,44 @@ dotnet-ai-kit/
 ├── agents/            # 13 specialist agent definitions
 ├── skills/            # 120 skills across 17 categories
 ├── knowledge/         # 16 reference documents
-├── templates/         # 13 project templates (Jinja2)
-├── hooks/             # 4 safety hooks
-├── config/            # 4 permission level configs
+├── profiles/          # 12 architecture profiles (auto-deployed on detect)
+├── prompts/           # Hook prompt templates
+├── templates/         # 13 project scaffold templates (Jinja2)
+├── hooks/             # 4 safety hooks + hooks.json config
+├── config/            # 4 permission level JSON configs
 ├── src/               # Python CLI source (Typer + Pydantic v2)
-├── tests/             # 307 tests (280 baseline + 27 new in v1.0.0 hardening)
-└── .claude-plugin/    # Claude Code plugin manifest
+├── tests/             # 307 tests
+├── .claude-plugin/    # Claude Code plugin manifest
+└── .mcp.json          # C# language server (csharp-ls) MCP config
 ```
+
+### Your Project (after init)
+
+```
+your-project/
+├── .dotnet-ai-kit/
+│   ├── config.yml              # Company, repos, permissions, command style
+│   ├── project.yml             # Detected architecture + paths (from /dai.detect)
+│   ├── version.txt             # Installed CLI version (checked on upgrade)
+│   ├── backups/                # settings.json backups before permission changes
+│   ├── memory/
+│   │   └── constitution.md     # Project knowledge base (from /dai.learn)
+│   ├── features/
+│   │   └── 001-order-mgmt/     # Per-feature workspace (survives session restarts)
+│   │       ├── spec.md
+│   │       ├── plan.md
+│   │       └── tasks.md
+│   └── extensions/             # Installed extensions registry
+└── .claude/
+    ├── commands/               # Deployed slash commands (full or short aliases)
+    ├── rules/                  # 16 rules + architecture-profile.md
+    ├── skills/                 # 120 skills
+    └── agents/                 # 13 specialist agents
+```
+
+### Constitution & Persistent Knowledge
+
+Running `/dai.learn` generates `.dotnet-ai-kit/memory/constitution.md` — a persistent file that captures your project's architecture patterns, domain model, naming conventions, and established practices. Every subsequent `/dai.plan` reads this file as a compliance gate before generating implementation tasks. Update it anytime with `/dai.learn --update`.
 
 ---
 
