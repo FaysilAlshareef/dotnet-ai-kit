@@ -7,6 +7,7 @@ description: >
 metadata:
   category: data
   agent: ef-specialist
+  when-to-use: "When creating EF Core migrations, data seeding, or schema change scripts"
 ---
 
 # EF Core Migrations

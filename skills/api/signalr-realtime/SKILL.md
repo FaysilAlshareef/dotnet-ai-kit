@@ -7,6 +7,7 @@ description: >
 metadata:
   category: api
   agent: api-designer
+  when-to-use: "When implementing real-time communication with SignalR hubs or WebSocket connections"
 ---
 
 # SignalR Real-Time Communication

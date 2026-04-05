@@ -106,7 +106,7 @@ def test_copy_commands_full_style(tmp_path: Path) -> None:
     assert (target / ".claude" / "commands" / "dotnet-ai.plan.md").is_file()
     assert (target / ".claude" / "commands" / "dotnet-ai.implement.md").is_file()
     # No short aliases
-    assert not (target / ".claude" / "commands" / "dai.specify.md").exists()
+    assert not (target / ".claude" / "commands" / "dai.spec.md").exists()
 
 
 def test_copy_commands_both_style(tmp_path: Path) -> None:
@@ -128,7 +128,7 @@ def test_copy_commands_both_style(tmp_path: Path) -> None:
 
     assert count == 2  # 1 full + 1 alias
     assert (target / ".claude" / "commands" / "dotnet-ai.specify.md").is_file()
-    assert (target / ".claude" / "commands" / "dai.specify.md").is_file()
+    assert (target / ".claude" / "commands" / "dai.spec.md").is_file()
 
 
 def test_copy_commands_short_style(tmp_path: Path) -> None:
@@ -149,7 +149,7 @@ def test_copy_commands_short_style(tmp_path: Path) -> None:
     count = copy_commands(source, target, agent_config, config)
 
     assert count == 1
-    assert (target / ".claude" / "commands" / "dai.specify.md").is_file()
+    assert (target / ".claude" / "commands" / "dai.spec.md").is_file()
     assert not (target / ".claude" / "commands" / "dotnet-ai.specify.md").exists()
 
 
@@ -276,7 +276,7 @@ def test_short_aliases_have_full_content_in_both_mode(tmp_path: Path) -> None:
 
     cmds = target / ".claude" / "commands"
     full_content = (cmds / "dotnet-ai.specify.md").read_text(encoding="utf-8")
-    short_content = (cmds / "dai.specify.md").read_text(encoding="utf-8")
+    short_content = (cmds / "dai.spec.md").read_text(encoding="utf-8")
 
     assert "Run the specify command" in short_content
     assert "See /dotnet-ai" not in short_content
@@ -303,7 +303,7 @@ def test_plugin_mode_skips_full_commands(tmp_path: Path) -> None:
     assert not list(cmds.glob("dotnet-ai.*.md"))
     assert len(list(cmds.glob("dai.*.md"))) == 2
     # Verify full content
-    content = (cmds / "dai.specify.md").read_text(encoding="utf-8")
+    content = (cmds / "dai.spec.md").read_text(encoding="utf-8")
     assert "Run the specify command" in content
 
 
@@ -336,8 +336,8 @@ def test_plugin_mode_short_style_writes_dai_only(tmp_path: Path) -> None:
     assert count == 1
     cmds = target / ".claude" / "commands"
     assert not list(cmds.glob("dotnet-ai.*.md"))
-    assert (cmds / "dai.specify.md").is_file()
-    content = (cmds / "dai.specify.md").read_text(encoding="utf-8")
+    assert (cmds / "dai.spec.md").is_file()
+    content = (cmds / "dai.spec.md").read_text(encoding="utf-8")
     assert "Run the specify command" in content
 
 
@@ -750,9 +750,7 @@ def _create_permission_template(config_dir: Path, level: str, entries: list[str]
     data: dict = {"permissions": {"allow": entries}}
     if level == "full":
         data["permissions"]["defaultMode"] = "bypassPermissions"
-    (config_dir / f"permissions-{level}.json").write_text(
-        json.dumps(data), encoding="utf-8"
-    )
+    (config_dir / f"permissions-{level}.json").write_text(json.dumps(data), encoding="utf-8")
 
 
 def test_copy_permissions_creates_settings_file(tmp_path: Path) -> None:
@@ -834,9 +832,7 @@ def test_copy_permissions_full_sets_bypass(tmp_path: Path) -> None:
 
     result = copy_permissions(target, config, pkg)
 
-    data = json.loads(
-        (target / ".claude" / "settings.json").read_text(encoding="utf-8")
-    )
+    data = json.loads((target / ".claude" / "settings.json").read_text(encoding="utf-8"))
     assert data["permissions"]["defaultMode"] == "bypassPermissions"
     assert result["mode"] == "bypassPermissions"
 
@@ -865,9 +861,7 @@ def test_copy_permissions_creates_backup(tmp_path: Path) -> None:
     claude_dir = target / ".claude"
     claude_dir.mkdir(parents=True)
     original = {"permissions": {"allow": ["Bash(old *)"]}}
-    (claude_dir / "settings.json").write_text(
-        json.dumps(original), encoding="utf-8"
-    )
+    (claude_dir / "settings.json").write_text(json.dumps(original), encoding="utf-8")
     config = DotnetAiConfig(permissions_level="standard")
 
     copy_permissions(target, config, pkg)
@@ -907,18 +901,14 @@ def test_permission_template_valid_json(level: str) -> None:
 def test_permission_template_full_has_bypass() -> None:
     """Full template must set defaultMode to bypassPermissions."""
     config_dir = _get_real_config_dir()
-    data = json.loads(
-        (config_dir / "permissions-full.json").read_text(encoding="utf-8")
-    )
+    data = json.loads((config_dir / "permissions-full.json").read_text(encoding="utf-8"))
     assert data["permissions"].get("defaultMode") == "bypassPermissions"
 
 
 def test_permission_template_standard_no_bypass() -> None:
     """Standard template must NOT set defaultMode."""
     config_dir = _get_real_config_dir()
-    data = json.loads(
-        (config_dir / "permissions-standard.json").read_text(encoding="utf-8")
-    )
+    data = json.loads((config_dir / "permissions-standard.json").read_text(encoding="utf-8"))
     assert "defaultMode" not in data["permissions"]
 
 
@@ -926,9 +916,7 @@ def test_permission_template_no_duplicates() -> None:
     """No permission template should have duplicate entries."""
     config_dir = _get_real_config_dir()
     for level in ["minimal", "standard", "full"]:
-        data = json.loads(
-            (config_dir / f"permissions-{level}.json").read_text(encoding="utf-8")
-        )
+        data = json.loads((config_dir / f"permissions-{level}.json").read_text(encoding="utf-8"))
         entries = data["permissions"]["allow"]
         assert len(entries) == len(set(entries)), f"Duplicates in {level} template"
 
@@ -953,12 +941,14 @@ def test_verify_permissions_ok_full(tmp_path: Path) -> None:
     """verify_permissions should pass for correct full settings with bypassPermissions."""
     settings_path = tmp_path / "settings.json"
     settings_path.write_text(
-        json.dumps({
-            "permissions": {
-                "defaultMode": "bypassPermissions",
-                "allow": [f"entry{i}" for i in range(104)],
+        json.dumps(
+            {
+                "permissions": {
+                    "defaultMode": "bypassPermissions",
+                    "allow": [f"entry{i}" for i in range(104)],
+                }
             }
-        }),
+        ),
         encoding="utf-8",
     )
     result = verify_permissions(settings_path, "full", 104)
@@ -981,12 +971,14 @@ def test_verify_permissions_fails_too_few_entries(tmp_path: Path) -> None:
     """verify_permissions should fail when allow list is too short."""
     settings_path = tmp_path / "settings.json"
     settings_path.write_text(
-        json.dumps({
-            "permissions": {
-                "defaultMode": "bypassPermissions",
-                "allow": ["a", "b"],
+        json.dumps(
+            {
+                "permissions": {
+                    "defaultMode": "bypassPermissions",
+                    "allow": ["a", "b"],
+                }
             }
-        }),
+        ),
         encoding="utf-8",
     )
     result = verify_permissions(settings_path, "full", 104)
@@ -1005,14 +997,92 @@ def test_verify_permissions_fails_unwanted_bypass(tmp_path: Path) -> None:
     """verify_permissions should fail when standard mode has bypassPermissions."""
     settings_path = tmp_path / "settings.json"
     settings_path.write_text(
-        json.dumps({
-            "permissions": {
-                "defaultMode": "bypassPermissions",
-                "allow": [f"e{i}" for i in range(43)],
+        json.dumps(
+            {
+                "permissions": {
+                    "defaultMode": "bypassPermissions",
+                    "allow": [f"e{i}" for i in range(43)],
+                }
             }
-        }),
+        ),
         encoding="utf-8",
     )
     result = verify_permissions(settings_path, "standard", 43)
     assert result["ok"] is False
     assert "should not have bypassPermissions" in result["reason"]
+
+
+# ---------------------------------------------------------------------------
+# T008: COMMAND_SHORT_ALIASES tests
+# ---------------------------------------------------------------------------
+
+
+def test_command_short_aliases_produce_correct_filenames(tmp_path: Path) -> None:
+    """COMMAND_SHORT_ALIASES should map specify->spec, analyze->check, implement->go."""
+    from dotnet_ai_kit.copier import COMMAND_SHORT_ALIASES, copy_commands
+
+    assert COMMAND_SHORT_ALIASES["specify"] == "spec"
+    assert COMMAND_SHORT_ALIASES["analyze"] == "check"
+    assert COMMAND_SHORT_ALIASES["implement"] == "go"
+    assert COMMAND_SHORT_ALIASES["add-aggregate"] == "agg"
+    assert COMMAND_SHORT_ALIASES["configure"] == "config"
+    assert COMMAND_SHORT_ALIASES["add-crud"] == "crud"
+    assert COMMAND_SHORT_ALIASES["add-page"] == "page"
+    assert len(COMMAND_SHORT_ALIASES) == 13
+
+    # Verify short-style filenames are produced correctly
+    source = tmp_path / "commands_src"
+    source.mkdir(parents=True, exist_ok=True)
+    for name in ["configure", "add-crud", "add-page"]:
+        (source / f"{name}.md").write_text(f"# {name}", encoding="utf-8")
+
+    target = tmp_path / "project"
+    target.mkdir()
+    agent_config = {
+        "commands_dir": ".claude/commands",
+        "command_ext": ".md",
+        "command_prefix": "dotnet-ai",
+        "args_placeholder": "$ARGUMENTS",
+    }
+    config = DotnetAiConfig(ai_tools=["claude"], command_style="short")
+    copy_commands(source, target, agent_config, config)
+
+    commands_dir = target / ".claude" / "commands"
+    assert (commands_dir / "dai.config.md").is_file()
+    assert (commands_dir / "dai.crud.md").is_file()
+    assert (commands_dir / "dai.page.md").is_file()
+    assert not (commands_dir / "dai.configure.md").is_file()
+    assert not (commands_dir / "dai.add-crud.md").is_file()
+    assert not (commands_dir / "dai.add-page.md").is_file()
+
+
+def test_copy_commands_short_style_uses_aliases(tmp_path: Path) -> None:
+    """copy_commands with 'short' style should use COMMAND_SHORT_ALIASES for filenames."""
+    source = tmp_path / "commands_src"
+    # Create test command files that have aliases
+    for name in ["specify", "analyze", "implement"]:
+        f = source / f"{name}.md"
+        f.parent.mkdir(parents=True, exist_ok=True)
+        f.write_text(f"# {name} command", encoding="utf-8")
+
+    target = tmp_path / "project"
+    target.mkdir()
+
+    agent_config = {
+        "commands_dir": ".claude/commands",
+        "command_ext": ".md",
+        "command_prefix": "dotnet-ai",
+        "args_placeholder": "$ARGUMENTS",
+    }
+    config = DotnetAiConfig(ai_tools=["claude"], command_style="short")
+
+    copy_commands(source, target, agent_config, config)
+
+    cmds = target / ".claude" / "commands"
+    assert (cmds / "dai.spec.md").is_file()
+    assert (cmds / "dai.check.md").is_file()
+    assert (cmds / "dai.go.md").is_file()
+    # Old names should NOT exist
+    assert not (cmds / "dai.specify.md").exists()
+    assert not (cmds / "dai.analyze.md").exists()
+    assert not (cmds / "dai.implement.md").exists()

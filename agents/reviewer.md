@@ -1,6 +1,12 @@
 ---
 name: reviewer
 description: Reviews code for quality, patterns, and architectural compliance
+role: review
+expertise:
+  - review-checklist
+  - architectural-fitness
+complexity: medium
+max_iterations: 15
 ---
 
 # Code Review Specialist

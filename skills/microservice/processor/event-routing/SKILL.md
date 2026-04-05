@@ -8,6 +8,7 @@ description: >
 metadata:
   category: microservice/processor
   agent: processor-architect
+  when-to-use: "When implementing subject-based event routing or inline HandleAsync dispatch"
 ---
 
 # Event Routing — Subject-Based Inline Dispatch

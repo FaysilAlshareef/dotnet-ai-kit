@@ -6,6 +6,17 @@ description: "Opens interactive configuration wizard. Use when changing company 
 
 Configure dotnet-ai-kit settings for this project.
 
+## Usage
+
+```
+/dotnet-ai.configure $ARGUMENTS
+```
+
+**Examples:**
+- (no args) — Interactive configuration wizard
+- `--no-input --company Acme` — CI/CD non-interactive mode
+- `--style short` — Switch to short command aliases only
+
 ## User Input
 
 ```text

@@ -7,6 +7,7 @@ description: >
 metadata:
   category: architecture
   agent: dotnet-architect
+  when-to-use: "When implementing DDD tactical patterns like aggregates, value objects, or domain events"
 ---
 
 # Domain-Driven Design Patterns

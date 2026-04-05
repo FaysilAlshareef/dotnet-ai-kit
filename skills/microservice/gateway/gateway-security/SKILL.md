@@ -8,6 +8,7 @@ description: >
 metadata:
   category: microservice/gateway
   agent: gateway-architect
+  when-to-use: "When configuring gateway JWT authentication, authorization policies, or role-based access"
 ---
 
 # Gateway Security — Authentication & Authorization

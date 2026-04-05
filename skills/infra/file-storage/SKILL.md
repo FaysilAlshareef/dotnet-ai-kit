@@ -7,6 +7,7 @@ description: >
 metadata:
   category: infra
   agent: dotnet-architect
+  when-to-use: "When implementing file storage with Azure Blob Storage or local file system"
 ---
 
 # File Storage — Azure Blob & Local Abstraction

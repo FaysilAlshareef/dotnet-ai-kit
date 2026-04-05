@@ -21,6 +21,7 @@ from filelock import FileLock
 
 from dotnet_ai_kit import __version__ as CLI_VERSION
 from dotnet_ai_kit.agents import AGENT_CONFIG
+from dotnet_ai_kit.utils import parse_version
 
 logger = logging.getLogger(__name__)
 
@@ -28,19 +29,12 @@ logger = logging.getLogger(__name__)
 _VALID_HOOK_EVENTS = {"after_install", "after_remove"}
 
 
-def _parse_version_tuple(version_str: str) -> tuple[int, ...]:
-    """Parse a version string like '1.2.3' into a tuple of ints for comparison."""
-    parts = []
-    for part in version_str.strip().split("."):
-        try:
-            parts.append(int(part))
-        except ValueError:
-            parts.append(0)
-    return tuple(parts)
-
-
 class ExtensionError(Exception):
     """Raised when an extension operation fails."""
+
+
+class CatalogInstallError(ExtensionError):
+    """Raised when catalog-based installation is attempted but not yet supported."""
 
 
 class ExtensionManifest:
@@ -215,6 +209,18 @@ def _check_conflicts(
                 f"Remove conflicting extension first."
             )
 
+    # Rule file name collision check
+    existing_rule_names = {Path(r).name for ext in existing for r in ext.get("rules", [])}
+    new_rule_names = {Path(r).name for r in manifest.rules if isinstance(r, str)}
+    # manifest.rules may be list of dicts (from ExtensionManifest) or list of str (from registry)
+    if manifest.rules and isinstance(manifest.rules[0], dict):
+        new_rule_names = {Path(r.get("file", "")).name for r in manifest.rules}
+    rule_conflicts = existing_rule_names & new_rule_names
+    if rule_conflicts:
+        raise ExtensionError(
+            f"Rule file name conflict with installed extension: {', '.join(sorted(rule_conflicts))}"
+        )
+
     return None
 
 
@@ -243,17 +249,17 @@ def install_extension(
     else:
         # Catalog-based installation: look for extension in a known catalog directory
         # For now, only local path via --dev is fully supported
-        raise ExtensionError(
-            f"Catalog-based extension install for '{name_or_path}' is not yet supported. "
-            f"Use --dev with a local path instead."
+        raise CatalogInstallError(
+            "Catalog-based installs are not yet supported. "
+            "Use --dev to install from a local path: dotnet-ai extension-add --dev ./my-ext"
         )
 
     # Load and validate manifest
     manifest = load_manifest(ext_source)
 
     # Validate min_cli_version requirement
-    cli_version = _parse_version_tuple(CLI_VERSION)
-    min_version = _parse_version_tuple(manifest.min_cli_version)
+    cli_version = parse_version(CLI_VERSION)
+    min_version = parse_version(manifest.min_cli_version)
     if cli_version < min_version:
         raise ExtensionError(
             f"Extension '{manifest.id}' requires dotnet-ai-kit >= {manifest.min_cli_version}, "
@@ -435,6 +441,22 @@ def remove_extension(name: str, project_root: Path) -> None:
         extensions_list = [e for e in extensions_list if e.get("id") != name]
         registry["extensions"] = extensions_list
         _save_extensions_registry(project_root, registry)
+
+    # Execute after_remove hooks
+    hooks = target_entry.get("hooks", {})
+    after_remove_hooks = hooks.get("after_remove", []) if isinstance(hooks, dict) else []
+    for hook_cmd in after_remove_hooks:
+        try:
+            if platform.system() == "Windows":
+                args = hook_cmd.split()
+            else:
+                args = shlex.split(hook_cmd)
+            subprocess.run(args, check=True, cwd=str(project_root))
+        except (subprocess.CalledProcessError, FileNotFoundError) as exc:
+            raise ExtensionError(
+                f"Extension '{name}' was removed from registry but cleanup hook "
+                f"'{hook_cmd}' failed: {exc}. Manual cleanup may be required."
+            ) from exc
 
 
 def list_extensions(project_root: Path) -> list[dict[str, Any]]:

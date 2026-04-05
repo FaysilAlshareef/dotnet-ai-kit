@@ -7,6 +7,7 @@ description: >
 metadata:
   category: data
   agent: ef-specialist
+  when-to-use: "When managing database transactions, isolation levels, or cross-context coordination"
 ---
 
 # Database Transactions

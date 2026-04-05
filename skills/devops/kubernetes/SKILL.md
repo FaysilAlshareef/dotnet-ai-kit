@@ -7,6 +7,7 @@ description: >
 metadata:
   category: devops
   agent: devops-engineer
+  when-to-use: "When creating or modifying Kubernetes deployment manifests or service configurations"
 ---
 
 # Kubernetes — Deployment Manifests

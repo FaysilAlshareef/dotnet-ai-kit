@@ -7,6 +7,7 @@ description: >
 metadata:
   category: observability
   agent: devops-engineer
+  when-to-use: "When configuring Serilog structured logging, enrichers, or Seq sink"
 ---
 
 # Serilog Structured Logging

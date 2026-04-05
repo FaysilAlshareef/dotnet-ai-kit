@@ -7,6 +7,7 @@ description: >
 metadata:
   category: core
   agent: dotnet-architect
+  when-to-use: "When implementing object mapping between DTOs and domain models"
 ---
 
 # Mapping Strategies

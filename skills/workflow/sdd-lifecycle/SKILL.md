@@ -7,6 +7,7 @@ description: >
 metadata:
   category: workflow
   agent: dotnet-architect
+  when-to-use: "When following Specification-Driven Development lifecycle phases"
 ---
 
 # SDD Lifecycle — Specification-Driven Development

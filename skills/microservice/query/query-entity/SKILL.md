@@ -7,6 +7,8 @@ description: >
 metadata:
   category: microservice/query
   agent: query-architect
+  when-to-use: "When creating or modifying read-model entities with private setters"
+  paths: "${detected_paths.entities}/**/*.cs"
 ---
 
 # Query Entity — Event-Projected Read Model

@@ -1,6 +1,9 @@
 ---
 name: plan-artifacts
 description: "Supporting artifact generation for complex features in /dotnet-ai.plan"
+metadata:
+  when-to-use: "When generating supporting artifacts like research docs for complex feature plans"
+  category: workflow
 ---
 
 # Plan Artifacts Skill

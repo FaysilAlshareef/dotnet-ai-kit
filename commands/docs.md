@@ -36,7 +36,7 @@ Generate or update technical and business documentation. With no subcommand, sca
 | Flag | Description |
 |------|-------------|
 | `--dry-run` | Show generated documentation without writing files |
-| `--dry-run` | List files that would be created/modified |
+| `--list` | List files that would be created/modified with descriptions, no code output |
 | `--verbose` | Show scanning details and content summaries |
 | `--update` | Update existing docs only, do not create new ones |
 
@@ -186,4 +186,4 @@ project-root/
 ## Preview / Dry-Run Behavior
 
 - `--dry-run`: Show generated documentation content. No file writes.
-- `--dry-run`: List files that would be created/modified. No content, no writes.
+- `--list`: List files that would be created/modified. No content, no writes.

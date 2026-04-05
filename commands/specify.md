@@ -7,6 +7,17 @@ description: "Creates a feature specification from a description. Use when start
 You are an AI coding assistant executing the `/dotnet-ai.specify` command.
 Your job is to create a structured feature specification from user input.
 
+## Usage
+
+```
+/dotnet-ai.specify $ARGUMENTS
+```
+
+**Examples:**
+- `"Add order management"` — Create spec for new feature
+- (no args) — Resume existing feature or create new
+- `--dry-run "Add payments"` — Preview spec path without writing
+
 ## Input
 
 Feature description: `$ARGUMENTS`
@@ -39,9 +50,7 @@ Load all skills listed in the agent's Skills Loaded section.
 ## Step 2: Check for Existing Features
 
 1. Scan `.dotnet-ai-kit/features/` for existing feature directories.
-2. If incomplete features found (no `tasks.md` or tasks with unchecked items):
-   - Ask: "Resume feature NNN-{name} or create new?"
-   - If resume: load existing spec and skip to Step 5 (quality check).
+2. If incomplete features found (no `tasks.md` or unchecked tasks): ask "Resume NNN-{name} or create new?" — if resume, load spec and skip to Step 5.
 3. If `$ARGUMENTS` is empty and no features to resume, ask for a feature description.
 
 ## Step 3: Create Feature Directory
@@ -127,29 +136,7 @@ Generate `spec.md` inside the feature directory using this structure:
 - Do NOT mark items as unclear if a reasonable default exists; state the default instead
 - Include events, entities, and endpoints sections as applicable
 
-## Step 5: Generate Quality Checklist
-
-Create `checklists/requirements.md` in the feature directory:
-
-```markdown
-# Requirements Checklist: {Feature Name}
-
-- [ ] All user stories have acceptance scenarios
-- [ ] All functional requirements are testable
-- [ ] Key entities identified with relationships
-- [ ] {mode-specific checks}
-- [ ] Edge cases documented
-- [ ] Success criteria are measurable
-- [ ] Max 3 [NEEDS CLARIFICATION] markers
-```
-
-**Microservice additions**:
-- [ ] All affected repos identified
-- [ ] Events defined with data schemas
-- [ ] Service communication patterns specified
-- [ ] Feature briefs projected to secondary repos
-
-### Step 4b: Project Feature Briefs (microservice mode)
+## Step 5: Project Feature Briefs (microservice mode)
 
 For each repo listed in `service-map.md` (except the current/primary repo):
 1. Resolve repo path from `config.yml` repos section.
@@ -163,7 +150,11 @@ For each repo listed in `service-map.md` (except the current/primary repo):
 
 Report: "Projected feature briefs to {N} repos: {list}"
 
-## Step 6: Report
+## Step 6: Generate Quality Checklist
+
+Create `checklists/requirements.md` in the feature directory with: user stories have acceptance scenarios, requirements are testable, key entities identified, edge cases documented, success criteria measurable, max 3 `[NEEDS CLARIFICATION]` markers. Microservice additions: all affected repos identified, events defined with schemas, service communication specified, briefs projected to secondary repos.
+
+## Step 7: Report
 
 Print summary:
 ```
@@ -179,11 +170,19 @@ Next: /dotnet-ai.clarify    (resolve ambiguities)
 
 ## Dry-Run Behavior
 
-When `--dry-run` is active:
-- Print all generated content to the terminal
-- Show file paths that WOULD be created
-- Do NOT create any directories or files
-- Prefix output with `[DRY-RUN]`
+When `--dry-run`: print all generated content, show file paths that WOULD be created, do NOT write files, prefix `[DRY-RUN]`.
+
+## Secondary Repo Branch Safety
+
+When projecting feature briefs to linked secondary repos:
+1. Read linked repos from `.dotnet-ai-kit/config.yml` repos section
+2. For each linked repo with a local path:
+   - Run `git -C {repo_path} rev-parse --abbrev-ref HEAD` to check current branch
+   - If on main/master/develop: `git -C {repo_path} checkout -b chore/brief-{NNN}-{name}`
+   - If `chore/brief-{NNN}-{name}` already exists: `git -C {repo_path} checkout chore/brief-{NNN}-{name}`
+   - If working directory dirty (`git -C {repo_path} status --porcelain`): warn and skip
+3. After writing the brief, stage and commit on the chore branch
+4. NEVER commit directly to main, master, or develop branches
 
 ## Error Handling
 

@@ -1,6 +1,14 @@
 ---
 name: test-engineer
 description: Designs and implements unit, integration, and E2E test suites
+role: testing
+expertise:
+  - aggregate-testing
+  - unit-testing
+  - integration-testing
+  - test-fixtures
+complexity: high
+max_iterations: 25
 ---
 
 # Testing Specialist

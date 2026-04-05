@@ -8,6 +8,7 @@ description: >
 metadata:
   category: data
   agent: ef-specialist
+  when-to-use: "When configuring EF Core DbContext, entity configurations, migrations"
 ---
 
 # EF Core Basics

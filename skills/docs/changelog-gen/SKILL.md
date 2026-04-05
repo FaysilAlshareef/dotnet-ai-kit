@@ -7,6 +7,7 @@ description: >
 metadata:
   category: docs
   agent: docs-engineer
+  when-to-use: "When generating changelogs or release notes from git history"
 ---
 
 # Changelog Generation — Keep a Changelog Format

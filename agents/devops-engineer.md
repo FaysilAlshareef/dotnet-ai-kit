@@ -1,6 +1,15 @@
 ---
 name: devops-engineer
 description: Manages CI/CD pipelines, Docker, and infrastructure as code
+role: advisory
+expertise:
+  - dockerfile
+  - github-actions
+  - kubernetes
+  - aspire-orchestration
+  - azure-resources
+complexity: medium
+max_iterations: 15
 ---
 
 # DevOps & Infrastructure Specialist

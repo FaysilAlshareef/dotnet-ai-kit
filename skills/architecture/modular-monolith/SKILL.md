@@ -7,6 +7,7 @@ description: >
 metadata:
   category: architecture
   agent: dotnet-architect
+  when-to-use: "When designing modular monolith structure, module isolation, or inter-module communication"
 ---
 
 # Modular Monolith

@@ -7,6 +7,7 @@ description: >
 metadata:
   category: microservice/command
   agent: command-architect
+  when-to-use: "When implementing outbox pattern, CommitEventService, or ServiceBusPublisher"
 ---
 
 # Outbox Pattern -- Reliable Event Publishing

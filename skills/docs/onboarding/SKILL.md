@@ -7,6 +7,7 @@ description: >
 metadata:
   category: docs
   agent: docs-engineer
+  when-to-use: "When creating developer onboarding documentation or setup guides"
 ---
 
 # Onboarding — Developer Documentation

@@ -3,6 +3,7 @@ name: smart-detect
 description: "AI-assisted project type detection for .NET projects (microservice and generic architectures)"
 metadata:
   category: detection
+  when-to-use: "When detecting project architecture type or analyzing .NET project structure"
 ---
 # Smart Detection Skill
 

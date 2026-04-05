@@ -7,6 +7,7 @@ description: >
 metadata:
   category: microservice/controlpanel
   agent: controlpanel-architect
+  when-to-use: "When creating or modifying Blazor control panel pages with MudBlazor components"
 ---
 
 # Blazor Component — MudBlazor Page Patterns

@@ -1062,6 +1062,20 @@ $INCLUDE dotnet-ai.specify.md
 
 The CLI copies both files during `dotnet-ai init`. For AI tools that don't support includes (Cursor, Copilot), the short alias file contains the full command content (duplicated).
 
+The short name mapping is defined in `COMMAND_SHORT_ALIASES` in `copier.py` (13 entries):
+
+```python
+COMMAND_SHORT_ALIASES = {
+    "specify": "spec",      "analyze": "check",     "implement": "go",
+    "add-aggregate": "agg", "add-entity": "entity", "add-event": "event",
+    "add-endpoint": "ep",   "add-crud": "crud",     "add-page": "page",
+    "add-tests": "tests",   "configure": "config",  "checkpoint": "save",
+    "wrap-up": "done",
+}
+```
+
+Commands without an alias entry use their stem directly (e.g., `clarify.md` → `dai.clarify.md`).
+
 ### Configuration
 
 ```yaml

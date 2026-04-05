@@ -1,6 +1,15 @@
 ---
 name: cosmos-architect
 description: Designs Cosmos DB data models and query-side projections
+role: advisory
+expertise:
+  - cosmos-entity
+  - cosmos-repository
+  - transactional-batch
+  - partition-strategy
+  - event-handler
+complexity: high
+max_iterations: 20
 ---
 
 # Cosmos DB Query Specialist

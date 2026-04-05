@@ -7,6 +7,7 @@ description: >
 metadata:
   category: microservice/cosmos
   agent: cosmos-architect
+  when-to-use: "When designing Cosmos DB partition keys or optimizing cross-partition queries"
 ---
 
 # Partition Strategy — Hierarchical Partition Keys

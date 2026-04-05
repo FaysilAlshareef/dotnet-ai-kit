@@ -1,11 +1,23 @@
 ---
 description: "Verifies build, tests, and formatting pass. Use when validating implementation before creating a PR."
+context: 'fork'
+agent: general-purpose
 ---
 
 # /dotnet-ai.verify — Verification Pipeline
 
 You are an AI coding assistant executing the `/dotnet-ai.verify` command.
 Your job is to run a verification pipeline and report PASS/FAIL/WARN per check.
+
+## Usage
+
+```
+/dotnet-ai.verify $ARGUMENTS
+```
+
+**Examples:**
+- (no args) — Run verification pipeline: build, test, lint
+- `--dry-run` — Show what would be verified without running
 
 ## Input
 

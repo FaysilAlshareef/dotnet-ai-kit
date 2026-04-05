@@ -8,6 +8,7 @@ description: >
 metadata:
   category: microservice/gateway
   agent: gateway-architect
+  when-to-use: "When configuring gateway gRPC client registration or ServicesURLsOptions"
 ---
 
 # Endpoint Registration — gRPC Client Factory Setup

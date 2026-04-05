@@ -7,6 +7,7 @@ description: >
 metadata:
   category: microservice/cosmos
   agent: cosmos-architect
+  when-to-use: "When implementing Cosmos DB TransactionalBatch or atomic multi-document operations"
 ---
 
 # Transactional Batch — Atomic Multi-Document Operations

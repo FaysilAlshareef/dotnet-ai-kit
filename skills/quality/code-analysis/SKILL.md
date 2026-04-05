@@ -7,6 +7,7 @@ description: >
 metadata:
   category: quality
   agent: reviewer
+  when-to-use: "When configuring static code analysis, Roslyn analyzers, or EditorConfig rules"
 ---
 
 # Code Analysis — Roslyn Analyzers & EditorConfig

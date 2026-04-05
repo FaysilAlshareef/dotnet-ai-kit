@@ -6,8 +6,11 @@ command prefixes) and provides detection and lookup utilities.
 
 from __future__ import annotations
 
+import logging
 from pathlib import Path
 from typing import Any
+
+logger = logging.getLogger(__name__)
 
 # Agent configuration per supported AI tool.
 # Each entry describes where commands and rules live for that tool.
@@ -53,6 +56,30 @@ AGENT_CONFIG: dict[str, dict[str, Any]] = {
 # Cursor, Copilot, Codex planned for v1.1.
 SUPPORTED_AI_TOOLS: frozenset[str] = frozenset({"claude"})
 
+# Per-tool transformation mapping for universal agent frontmatter.
+# Agent source files use tool-agnostic fields (role, expertise, complexity,
+# max_iterations). This map converts them to tool-specific frontmatter
+# during deployment via copy_agents().
+AGENT_FRONTMATTER_MAP: dict[str, dict[str, Any]] = {
+    "claude": {
+        "role": {
+            "advisory": {"disallowedTools": ["Write", "Edit"]},
+            "implementation": {},
+            "testing": {},
+            "review": {"disallowedTools": ["Write", "Edit"]},
+        },
+        "expertise": lambda skills: {"skills": skills},
+        "complexity": {
+            "high": {"effort": "high", "model": "opus"},
+            "medium": {"effort": "medium", "model": "sonnet"},
+            "low": {"effort": "low", "model": "haiku"},
+        },
+        "max_iterations": lambda n: {"maxTurns": n},
+    },
+    # v1.0.1: "cursor": { ... }
+    # v1.0.1: "copilot": { ... }
+}
+
 
 def get_agent_config(tool: str) -> dict[str, Any]:
     """Get the configuration dictionary for a specific AI tool.
@@ -71,6 +98,12 @@ def get_agent_config(tool: str) -> dict[str, Any]:
     if key not in AGENT_CONFIG:
         supported = ", ".join(sorted(AGENT_CONFIG.keys()))
         raise ValueError(f"Unknown AI tool '{tool}'. Supported tools: {supported}")
+    if key not in SUPPORTED_AI_TOOLS:
+        logger.warning(
+            "Tool '%s' is recognised but not fully supported in v1.0. "
+            "Full support planned for v1.1.",
+            tool,
+        )
     return AGENT_CONFIG[key]
 
 

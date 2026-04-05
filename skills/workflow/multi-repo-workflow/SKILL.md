@@ -7,6 +7,7 @@ description: >
 metadata:
   category: workflow
   agent: dotnet-architect
+  when-to-use: "When coordinating cross-repo development, dependency chains, or deployment order"
 ---
 
 # Multi-Repo Workflow — Cross-Service Coordination

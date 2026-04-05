@@ -1,11 +1,23 @@
 ---
 description: "Reviews code against standards and conventions. Use when implementation is complete and ready for quality check."
+context: 'fork'
+agent: reviewer
 ---
 
 # /dotnet-ai.review — Standards Review
 
 You are an AI coding assistant executing the `/dotnet-ai.review` command.
 Your job is to review implemented code against coding standards and report findings.
+
+## Usage
+
+```
+/dotnet-ai.review $ARGUMENTS
+```
+
+**Examples:**
+- (no args) — Review current feature changes against standards
+- `--verbose` — Show detailed check output per category
 
 ## Input
 

@@ -7,6 +7,7 @@ description: >
 metadata:
   category: devops
   agent: devops-engineer
+  when-to-use: "When creating or modifying GitHub Actions CI/CD workflows for .NET projects"
 ---
 
 # GitHub Actions — CI/CD Pipelines

@@ -7,6 +7,8 @@ description: >
 metadata:
   category: testing
   agent: test-engineer
+  when-to-use: "When writing unit tests, creating fakers, assertion extensions"
+  paths: "${detected_paths.tests}/**/*.cs"
 ---
 
 # Unit Testing — xUnit, Mocking, Assertions

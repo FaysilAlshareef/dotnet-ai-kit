@@ -8,6 +8,7 @@ description: >
 metadata:
   category: microservice/processor
   agent: processor-architect
+  when-to-use: "When configuring gRPC client factory or cross-service communication with retry"
 ---
 
 # gRPC Client -- Cross-Service Communication

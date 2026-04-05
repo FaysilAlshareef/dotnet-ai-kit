@@ -7,6 +7,7 @@ description: >
 metadata:
   category: workflow
   agent: dotnet-architect
+  when-to-use: "When managing feature directory structure, status tracking, or multi-service coordination"
 ---
 
 # Feature Tracking — Directory Structure & Status

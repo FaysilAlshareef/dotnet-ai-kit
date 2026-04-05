@@ -7,6 +7,7 @@ description: >
 metadata:
   category: architecture
   agent: dotnet-architect
+  when-to-use: "When implementing CQRS patterns with separate read and write models"
 ---
 
 # CQRS Basics

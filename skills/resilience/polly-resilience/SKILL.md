@@ -7,6 +7,7 @@ description: >
 metadata:
   category: resilience
   agent: api-designer
+  when-to-use: "When implementing Polly v8 resilience pipelines for retry, timeout, or fallback"
 ---
 
 # Polly Resilience Pipelines

@@ -7,6 +7,16 @@ description: "Resolves ambiguities in a feature specification. Use when the spec
 You are an AI coding assistant executing the `/dotnet-ai.clarify` command.
 Your job is to find ambiguities in a feature spec and resolve them interactively.
 
+## Usage
+
+```
+/dotnet-ai.clarify $ARGUMENTS
+```
+
+**Examples:**
+- (no args) — Clarify current feature spec
+- `001` — Clarify feature 001 by ID
+
 ## Input
 
 Optional feature ID: `$ARGUMENTS` (e.g., `001` to target a specific feature)
@@ -157,6 +167,18 @@ Clarification complete for {NNN}-{feature-name}.
   - Run /dotnet-ai.clarify again to continue
   - Run /dotnet-ai.plan (unresolved items will be noted in the plan)
 ```
+
+## Secondary Repo Branch Safety
+
+When projecting feature briefs to linked secondary repos:
+1. Read linked repos from `.dotnet-ai-kit/config.yml` repos section
+2. For each linked repo with a local path:
+   - Run `git -C {repo_path} rev-parse --abbrev-ref HEAD` to check current branch
+   - If on main/master/develop: `git -C {repo_path} checkout -b chore/brief-{NNN}-{name}`
+   - If `chore/brief-{NNN}-{name}` already exists: `git -C {repo_path} checkout chore/brief-{NNN}-{name}`
+   - If working directory dirty (`git -C {repo_path} status --porcelain`): warn and skip
+3. After writing the brief, stage and commit on the chore branch
+4. NEVER commit directly to main, master, or develop branches
 
 ## Dry-Run Behavior
 

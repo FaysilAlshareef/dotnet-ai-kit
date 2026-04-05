@@ -7,6 +7,8 @@ description: >
 metadata:
   category: microservice/command
   agent: command-architect
+  when-to-use: "When creating or modifying event-sourced aggregates, factory methods, Apply methods"
+  paths: "${detected_paths.aggregates}/**/*.cs"
 ---
 
 # Aggregate Design -- Event-Sourced Aggregate Root

@@ -6,6 +6,7 @@ description: >
 metadata:
   category: architecture
   agent: dotnet-architect
+  when-to-use: "When evaluating architecture options or recommending an architectural approach"
 ---
 
 # Architecture Advisor

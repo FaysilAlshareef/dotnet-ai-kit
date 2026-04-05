@@ -18,7 +18,7 @@ Scan existing code for classes, handlers, and controllers without test files and
 - `--handlers` -- Generate tests for all MediatR handlers
 - `--coverage 80` -- Generate tests until estimated 80% coverage
 - `--dry-run` -- Show what tests would be generated
-- `--dry-run` -- Show file list only
+- `--list` -- Show file list only
 - `--verbose` -- Show scanning and detection details
 
 ## Flags
@@ -30,7 +30,7 @@ Scan existing code for classes, handlers, and controllers without test files and
 | `--services` | Target all service classes only |
 | `--coverage {N}` | Generate tests targeting N% coverage estimate |
 | `--dry-run` | Display generated test code without writing |
-| `--dry-run` | List test files that would be created |
+| `--list` | List test files that would be created with descriptions, no code output |
 | `--verbose` | Show scanning progress, pattern detection, coverage estimates |
 | `--no-build` | Skip post-generation build and test run |
 
@@ -135,4 +135,4 @@ Load all skills listed in each loaded agent's Skills Loaded section.
 ## Preview / Dry-Run Behavior
 
 - `--dry-run`: Show generated test code with file headers. No writes.
-- `--dry-run`: List test files that would be created with class counts. No code, no writes.
+- `--list`: List test files that would be created with class counts. No code, no writes.

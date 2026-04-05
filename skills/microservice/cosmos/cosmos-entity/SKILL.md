@@ -7,6 +7,8 @@ description: >
 metadata:
   category: microservice/cosmos
   agent: cosmos-architect
+  when-to-use: "When creating or modifying Cosmos DB entities, partition keys, discriminators"
+  paths: "${detected_paths.cosmos_entities}/**/*.cs"
 ---
 
 # Cosmos Entity — IContainerDocument Pattern

@@ -8,6 +8,7 @@ projects from templates.
 from __future__ import annotations
 
 import json
+import logging
 import re
 import shutil
 from pathlib import Path
@@ -16,6 +17,45 @@ from typing import Any, Optional
 import jinja2
 
 from dotnet_ai_kit.models import DotnetAiConfig
+from dotnet_ai_kit.utils import HOOK_MODEL, HOOK_TIMEOUT_MS, parse_version
+
+logger = logging.getLogger(__name__)
+
+# Maps project_type → profile source path (relative to package root).
+# Only ONE profile is deployed per project.
+PROFILE_MAP: dict[str, str] = {
+    # microservice mode
+    "command": "profiles/microservice/command.md",
+    "query-sql": "profiles/microservice/query-sql.md",
+    "query-cosmos": "profiles/microservice/query-cosmos.md",
+    "processor": "profiles/microservice/processor.md",
+    "gateway": "profiles/microservice/gateway.md",
+    "controlpanel": "profiles/microservice/controlpanel.md",
+    "hybrid": "profiles/microservice/hybrid.md",
+    # generic mode
+    "vsa": "profiles/generic/vsa.md",
+    "clean-arch": "profiles/generic/clean-arch.md",
+    "ddd": "profiles/generic/ddd.md",
+    "modular-monolith": "profiles/generic/modular-monolith.md",
+    "generic": "profiles/generic/generic.md",
+}
+FALLBACK_PROFILE = "profiles/generic/generic.md"
+
+COMMAND_SHORT_ALIASES: dict[str, str] = {
+    "specify": "spec",
+    "analyze": "check",
+    "implement": "go",
+    "add-aggregate": "agg",
+    "add-entity": "entity",
+    "add-event": "event",
+    "add-endpoint": "ep",
+    "add-crud": "crud",
+    "add-page": "page",
+    "add-tests": "tests",
+    "configure": "config",
+    "checkpoint": "save",
+    "wrap-up": "done",
+}
 
 
 class CopyError(Exception):
@@ -142,7 +182,8 @@ def copy_commands(
 
         if config.command_style in ("short", "both"):
             short_prefix = "dai"
-            short_name = f"{short_prefix}.{cmd_name}{ext}"
+            short_alias = COMMAND_SHORT_ALIASES.get(cmd_name, cmd_name)
+            short_name = f"{short_prefix}.{short_alias}{ext}"
             short_path = commands_dir / short_name
             short_path.write_text(content, encoding="utf-8")
             count += 1
@@ -275,20 +316,70 @@ def copy_commands_codex(
     return 1
 
 
+def _resolve_detected_path_tokens(
+    content: str,
+    detected_paths: dict[str, str],
+) -> str:
+    """Resolve ${detected_paths.*} tokens in skill file content.
+
+    If a token references a missing key, the entire paths: line is removed.
+
+    Args:
+        content: Skill file content.
+        detected_paths: Mapping of path category names to actual paths.
+
+    Returns:
+        Content with tokens resolved or paths line removed.
+    """
+
+    def _replace_token(match: re.Match) -> str:
+        key = match.group(1)
+        return detected_paths.get(key, "")
+
+    resolved = re.sub(r"\$\{detected_paths\.(\w+)\}", _replace_token, content)
+
+    # If any paths: line has empty value after resolution, remove it
+    lines = resolved.split("\n")
+    filtered = []
+    for line in lines:
+        stripped = line.strip()
+        # Remove paths: lines with empty or glob-only value after token resolution
+        if stripped.startswith("paths:"):
+            value = stripped[len("paths:") :].strip().strip("\"'")
+            # Empty, or starts with a glob wildcard (token resolved to empty)
+            if not value or value.startswith("/") or value.startswith("*"):
+                # Extract the original token key from the line for logging
+                import re as _re
+
+                token_match = _re.search(r"\$\{detected_paths\.(\w+)\}", line)
+                key = token_match.group(1) if token_match else "unknown"
+                logger.debug(
+                    "Removing paths: line — token %s resolved to empty",
+                    key,
+                )
+                continue
+        filtered.append(line)
+
+    return "\n".join(filtered)
+
+
 def copy_skills(
     source_dir: Path,
     target_dir: Path,
     agent_config: dict[str, Any],
+    detected_paths: Optional[dict[str, str]] = None,
 ) -> int:
-    """Copy skill files from the source to the AI tool's skills directory.
+    """Copy skill files, resolving ${detected_paths.*} tokens if provided.
 
     Recursively copies the skills directory structure preserving
-    category/subcategory organization.
+    category/subcategory organization. When detected_paths is provided,
+    resolves path tokens in SKILL.md frontmatter.
 
     Args:
         source_dir: Directory containing skill subdirectories.
         target_dir: Root of the user's project.
         agent_config: Configuration dict for the target AI tool.
+        detected_paths: Optional mapping of path categories to filesystem paths.
 
     Returns:
         Number of skill files copied.
@@ -309,29 +400,127 @@ def copy_skills(
         dest = skills_dir / rel_path
         dest.parent.mkdir(parents=True, exist_ok=True)
         content = skill_file.read_text(encoding="utf-8")
+
+        if detected_paths and "${detected_paths." in content:
+            content = _resolve_detected_path_tokens(content, detected_paths)
+
         dest.write_text(content, encoding="utf-8")
         count += 1
 
     return count
 
 
+def _parse_yaml_frontmatter(content: str) -> tuple[dict[str, Any], str]:
+    """Parse YAML frontmatter from a markdown file.
+
+    Args:
+        content: Full file content.
+
+    Returns:
+        Tuple of (frontmatter dict, markdown body after frontmatter).
+    """
+    import yaml
+
+    lines = content.split("\n")
+    if not lines or lines[0].strip() != "---":
+        return {}, content
+
+    end_idx = -1
+    for i in range(1, len(lines)):
+        if lines[i].strip() == "---":
+            end_idx = i
+            break
+
+    if end_idx == -1:
+        return {}, content
+
+    fm_text = "\n".join(lines[1:end_idx])
+    body = "\n".join(lines[end_idx + 1 :])
+    fm = yaml.safe_load(fm_text) or {}
+    return fm, body
+
+
+def _transform_agent_frontmatter(
+    universal_fm: dict[str, Any],
+    mapping: dict[str, Any],
+) -> dict[str, Any]:
+    """Transform universal agent frontmatter to tool-specific format.
+
+    Args:
+        universal_fm: Parsed universal frontmatter fields.
+        mapping: Tool-specific transformation mapping from AGENT_FRONTMATTER_MAP.
+
+    Returns:
+        Tool-specific frontmatter dict.
+    """
+    result: dict[str, Any] = {}
+
+    # Pass through name and description
+    if "name" in universal_fm:
+        result["name"] = universal_fm["name"]
+    if "description" in universal_fm:
+        result["description"] = universal_fm["description"]
+
+    # Transform role
+    role = universal_fm.get("role")
+    if role and "role" in mapping:
+        role_map = mapping["role"]
+        if role in role_map:
+            result.update(role_map[role])
+
+    # Transform expertise
+    expertise = universal_fm.get("expertise")
+    if expertise and "expertise" in mapping:
+        transform = mapping["expertise"]
+        if callable(transform):
+            result.update(transform(expertise))
+
+    # Transform complexity
+    complexity = universal_fm.get("complexity")
+    if complexity and "complexity" in mapping:
+        complexity_map = mapping["complexity"]
+        if complexity in complexity_map:
+            result.update(complexity_map[complexity])
+
+    # Transform max_iterations
+    max_iter = universal_fm.get("max_iterations")
+    if max_iter is not None and "max_iterations" in mapping:
+        transform = mapping["max_iterations"]
+        if callable(transform):
+            result.update(transform(max_iter))
+
+    return result
+
+
 def copy_agents(
     source_dir: Path,
     target_dir: Path,
     agent_config: dict[str, Any],
+    tool_name: str = "claude",
 ) -> int:
-    """Copy agent files from the source to the AI tool's agents directory.
+    """Copy agent files, transforming universal frontmatter to tool-specific format.
 
-    Flat copy of all .md files in the agents directory.
+    Reads universal frontmatter (role, expertise, complexity, max_iterations)
+    from source files and transforms to the target tool's format using
+    AGENT_FRONTMATTER_MAP.
 
     Args:
         source_dir: Directory containing agent .md files.
         target_dir: Root of the user's project.
         agent_config: Configuration dict for the target AI tool.
+        tool_name: AI tool name for frontmatter transformation.
 
     Returns:
         Number of agent files copied.
     """
+    import logging
+
+    import yaml
+
+    from dotnet_ai_kit.agents import AGENT_FRONTMATTER_MAP
+
+    logger = logging.getLogger(__name__)
+
     agents_dir_rel = agent_config.get("agents_dir")
     if not agents_dir_rel:
         return 0
@@ -342,16 +531,432 @@ def copy_agents(
         shutil.rmtree(agents_dir)
     agents_dir.mkdir(parents=True, exist_ok=True)
 
+    mapping = AGENT_FRONTMATTER_MAP.get(tool_name)
+    if mapping is None:
+        logger.warning(
+            "Agent transformation for %s not yet supported"
+            " — skipping agent deployment for this tool.",
+            tool_name,
+        )
+        return 0
+
     count = 0
     agent_files = sorted(source_dir.glob("*.md"))
 
     for agent_file in agent_files:
         content = agent_file.read_text(encoding="utf-8")
+        universal_fm, body = _parse_yaml_frontmatter(content)
+
+        if universal_fm:
+            tool_fm = _transform_agent_frontmatter(universal_fm, mapping)
+            fm_yaml = yaml.dump(tool_fm, default_flow_style=False, sort_keys=False)
+            output = f"---\n{fm_yaml}---{body}"
+        else:
+            output = content
+
         dest = agents_dir / agent_file.name
-        dest.write_text(content, encoding="utf-8")
+        dest.write_text(output, encoding="utf-8")
         count += 1
 
     return count
+
+
+def copy_profile(
+    target_root: Path,
+    tool_name: str,
+    project_type: str,
+    package_dir: Path,
+    confidence: str = "high",
+) -> Optional[Path]:
+    """Deploy the matching architecture profile to the AI tool's rules directory.
+
+    Looks up the profile for the given project_type. Falls back to
+    the generic profile when the type is unknown or confidence is low.
+
+    Args:
+        target_root: Root of the user's project.
+        tool_name: AI tool name (claude, cursor, etc.).
+        package_dir: The dotnet-ai-kit package installation directory.
+        project_type: Detected project type from project.yml.
+        confidence: Detection confidence (high, medium, low).
+
+    Returns:
+        Path to the deployed profile, or None if the tool has no rules_dir.
+
+    Raises:
+        FileNotFoundError: If the source profile file does not exist.
+    """
+    from dotnet_ai_kit.agents import get_agent_config
+
+    agent_config = get_agent_config(tool_name)
+    rules_dir_rel = agent_config.get("rules_dir")
+    if not rules_dir_rel:
+        return None
+
+    # Select profile: fallback to generic on low confidence or unknown type
+    if confidence == "low" or project_type not in PROFILE_MAP:
+        profile_rel = FALLBACK_PROFILE
+    else:
+        profile_rel = PROFILE_MAP[project_type]
+
+    source_path = package_dir / profile_rel
+    if not source_path.is_file():
+        raise FileNotFoundError(f"Architecture profile not found: {source_path}")
+
+    rules_dir = target_root / rules_dir_rel
+    rules_dir.mkdir(parents=True, exist_ok=True)
+
+    dest = rules_dir / "architecture-profile.md"
+    content = source_path.read_text(encoding="utf-8")
+    dest.write_text(content, encoding="utf-8")
+
+    return dest
+
+
+def copy_hook(
+    target_root: Path,
+    profile_path: Path,
+    package_dir: Path,
+) -> bool:
+    """Deploy a PreToolUse prompt hook that validates writes against profile constraints.
+
+    Reads the profile, extracts constraints, renders the hook prompt template,
+    and writes the hook configuration to .claude/settings.json.
+
+    Args:
+        target_root: Root of the user's project.
+        profile_path: Path to the deployed architecture profile.
+        package_dir: The dotnet-ai-kit package installation directory.
+
+    Returns:
+        True if the hook was written, False if skipped.
+    """
+    if not profile_path or not profile_path.is_file():
+        return False
+
+    # Extract constraints from profile (everything after frontmatter)
+    content = profile_path.read_text(encoding="utf-8")
+    _, body = _parse_yaml_frontmatter(content)
+    constraints = body.strip()
+
+    if not constraints:
+        return False
+
+    # Render hook prompt template
+    template_path = package_dir / "templates" / "hook-prompt-template.md"
+    if not template_path.is_file():
+        return False
+
+    template_text = template_path.read_text(encoding="utf-8")
+    prompt = template_text.replace("{{ constraints }}", constraints)
+
+    # Read or create settings.json
+    settings_path = target_root / ".claude" / "settings.json"
+    settings: dict[str, Any] = {}
+    if settings_path.is_file():
+        try:
+            settings = json.loads(settings_path.read_text(encoding="utf-8"))
+        except json.JSONDecodeError:
+            pass
+
+    # Add/update the PreToolUse hook
+    hooks = settings.setdefault("hooks", {})
+    pre_tool_use = hooks.setdefault("PreToolUse", [])
+
+    # Remove existing architecture hook if present
+    pre_tool_use = [h for h in pre_tool_use if h.get("_source") != "dotnet-ai-kit-arch"]
+
+    pre_tool_use.append(
+        {
+            "_source": "dotnet-ai-kit-arch",
+            "type": "prompt",
+            "matcher": "Write|Edit",
+            "prompt": prompt,
+            "model": HOOK_MODEL,
+            "timeout": HOOK_TIMEOUT_MS,
+        }
+    )
+
+    hooks["PreToolUse"] = pre_tool_use
+    settings["hooks"] = hooks
+
+    settings_path.parent.mkdir(parents=True, exist_ok=True)
+    settings_path.write_text(
+        json.dumps(settings, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+
+    return True
+
+
+def deploy_to_linked_repos(
+    primary_root: Path,
+    config: DotnetAiConfig,
+    tool_version: str,
+    package_dir: Path,
+    branch_name: str = "chore/dotnet-ai-kit-setup",
+    dry_run: bool = False,
+) -> list[dict[str, str]]:
+    """Deploy tooling to linked secondary repos during configure/upgrade.
+
+    Iterates config.repos, checks initialization and version, deploys
+    profiles/rules/agents/skills using existing copy_* functions.
+
+    On failure for one repo, logs the error and continues to the next.
+
+    Args:
+        primary_root: Root of the primary repo.
+        config: The primary repo's dotnet-ai-kit configuration.
+        tool_version: Current tool version string.
+        package_dir: The dotnet-ai-kit package installation directory.
+        branch_name: Git branch name for commits in secondary repos.
+        dry_run: If True, skip actual deployment and git operations.
+
+    Returns:
+        List of result dicts with keys: repo, status, reason.
+    """
+    import logging
+    import subprocess
+
+    import yaml
+
+    from dotnet_ai_kit.agents import get_agent_config
+
+    logger = logging.getLogger(__name__)
+    results: list[dict[str, str]] = []
+
+    repo_fields = ["command", "query", "processor", "gateway", "controlpanel"]
+
+    for role in repo_fields:
+        repo_path_str = getattr(config.repos, role, None)
+        if not repo_path_str:
+            continue
+
+        # Skip remote repos
+        if repo_path_str.startswith("github:"):
+            logger.warning(
+                "Skipping remote repo %s (%s) — not cloned locally.",
+                role,
+                repo_path_str,
+            )
+            results.append(
+                {
+                    "repo": repo_path_str,
+                    "status": "skipped",
+                    "reason": "remote URL",
+                }
+            )
+            continue
+
+        repo_path = Path(repo_path_str)
+        if not repo_path.is_dir():
+            logger.warning("Cannot access %s — not found.", repo_path)
+            results.append(
+                {
+                    "repo": str(repo_path),
+                    "status": "skipped",
+                    "reason": "directory not found",
+                }
+            )
+            continue
+
+        try:
+            # Check initialization
+            config_path = repo_path / ".dotnet-ai-kit" / "config.yml"
+            project_yml = repo_path / ".dotnet-ai-kit" / "project.yml"
+            if not config_path.is_file() or not project_yml.is_file():
+                msg = f"Run 'dotnet-ai init' and '/dai.detect' in {repo_path} first."
+                logger.warning(msg)
+                results.append(
+                    {
+                        "repo": str(repo_path),
+                        "status": "skipped",
+                        "reason": "not initialized",
+                    }
+                )
+                continue
+
+            # Version check
+            version_path = repo_path / ".dotnet-ai-kit" / "version.txt"
+            secondary_version = ""
+            if version_path.is_file():
+                secondary_version = version_path.read_text(encoding="utf-8").strip()
+
+            if secondary_version and parse_version(secondary_version) > parse_version(tool_version):
+                msg = f"Secondary repo {repo_path} has newer version {secondary_version}."
+                logger.warning(msg)
+                results.append(
+                    {
+                        "repo": str(repo_path),
+                        "status": "skipped",
+                        "reason": "newer version",
+                    }
+                )
+                continue
+
+            if dry_run:
+                results.append(
+                    {
+                        "repo": str(repo_path),
+                        "status": "dry-run",
+                        "reason": "would deploy",
+                    }
+                )
+                continue
+
+            # Check for dirty working directory
+            git_status = subprocess.run(
+                ["git", "status", "--porcelain"],
+                cwd=repo_path,
+                capture_output=True,
+                text=True,
+            )
+            if git_status.stdout.strip():
+                logger.warning("Skipping %s — dirty working directory.", repo_path)
+                results.append(
+                    {
+                        "repo": str(repo_path),
+                        "status": "skipped",
+                        "reason": "dirty working directory",
+                    }
+                )
+                continue
+
+            # Read secondary project type
+            proj_data = yaml.safe_load(project_yml.read_text(encoding="utf-8")) or {}
+            sec_project_type = proj_data.get("project_type", "generic")
+            sec_confidence = proj_data.get("confidence", "low")
+            # Create branch
+            subprocess.run(
+                ["git", "checkout", "-b", branch_name],
+                cwd=repo_path,
+                capture_output=True,
+                text=True,
+            )
+            # If branch exists, just checkout
+            subprocess.run(
+                ["git", "checkout", branch_name],
+                cwd=repo_path,
+                capture_output=True,
+                text=True,
+            )
+
+            # Read secondary detected_paths for skill token resolution
+            sec_detected_paths = proj_data.get("detected_paths")
+
+            # Deploy full tooling stack for each configured AI tool
+            commands_dir = package_dir / "commands"
+            rules_dir_src = package_dir / "rules"
+            skills_dir_src = package_dir / "skills"
+            agents_dir_src = package_dir / "agents"
+
+            # Load secondary config once — used for command_style and ai_tools
+            _sec_raw = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+            sec_style = _sec_raw.get("command_style", "both")
+            sec_ai_tools: list[str] = _sec_raw.get("ai_tools") or config.ai_tools
+
+            for tool_name in sec_ai_tools:
+                try:
+                    tool_config = get_agent_config(tool_name)
+                except ValueError:
+                    continue
+
+                # Deploy commands — use secondary repo's own command_style
+                if commands_dir.is_dir():
+                    sec_config = config.model_copy()
+                    sec_config.command_style = sec_style
+                    copy_commands(
+                        commands_dir,
+                        repo_path,
+                        tool_config,
+                        sec_config,
+                    )
+
+                # Deploy rules
+                if rules_dir_src.is_dir():
+                    copy_rules(rules_dir_src, repo_path, tool_config)
+
+                # Deploy profile
+                copy_profile(
+                    repo_path,
+                    tool_name,
+                    sec_project_type,
+                    package_dir,
+                    confidence=sec_confidence,
+                )
+
+                # Deploy skills
+                if skills_dir_src.is_dir():
+                    copy_skills(
+                        skills_dir_src,
+                        repo_path,
+                        tool_config,
+                        detected_paths=sec_detected_paths,
+                    )
+
+                # Deploy agents
+                if agents_dir_src.is_dir():
+                    copy_agents(
+                        agents_dir_src,
+                        repo_path,
+                        tool_config,
+                        tool_name=tool_name,
+                    )
+
+                # Deploy hook (Claude only)
+                if tool_name == "claude":
+                    rules_dir = tool_config.get("rules_dir", ".claude/rules")
+                    profile_deployed = repo_path / rules_dir / "architecture-profile.md"
+                    if profile_deployed.is_file():
+                        copy_hook(repo_path, profile_deployed, package_dir)
+
+            # Write linked_from to secondary config
+            sec_config_data = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+            sec_config_data["linked_from"] = str(primary_root)
+            config_path.write_text(
+                yaml.dump(sec_config_data, default_flow_style=False),
+                encoding="utf-8",
+            )
+
+            # Update version
+            version_path.parent.mkdir(parents=True, exist_ok=True)
+            version_path.write_text(tool_version, encoding="utf-8")
+
+            # Stage and commit — use secondary's ai_tools to determine directories
+            staged_dirs: set[str] = {".dotnet-ai-kit/"}
+            for _tool in sec_ai_tools:
+                try:
+                    _tc = get_agent_config(_tool)
+                    for _key in ("rules_dir", "commands_dir", "skills_dir", "agents_dir"):
+                        _d = _tc.get(_key, "")
+                        if _d:
+                            staged_dirs.add(_d.split("/")[0] + "/")
+                except ValueError:
+                    pass
+            subprocess.run(
+                ["git", "add"] + sorted(staged_dirs),
+                cwd=repo_path,
+                capture_output=True,
+                text=True,
+            )
+            subprocess.run(
+                ["git", "commit", "-m", "chore: deploy dotnet-ai-kit tooling"],
+                cwd=repo_path,
+                capture_output=True,
+                text=True,
+            )
+
+            was_upgraded = secondary_version and parse_version(secondary_version) < parse_version(
+                tool_version
+            )
+            action = "upgraded" if was_upgraded else "deployed"
+            results.append({"repo": str(repo_path), "status": action, "reason": "success"})
+
+        except Exception as exc:
+            logger.error("Failed to deploy to %s: %s", repo_path, exc)
+            results.append({"repo": str(repo_path), "status": "failed", "reason": str(exc)})
+
+    return results
 
 
 def scaffold_project(

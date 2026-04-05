@@ -8,6 +8,7 @@ description: >
 metadata:
   category: microservice/gateway
   agent: gateway-architect
+  when-to-use: "When configuring Scalar API documentation or OpenAPI doc entries for gateway endpoints"
 ---
 
 # Scalar Docs — API Documentation & Rate Limiting

@@ -7,6 +7,7 @@ description: >
 metadata:
   category: observability
   agent: devops-engineer
+  when-to-use: "When configuring OpenTelemetry tracing, metrics, or OTLP exporters"
 ---
 
 # OpenTelemetry Traces & Metrics

@@ -7,6 +7,7 @@ description: >
 metadata:
   category: devops
   agent: devops-engineer
+  when-to-use: "When configuring .NET Aspire orchestration, AppHost, or service defaults"
 ---
 
 # Aspire Orchestration — Local Development

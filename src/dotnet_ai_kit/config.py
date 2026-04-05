@@ -46,7 +46,13 @@ def load_config(path: Path) -> DotnetAiConfig:
         raise FileNotFoundError(f"Configuration file not found: {path}")
 
     text = path.read_text(encoding="utf-8")
-    data = yaml.safe_load(text)
+    try:
+        data = yaml.safe_load(text)
+    except yaml.YAMLError as exc:
+        raise ValueError(
+            f"Invalid YAML syntax in {path}: {exc}. "
+            "Fix the file manually or run 'dotnet-ai configure --reset'."
+        ) from exc
 
     if data is None:
         data = {}
@@ -80,7 +86,9 @@ def save_config(config: DotnetAiConfig, path: Path) -> None:
         allow_unicode=True,
     )
 
-    path.write_text(text, encoding="utf-8")
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(text, encoding="utf-8")
+    tmp.replace(path)
 
 
 def load_project(path: Path) -> DetectedProject:
@@ -142,4 +150,6 @@ def save_project(project: DetectedProject, path: Path) -> None:
         allow_unicode=True,
     )
 
-    path.write_text(text, encoding="utf-8")
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(text, encoding="utf-8")
+    tmp.replace(path)

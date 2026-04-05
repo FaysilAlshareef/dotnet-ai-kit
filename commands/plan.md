@@ -7,6 +7,16 @@ description: "Generates an implementation plan from the spec. Use when ready to 
 You are an AI coding assistant executing the `/dotnet-ai.plan` command.
 Your job is to create a detailed implementation plan from an existing feature spec.
 
+## Usage
+
+```
+/dotnet-ai.plan $ARGUMENTS
+```
+
+**Examples:**
+- (no args) — Generate implementation plan from current spec
+- `--dry-run` — Preview plan structure without writing files
+
 ## Input
 
 Flags: `--dry-run` (preview without writing), `--verbose` (diagnostic output)
@@ -83,7 +93,18 @@ Load `skills/workflow/plan-templates/SKILL.md` for mode-specific plan structure.
 Load `skills/workflow/plan-artifacts/SKILL.md` for research.md, data-model.md,
 contracts/, and quickstart.md generation guidance.
 
-## Step 7b: Update Projected Briefs (microservice mode)
+## Step 7b: Generate Event Flow (microservice mode)
+
+For microservice mode projects with inter-service communication:
+1. Generate `event-flow.md` in the feature directory
+2. Document each inter-service event:
+   - **Event name**: Domain event class name
+   - **Producer**: Service that publishes the event
+   - **Consumer(s)**: Service(s) that subscribe
+   - **Payload schema**: Key fields in the event payload
+3. Include event ordering and idempotency notes where relevant
+
+## Step 7c: Update Projected Briefs (microservice mode)
 
 For each secondary repo with an existing brief in `.dotnet-ai-kit/briefs/{source-repo-name}/{NNN}-{name}/`:
 1. Append or update "Implementation Approach" section with architecture decisions relevant to that repo.
@@ -111,6 +132,19 @@ Next: /dotnet-ai.tasks or /dotnet-ai.analyze
 ## Dry-Run Behavior
 
 When `--dry-run`: print plan content, show file paths, do NOT write files, prefix `[DRY-RUN]`.
+
+## Secondary Repo Branch Safety
+
+When updating projected briefs in linked secondary repos:
+1. Read linked repos from `.dotnet-ai-kit/config.yml` repos section
+2. For each linked repo with a local path:
+   - Run `git -C {repo_path} rev-parse --abbrev-ref HEAD` to check current branch
+   - If on main/master/develop: run `git -C {repo_path} checkout -b chore/brief-{NNN}-{name}`
+   - If `chore/brief-{NNN}-{name}` already exists: run `git -C {repo_path} checkout chore/brief-{NNN}-{name}` (reuse the branch created by specify)
+   - If working directory dirty (`git -C {repo_path} status --porcelain` returns output): warn and skip
+3. After writing the brief file, stage and commit on the chore branch
+4. NEVER commit directly to main, master, or develop branches
+5. Optionally offer PR creation for the chore branch
 
 ## Error Handling
 

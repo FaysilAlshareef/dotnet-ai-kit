@@ -7,6 +7,7 @@ description: >
 metadata:
   category: api
   agent: api-designer
+  when-to-use: "When designing gRPC APIs, proto file conventions, or gRPC-Web configuration"
 ---
 
 # gRPC API Design for .NET
@@ -397,4 +398,3 @@ Map domain exceptions to gRPC status codes via interceptor (see `skills/microser
 | Ignoring deadlines | Cascading timeouts across services | Always set and propagate deadlines |
 | Returning internal errors verbatim | Leaks stack traces and implementation details | Map to status codes, log internally |
 | Synchronous blocking in async RPCs | Thread pool starvation under load | Use `async`/`await` throughout |
-| Skipping health checks | Load balancer cannot route away from failures | Implement `Grpc.HealthCheck` |

@@ -9,7 +9,7 @@ Each rule file includes YAML frontmatter with `alwaysApply: true` and a `descrip
 
 ---
 
-## Rule Files (15 rules)
+## Rule Files (16 rules)
 
 ### 1. `.claude/rules/naming.md` - Naming Conventions
 
@@ -261,7 +261,8 @@ description: Rules for working with existing codebases - detect, respect, extend
 | error-handling.md | ~55 | Mode-aware error patterns (microservice vs generic) |
 | architecture.md | ~80 | Multi-architecture layer boundaries |
 | existing-projects.md | ~65 | Detect & respect existing codebases |
-| **TOTAL** | **~380** | Max budget: 900 lines |
+| multi-repo.md | ~46 | Event contract ownership, cross-repo branch naming, deploy order, no circular deps |
+| **TOTAL** | **~826** | Max budget: 900 lines (16 × avg ~52 lines) |
 
 ---
 

@@ -7,6 +7,8 @@ description: >
 metadata:
   category: testing
   agent: test-engineer
+  when-to-use: "When writing integration tests with WebApplicationFactory"
+  paths: "${detected_paths.test_live}/**/*.cs"
 ---
 
 # Integration Testing — WebApplicationFactory & TestContainers

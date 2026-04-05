@@ -7,6 +7,7 @@ description: >
 metadata:
   category: microservice/controlpanel
   agent: controlpanel-architect
+  when-to-use: "When creating or modifying gateway facade classes or typed HttpClient wrappers"
 ---
 
 # Gateway Facade — Typed HttpClient Wrappers

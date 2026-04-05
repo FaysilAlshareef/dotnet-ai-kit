@@ -8,6 +8,7 @@ description: >
 metadata:
   category: microservice/command
   agent: test-engineer
+  when-to-use: "When writing tests for event-sourced aggregates"
 ---
 
 # Aggregate Testing -- CustomConstructorFaker and Test Patterns

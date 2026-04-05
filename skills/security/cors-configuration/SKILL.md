@@ -7,6 +7,7 @@ description: >
 metadata:
   category: security
   agent: api-designer
+  when-to-use: "When configuring CORS policies, allowed origins, or preflight request handling"
 ---
 
 # CORS Configuration

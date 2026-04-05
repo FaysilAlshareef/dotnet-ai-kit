@@ -7,6 +7,7 @@ description: >
 metadata:
   category: infra
   agent: dotnet-architect
+  when-to-use: "When implementing email service abstraction or notification templates"
 ---
 
 # Email Notifications — Service Abstraction & Templates

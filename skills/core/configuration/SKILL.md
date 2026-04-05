@@ -7,6 +7,7 @@ description: >
 metadata:
   category: core
   agent: dotnet-architect
+  when-to-use: "When configuring IOptions pattern, appsettings layering, or ValidateOnStart"
 ---
 
 # Configuration & Options Pattern

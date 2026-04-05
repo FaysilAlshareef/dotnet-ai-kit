@@ -6,6 +6,7 @@ description: >
 metadata:
   category: data
   agent: ef-specialist
+  when-to-use: "When implementing audit trail with IAuditable interface or EF Core interceptor"
 ---
 
 # Audit Trail

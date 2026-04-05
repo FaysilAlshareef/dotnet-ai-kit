@@ -7,6 +7,7 @@ description: >
 metadata:
   category: resilience
   agent: api-designer
+  when-to-use: "When implementing circuit breaker pattern to prevent cascading failures"
 ---
 
 # Circuit Breaker Pattern

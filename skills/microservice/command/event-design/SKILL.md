@@ -8,6 +8,8 @@ description: >
 metadata:
   category: microservice/command
   agent: command-architect
+  when-to-use: "When creating or modifying domain events, event data records, EventType enums"
+  paths: "${detected_paths.events}/**/*.cs"
 ---
 
 # Event Design -- Event Hierarchy Pattern

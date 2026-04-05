@@ -7,6 +7,7 @@ description: >
 metadata:
   category: docs
   agent: docs-engineer
+  when-to-use: "When writing or reviewing Architecture Decision Records"
 ---
 
 # ADR — Architecture Decision Records

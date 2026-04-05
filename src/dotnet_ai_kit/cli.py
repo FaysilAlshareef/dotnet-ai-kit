@@ -9,6 +9,7 @@ from __future__ import annotations
 import json
 import os
 import shutil
+import subprocess
 from pathlib import Path
 from typing import Optional
 
@@ -34,19 +35,24 @@ from dotnet_ai_kit.copier import (
     copy_commands,
     copy_commands_codex,
     copy_commands_cursor,
+    copy_hook,
     copy_permissions,
+    copy_profile,
     copy_rules,
     copy_skills,
+    deploy_to_linked_repos,
     verify_permissions,
 )
 from dotnet_ai_kit.detection import describe_architecture
 from dotnet_ai_kit.extensions import (
+    CatalogInstallError,
     ExtensionError,
     install_extension,
     list_extensions,
     remove_extension,
 )
 from dotnet_ai_kit.models import DetectedProject, DotnetAiConfig
+from dotnet_ai_kit.utils import HOOK_MODEL, HOOK_TIMEOUT_MS
 
 # All valid --type values for init
 _VALID_PROJECT_TYPES = {
@@ -162,6 +168,66 @@ def _verbose_log(verbose: bool, message: str) -> None:
         console.print(f"  [dim]{message}[/dim]")
 
 
+def _get_tool_status(tool_name: str, tool_config: dict, target: Path) -> dict:
+    """Collect deployment status for a single AI tool.
+
+    Returns a dict with keys: commands, rules, skills, agents, profile, hook.
+    """
+    cmd_dir_rel = tool_config.get("commands_dir")
+    rules_dir_rel = tool_config.get("rules_dir")
+    skills_dir_rel = tool_config.get("skills_dir")
+    agents_dir_rel = tool_config.get("agents_dir")
+
+    cmd_count = 0
+    rule_count = 0
+    skill_count = 0
+    agent_count = 0
+
+    if cmd_dir_rel:
+        cmd_dir = target / cmd_dir_rel
+        if cmd_dir.is_dir():
+            cmd_count = len(list(cmd_dir.iterdir()))
+    if rules_dir_rel:
+        rules_dir = target / rules_dir_rel
+        if rules_dir.is_dir():
+            rule_count = len(list(rules_dir.iterdir()))
+    if skills_dir_rel:
+        skills_path = target / skills_dir_rel
+        if skills_path.is_dir():
+            skill_count = len(list(skills_path.glob("**/SKILL.md")))
+    if agents_dir_rel:
+        agents_path = target / agents_dir_rel
+        if agents_path.is_dir():
+            agent_count = len(list(agents_path.glob("*.md")))
+
+    has_profile = bool(
+        rules_dir_rel and (target / rules_dir_rel / "architecture-profile.md").is_file()
+    )
+
+    has_hook = False
+    if tool_name == "claude":
+        settings_path = target / ".claude" / "settings.json"
+        if settings_path.is_file():
+            try:
+                settings_data = json.loads(settings_path.read_text(encoding="utf-8"))
+                pre_tool_use = settings_data.get("hooks", {}).get("PreToolUse", [])
+                for entry in pre_tool_use:
+                    if isinstance(entry, dict) and entry.get("_source") == "dotnet-ai-kit-arch":
+                        has_hook = True
+                        break
+            except (json.JSONDecodeError, AttributeError):
+                pass
+
+    return {
+        "commands": cmd_count,
+        "rules": rule_count,
+        "skills": skill_count,
+        "agents": agent_count,
+        "profile": has_profile,
+        "hook": has_hook,
+    }
+
+
 # Tool install URLs for pre-flight validation
 _TOOL_INSTALL_URLS: dict[str, str] = {
     "dotnet": "https://dot.net/download",
@@ -259,9 +325,20 @@ def init(
         "-n",
         help="Preview without making changes.",
     ),
+    permissions: Optional[str] = typer.Option(
+        None,
+        "--permissions",
+        help="Permission level (minimal/standard/full).",
+    ),
 ) -> None:
     """Initialize dotnet-ai-kit in a .NET project directory."""
     target = path.resolve()
+
+    # Validate --permissions value
+    if permissions is not None and permissions.lower() not in ("minimal", "standard", "full"):
+        raise typer.BadParameter(
+            f"Invalid permissions level '{permissions}'. Choose from: minimal, standard, full"
+        )
 
     # Validate --type value
     if project_type and project_type.lower() not in _VALID_PROJECT_TYPES:
@@ -329,12 +406,9 @@ def init(
     else:
         ai_tools = detect_ai_tools(target)
         if not ai_tools:
-            err_console.print(
-                "\n[yellow]No AI tool detected. Use --ai flag "
-                "(e.g., --ai claude). "
-                "Example: dotnet-ai init --ai claude[/yellow]"
-            )
-            raise typer.Exit(code=3)
+            ai_tools = ["claude"]
+            if not json_output:
+                console.print("\n[dim]No AI tool detected. Defaulting to Claude Code.[/dim]")
 
     _verbose_log(verbose, f"AI tools: {', '.join(ai_tools)}")
 
@@ -369,6 +443,8 @@ def init(
             config = DotnetAiConfig(ai_tools=ai_tools)
     else:
         config = DotnetAiConfig(ai_tools=ai_tools)
+    if permissions is not None:
+        config.permissions_level = permissions.lower()
     save_config(config, config_path)
     if not json_output:
         console.print(f"  Created: {config_path.relative_to(target)}")
@@ -390,6 +466,18 @@ def init(
     skills_source = _find_skills_source()
     agents_source = _find_agents_source()
     is_plugin = _detect_plugin_mode()
+
+    # Load detected_paths from project.yml for skill token resolution
+    _init_detected_paths = None
+    _init_project_yml = target / ".dotnet-ai-kit" / "project.yml"
+    if _init_project_yml.is_file():
+        try:
+            import yaml
+
+            _init_proj = yaml.safe_load(_init_project_yml.read_text(encoding="utf-8")) or {}
+            _init_detected_paths = _init_proj.get("detected_paths")
+        except Exception as exc:
+            _verbose_log(verbose, f"Skipping detected paths from project.yml: {exc}")
 
     total_cmds = 0
     total_rules = 0
@@ -419,15 +507,29 @@ def init(
             cmd_count = copy_commands_codex(commands_source, target, tool_config)
         else:
             cmd_count = copy_commands(
-                commands_source, target, tool_config, config, is_plugin=is_plugin,
+                commands_source,
+                target,
+                tool_config,
+                config,
+                is_plugin=is_plugin,
             )
             rule_count = copy_rules(rules_source, target, tool_config)
 
         # Copy skills and agents for all tools
         if skills_source.is_dir():
-            skill_count = copy_skills(skills_source, target, tool_config)
+            skill_count = copy_skills(
+                skills_source,
+                target,
+                tool_config,
+                detected_paths=_init_detected_paths,
+            )
         if agents_source.is_dir():
-            agent_count = copy_agents(agents_source, target, tool_config)
+            agent_count = copy_agents(
+                agents_source,
+                target,
+                tool_config,
+                tool_name=tool_name,
+            )
 
         total_cmds += cmd_count
         total_rules += rule_count
@@ -446,6 +548,40 @@ def init(
                 console.print(f"  Copied: {skill_count} skills -> {tool_config['skills_dir']}")
             if agent_count and tool_config.get("agents_dir"):
                 console.print(f"  Copied: {agent_count} agents -> {tool_config['agents_dir']}")
+
+    # Step 7b: Deploy architecture profile and hook (if project type known)
+    _init_project_type = project_type
+    if not _init_project_type and detected:
+        _init_project_type = detected.project_type
+    _init_confidence = "high" if project_type else (detected.confidence if detected else "low")
+
+    _init_profile_path = None
+    if _init_project_type:
+        for tool_name in ai_tools:
+            try:
+                profile_path = copy_profile(
+                    target,
+                    tool_name,
+                    _init_project_type,
+                    _get_package_dir(),
+                    confidence=_init_confidence,
+                )
+                if profile_path and not json_output:
+                    console.print(
+                        f"  Profile: {_init_project_type} -> {profile_path.relative_to(target)}"
+                    )
+                if profile_path and tool_name == "claude":
+                    _init_profile_path = profile_path
+            except (FileNotFoundError, ValueError):
+                pass  # Profile not available — skip silently
+
+        if _init_profile_path and "claude" in ai_tools:
+            try:
+                if copy_hook(target, _init_profile_path, _get_package_dir()):
+                    if not json_output:
+                        console.print("  Hook: architecture enforcement hook deployed")
+            except Exception as exc:
+                _verbose_log(verbose, f"Skipping hook deployment: {exc}")
 
     # Step 8: Apply permissions to .claude/settings.json
     try:
@@ -588,24 +724,42 @@ def check(
                 tools_status[tool_name] = {"status": "unknown"}
                 continue
 
-            cmd_dir_rel = tool_config.get("commands_dir")
-            rules_dir_rel = tool_config.get("rules_dir")
-            cmd_count = 0
-            rule_count = 0
-            if cmd_dir_rel:
-                cmd_dir = target / cmd_dir_rel
-                if cmd_dir.is_dir():
-                    cmd_count = len(list(cmd_dir.iterdir()))
-            if rules_dir_rel:
-                rules_dir = target / rules_dir_rel
-                if rules_dir.is_dir():
-                    rule_count = len(list(rules_dir.iterdir()))
+            ts = _get_tool_status(tool_name, tool_config, target)
             tools_status[tool_name] = {
-                "status": "configured" if (cmd_count + rule_count) > 0 else "empty",
-                "commands": cmd_count,
-                "rules": rule_count,
+                "status": "configured" if (ts["commands"] + ts["rules"]) > 0 else "empty",
+                **ts,
             }
         data["tools"] = tools_status
+
+        # Top-level: linked_from
+        data["linked_from"] = getattr(config, "linked_from", None)
+
+        # Top-level: detected_paths
+        data["detected_paths"] = detected.detected_paths if detected else None
+
+        # Top-level: linked_repos
+        repo_roles_json = {
+            "command": config.repos.command,
+            "query": config.repos.query,
+            "processor": config.repos.processor,
+            "gateway": config.repos.gateway,
+            "controlpanel": config.repos.controlpanel,
+        }
+        linked_repos_list = []
+        for role, repo_path_val in repo_roles_json.items():
+            if repo_path_val:
+                if repo_path_val.startswith("github:"):
+                    status_str = "remote"
+                else:
+                    status_str = "exists" if Path(repo_path_val).is_dir() else "missing"
+                linked_repos_list.append(
+                    {
+                        "role": role,
+                        "path": repo_path_val,
+                        "status": status_str,
+                    }
+                )
+        data["linked_repos"] = linked_repos_list
 
         print(json.dumps(data))
         return
@@ -623,37 +777,51 @@ def check(
     table.add_column("Status")
     table.add_column("Commands")
     table.add_column("Rules")
+    table.add_column("Skills")
+    table.add_column("Agents")
+    table.add_column("Profile")
+    table.add_column("Hook")
 
     for tool_name in config.ai_tools:
         try:
             tool_config = get_agent_config(tool_name)
         except ValueError:
-            table.add_row(tool_name, "[red]unknown[/red]", "-", "-")
+            table.add_row(tool_name, "[red]unknown[/red]", "-", "-", "-", "-", "\u2014", "\u2014")
             continue
 
         display = tool_config.get("name", tool_name)
-        cmd_dir_rel = tool_config.get("commands_dir")
-        rules_dir_rel = tool_config.get("rules_dir")
+        ts = _get_tool_status(tool_name, tool_config, target)
 
-        cmd_count = 0
-        rule_count = 0
-
-        if cmd_dir_rel:
-            cmd_dir = target / cmd_dir_rel
-            if cmd_dir.is_dir():
-                cmd_count = len(list(cmd_dir.iterdir()))
-
-        if rules_dir_rel:
-            rules_dir = target / rules_dir_rel
-            if rules_dir.is_dir():
-                rule_count = len(list(rules_dir.iterdir()))
-
-        is_configured = (cmd_count + rule_count) > 0
+        is_configured = (ts["commands"] + ts["rules"]) > 0
         status = "[green]configured[/green]" if is_configured else "[yellow]empty[/yellow]"
-        table.add_row(display, status, str(cmd_count), str(rule_count))
+        profile_str = "deployed" if ts["profile"] else "\u2014"
+        hook_str = "deployed" if ts["hook"] else "\u2014"
+        table.add_row(
+            display,
+            status,
+            str(ts["commands"]),
+            str(ts["rules"]),
+            str(ts["skills"]),
+            str(ts["agents"]),
+            profile_str,
+            hook_str,
+        )
 
     console.print(table)
     console.print()
+
+    if verbose:
+        for tool_name in config.ai_tools:
+            try:
+                tool_config = get_agent_config(tool_name)
+            except ValueError:
+                continue
+            ts = _get_tool_status(tool_name, tool_config, target)
+            rules_dir = tool_config.get("rules_dir", "")
+            if ts["profile"]:
+                console.print(f"  Profile: {rules_dir}/architecture-profile.md")
+            if ts["hook"] and tool_name == "claude":
+                console.print(f"  Hook: model={HOOK_MODEL}, timeout={HOOK_TIMEOUT_MS // 1000}s")
 
     # Extensions
     extensions = list_extensions(target)
@@ -698,6 +866,41 @@ def check(
     config_panel_lines.append(f"  Repos: {repos_configured} of 5 configured")
     config_panel_lines.append(f"  Permissions: {config.permissions_level}")
 
+    # Linked from
+    linked_from_val = getattr(config, "linked_from", None)
+    if linked_from_val:
+        config_panel_lines.append(f"  [green]Linked from:[/green] {linked_from_val}")
+    else:
+        config_panel_lines.append("  Linked from: N/A")
+
+    # Detected paths
+    if detected and detected.detected_paths:
+        dp_count = len(detected.detected_paths)
+        config_panel_lines.append(f"  Detected paths: {dp_count} categories")
+    else:
+        config_panel_lines.append("  Detected paths: not detected")
+
+    # Linked repos — per-role status
+    repo_roles = {
+        "command": config.repos.command,
+        "query": config.repos.query,
+        "processor": config.repos.processor,
+        "gateway": config.repos.gateway,
+        "controlpanel": config.repos.controlpanel,
+    }
+    linked_repo_lines = []
+    for role, repo_path_val in repo_roles.items():
+        if repo_path_val:
+            if repo_path_val.startswith("github:"):
+                linked_repo_lines.append(f"    {role}: {repo_path_val} (remote)")
+            else:
+                exists = Path(repo_path_val).is_dir()
+                status_label = "[green]exists[/green]" if exists else "[red]missing[/red]"
+                linked_repo_lines.append(f"    {role}: {repo_path_val} ({status_label})")
+    if linked_repo_lines:
+        config_panel_lines.append("  Linked repos:")
+        config_panel_lines.extend(linked_repo_lines)
+
     console.print(Panel("\n".join(config_panel_lines), title="Config"))
     console.print()
 
@@ -718,9 +921,7 @@ def check(
                     "  Fix: Run 'dotnet-ai upgrade --force' or 'dotnet-ai configure'"
                 )
             elif verbose:
-                console.print(
-                    f"  [green]Permissions OK:[/green] {verify_result['actual']}"
-                )
+                console.print(f"  [green]Permissions OK:[/green] {verify_result['actual']}")
     elif not settings_path.is_file() and config.permissions_level:
         err_console.print(
             "[yellow]settings.json not found — permissions not applied.\n"
@@ -854,6 +1055,21 @@ def upgrade(
         console.print("\n[dim]No changes were made (dry run).[/dim]")
         return
 
+    # Load detected_paths for skill token resolution
+    _upg_detected_paths = None
+    _upg_project_yml = target / ".dotnet-ai-kit" / "project.yml"
+    if _upg_project_yml.is_file():
+        try:
+            import yaml
+
+            _upg_proj = yaml.safe_load(_upg_project_yml.read_text(encoding="utf-8")) or {}
+            _upg_detected_paths = _upg_proj.get("detected_paths")
+        except Exception as exc:
+            err_console.print(
+                f"[yellow]Warning: Failed to load detected paths: {exc}. "
+                "Run 'dotnet-ai configure' to retry.[/yellow]"
+            )
+
     total_cmds = 0
     total_rules = 0
     total_skills = 0
@@ -897,15 +1113,88 @@ def upgrade(
             total_cmds += copy_commands_codex(commands_source, target, tool_config)
         else:
             total_cmds += copy_commands(
-                commands_source, target, tool_config, config, is_plugin=is_plugin,
+                commands_source,
+                target,
+                tool_config,
+                config,
+                is_plugin=is_plugin,
             )
             total_rules += copy_rules(rules_source, target, tool_config)
 
         # Re-copy skills and agents for all tools
         if skills_source.is_dir():
-            total_skills += copy_skills(skills_source, target, tool_config)
+            total_skills += copy_skills(
+                skills_source,
+                target,
+                tool_config,
+                detected_paths=_upg_detected_paths,
+            )
         if agents_source.is_dir():
-            total_agents += copy_agents(agents_source, target, tool_config)
+            total_agents += copy_agents(
+                agents_source,
+                target,
+                tool_config,
+                tool_name=tool_name,
+            )
+
+    # Deploy architecture profile and hook
+    _upgrade_profile_path = None
+    project_yml = target / ".dotnet-ai-kit" / "project.yml"
+    if project_yml.is_file():
+        try:
+            import yaml
+
+            project_data = yaml.safe_load(project_yml.read_text(encoding="utf-8")) or {}
+            _project_type = project_data.get("project_type", "generic")
+            _confidence = project_data.get("confidence", "low")
+            for tool_name in config.ai_tools:
+                try:
+                    _p = copy_profile(
+                        target,
+                        tool_name,
+                        _project_type,
+                        _get_package_dir(),
+                        confidence=_confidence,
+                    )
+                    if _p and tool_name == "claude":
+                        _upgrade_profile_path = _p
+                except (FileNotFoundError, ValueError):
+                    pass
+        except Exception as exc:
+            err_console.print(
+                f"[yellow]Warning: Profile deployment failed: {exc}. "
+                "Run 'dotnet-ai configure' to retry.[/yellow]"
+            )
+
+    if _upgrade_profile_path and "claude" in config.ai_tools:
+        try:
+            copy_hook(target, _upgrade_profile_path, _get_package_dir())
+        except Exception as exc:
+            err_console.print(
+                f"[yellow]Warning: Hook deployment failed: {exc}. "
+                "Run 'dotnet-ai configure' to retry.[/yellow]"
+            )
+
+    # Deploy tooling to linked secondary repos (FR-012)
+    has_local_repos = any(
+        getattr(config.repos, r, None) and not getattr(config.repos, r, "").startswith("github:")
+        for r in ("command", "query", "processor", "gateway", "controlpanel")
+    )
+    if has_local_repos:
+        upgrade_branch = f"chore/dotnet-ai-kit-upgrade-{__version__}"
+        try:
+            deploy_to_linked_repos(
+                target,
+                config,
+                __version__,
+                _get_package_dir(),
+                branch_name=upgrade_branch,
+            )
+        except Exception as exc:
+            err_console.print(
+                f"[yellow]Warning: Multi-repo deployment failed: {exc}. "
+                "Run 'dotnet-ai configure' to retry.[/yellow]"
+            )
 
     # Update version file
     version_path.write_text(__version__, encoding="utf-8")
@@ -994,9 +1283,7 @@ def _scan_sibling_repos(target: Path) -> dict[str, str]:
             continue
         # Check for .sln, .slnx, or .csproj
         has_dotnet = (
-            any(child.glob("*.sln"))
-            or any(child.glob("*.slnx"))
-            or any(child.glob("**/*.csproj"))
+            any(child.glob("*.sln")) or any(child.glob("*.slnx")) or any(child.glob("**/*.csproj"))
         )
         if not has_dotnet:
             continue
@@ -1029,7 +1316,6 @@ def _configure_repos(
     verbose: bool,
 ) -> None:
     """Interactive repo configuration with auto-detection."""
-    from dotnet_ai_kit.models import DotnetAiConfig  # noqa: F811
 
     detected = _scan_sibling_repos(target)
     if detected:
@@ -1141,6 +1427,14 @@ def configure(
 ) -> None:
     """Interactive configuration wizard."""
     target = Path(".").resolve()
+
+    # Guard: require init before configure (skip when --dry-run)
+    if not dry_run and not (target / ".dotnet-ai-kit").is_dir():
+        err_console.print(
+            "[red]dotnet-ai-kit is not initialized. "
+            "Run 'dotnet-ai init' first, then 'dotnet-ai configure'.[/red]"
+        )
+        raise typer.Exit(code=1)
 
     if not json_output:
         if dry_run:
@@ -1342,33 +1636,155 @@ def configure(
 
         if tool_name == "cursor":
             total_cmds += copy_commands_cursor(
-                commands_source, target, tool_config, rules_source,
+                commands_source,
+                target,
+                tool_config,
+                rules_source,
             )
         elif tool_name == "codex":
             total_cmds += copy_commands_codex(commands_source, target, tool_config)
         else:
             total_cmds += copy_commands(
-                commands_source, target, tool_config, config, is_plugin=is_plugin,
+                commands_source,
+                target,
+                tool_config,
+                config,
+                is_plugin=is_plugin,
             )
 
     if not json_output and total_cmds:
         console.print(f"  Commands: {total_cmds} files updated (style: {config.command_style})")
 
+    # Re-deploy rules, skills, and agents
+    skills_source = _find_skills_source()
+    agents_source = _find_agents_source()
+
+    # Load detected_paths for skill token resolution
+    _cfg_detected_paths = None
+    _cfg_project_yml = target / ".dotnet-ai-kit" / "project.yml"
+    if _cfg_project_yml.is_file():
+        try:
+            import yaml
+
+            _cfg_proj = yaml.safe_load(_cfg_project_yml.read_text(encoding="utf-8")) or {}
+            _cfg_detected_paths = _cfg_proj.get("detected_paths")
+        except Exception as exc:
+            _verbose_log(verbose, f"Skipping detected paths from project.yml: {exc}")
+
+    for tool_name in config.ai_tools:
+        try:
+            tool_config = get_agent_config(tool_name)
+        except ValueError:
+            continue
+
+        if tool_name not in ("cursor", "codex"):
+            copy_rules(rules_source, target, tool_config)
+
+        if skills_source.is_dir():
+            copy_skills(
+                skills_source,
+                target,
+                tool_config,
+                detected_paths=_cfg_detected_paths,
+            )
+        if agents_source.is_dir():
+            copy_agents(
+                agents_source,
+                target,
+                tool_config,
+                tool_name=tool_name,
+            )
+
+    if not json_output:
+        console.print("  Rules, skills, and agents refreshed.")
+
+    # Deploy architecture profile based on detected project type
+    project_yml = target / ".dotnet-ai-kit" / "project.yml"
+    project_type = "generic"
+    confidence = "low"
+    if project_yml.is_file():
+        try:
+            import yaml
+
+            project_data = yaml.safe_load(project_yml.read_text(encoding="utf-8")) or {}
+            project_type = project_data.get("project_type", "generic")
+            confidence = project_data.get("confidence", "low")
+        except Exception as exc:
+            _verbose_log(verbose, f"Skipping profile type from project.yml: {exc}")
+
+    _deployed_profile_path = None
+    for tool_name in config.ai_tools:
+        try:
+            profile_path = copy_profile(
+                target,
+                tool_name,
+                project_type,
+                _get_package_dir(),
+                confidence=confidence,
+            )
+            if profile_path and not json_output:
+                console.print(f"  Profile: {project_type} -> {profile_path.relative_to(target)}")
+            if profile_path and tool_name == "claude":
+                _deployed_profile_path = profile_path
+        except (FileNotFoundError, ValueError):
+            pass  # Profile not available yet — skip silently
+
+    # Deploy Claude Code prompt hook if profile was deployed
+    if _deployed_profile_path and "claude" in config.ai_tools:
+        try:
+            if copy_hook(target, _deployed_profile_path, _get_package_dir()):
+                if not json_output:
+                    console.print("  Hook: architecture enforcement hook deployed")
+        except Exception as exc:
+            _verbose_log(verbose, f"Skipping hook deployment: {exc}")
+
+    # Deploy tooling to linked secondary repos (FR-008)
+    has_local_repos = any(
+        getattr(config.repos, r, None) and not getattr(config.repos, r, "").startswith("github:")
+        for r in ("command", "query", "processor", "gateway", "controlpanel")
+    )
+    if has_local_repos:
+        try:
+            results = deploy_to_linked_repos(
+                target,
+                config,
+                __version__,
+                _get_package_dir(),
+            )
+            if not json_output:
+                for r in results:
+                    status_color = {
+                        "deployed": "green",
+                        "upgraded": "green",
+                        "skipped": "yellow",
+                        "failed": "red",
+                    }.get(r["status"], "dim")
+                    console.print(
+                        f"  Linked repo {r['repo']}: "
+                        f"[{status_color}]{r['status']}[/{status_color}]"
+                        f" ({r['reason']})"
+                    )
+        except Exception as exc:
+            if not json_output:
+                err_console.print(f"[yellow]Multi-repo deployment error: {exc}[/yellow]")
+
     # T051 - JSON output mode
     if json_output:
-        print(
-            json.dumps(
-                {
-                    "company": config.company.name,
-                    "github_org": config.company.github_org,
-                    "default_branch": config.company.default_branch,
-                    "permissions_level": config.permissions_level,
-                    "ai_tools": config.ai_tools,
-                    "command_style": config.command_style,
-                    "config_path": str(config_path),
-                }
-            )
-        )
+        data: dict = {
+            "company": config.company.name,
+            "github_org": config.company.github_org,
+            "default_branch": config.company.default_branch,
+            "permissions_level": config.permissions_level,
+            "ai_tools": config.ai_tools,
+            "command_style": config.command_style,
+            "config_path": str(config_path),
+            "status": "ok",
+        }
+        if config.permissions_level == "full":
+            data["warnings"] = [
+                "bypassPermissions enabled — all operations run without confirmation"
+            ]
+        print(json.dumps(data))
         return
 
     console.print(f"\n[green]Configuration saved to {config_path.relative_to(target)}[/green]\n")
@@ -1422,6 +1838,9 @@ def extension_add(
 
     try:
         manifest = install_extension(name, dev=dev, project_root=target)
+    except CatalogInstallError as exc:
+        console.print(f"[yellow]Note:[/yellow] {exc}")
+        raise typer.Exit(code=1)
     except ExtensionError as exc:
         err_console.print(f"[red]Error: {exc}[/red]")
         raise typer.Exit(code=1) from exc
@@ -1481,6 +1900,33 @@ def extension_list_cmd() -> None:
 
     console.print(table)
     console.print()
+
+
+@app.command("changelog")
+def changelog() -> None:
+    """Show project changelog or recent version tags."""
+    package_dir = _get_package_dir()
+    changelog_path = package_dir / "CHANGELOG.md"
+    if changelog_path.is_file():
+        console.print(changelog_path.read_text(encoding="utf-8"))
+        return
+    result = subprocess.run(
+        ["git", "tag", "--sort=-version:refname"],
+        capture_output=True,
+        text=True,
+    )
+    tags = [t for t in result.stdout.strip().splitlines() if t][:5]
+    if not tags:
+        console.print("No changelog available.")
+        return
+    for tag in tags:
+        date_result = subprocess.run(
+            ["git", "log", tag, "--format=%ai", "-1"],
+            capture_output=True,
+            text=True,
+        )
+        date_str = date_result.stdout.strip()[:10]
+        console.print(f"  {tag}  {date_str}")
 
 
 # T054 - Ctrl-C handler

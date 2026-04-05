@@ -7,6 +7,7 @@ description: >
 metadata:
   category: infra
   agent: dotnet-architect
+  when-to-use: "When implementing background jobs, recurring tasks, or fire-and-forget patterns"
 ---
 
 # Background Jobs — Hangfire & Hosted Services

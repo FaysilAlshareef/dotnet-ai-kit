@@ -8,6 +8,7 @@ description: >
 metadata:
   category: microservice/query
   agent: query-architect
+  when-to-use: "When creating or modifying Service Bus session-based listener services"
 ---
 
 # Listener Pattern — ServiceBusSessionProcessor + DLQ Processor

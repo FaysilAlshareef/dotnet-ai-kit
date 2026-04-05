@@ -6,6 +6,16 @@ description: "Generates a project constitution from detected patterns. Use when 
 
 Generate or update a project-specific constitution file.
 
+## Usage
+
+```
+/dotnet-ai.learn $ARGUMENTS
+```
+
+**Examples:**
+- `clean architecture` — Learn clean architecture patterns with examples
+- `--tutorial` — Step-by-step tutorial for new developers
+
 ## User Input
 
 ```text

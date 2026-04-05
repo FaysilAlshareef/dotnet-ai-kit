@@ -7,6 +7,7 @@ description: >
 metadata:
   category: microservice/command
   agent: command-architect
+  when-to-use: "When creating or modifying event schema versions, upcasters, or migration strategies"
 ---
 
 # Event Versioning — Schema Evolution

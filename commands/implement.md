@@ -7,6 +7,16 @@ description: "Executes all planned implementation tasks. Use when ready to gener
 You are an AI coding assistant executing the `/dotnet-ai.implement` command.
 Your job is to implement the tasks defined in tasks.md, writing real code.
 
+## Usage
+
+```
+/dotnet-ai.implement $ARGUMENTS
+```
+
+**Examples:**
+- (no args) — Execute all tasks from tasks.md on current feature
+- `--dry-run` — Show task list without writing code
+
 ## Input
 
 Flags: `--dry-run` (preview without writing), `--verbose` (diagnostic output),
@@ -106,14 +116,7 @@ If NOT resuming:
 
 ### 5a: Resolve Repos
 
-1. Read repo paths from `config.yml` and per-feature overrides in `plan.md`.
-2. For each repo in `service-map.md`:
-   - If local path exists and is a git repo: use it directly.
-   - If path is a GitHub URL (`github:org/repo`): clone via `gh repo clone {org/repo} repos/{local-name}`.
-   - If path is null: prompt user for clone URL or local path.
-3. Verify each resolved repo has a valid `.sln`, `.slnx`, or `.csproj`.
-4. After cloning via `github:org/repo`, update `config.yml` with the resolved local path so future runs don't re-clone.
-5. For each secondary repo, check for `.dotnet-ai-kit/briefs/{source-repo-name}/{NNN}-{name}/feature-brief.md`. If exists: load for context. If missing (just cloned): project the brief now from primary spec/plan/tasks.
+Read repo paths from `config.yml`; for each repo in `service-map.md` use local path, clone via `gh repo clone` for GitHub URLs, or prompt if null. Verify `.sln`/`.slnx`/`.csproj` exists and update `config.yml` after cloning. Load or project `feature-brief.md` for each secondary repo.
 
 ### 5b: Branch and Execute in Dependency Order
 
@@ -175,6 +178,18 @@ Report: tasks completed/total, files created/modified, build status, test result
 ## Dry-Run Behavior
 
 When `--dry-run`: print tasks and files that WOULD be created/modified, show file counts per repo. Do NOT write code, create branches, run builds, or modify tasks.md. Prefix with `[DRY-RUN]`.
+
+## Secondary Repo Branch Safety
+
+When projecting feature briefs to linked secondary repos:
+1. Read linked repos from `.dotnet-ai-kit/config.yml` repos section
+2. For each linked repo with a local path:
+   - Run `git -C {repo_path} rev-parse --abbrev-ref HEAD` to check current branch
+   - If on main/master/develop: `git -C {repo_path} checkout -b chore/brief-{NNN}-{name}`
+   - If `chore/brief-{NNN}-{name}` already exists: `git -C {repo_path} checkout chore/brief-{NNN}-{name}`
+   - If working directory dirty (`git -C {repo_path} status --porcelain`): warn and skip
+3. After writing the brief, stage and commit on the chore branch
+4. NEVER commit directly to main, master, or develop branches
 
 ## Error Handling
 

@@ -7,6 +7,7 @@ description: >
 metadata:
   category: microservice
   agent: docs-engineer
+  when-to-use: "When documenting event schemas, building an event registry, or generating event catalogues"
 ---
 
 # Event Catalogue -- Schema Registry for CQRS Microservices

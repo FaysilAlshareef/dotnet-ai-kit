@@ -7,6 +7,16 @@ description: "Breaks the plan into ordered executable tasks. Use when ready to s
 You are an AI coding assistant executing the `/dotnet-ai.tasks` command.
 Your job is to generate a structured task list from an implementation plan.
 
+## Usage
+
+```
+/dotnet-ai.tasks $ARGUMENTS
+```
+
+**Examples:**
+- (no args) — Generate tasks.md from current plan
+- `--dry-run` — Preview task structure without writing
+
 ## Input
 
 Flags: `--dry-run` (preview without writing), `--verbose` (diagnostic output)
@@ -64,10 +74,7 @@ Create `tasks.md` in the feature directory. Organize tasks by phase:
 
 ## Phase 2: Command Side
 
-**CONSTRAINT**: Command side is event-sourced. Generate ONLY:
-- Aggregates, Events, Value Objects, Enums, Domain Exceptions
-- NEVER create entities, projections, read models, or lookup tables
-- If the command side needs to query external state, add a gRPC client call task in Infrastructure tasks
+**CONSTRAINT**: Event-sourced — generate ONLY Aggregates, Events, Value Objects, Enums, Domain Exceptions. NEVER create entities/projections. Use gRPC client tasks for external state queries.
 
 - [ ] T003 [Repo:command] Create {Aggregate} with {Event} event
       File: src/{Domain}/Aggregates/{Aggregate}.cs
@@ -156,21 +163,16 @@ For generic .NET projects, organize by architectural layer:
 - [ ] T015 Integration tests for endpoints
 
 ## Phase 7: Polish
-- [ ] T016 Code cleanup and XML docs
-- [ ] T017 Update project documentation
+- [ ] T016 [P] Code cleanup, XML docs, and project documentation
 ```
 
 ## Task Format Rules
 
-`[P]` means this task can execute in parallel with other `[P]` tasks in the same phase — it modifies different files and has no dependencies on incomplete tasks within the phase.
-
 - Every task has a unique ID: `T001`, `T002`, etc.
-- `[P]` = can run in parallel with the previous task (different files, no dependency)
-- `[depends: T{N}]` = blocked until T{N} completes
-- `[Repo:{name}]` = which repository (microservice mode only)
+- `[P]` = can run in parallel (different files, no dependency within the phase)
+- `[depends: T{N}]` = blocked until T{N} completes; `[Repo:{name}]` = target repo (microservice)
 - Tasks without markers depend on the previous task (sequential default)
-- Include exact file paths where the work will happen
-- Each task should be completable in one step (create one file or modify one file)
+- Include exact file paths; each task should be completable in one step
 
 ## Step 5: Report
 
@@ -180,17 +182,19 @@ Tasks generated for {NNN}-{short-name}.
 - Parallel opportunities: {count} tasks marked [P]
 - {Microservice: across {R} repositories}
 
-Next: /dotnet-ai.analyze     (check consistency before implementing)
-      /dotnet-ai.implement   (start implementing)
+Next: /dotnet-ai.analyze (consistency check) or /dotnet-ai.implement (start coding)
 ```
 
 ## Cross-Repo Feature Tracking (microservice mode)
 
-For each secondary repo in `service-map.md`, resolve path from `config.yml`. If local path exists: update `feature-brief.md` in `.dotnet-ai-kit/briefs/{source-repo-name}/{NNN}-{name}/` (create if missing) with filtered `[Repo:this-repo]` tasks, dependencies, and phase "Tasks Generated". Auto-commit with `chore: update feature brief {NNN}-{name} — tasks-generated`. Skip auto-commit if repo has uncommitted changes. If repo not cloned: skip with note.
+For each secondary repo in `service-map.md`, resolve path from `config.yml`. If local path exists: update `feature-brief.md` in `.dotnet-ai-kit/briefs/{source-repo-name}/{NNN}-{name}/` (create if missing) with filtered `[Repo:this-repo]` tasks, dependencies, and phase "Tasks Generated". Auto-commit with `chore: update feature brief {NNN}-{name} — tasks-generated`. If repo not cloned: skip with note.
+
+### Secondary Repo Branch Safety
+
+Before committing: check branch with `git -C {repo_path} rev-parse --abbrev-ref HEAD`. If on main/master/develop, create or reuse `chore/brief-{NNN}-{name}`. If dirty (`status --porcelain`): warn and skip. NEVER commit to main/master/develop.
 
 ## Dry-Run / Error Handling
 
-- `--dry-run`: Print full task list, do NOT create tasks.md, prefix with `[DRY-RUN]`
-- Missing plan.md: direct user to `/dotnet-ai.plan`
-- Missing spec.md: direct user to `/dotnet-ai.specify`
+- `--dry-run`: print task list, do NOT create tasks.md, prefix `[DRY-RUN]`
+- Missing plan.md: direct to `/dotnet-ai.plan`; missing spec.md: direct to `/dotnet-ai.specify`
 - Microservice without service-map.md: warn, generate tasks from plan.md only

@@ -17,7 +17,7 @@ Generate full Create/Read/Update/Delete operations for an entity. Detects projec
 - `Order --fields "Name:string,Total:decimal,CustomerId:Guid"` -- With explicit fields
 - `Order --no-tests` -- Skip test generation
 - `Order --dry-run` -- Show generated code without writing
-- `Order --dry-run` -- Show file list only
+- `Order --list` -- Show file list only
 - `Order --verbose` -- Show detection and generation details
 
 ## Flags
@@ -27,7 +27,7 @@ Generate full Create/Read/Update/Delete operations for an entity. Detects projec
 | `--fields "Name:Type,..."` | Entity fields (prompted interactively if omitted) |
 | `--no-tests` | Skip test file generation |
 | `--dry-run` | Display generated code without writing to disk |
-| `--dry-run` | List files that would be created/modified |
+| `--list` | List files that would be created/modified with descriptions, no code output |
 | `--verbose` | Show architecture detection, pattern matching, generation details |
 
 ## Pre-Generation
@@ -145,4 +145,4 @@ All modes include these enterprise patterns automatically:
 ## Preview / Dry-Run Behavior
 
 - `--dry-run`: Generate and display all code with file headers. No writes.
-- `--dry-run`: List files with descriptions. No code, no writes.
+- `--list`: List files with descriptions. No code, no writes.

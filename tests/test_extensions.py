@@ -7,11 +7,9 @@ from pathlib import Path
 import pytest
 import yaml
 
-from unittest.mock import patch
-
 from dotnet_ai_kit.extensions import (
+    CatalogInstallError,
     ExtensionError,
-    _parse_version_tuple,
     install_extension,
     list_extensions,
     load_manifest,
@@ -40,7 +38,7 @@ def _create_extension(ext_dir: Path, ext_id: str = "test-ext", version: str = "1
             ],
             "rules": [
                 {
-                    "file": "rules/ext-rule.md",
+                    "file": f"rules/{ext_id}-rule.md",
                 }
             ],
         },
@@ -61,7 +59,7 @@ def _create_extension(ext_dir: Path, ext_id: str = "test-ext", version: str = "1
     # Create rule file
     rules_dir = ext_dir / "rules"
     rules_dir.mkdir()
-    (rules_dir / "ext-rule.md").write_text(
+    (rules_dir / f"{ext_id}-rule.md").write_text(
         f"---\ndescription: {ext_id} rule\n---\n\n{ext_id} conventions.\n",
         encoding="utf-8",
     )
@@ -276,10 +274,12 @@ def test_list_extensions_multiple(tmp_path: Path) -> None:
 
 
 def test_version_parse() -> None:
-    """_parse_version_tuple should parse version strings into tuples."""
-    assert _parse_version_tuple("1.0.0") == (1, 0, 0)
-    assert _parse_version_tuple("2.1.3") == (2, 1, 3)
-    assert _parse_version_tuple("1.0") == (1, 0)
+    """parse_version should parse version strings into tuples."""
+    from dotnet_ai_kit.utils import parse_version
+
+    assert parse_version("1.0.0") == (1, 0, 0)
+    assert parse_version("2.1.3") == (2, 1, 3)
+    assert parse_version("1.0") == (1, 0)
 
 
 def test_install_rejects_too_new_min_version(tmp_path: Path) -> None:
@@ -376,6 +376,52 @@ def test_hook_validation_rejects_non_list_values(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
+def test_remove_extension_executes_after_remove_hooks(tmp_path: Path) -> None:
+    """remove_extension should execute after_remove hooks."""
+    # Setup: create a project with an installed extension that has after_remove hooks
+    project_root = tmp_path / "project"
+    config_dir = project_root / ".dotnet-ai-kit"
+    config_dir.mkdir(parents=True)
+    (config_dir / "config.yml").write_text(
+        "version: '1.0'\nai_tools:\n  - claude\n",
+        encoding="utf-8",
+    )
+    # Create AI tool directories
+    (project_root / ".claude" / "commands").mkdir(parents=True)
+    (project_root / ".claude" / "rules").mkdir(parents=True)
+
+    # Create extension directory (so remove_extension can delete it)
+    ext_dir = config_dir / "extensions" / "test-ext"
+    ext_dir.mkdir(parents=True)
+
+    # Create registry with after_remove hooks
+    registry = {
+        "extensions": [
+            {
+                "id": "test-ext",
+                "version": "1.0.0",
+                "source": "local:test",
+                "installed": "2026-01-01",
+                "commands": [],
+                "rules": [],
+                "hooks": {"after_remove": ["echo removed"]},
+            }
+        ]
+    }
+    (config_dir / "extensions.yml").write_text(yaml.dump(registry), encoding="utf-8")
+
+    # Mock subprocess.run to capture hook execution
+    from unittest.mock import MagicMock, patch
+
+    with patch("dotnet_ai_kit.extensions.subprocess.run") as mock_run:
+        mock_run.return_value = MagicMock(returncode=0)
+        remove_extension("test-ext", project_root)
+
+    # Verify after_remove hook was called
+    hook_calls = [c for c in mock_run.call_args_list if "echo" in str(c) and "removed" in str(c)]
+    assert len(hook_calls) >= 1
+
+
 def test_after_install_hooks_execute(tmp_path: Path) -> None:
     """install_extension should execute after_install hooks on success."""
     project_dir = tmp_path / "project"
@@ -410,3 +456,85 @@ def test_after_install_hooks_execute(tmp_path: Path) -> None:
 
     assert marker.is_file()
     assert marker.read_text() == "ok"
+
+
+def test_extension_add_catalog_gives_friendly_message(tmp_path: Path) -> None:
+    """install_extension without --dev should raise CatalogInstallError with --dev hint."""
+    project_dir = tmp_path / "project"
+    _init_project(project_dir)
+
+    with pytest.raises(CatalogInstallError) as exc_info:
+        install_extension("jira", dev=False, project_root=project_dir)
+
+    assert "--dev" in str(exc_info.value)
+
+
+def test_remove_extension_raises_on_hook_failure(tmp_path: Path) -> None:
+    """remove_extension should raise ExtensionError when after_remove hook fails."""
+    from subprocess import CalledProcessError
+    from unittest.mock import patch
+
+    project_root = tmp_path / "project"
+    config_dir = project_root / ".dotnet-ai-kit"
+    config_dir.mkdir(parents=True)
+    (config_dir / "config.yml").write_text(
+        "version: '1.0'\nai_tools:\n  - claude\n",
+        encoding="utf-8",
+    )
+    (project_root / ".claude" / "commands").mkdir(parents=True)
+    (project_root / ".claude" / "rules").mkdir(parents=True)
+
+    # Create extension directory
+    ext_dir = config_dir / "extensions" / "fail-ext"
+    ext_dir.mkdir(parents=True)
+
+    # Create registry with after_remove hooks
+    registry = {
+        "extensions": [
+            {
+                "id": "fail-ext",
+                "version": "1.0.0",
+                "source": "local:test",
+                "installed": "2026-01-01",
+                "commands": [],
+                "rules": [],
+                "hooks": {"after_remove": ["exit 1"]},
+            }
+        ]
+    }
+    (config_dir / "extensions.yml").write_text(yaml.dump(registry), encoding="utf-8")
+
+    with patch("dotnet_ai_kit.extensions.subprocess.run") as mock_run:
+        mock_run.side_effect = CalledProcessError(1, "exit 1")
+        with pytest.raises(ExtensionError, match="cleanup hook"):
+            remove_extension("fail-ext", project_root)
+
+
+def test_extension_add_raises_on_rule_name_conflict(tmp_path: Path) -> None:
+    """_check_conflicts should raise ExtensionError when rule file names collide."""
+    from dotnet_ai_kit.extensions import ExtensionManifest, _check_conflicts
+
+    # Simulate existing registry with one extension having rules: ["conventions.md"]
+    registry = {
+        "extensions": [
+            {
+                "id": "existing-ext",
+                "version": "1.0.0",
+                "commands": [],
+                "rules": ["conventions.md"],
+            }
+        ]
+    }
+
+    # Create a new manifest with the same rule file name
+    new_manifest = ExtensionManifest(
+        id="new-ext",
+        name="New Extension",
+        version="1.0.0",
+        rules=[{"file": "rules/conventions.md"}],
+    )
+
+    with pytest.raises(ExtensionError, match="Rule file name conflict"):
+        conflict = _check_conflicts(new_manifest, registry)
+        if conflict:
+            raise ExtensionError(conflict)

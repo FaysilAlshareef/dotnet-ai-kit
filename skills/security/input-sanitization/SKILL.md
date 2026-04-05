@@ -7,6 +7,7 @@ description: >
 metadata:
   category: security
   agent: api-designer
+  when-to-use: "When implementing input sanitization, XSS prevention, or security headers"
 ---
 
 # Input Sanitization & XSS Prevention

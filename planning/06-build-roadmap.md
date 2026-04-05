@@ -36,17 +36,24 @@ dotnet-ai-kit/
 └── LICENSE
 ```
 
-### 1.2 Rules (6 files, ~600 lines total)
-1. `naming.md` - Naming conventions (company-agnostic, uses config)
-2. `coding-style.md` - C# style (version-aware, not version-forcing)
-3. `localization.md` - Resource files, never plain strings
-4. `error-handling.md` - IProblemDetailsProvider, Switch pattern
-5. `architecture.md` - Layer boundaries, CQRS, event sourcing
-6. `existing-projects.md` - Rules for working with existing code
-   - Detect before generate
-   - Respect existing version
-   - Follow existing patterns
-   - Never refactor during implementation
+### 1.2 Rules (16 files delivered, ~826 lines total)
+Original 6 foundation rules + 10 added across subsequent phases:
+1. `naming.md` — Naming conventions (company-agnostic, uses config)
+2. `coding-style.md` — C# style (version-aware, not version-forcing)
+3. `localization.md` — Resource files, never plain strings
+4. `error-handling.md` — IProblemDetailsProvider, Switch pattern
+5. `architecture.md` — Layer boundaries, CQRS, event sourcing
+6. `existing-projects.md` — Detect, respect, extend existing code
+7. `api-design.md` — REST conventions, versioning, error responses
+8. `async-concurrency.md` — Async/await, CancellationToken propagation
+9. `configuration.md` — Options pattern, ValidateOnStart
+10. `data-access.md` — EF Core patterns, repository structure
+11. `observability.md` — Structured logging, metrics, tracing
+12. `performance.md` — Query optimization, caching
+13. `security.md` — Auth, secrets, input validation
+14. `testing.md` — Test naming, AAA structure, CQRS patterns
+15. `tool-calls.md` — Sequential tool usage, verification
+16. `multi-repo.md` — Event contracts, branch naming, deploy order (spec-017)
 
 ### 1.3 AGENTS.md
 - 13 agents with routing table

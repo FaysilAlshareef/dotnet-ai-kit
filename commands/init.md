@@ -6,6 +6,17 @@ description: "Initializes dotnet-ai-kit in a .NET project. Use when setting up a
 
 Initialize dotnet-ai-kit in the current project directory.
 
+## Usage
+
+```
+/dotnet-ai.init $ARGUMENTS
+```
+
+**Examples:**
+- `. --ai claude` — Initialize current directory for Claude Code
+- `. --ai claude --type command` — Force command-service project type
+- `. --ai claude --permissions standard` — Apply standard permissions during init
+
 ## Instructions
 
 ### Step 1: Check for existing initialization

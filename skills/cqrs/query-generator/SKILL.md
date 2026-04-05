@@ -6,6 +6,7 @@ description: >
 metadata:
   category: cqrs
   agent: ef-specialist
+  when-to-use: "When generating CQRS query records with handler and response DTO scaffolding"
 ---
 
 # CQRS Query Generator

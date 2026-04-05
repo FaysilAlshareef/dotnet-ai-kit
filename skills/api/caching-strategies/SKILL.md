@@ -7,6 +7,7 @@ description: >
 metadata:
   category: api
   agent: api-designer
+  when-to-use: "When implementing caching strategies, output caching, or distributed cache patterns"
 ---
 
 # Caching Strategies

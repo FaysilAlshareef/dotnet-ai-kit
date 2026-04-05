@@ -41,15 +41,8 @@ repos:
   gateway: null
   controlpanel: null
 
-# External tool integrations
-integrations:
-  coderabbit:
-    # Enable CodeRabbit integration for automated code review
-    enabled: false
-    # Automatically apply CodeRabbit fix suggestions
-    auto_fix: false
-    # Minimum severity level: info, warning, error
-    severity_threshold: "warning"
+# External tool integrations are not yet supported.
+# See documentation for future integration options.
 
 # Permission level for AI tool operations
 # Levels:

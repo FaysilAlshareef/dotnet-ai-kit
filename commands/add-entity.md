@@ -17,7 +17,7 @@ Create a new entity in a query project with event handlers, query handler, and r
 - `Order --cosmos` -- Force Cosmos mode
 - `Order --from-event OrderCreated` -- Derive fields from event data
 - `Order --dry-run` -- Show generated code without writing
-- `Order --dry-run` -- Show file list only
+- `Order --list` -- Show file list only
 - `Order --verbose` -- Show detection and generation details
 
 ## Flags
@@ -27,7 +27,7 @@ Create a new entity in a query project with event handlers, query handler, and r
 | `--cosmos` | Force Cosmos mode (otherwise auto-detected) |
 | `--from-event {EventName}` | Derive entity fields from an existing event data record |
 | `--dry-run` | Display generated code without writing to disk |
-| `--dry-run` | List files that would be created/modified |
+| `--list` | List files that would be created/modified with descriptions, no code output |
 | `--verbose` | Show detection steps and pattern matching details |
 | `--no-tests` | Skip test file generation |
 
@@ -133,4 +133,4 @@ Parse `$ARGUMENTS` to extract `{EntityName}` (PascalCase singular).
 ## Preview / Dry-Run Behavior
 
 - `--dry-run`: Show all generated code with file path headers. No writes.
-- `--dry-run`: List files only. No code output, no writes.
+- `--list`: List files only. No code output, no writes.

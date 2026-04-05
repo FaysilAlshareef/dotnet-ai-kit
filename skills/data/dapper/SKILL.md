@@ -6,6 +6,7 @@ description: >
 metadata:
   category: data
   agent: ef-specialist
+  when-to-use: "When writing read-optimized SQL queries using Dapper alongside EF Core"
 ---
 
 # Dapper Queries

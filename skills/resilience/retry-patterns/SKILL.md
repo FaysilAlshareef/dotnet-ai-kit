@@ -7,6 +7,7 @@ description: >
 metadata:
   category: resilience
   agent: api-designer
+  when-to-use: "When implementing retry patterns with exponential backoff and jitter"
 ---
 
 # Retry Patterns

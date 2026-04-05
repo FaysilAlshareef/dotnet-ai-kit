@@ -7,6 +7,7 @@ description: >
 metadata:
   category: architecture
   agent: dotnet-architect
+  when-to-use: "When designing or reviewing Clean Architecture layer structure and dependency rules"
 ---
 
 # Clean Architecture

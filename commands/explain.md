@@ -31,7 +31,7 @@ Learn about architecture patterns, code patterns, or tool commands with concise 
 | `--tutorial` | 5-step guided walkthrough building a sample feature (dry-run mode) |
 | `--mistakes` | Show anti-patterns and common mistakes only |
 | `--dry-run` | Same as default behavior (explain is read-only) |
-| `--dry-run` | Same as default behavior (explain is read-only) |
+| `--list` | Same as default behavior (explain is read-only) |
 | `--verbose` | Include every section: description, when-to-use, code, mistakes, diagram |
 | `--diagram` | Include Mermaid diagram even for non-architecture topics |
 
@@ -132,4 +132,4 @@ Explanations are sourced from project skills and knowledge documents, not generi
 
 ## Preview / Dry-Run Behavior
 
-Explain is inherently read-only. `--dry-run` and `--dry-run` behave identically to the default -- they display the explanation. No files are ever written or modified.
+Explain is inherently read-only. `--dry-run` and `--list` behave identically to the default -- they display the explanation. No files are ever written or modified.

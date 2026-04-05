@@ -7,6 +7,7 @@ description: >
 metadata:
   category: observability
   agent: devops-engineer
+  when-to-use: "When configuring health check endpoints, Kubernetes probes, or health check UI"
 ---
 
 # Health Checks

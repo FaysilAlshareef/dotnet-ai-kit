@@ -8,6 +8,8 @@ description: >
 metadata:
   category: microservice/query
   agent: query-architect
+  when-to-use: "When creating or modifying event handlers on query side, sequence checking"
+  paths: "${detected_paths.handlers}/**/*.cs"
 ---
 
 # Event Handler — IRequestHandler<Event<T>, bool>
