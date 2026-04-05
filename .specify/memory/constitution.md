@@ -114,7 +114,7 @@ The tool MUST prioritize safety and context efficiency:
 **Token discipline**:
 - Skills: maximum 400 lines per file
 - Commands: maximum 200 lines per file
-- Rules: maximum 100 lines per file (15 rules, ~900 lines
+- Rules: maximum 100 lines per file (16 rules, ~900 lines
   total budget)
 - Skills loaded on-demand by commands, not upfront
 - Minimize context window usage while maximizing relevant
@@ -147,7 +147,7 @@ implementation, and linked PR creation.
 - YAML for configuration (`.dotnet-ai-kit/config.yml`)
 
 **Knowledge base composition**:
-- 15 rules (always loaded)
+- 16 rules (always loaded)
 - 13 specialist agents (routing logic in commands)
 - 120 skills (loaded on demand, Agent Skills spec compliant)
 - 27 commands (slash commands)

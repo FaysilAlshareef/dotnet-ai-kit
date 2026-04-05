@@ -47,7 +47,7 @@ Load all skills listed in the agent's Skills Loaded section.
 
 ## Step 2: Detect Project Mode
 
-1. Read `.dotnet-ai-kit/config.yml` if it exists. Extract `project_mode`.
+1. Read `.dotnet-ai-kit/project.yml` if it exists. Extract `mode` (generic | microservice).
 2. If no config, infer from spec content:
    - "Service Map" section present → **microservice**
    - "Architecture Scope" section present → **generic**

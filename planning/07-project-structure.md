@@ -404,8 +404,7 @@ dotnet-ai check
 
 ### Install Extension
 ```bash
-dotnet-ai extension add jira          # From catalog
-dotnet-ai extension add --dev ./ext   # Local development
+dotnet-ai extension-add --dev ./ext   # Local install (catalog planned for v1.1)
 ```
 
 ### Extension Manifest

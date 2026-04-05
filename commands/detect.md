@@ -49,8 +49,8 @@ Follow this execution flow:
 
 3. **Apply smart detection**
    Use the classification rules from the smart-detect skill to determine:
-   - **Project type**: command, query-sql, query-cosmos, processor, gateway, controlpanel, hybrid, vsa, clean-arch, ddd, modular-monolith, or generic
-   - **Mode**: microservice (CQRS types) or generic (architectural pattern types)
+   - **Project type** (specific): command, query-sql, query-cosmos, processor, gateway, controlpanel, hybrid, vsa, clean-arch, ddd, modular-monolith, or generic. **This is the specific role/architecture — NOT "microservice" or "generic".**
+   - **Mode** (broad category): `microservice` if project_type is command/query-sql/query-cosmos/processor/gateway/controlpanel/hybrid; `generic` if project_type is vsa/clean-arch/ddd/modular-monolith/generic. **Mode is ALWAYS either "microservice" or "generic" — never a specific type like "command".**
    - **Confidence**: high, medium, or low
    - **Evidence**: top 3 signals that support the classification
    - **Architecture description**: human-readable summary
@@ -97,10 +97,11 @@ Follow this execution flow:
      ```
 
 6. **Save results**
-   Write the detection results to `.dotnet-ai-kit/project.yml`:
+   Write the detection results to `.dotnet-ai-kit/project.yml`.
+   **CRITICAL**: `mode` is ALWAYS `microservice` or `generic`. `project_type` is the SPECIFIC type (e.g., `command`, `query-sql`, `vsa`). Do NOT swap these values.
    ```yaml
-   mode: {mode}
-   project_type: {type}
+   mode: {microservice|generic}
+   project_type: {command|query-sql|query-cosmos|processor|gateway|controlpanel|hybrid|vsa|clean-arch|ddd|modular-monolith|generic}
    dotnet_version: "{version}"
    architecture: "{description}"
    namespace_format: "{detected namespace pattern}"

@@ -4,7 +4,7 @@
 
 The dotnet-ai-kit has comprehensive architecture knowledge (rules, skills, agents) but fails to prevent design and implementation violations because:
 
-1. **Rules are generic** — all 15 rules apply to all project types. A VSA project gets microservice rules, a command-side project gets gateway rules. No project-type-specific constraints exist.
+1. **Rules are generic** — all 16 rules apply to all project types. A VSA project gets microservice rules, a command-side project gets gateway rules. No project-type-specific constraints exist.
 2. **Enforcement is reactive** — violations are caught at review time (`/dai.review`), not prevented during spec, plan, tasks, or implement phases.
 3. **Secondary repos have no tooling** — in multi-repo microservice mode, only the primary repo has rules/agents/skills. When `/dai.implement` executes tasks in secondary repos (query, processor, gateway, controlpanel), there are zero architectural guardrails.
 4. **Auto-commits in secondary repos go to the current branch** — during spec/plan/tasks phases, feature briefs are committed directly to whatever branch the secondary repo is on, without creating a dedicated branch. This is dangerous if the branch has protection rules or is shared.
@@ -68,7 +68,7 @@ profiles/
 - Profile deployment must work for all configured AI tools (claude, cursor, copilot, codex) — each tool gets the profile in its rules directory format.
 
 **Token budget impact:**
-- Current rules: 803 lines (15 rules).
+- Current rules: 803 lines (16 rules).
 - Profile adds: ~80-100 lines (1 rule file per project).
 - New total: ~883-903 lines. Must fit within ~900-line budget.
 - 12 profile files total (10 specific + hybrid + generic), but only ONE is deployed per project.
@@ -464,7 +464,7 @@ For forked commands, add `agent` field to specify which agent type handles the f
 - `tests/test_models_new_fields.py` — test `detected_paths` on `DetectedProject` and `linked_from` on `DotnetAiConfig` pydantic validation
 
 ### Files NOT Modified
-- Existing 15 rule files — no changes
+- Existing 16 rule files — no changes
 - Plugin manifest (`plugin.json`) — no changes
 - Other command files not listed above — no changes
 

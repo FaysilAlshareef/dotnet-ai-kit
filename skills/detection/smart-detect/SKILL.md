@@ -190,8 +190,10 @@ Apply rules in order — first match wins:
 
 ## Output Format
 
+**CRITICAL**: `project_type` is the SPECIFIC type (command, query-sql, vsa, etc.). `mode` is ALWAYS `microservice` or `generic`. Never swap these.
+
 ```yaml
-classification: {type}
+project_type: {command|query-sql|query-cosmos|processor|gateway|controlpanel|hybrid|vsa|clean-arch|ddd|modular-monolith|generic}
 mode: {microservice|generic}
 confidence: {high|medium|low}
 dotnet_version: "{version from csproj TargetFramework}"
