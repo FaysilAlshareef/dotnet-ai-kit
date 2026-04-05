@@ -214,6 +214,7 @@ _KNOWN_CONFIG_KEYS: frozenset[str] = frozenset(
         "ai_tools",
         "command_style",
         "linked_from",
+        "managed_permissions",
     }
 )
 

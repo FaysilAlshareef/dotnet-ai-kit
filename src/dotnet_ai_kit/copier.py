@@ -669,11 +669,15 @@ def copy_hook(
     pre_tool_use.append(
         {
             "_source": "dotnet-ai-kit-arch",
-            "type": "prompt",
             "matcher": "Write|Edit",
-            "prompt": prompt,
-            "model": HOOK_MODEL,
-            "timeout": HOOK_TIMEOUT_MS,
+            "hooks": [
+                {
+                    "type": "prompt",
+                    "prompt": prompt,
+                    "model": HOOK_MODEL,
+                    "timeout": HOOK_TIMEOUT_MS,
+                }
+            ],
         }
     )
 

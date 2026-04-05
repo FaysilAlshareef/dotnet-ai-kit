@@ -46,8 +46,8 @@ class TestCopyHookConstraintExtraction:
         assert result is True
         settings = json.loads((target / ".claude/settings.json").read_text(encoding="utf-8"))
         hook = settings["hooks"]["PreToolUse"][0]
-        assert "NEVER do bad things" in hook["prompt"]
-        assert "ALWAYS do good things" in hook["prompt"]
+        assert "NEVER do bad things" in hook["hooks"][0]["prompt"]
+        assert "ALWAYS do good things" in hook["hooks"][0]["prompt"]
 
 
 class TestCopyHookPromptEmbedding:
@@ -92,9 +92,11 @@ class TestCopyHookPromptEmbedding:
         hooks = settings["hooks"]["PreToolUse"]
         # Should have existing hook + new arch hook
         assert len(hooks) == 2
-        types = [h.get("type") for h in hooks]
-        assert "command" in types
-        assert "prompt" in types
+        # Existing user hook is flat format; our arch hook uses nested hooks[] format
+        has_user_hook = any(h.get("type") == "command" for h in hooks)
+        has_arch_hook = any(h.get("_source") == "dotnet-ai-kit-arch" for h in hooks)
+        assert has_user_hook
+        assert has_arch_hook
 
     def test_hook_has_correct_model_and_timeout(self, tmp_path: Path) -> None:
         pkg = tmp_path / "pkg"
@@ -109,8 +111,8 @@ class TestCopyHookPromptEmbedding:
 
         settings = json.loads((target / ".claude/settings.json").read_text(encoding="utf-8"))
         hook = settings["hooks"]["PreToolUse"][0]
-        assert hook["model"] == "claude-haiku-4-5-20251001"
-        assert hook["timeout"] == 15000
+        assert hook["hooks"][0]["model"] == "claude-haiku-4-5-20251001"
+        assert hook["hooks"][0]["timeout"] == 15000
         assert hook["matcher"] == "Write|Edit"
 
     def test_replaces_existing_arch_hook(self, tmp_path: Path) -> None:
@@ -122,7 +124,13 @@ class TestCopyHookPromptEmbedding:
         settings_dir.mkdir(parents=True, exist_ok=True)
         existing = {
             "hooks": {
-                "PreToolUse": [{"_source": "dotnet-ai-kit-arch", "type": "prompt", "prompt": "old"}]
+                "PreToolUse": [
+                    {
+                        "_source": "dotnet-ai-kit-arch",
+                        "matcher": "Write|Edit",
+                        "hooks": [{"type": "prompt", "prompt": "old"}],
+                    }
+                ]
             }
         }
         (settings_dir / "settings.json").write_text(json.dumps(existing), encoding="utf-8")
@@ -138,7 +146,7 @@ class TestCopyHookPromptEmbedding:
         settings = json.loads((target / ".claude/settings.json").read_text(encoding="utf-8"))
         hooks = settings["hooks"]["PreToolUse"]
         assert len(hooks) == 1  # Old replaced, not duplicated
-        assert "new constraint" in hooks[0]["prompt"]
+        assert "new constraint" in hooks[0]["hooks"][0]["prompt"]
 
 
 class TestCopyHookFileScope:
@@ -177,7 +185,7 @@ class TestCopyHookFileScope:
         copy_hook(target, profile, pkg)
 
         settings = json.loads((target / ".claude/settings.json").read_text(encoding="utf-8"))
-        prompt = settings["hooks"]["PreToolUse"][0]["prompt"]
+        prompt = settings["hooks"]["PreToolUse"][0]["hooks"][0]["prompt"]
         assert ".cs" in prompt
         assert '{"ok": true}' in prompt
 

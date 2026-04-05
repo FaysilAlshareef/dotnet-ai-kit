@@ -30,7 +30,7 @@
 ```
 dotnet-ai-kit/
 ├── .claude-plugin/plugin.json
-├── .claude/rules/ (15 rules)
+├── .claude/rules/ (16 rules)
 ├── CLAUDE.md
 ├── AGENTS.md
 └── LICENSE
