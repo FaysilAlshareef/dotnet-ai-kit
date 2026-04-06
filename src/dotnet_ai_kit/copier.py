@@ -703,8 +703,13 @@ _QUICK_CLASSIFY_HEURISTICS: list[tuple[str, str]] = [
 ]
 
 _MICROSERVICE_TYPES = {
-    "command", "query-sql", "query-cosmos", "processor",
-    "gateway", "controlpanel", "hybrid",
+    "command",
+    "query-sql",
+    "query-cosmos",
+    "processor",
+    "gateway",
+    "controlpanel",
+    "hybrid",
 }
 
 
@@ -917,7 +922,9 @@ def deploy_to_linked_repos(
                 # Detect git default branch and update config
                 detected_branch = _detect_git_default_branch(repo_path)
                 _update_sibling_config(
-                    config_path, config, detected_branch,
+                    config_path,
+                    config,
+                    detected_branch,
                 )
 
                 just_initialized = True

@@ -634,8 +634,7 @@ def init(
     console.print(f"\n[green bold]dotnet-ai-kit initialized for {', '.join(ai_tools)}[/green bold]")
     # T052 - Next-command suggestion
     console.print(
-        "\nNext: Run [bold]dotnet-ai detect[/bold]"
-        " then [bold]dotnet-ai configure[/bold].\n"
+        "\nNext: Run [bold]dotnet-ai detect[/bold] then [bold]dotnet-ai configure[/bold].\n"
     )
 
 
