@@ -1,0 +1,58 @@
+name: Feature Request
+description: Suggest a new feature or improvement
+labels: ["enhancement"]
+body:
+  - type: markdown
+    attributes:
+      value: |
+        Thanks for suggesting an improvement! Please describe your idea clearly.
+
+  - type: dropdown
+    id: area
+    attributes:
+      label: Area
+      description: Which area does this feature relate to?
+      options:
+        - CLI commands
+        - Slash commands (SDD lifecycle)
+        - Detection / profiles
+        - Code generation (add-aggregate, add-entity, etc.)
+        - Multi-repo workflow
+        - Skills / agents
+        - Hooks / safety
+        - New AI tool support (Cursor, Copilot, Codex)
+        - Documentation
+        - Other
+    validations:
+      required: true
+
+  - type: textarea
+    id: problem
+    attributes:
+      label: Problem or motivation
+      description: What problem does this solve? Why is it needed?
+    validations:
+      required: true
+
+  - type: textarea
+    id: solution
+    attributes:
+      label: Proposed solution
+      description: How should it work? Include examples if possible.
+    validations:
+      required: true
+
+  - type: textarea
+    id: alternatives
+    attributes:
+      label: Alternatives considered
+      description: Any other approaches you've thought about?
+
+  - type: dropdown
+    id: willing
+    attributes:
+      label: Would you contribute this?
+      options:
+        - "Yes, I'd like to submit a PR"
+        - "I can help test"
+        - "No, just suggesting"
