@@ -410,10 +410,16 @@ def test_remove_extension_executes_after_remove_hooks(tmp_path: Path) -> None:
     }
     (config_dir / "extensions.yml").write_text(yaml.dump(registry), encoding="utf-8")
 
-    # Mock subprocess.run to capture hook execution
+    # Mock subprocess.run to capture hook execution.
+    # Also mock platform.system because on Windows + Python 3.10, platform.system()
+    # internally calls subprocess.check_output (via subprocess.run), and the
+    # subprocess mock would return a MagicMock instead of a string, crashing platform.py.
     from unittest.mock import MagicMock, patch
 
-    with patch("dotnet_ai_kit.extensions.subprocess.run") as mock_run:
+    with (
+        patch("dotnet_ai_kit.extensions.subprocess.run") as mock_run,
+        patch("dotnet_ai_kit.extensions.platform.system", return_value="Windows"),
+    ):
         mock_run.return_value = MagicMock(returncode=0)
         remove_extension("test-ext", project_root)
 
