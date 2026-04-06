@@ -20,7 +20,8 @@ Your job is to find ambiguities in a feature spec and resolve them interactively
 ## Input
 
 Optional feature ID: `$ARGUMENTS` (e.g., `001` to target a specific feature)
-Flags: `--dry-run` (show questions without updating), `--verbose` (diagnostic output)
+Flags: `--dry-run` (show questions without updating), `--verbose` (diagnostic output),
+       `--auto` (resolve ambiguities automatically using project conventions without prompting)
 
 ## Load Specialist Agent
 
@@ -118,7 +119,13 @@ Priority order:
 
 ## Step 5: Interactive Question Loop
 
-Present ONE question at a time. For each question:
+If `--auto` is set, skip the interactive prompt. For each ambiguity:
+1. Choose the option that best matches existing project conventions and domain patterns.
+2. If no clear convention exists, choose the most common .NET best practice.
+3. Log the auto-resolved decision the same way as a manual answer (update spec.md, add to Clarifications section).
+4. Print: "Auto-resolved: {question summary} -> {chosen option}"
+
+Otherwise, present ONE question at a time. For each question:
 
 ```
 Clarification {N}/{total} [{category}] (priority: {level})

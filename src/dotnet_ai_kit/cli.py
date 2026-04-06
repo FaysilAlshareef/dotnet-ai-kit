@@ -588,7 +588,7 @@ def init(
         if config.permissions_level == "full" and not json_output:
             console.print(
                 "\n[yellow bold]Warning:[/yellow bold] Full permission mode enables "
-                "bypassPermissions — the AI assistant will execute all operations "
+                "bypassPermissions -- the AI assistant will execute all operations"
                 "without prompting. Only use in trusted environments.\n"
             )
         perm_result = copy_permissions(target, config, _get_package_dir())
@@ -633,7 +633,10 @@ def init(
     # Summary
     console.print(f"\n[green bold]dotnet-ai-kit initialized for {', '.join(ai_tools)}[/green bold]")
     # T052 - Next-command suggestion
-    console.print("\nNext: Run [bold]dotnet-ai configure[/bold] to customize settings.\n")
+    console.print(
+        "\nNext: Run [bold]dotnet-ai detect[/bold]"
+        " then [bold]dotnet-ai configure[/bold].\n"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -786,7 +789,7 @@ def check(
         try:
             tool_config = get_agent_config(tool_name)
         except ValueError:
-            table.add_row(tool_name, "[red]unknown[/red]", "-", "-", "-", "-", "\u2014", "\u2014")
+            table.add_row(tool_name, "[red]unknown[/red]", "-", "-", "-", "-", "--", "--")
             continue
 
         display = tool_config.get("name", tool_name)
@@ -794,8 +797,8 @@ def check(
 
         is_configured = (ts["commands"] + ts["rules"]) > 0
         status = "[green]configured[/green]" if is_configured else "[yellow]empty[/yellow]"
-        profile_str = "deployed" if ts["profile"] else "\u2014"
-        hook_str = "deployed" if ts["hook"] else "\u2014"
+        profile_str = "deployed" if ts["profile"] else "--"
+        hook_str = "deployed" if ts["hook"] else "--"
         table.add_row(
             display,
             status,
@@ -1321,7 +1324,7 @@ def _configure_repos(
     if detected:
         console.print("  [dim]Detected sibling repos:[/dim]")
         for name, rtype in detected.items():
-            console.print(f"    ../{name} → {rtype}")
+            console.print(f"    ../{name} -> {rtype}")
         console.print()
 
     from dotnet_ai_kit.models import ReposConfig
@@ -1601,7 +1604,7 @@ def configure(
         if config.permissions_level == "full" and not json_output:
             console.print(
                 "\n[yellow bold]Warning:[/yellow bold] Full permission mode enables "
-                "bypassPermissions — the AI assistant will execute all operations "
+                "bypassPermissions -- the AI assistant will execute all operations"
                 "without prompting. Only use in trusted environments."
             )
         perm_result = copy_permissions(
@@ -1782,7 +1785,7 @@ def configure(
         }
         if config.permissions_level == "full":
             data["warnings"] = [
-                "bypassPermissions enabled — all operations run without confirmation"
+                "bypassPermissions enabled -- all operations run without confirmation"
             ]
         print(json.dumps(data))
         return

@@ -101,7 +101,7 @@ pip install -e ".[dev]"
 | `/dotnet-ai.add-page` | `/dai.page` | Code Gen |
 | `/dotnet-ai.add-crud` | `/dai.crud` | Code Gen |
 | `/dotnet-ai.add-tests` | `/dai.tests` | Code Gen |
-| `/dotnet-ai.docs` | `/dai.docs` | Documentation |
+| `/dotnet-ai.docs [sub]` | `/dai.docs` | Documentation (readme, api, adr, deploy, release, service, code, feature, all) |
 | `/dotnet-ai.status` | `/dai.status` | Smart |
 | `/dotnet-ai.undo` | `/dai.undo` | Smart |
 | `/dotnet-ai.explain` | `/dai.explain` | Smart |

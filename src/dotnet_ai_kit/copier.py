@@ -693,6 +693,107 @@ def copy_hook(
     return True
 
 
+_QUICK_CLASSIFY_HEURISTICS: list[tuple[str, str]] = [
+    ("AggregateRoot", "command"),
+    ("EventSourcedAggregate", "command"),
+    ("Aggregate<", "command"),
+    ("IRequestHandler<Event<", "query-sql"),
+    (".razor", "controlpanel"),
+    ("IHostedService", "processor"),
+]
+
+_MICROSERVICE_TYPES = {
+    "command", "query-sql", "query-cosmos", "processor",
+    "gateway", "controlpanel", "hybrid",
+}
+
+
+def _quick_classify_repo(repo_path: Path) -> str:
+    """Classify a .NET repo by scanning code for structural patterns."""
+    for pattern, repo_type in _QUICK_CLASSIFY_HEURISTICS:
+        for ext in ("**/*.cs", "**/*.csproj"):
+            for f in repo_path.glob(ext):
+                try:
+                    content = f.read_text(encoding="utf-8", errors="ignore")
+                    if pattern in content:
+                        return repo_type
+                except OSError:
+                    continue
+    return "generic"
+
+
+def _detect_git_default_branch(repo_path: Path) -> str:
+    """Detect the default branch from git remote or current branch."""
+    import subprocess
+
+    # Try remote HEAD first
+    result = subprocess.run(
+        ["git", "symbolic-ref", "refs/remotes/origin/HEAD", "--short"],
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode == 0 and result.stdout.strip():
+        # Returns "origin/main" -> extract "main"
+        return result.stdout.strip().split("/", 1)[-1]
+
+    # Fallback: current branch
+    result = subprocess.run(
+        ["git", "rev-parse", "--abbrev-ref", "HEAD"],
+        cwd=repo_path,
+        capture_output=True,
+        text=True,
+    )
+    if result.returncode == 0 and result.stdout.strip():
+        return result.stdout.strip()
+
+    return "main"
+
+
+def _write_basic_project_yml(project_yml: Path, project_type: str) -> None:
+    """Write a basic project.yml after auto-init."""
+    import yaml
+
+    mode = "microservice" if project_type in _MICROSERVICE_TYPES else "generic"
+    data = {
+        "mode": mode,
+        "project_type": project_type,
+        "confidence": "medium",
+        "confidence_score": 0.5,
+    }
+    project_yml.write_text(yaml.dump(data, default_flow_style=False), encoding="utf-8")
+
+
+def _update_sibling_config(
+    config_path: Path,
+    primary_config: "DotnetAiConfig",
+    default_branch: str,
+) -> None:
+    """Update a sibling repo's config with shared settings from primary."""
+    import yaml
+
+    cfg = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}
+
+    # Company + branch
+    cfg.setdefault("company", {})
+    cfg["company"]["name"] = primary_config.company.name
+    cfg["company"]["github_org"] = primary_config.company.github_org
+    cfg["company"]["default_branch"] = default_branch
+
+    # Naming conventions (shared across topology)
+    cfg.setdefault("naming", {})
+    cfg["naming"]["domain"] = primary_config.naming.domain
+    cfg["naming"]["solution"] = primary_config.naming.solution
+    cfg["naming"]["topic"] = primary_config.naming.topic
+    cfg["naming"]["namespace"] = primary_config.naming.namespace
+
+    # Style and permissions (match primary)
+    cfg["command_style"] = primary_config.command_style
+    cfg["permissions_level"] = primary_config.permissions_level
+
+    config_path.write_text(yaml.dump(cfg, default_flow_style=False), encoding="utf-8")
+
+
 def deploy_to_linked_repos(
     primary_root: Path,
     config: DotnetAiConfig,
@@ -739,7 +840,7 @@ def deploy_to_linked_repos(
         # Skip remote repos
         if repo_path_str.startswith("github:"):
             logger.warning(
-                "Skipping remote repo %s (%s) — not cloned locally.",
+                "Skipping remote repo %s (%s) -- not cloned locally.",
                 role,
                 repo_path_str,
             )
@@ -765,20 +866,61 @@ def deploy_to_linked_repos(
             continue
 
         try:
-            # Check initialization
+            # Check initialization -- auto-init if missing
+            just_initialized = False
             config_path = repo_path / ".dotnet-ai-kit" / "config.yml"
             project_yml = repo_path / ".dotnet-ai-kit" / "project.yml"
             if not config_path.is_file() or not project_yml.is_file():
-                msg = f"Run 'dotnet-ai init' and '/dai.detect' in {repo_path} first."
-                logger.warning(msg)
-                results.append(
-                    {
-                        "repo": str(repo_path),
-                        "status": "skipped",
-                        "reason": "not initialized",
-                    }
+                logger.info("Auto-initializing sibling repo %s...", repo_path.name)
+                init_result = subprocess.run(
+                    ["dotnet-ai", "init", "--force"],
+                    cwd=repo_path,
+                    capture_output=True,
+                    text=True,
                 )
-                continue
+                if init_result.returncode != 0:
+                    logger.warning(
+                        "Auto-init failed for %s: %s",
+                        repo_path,
+                        init_result.stderr.strip(),
+                    )
+                    results.append(
+                        {
+                            "repo": str(repo_path),
+                            "status": "skipped",
+                            "reason": "auto-init failed",
+                        }
+                    )
+                    continue
+                # Re-check after init
+                if not config_path.is_file():
+                    results.append(
+                        {
+                            "repo": str(repo_path),
+                            "status": "skipped",
+                            "reason": "not initialized after auto-init",
+                        }
+                    )
+                    continue
+
+                # Derive project type from config role
+                role_to_type = {
+                    "command": "command",
+                    "query": "query-sql",
+                    "processor": "processor",
+                    "gateway": "gateway",
+                    "controlpanel": "controlpanel",
+                }
+                detected_type = role_to_type.get(role, "generic")
+                _write_basic_project_yml(project_yml, detected_type)
+
+                # Detect git default branch and update config
+                detected_branch = _detect_git_default_branch(repo_path)
+                _update_sibling_config(
+                    config_path, config, detected_branch,
+                )
+
+                just_initialized = True
 
             # Version check
             version_path = repo_path / ".dotnet-ai-kit" / "version.txt"
@@ -808,26 +950,31 @@ def deploy_to_linked_repos(
                 )
                 continue
 
-            # Check for dirty working directory
-            git_status = subprocess.run(
-                ["git", "status", "--porcelain"],
-                cwd=repo_path,
-                capture_output=True,
-                text=True,
-            )
-            if git_status.stdout.strip():
-                logger.warning("Skipping %s — dirty working directory.", repo_path)
-                results.append(
-                    {
-                        "repo": str(repo_path),
-                        "status": "skipped",
-                        "reason": "dirty working directory",
-                    }
+            # Check for dirty working directory (skip for self-repo and just-initialized)
+            is_self_repo = repo_path.resolve() == primary_root.resolve()
+            if not is_self_repo and not just_initialized:
+                git_status = subprocess.run(
+                    ["git", "status", "--porcelain"],
+                    cwd=repo_path,
+                    capture_output=True,
+                    text=True,
                 )
-                continue
+                if git_status.stdout.strip():
+                    logger.warning("Skipping %s -- dirty working directory.", repo_path)
+                    results.append(
+                        {
+                            "repo": str(repo_path),
+                            "status": "skipped",
+                            "reason": "dirty working directory",
+                        }
+                    )
+                    continue
 
-            # Read secondary project type
-            proj_data = yaml.safe_load(project_yml.read_text(encoding="utf-8")) or {}
+            # Read secondary project type (fallback to generic if missing)
+            if project_yml.is_file():
+                proj_data = yaml.safe_load(project_yml.read_text(encoding="utf-8")) or {}
+            else:
+                proj_data = {}
             sec_project_type = proj_data.get("project_type", "generic")
             sec_confidence = proj_data.get("confidence", "low")
             # Create branch

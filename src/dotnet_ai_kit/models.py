@@ -304,6 +304,38 @@ class DotnetAiConfig(BaseModel):
         return [t.lower() for t in v]
 
 
+class ProjectLayers(BaseModel):
+    """Maps logical architecture layers to actual project names."""
+
+    domain: str = Field(default="", description="Domain layer project name.")
+    application: str = Field(default="", description="Application layer project name.")
+    infrastructure: str = Field(default="", description="Infrastructure layer project name.")
+    presentation: str = Field(default="", description="Presentation layer project name.")
+
+
+class DeploymentInfo(BaseModel):
+    """Deployment configuration detected from Dockerfile/manifests."""
+
+    containerized: bool = Field(default=False, description="Whether the project uses Docker.")
+    orchestration: str = Field(
+        default="",
+        description="Orchestration platform: kubernetes, docker-compose, or empty.",
+    )
+
+
+class SiblingRepo(BaseModel):
+    """A sibling repository in a microservice topology."""
+
+    name: str = Field(description="Repository directory name.")
+    type: str = Field(
+        default="",
+        description="Detected role: command, query, processor, gateway, controlpanel, or empty.",
+    )
+
+
+_API_STYLES = {"grpc", "rest", "blazor", "minimal-api", "none", ""}
+
+
 class DetectedProject(BaseModel):
     """Detected project information from scanning a .NET project.
 
@@ -357,6 +389,41 @@ class DetectedProject(BaseModel):
         default=None,
         description="Logical path categories mapped to filesystem paths relative to project root.",
     )
+    solution_name: str = Field(
+        default="",
+        description="Solution name without extension (e.g., 'Anis.Competition.Points.Command').",
+    )
+    layers: Optional[ProjectLayers] = Field(
+        default=None,
+        description="Maps logical layers to project names.",
+    )
+    api_style: str = Field(
+        default="",
+        description="API presentation style: grpc, rest, blazor, minimal-api, or none.",
+    )
+    patterns: list[str] = Field(
+        default_factory=list,
+        description="Architectural patterns detected (e.g., cqrs-command-side, event-sourcing).",
+    )
+    deployment: Optional[DeploymentInfo] = Field(
+        default=None,
+        description="Deployment configuration (containerized, orchestration).",
+    )
+    test_projects: list[str] = Field(
+        default_factory=list,
+        description="Test project names detected in the solution.",
+    )
+    sibling_repos: list[SiblingRepo] = Field(
+        default_factory=list,
+        description="Sibling repositories detected in parent directory.",
+    )
+
+    @field_validator("api_style")
+    @classmethod
+    def validate_api_style(cls, v: str) -> str:
+        if v and v.lower() not in _API_STYLES:
+            raise ValueError(f"api_style must be one of {_API_STYLES}, got '{v}'")
+        return v.lower() if v else ""
 
     @field_validator("mode")
     @classmethod

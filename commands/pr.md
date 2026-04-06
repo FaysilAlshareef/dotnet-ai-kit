@@ -35,6 +35,13 @@ Flags: `--dry-run` (preview PR content without creating), `--verbose` (diagnosti
 4. Read `.dotnet-ai-kit/config.yml` for default branch (e.g., `main`, `master`, `develop`).
    If not configured, detect from remote: `git remote show origin | grep 'HEAD branch'`.
 
+## Step 1b: Verify GitHub CLI
+
+1. Run `gh auth status` to verify the user is authenticated.
+2. If `gh` is not installed: "GitHub CLI required. Install from https://cli.github.com"
+3. If not authenticated: "Run `gh auth login` first."
+4. If authenticated: proceed. If `--verbose`, print: "Authenticated as {username}."
+
 ## Step 2: Identify Repos and Branches
 
 ### Generic Mode

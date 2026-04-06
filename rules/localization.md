@@ -32,3 +32,13 @@ If it uses a different pattern (IStringLocalizer vs Phrases), follow the existin
 2. If localization exists, follow the same pattern for all new code
 3. If no localization exists, use plain strings unless explicitly asked to add localization
 4. When adding new strings, always add them to the resource file -- never inline
+
+## Designer File Sync
+
+When modifying `.resx` resource files, ALWAYS update the corresponding `.Designer.cs` file manually. `dotnet build` does NOT auto-regenerate Designer files -- only Visual Studio does.
+
+After editing a `.resx` file:
+1. Add or remove the matching `public static string` property in `.Designer.cs`
+2. Use the `ResourceManager.GetString("KeyName", resourceCulture)` pattern
+3. Match the existing access modifier (`public` or `internal`)
+4. Verify with `dotnet build` that the Designer file compiles

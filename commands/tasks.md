@@ -170,7 +170,10 @@ For generic .NET projects, organize by architectural layer:
 
 - Every task has a unique ID: `T001`, `T002`, etc.
 - `[P]` = can run in parallel (different files, no dependency within the phase)
-- `[depends: T{N}]` = blocked until T{N} completes; `[Repo:{name}]` = target repo (microservice)
+- `[depends: T{N}]` = blocked until single task completes
+- `[depends: T{N}, T{M}]` = blocked until multiple specific tasks complete
+- `[depends: T{N}-T{M}]` = blocked until a range of tasks complete (inclusive)
+- `[Repo:{name}]` = target repo (microservice mode)
 - Tasks without markers depend on the previous task (sequential default)
 - Include exact file paths; each task should be completable in one step
 

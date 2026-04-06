@@ -117,7 +117,35 @@ Follow this execution flow:
        confidence: "{high|medium|low}"
        evidence: "{detail}"
        is_negative: false
+   solution_name: "{solution name without extension}"
+   layers:
+     domain: "{Domain project name or empty}"
+     application: "{Application project name or empty}"
+     infrastructure: "{Infrastructure project name or empty}"
+     presentation: "{Presentation project name or empty}"
+   api_style: "{grpc|rest|blazor|minimal-api|none}"
+   patterns:
+     - "{pattern1, e.g. cqrs-command-side}"
+     - "{pattern2, e.g. event-sourcing}"
+   deployment:
+     containerized: {true|false}
+     orchestration: "{kubernetes|docker-compose|empty}"
+   test_projects:
+     - "{TestProject1}"
+     - "{TestProject2}"
+   sibling_repos:
+     - name: "{repo-directory-name}"
+       type: "{command|query|processor|gateway|controlpanel|empty}"
    ```
+
+   **Field notes:**
+   - `solution_name`: From the `.sln` or `.slnx` file name (without extension)
+   - `layers`: Map each logical layer to its actual project name from the solution. Leave empty if a layer doesn't exist.
+   - `api_style`: Determined from the presentation project — `grpc` if Grpc.AspNetCore, `rest` if controllers/minimal API, `blazor` if .razor files, `none` if class library
+   - `patterns`: Architectural patterns found (e.g., cqrs-command-side, mediator, event-sourcing, outbox-pattern, clean-architecture, vertical-slice, repository-pattern)
+   - `deployment`: Check for Dockerfile (`containerized: true`) and k8s manifests (`orchestration: kubernetes`) or docker-compose.yml
+   - `test_projects`: Project names from solution that are test projects (contain "Test" or reference xunit/nunit/mstest)
+   - `sibling_repos`: From step 6b scan — include repos found with their detected type
 
 6b. **Sibling repo scan** (optional)
 
