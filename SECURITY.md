@@ -14,7 +14,7 @@ responsibly. **Do not open a public GitHub issue.**
 
 ### How to Report
 
-1. Email **faysil@ecom.ltd** with the subject line: `[SECURITY] dotnet-ai-kit vulnerability`
+1. Email **faysilalshareef@gmail.com** with the subject line: `[SECURITY] dotnet-ai-kit vulnerability`
 2. Include:
    - Description of the vulnerability
    - Steps to reproduce
