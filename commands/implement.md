@@ -106,10 +106,11 @@ If NOT resuming:
       - created: {file path}
       - modified: {file path} (added {what})
       ```
+   f2. If the task created or modified a `.resx` file, also update the matching `.Designer.cs` file with corresponding static properties. `dotnet build` does NOT auto-regenerate Designer files -- see `rules/localization.md` for the required pattern.
    g. Mark task complete in tasks.md: `- [x] T{NNN} ...`
 3. After each layer (Domain, Application, Infrastructure, API):
-   - Run `dotnet build` — if it fails, stop and report the error.
-4. After all tasks: run `dotnet test`.
+   - Run `dotnet build` -- if it fails, stop and report the error.
+4. After all tasks: run `dotnet test` on unit test projects only (e.g., `*.Test.csproj`). Exclude `*.Test.Live` and integration test projects -- those require infrastructure and should run via `/dotnet-ai.verify`.
 5. If a task fails: stop, report error, suggest fix. User can fix and `--resume`.
 
 ## Step 5: Execute Tasks (Microservice Mode)
@@ -130,7 +131,7 @@ For each repo in dependency order:
 3. Execute tasks tagged for this repo (respecting `[depends:]` and `[P]` markers).
 4. After each task group: run `dotnet build` in the repo root.
    - On build failure: stop this repo, mark remaining tasks as `- [B] T{NNN}` (blocked).
-5. After all tasks for this repo: run `dotnet test`.
+5. After all tasks for this repo: run `dotnet test` on unit test projects only (exclude `*.Test.Live`).
 6. Mark tasks complete in the shared `tasks.md` with repo context.
 7. Log actions to `undo-log.md` with `**Repo**: {repo-name}`.
 8. Update the secondary repo's `feature-brief.md`: mark completed tasks as `- [x]`, update phase to "Implementing". When all tasks done: phase "Implemented". On failure: phase "Blocked — T{NNN} failed: {error}". Auto-commit with `chore: update feature brief {NNN}-{name} — {phase}`. Skip auto-commit if repo has uncommitted changes.
@@ -169,7 +170,28 @@ Read `skills/workflow/multi-repo-workflow/SKILL.md` for orchestration patterns.
 
 ## Step 6: Undo Log
 
-For every file created or modified, record in `undo-log.md` with task ID, repo name, timestamp, and action (created/modified) per file.
+For every file created or modified, record in `undo-log.md` in the feature directory using this format:
+
+```markdown
+# Undo Log: {NNN}-{short-name}
+
+## T{NNN} - {description}
+**Timestamp**: {ISO 8601}
+**Repo**: {repo-name or "primary"}
+**Status**: OK
+
+- created: {file path}
+- modified: {file path} (added {what})
+
+## T{NNN} - {description}
+**Timestamp**: {ISO 8601}
+**Repo**: {repo-name}
+**Status**: FAILED -- {error summary}
+
+- created: {file path}
+```
+
+Each entry must include task ID, timestamp, repo, status, and per-file actions. On failure, set `**Status**: FAILED -- {error}`. The `--resume` flag uses this file to find the last failed task.
 
 ## Step 7: Completion Report
 

@@ -1,13 +1,11 @@
 ---
 description: "Analyzes plan consistency before coding. Use when validating spec-plan-task alignment."
-context: 'fork'
-agent: general-purpose
 ---
 
 # /dotnet-ai.analyze — Consistency Check
 
 You are an AI coding assistant executing the `/dotnet-ai.analyze` command.
-This command is **READ-ONLY**. You MUST NOT modify any files.
+This command is **READ-ONLY** except for writing `analysis.md` (the report). You MUST NOT modify any other files.
 
 ## Usage
 

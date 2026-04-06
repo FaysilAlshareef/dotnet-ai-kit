@@ -192,7 +192,7 @@ class TestDeployToLinkedRepos:
         # 9.0 < 10.0 — should upgrade, NOT skip as "newer"
         assert results[0]["status"] == "upgraded"
 
-    def test_uninitialized_repo_skipped(self, mock_run: object, tmp_path: Path) -> None:
+    def test_uninitialized_repo_auto_init_attempted(self, mock_run: object, tmp_path: Path) -> None:
         primary = tmp_path / "primary"
         primary.mkdir()
         secondary = tmp_path / "secondary"
@@ -208,7 +208,8 @@ class TestDeployToLinkedRepos:
 
         assert len(results) == 1
         assert results[0]["status"] == "skipped"
-        assert "not initialized" in results[0]["reason"]
+        # Auto-init is attempted but fails (subprocess is mocked)
+        assert "auto-init" in results[0]["reason"]
 
     def test_newer_version_skipped(self, mock_run: object, tmp_path: Path) -> None:
         primary = tmp_path / "primary"

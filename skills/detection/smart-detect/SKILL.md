@@ -206,7 +206,34 @@ evidence:
 reasoning: "{1-2 sentences explaining the data flow that led to this classification}"
 packages:
   - {key NuGet packages detected}
+solution_name: "{solution name without extension, from .sln/.slnx file}"
+layers:
+  domain: "{Domain project name or empty}"
+  application: "{Application project name or empty}"
+  infrastructure: "{Infrastructure project name or empty}"
+  presentation: "{Presentation project name or empty}"
+api_style: "{grpc|rest|blazor|minimal-api|none}"
+patterns:
+  - "{architectural patterns detected, e.g. cqrs-command-side, event-sourcing, outbox-pattern}"
+deployment:
+  containerized: {true if Dockerfile exists, else false}
+  orchestration: "{kubernetes if k8s manifests, docker-compose if compose file, else empty}"
+test_projects:
+  - "{test project names from solution}"
+sibling_repos:
+  - name: "{sibling repo directory name}"
+    type: "{detected type or empty}"
 ```
+
+### New field derivation
+
+- **solution_name**: Read from `.sln`/`.slnx` filename (strip extension)
+- **layers**: Map solution projects to logical layers — look for Domain/Application/Infrastructure/Infra/Presentation/Api/Web/Grpc in project names
+- **api_style**: Check presentation project packages — `Grpc.AspNetCore` → grpc, `Microsoft.AspNetCore.Mvc` or controllers → rest, `.razor` files → blazor, `app.MapGet`/`app.MapPost` without controllers → minimal-api
+- **patterns**: List architectural patterns found in code (cqrs-command-side, mediator, event-sourcing, outbox-pattern, clean-architecture, vertical-slice, repository-pattern, specification-pattern, etc.)
+- **deployment**: Check for Dockerfile and kubernetes manifests or docker-compose.yml
+- **test_projects**: Solution projects referencing xunit/nunit/mstest or named *.Test/*.Tests
+- **sibling_repos**: Directories in `../` that are git repos with .NET projects — classify by quick structural scan
 
 ## Important Notes
 
