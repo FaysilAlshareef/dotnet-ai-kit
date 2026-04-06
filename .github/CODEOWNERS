@@ -1,0 +1,13 @@
+# Default owner for everything
+* @FaysilAlshareef
+
+# Python source
+src/ @FaysilAlshareef
+tests/ @FaysilAlshareef
+
+# Commands and rules (content changes)
+commands/ @FaysilAlshareef
+rules/ @FaysilAlshareef
+skills/ @FaysilAlshareef
+agents/ @FaysilAlshareef
+profiles/ @FaysilAlshareef
