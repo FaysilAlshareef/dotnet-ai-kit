@@ -62,5 +62,26 @@ Match the existing test style. Never introduce a different test framework.
 3. Look for existing test utilities (Fakers, Asserts, Fixtures)
 4. Follow the established patterns for all new tests
 
+## The Iron Law
+
+```
+NO PRODUCTION CODE WITHOUT A CORRESPONDING TEST
+```
+
+New public methods, handlers, and services require tests. If you wrote code without a test, write the test now.
+
+## Rationalization Table
+
+| Excuse | Reality |
+|--------|---------|
+| "It's too simple to test" | Simple code breaks. A test takes 30 seconds to write. |
+| "I'll write tests later" | Later never comes. Write it now. |
+| "The build passes" | Build checks compilation, not correctness. |
+| "It's just a DTO/model" | DTOs with logic (validation, computed properties) need tests. |
+| "Manual testing is enough" | Manual testing can't be re-run. Automated tests can. |
+| "The handler just calls a service" | Test the handler. Services change. Integration matters. |
+| "Test setup is too complex" | Complex setup = complex code. Simplify the design. |
+| "Existing code has no tests" | You're improving the codebase. Add tests for what you change. |
+
 ## Related Skills
 - `skills/core/fluent-validation/SKILL.md` — validation testing patterns

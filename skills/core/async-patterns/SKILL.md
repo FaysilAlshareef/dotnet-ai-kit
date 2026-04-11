@@ -1,9 +1,7 @@
 ---
 name: async-patterns
 description: >
-  Async/await best practices, CancellationToken propagation, Task patterns,
-  ValueTask usage, and common async pitfalls.
-  Trigger: async, await, Task, CancellationToken, concurrency.
+  Use when writing async code, propagating CancellationTokens, or fixing async/await pitfalls.
 metadata:
   category: core
   agent: dotnet-architect

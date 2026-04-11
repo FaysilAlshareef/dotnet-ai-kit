@@ -1,9 +1,7 @@
 ---
 name: error-handling
 description: >
-  Domain exception hierarchy, ProblemDetails for REST, RpcException for gRPC,
-  interceptor-based mapping, structured error codes, and error logging.
-  Trigger: error handling, exceptions, problem details, RpcException, error codes.
+  Use when implementing error handling with domain exceptions, ProblemDetails, or RpcException mapping.
 metadata:
   category: core
   agent: dotnet-architect

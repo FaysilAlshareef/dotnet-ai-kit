@@ -1,9 +1,7 @@
 ---
 name: grpc-design
 description: >
-  gRPC API design for .NET — proto file conventions, service naming, message design,
-  gRPC-JSON transcoding, gRPC-Web for browsers, and backward compatibility.
-  Trigger: gRPC, proto, protobuf, gRPC-Web, gRPC transcoding, service definition.
+  Use when designing gRPC services, proto files, or adding gRPC-Web or JSON transcoding.
 metadata:
   category: api
   agent: api-designer

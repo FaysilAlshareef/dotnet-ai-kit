@@ -1,9 +1,7 @@
 ---
 name: background-jobs
 description: >
-  Background job patterns with Hangfire, hosted services, and recurring tasks.
-  Covers job scheduling, persistent store, and fire-and-forget patterns.
-  Trigger: background job, Hangfire, recurring task, scheduled job, cron.
+  Use when adding background jobs, recurring tasks, or Hangfire scheduled work.
 metadata:
   category: infra
   agent: dotnet-architect

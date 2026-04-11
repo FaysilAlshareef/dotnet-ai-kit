@@ -1,9 +1,7 @@
 ---
 name: test-fixtures
 description: >
-  Test data generation with CustomConstructorFaker and Bogus. Covers faker patterns,
-  assertion extensions, and test helper utilities for microservice testing.
-  Trigger: test fixture, faker, Bogus, test data, assertion extension.
+  Use when generating test data with Bogus fakers, assertion extensions, or test helpers.
 metadata:
   category: testing
   agent: test-engineer

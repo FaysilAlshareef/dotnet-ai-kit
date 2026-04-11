@@ -1,9 +1,7 @@
 ---
 name: minimal-api
 description: >
-  Minimal API endpoints, route groups, endpoint filters, TypedResults,
-  and auto-discovery patterns.
-  Trigger: minimal API, endpoints, MapGet, MapPost, route group, TypedResults.
+  Use when building minimal API endpoints with route groups, filters, or TypedResults.
 metadata:
   category: api
   agent: api-designer

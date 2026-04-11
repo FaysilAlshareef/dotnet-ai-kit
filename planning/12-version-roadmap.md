@@ -36,7 +36,7 @@ This document organizes the project's build phases into versioned releases and p
 |-----------|-------|
 | Rules | **16** |
 | Agents | 13 |
-| Skills | 120 |
+| Skills | **124** |
 | Commands | 27 |
 | Knowledge Docs | 16 |
 | Templates (scaffold dirs) | 13 |
@@ -58,6 +58,21 @@ This document organizes the project's build phases into versioned releases and p
 - C# LSP MCP config (.mcp.json)
 - 4 missing cross-cutting skills created: event-catalogue, feature-flags, multi-tenancy, grpc-design
 - Plugin.json schema fixed: tags→keywords, author→object
+
+### v1.0 Agent Discipline Additions (Superpowers-Inspired)
+
+Inspired by [obra/superpowers](https://github.com/obra/superpowers). Enforces disciplined AI behavior.
+
+| Component | Change |
+|-----------|--------|
+| **New skills** | 4 workflow skills: verification-gate, receiving-review-feedback, systematic-debugging, git-worktree-isolation |
+| **New hook** | session-start-bootstrap.sh (SessionStart event) |
+| **CSO rewrite** | All 124 skill descriptions rewritten to trigger-only "Use when..." format |
+| **Pipeline gates** | implement.md gains per-task review gate; plan.md gains spec approval check |
+| **2-stage review** | code-review-workflow gains spec compliance pass before quality pass |
+| **Rationalization tables** | Added to review-checklist, code-review-workflow, testing rule |
+| **Skills total** | 120 → 124 |
+| **Hooks total** | 4 → 5 |
 - 27 command descriptions rewritten with auto-invocation triggers
 - Security & Permissions section added to README
 - Hook timeouts and statusMessage added to all 4 hooks

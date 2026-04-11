@@ -1,9 +1,7 @@
 ---
 name: diagram-gen
 description: >
-  Mermaid diagram generation patterns for architecture documentation. Covers
-  service topology, event flows, sequence diagrams, and class diagrams.
-  Trigger: Mermaid, diagram, flowchart, sequence diagram, class diagram.
+  Use when creating Mermaid diagrams for architecture, event flows, or sequence diagrams.
 metadata:
   category: docs
   agent: docs-engineer

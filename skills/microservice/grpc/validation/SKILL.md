@@ -1,9 +1,7 @@
 ---
 name: validation
 description: >
-  FluentValidation for gRPC requests with Calzolari integration. Covers
-  AbstractValidator for proto requests, resource-based messages, and pre-handler validation.
-  Trigger: gRPC validation, FluentValidation, Calzolari, request validation.
+  Use when adding FluentValidation to gRPC requests with Calzolari integration.
 metadata:
   category: microservice/grpc
   agent: command-architect

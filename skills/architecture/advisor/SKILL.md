@@ -1,8 +1,7 @@
 ---
 name: advisor
 description: >
-  Architecture recommendation questionnaire. Evaluates project needs and
-  recommends VSA, Clean Architecture, DDD, Modular Monolith, or Microservices.
+  Use when choosing between architecture patterns (VSA, Clean Architecture, DDD, Modular Monolith, Microservices) for a new project.
 metadata:
   category: architecture
   agent: dotnet-architect

@@ -1,8 +1,7 @@
 ---
 name: controllers
 description: >
-  RESTful API controllers with MediatR integration, action results,
-  model binding, authorization, and ProblemDetails error handling.
+  Use when creating RESTful API controllers with MediatR dispatch and ProblemDetails error responses.
 metadata:
   category: api
   agent: api-designer

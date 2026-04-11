@@ -1,9 +1,7 @@
 ---
 name: auth-policies
 description: >
-  Policy-based authorization with custom requirements, handlers,
-  and permission-based access control.
-  Trigger: authorization, policy, permission, HasPermission, requirement, handler.
+  Use when implementing policy-based authorization with custom requirements or permissions.
 metadata:
   category: security
   agent: api-designer

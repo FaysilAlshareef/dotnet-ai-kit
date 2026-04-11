@@ -1,8 +1,7 @@
 ---
 name: audit-trail
 description: >
-  Audit trail with IAuditable interface and EF Core interceptor.
-  Automatic CreatedAt/UpdatedAt/CreatedBy/UpdatedBy population.
+  Use when adding automatic audit trail (CreatedAt, UpdatedBy) via EF Core interceptors.
 metadata:
   category: data
   agent: ef-specialist

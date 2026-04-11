@@ -1,10 +1,7 @@
 ---
 name: aggregate-testing
 description: >
-  Testing patterns for event-sourced aggregates. Covers CustomConstructorFaker with Bogus,
-  event faker patterns, assertion extensions, and integration test patterns with
-  WebApplicationFactory, DbContextHelper, and GrpcClientHelper.
-  Trigger: aggregate test, faker, test data, assertion, command testing.
+  Use when writing tests for event-sourced aggregates with fakers and assertion extensions.
 metadata:
   category: microservice/command
   agent: test-engineer

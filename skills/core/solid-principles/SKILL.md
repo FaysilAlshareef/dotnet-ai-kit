@@ -2,9 +2,7 @@
 name: solid-principles
 
 description: >
-  SOLID principles with C# examples, decision guidance for when to apply each principle,
-  anti-patterns for over-engineering, and practical trade-offs.
-  Trigger: SOLID, single responsibility, open closed, liskov, interface segregation, dependency inversion.
+  Use when evaluating code against SOLID principles or deciding when to apply or skip them.
 metadata:
   category: core
   agent: dotnet-architect

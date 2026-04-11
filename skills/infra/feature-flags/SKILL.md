@@ -1,9 +1,7 @@
 ---
 name: feature-flags
 description: >
-  Feature flag management with Microsoft.FeatureManagement — toggle patterns, percentage rollouts,
-  time windows, custom filters, and Azure App Configuration integration.
-  Trigger: feature flag, feature toggle, feature gate, FeatureManagement, feature rollout.
+  Use when adding feature flags, percentage rollouts, or toggling features at runtime.
 metadata:
   category: infra
   agent: dotnet-architect

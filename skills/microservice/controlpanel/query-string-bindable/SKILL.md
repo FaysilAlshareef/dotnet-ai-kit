@@ -1,9 +1,7 @@
 ---
 name: query-string-bindable
 description: >
-  URL-synchronized filter models for control panel data grids. Covers
-  QueryStringBindable base class, two-way URL binding, and PropertyChanged notification.
-  Trigger: query string, URL filter, bindable, filter model, URL sync.
+  Use when synchronizing filter models with URL query strings in Blazor data grids.
 metadata:
   category: microservice/controlpanel
   agent: controlpanel-architect

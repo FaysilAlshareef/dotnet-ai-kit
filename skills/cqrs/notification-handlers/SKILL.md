@@ -1,9 +1,7 @@
 ---
 name: notification-handlers
 description: >
-  Domain event dispatch using MediatR notifications. Multiple handlers per event,
-  dispatch after persistence, and idempotent handling.
-  Trigger: domain event, notification, INotification, event handler, publish.
+  Use when dispatching domain events via MediatR notifications with multiple handlers.
 metadata:
   category: cqrs
   agent: ef-specialist

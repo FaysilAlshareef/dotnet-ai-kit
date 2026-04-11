@@ -1,8 +1,7 @@
 ---
 name: scalar
 description: >
-  Scalar API documentation setup for .NET. OpenAPI doc generation,
-  Scalar UI configuration, basic auth protection, theme customization.
+  Use when configuring Scalar API documentation UI for a .NET project.
 metadata:
   category: api
   agent: api-designer

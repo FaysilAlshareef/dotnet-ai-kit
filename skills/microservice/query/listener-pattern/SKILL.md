@@ -1,10 +1,7 @@
 ---
 name: listener-pattern
 description: >
-  Service Bus session-based listener as IHostedService. Uses ServiceBusSessionProcessor
-  with specific config, paired dead-letter processor, subject-based routing via switch
-  expression, typed HandleAsync<T> deserialization, and LogContext enrichment.
-  Trigger: service bus listener, session processor, event routing, hosted service.
+  Use when building Service Bus session-based listeners as IHostedService.
 metadata:
   category: microservice/query
   agent: query-architect

@@ -1,9 +1,7 @@
 ---
 name: session-management
 description: >
-  Session checkpoint, wrap-up, and handoff patterns for AI-assisted development.
-  Covers session state persistence, context handoff, and resumption strategies.
-  Trigger: session, checkpoint, handoff, wrap-up, resume, context.
+  Use when checkpointing, wrapping up, or handing off an AI-assisted development session.
 metadata:
   category: workflow
   agent: dotnet-architect

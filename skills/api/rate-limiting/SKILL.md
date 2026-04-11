@@ -1,9 +1,7 @@
 ---
 name: rate-limiting
 description: >
-  .NET 7+ built-in rate limiting — fixed window, sliding window, token bucket,
-  concurrency limiter, per-endpoint policies, and custom partitioners.
-  Trigger: rate limit, throttle, AddRateLimiter, 429, too many requests.
+  Use when adding rate limiting or throttling to .NET API endpoints.
 metadata:
   category: api
   agent: api-designer

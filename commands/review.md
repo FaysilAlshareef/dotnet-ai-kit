@@ -41,6 +41,8 @@ Read `agents/reviewer.md` for review standards and quality checks. Load all skil
 - Read `skills/quality/review-checklist/SKILL.md` for review criteria
 - Read `skills/quality/code-analysis/SKILL.md` for code analysis patterns
 - Read `skills/core/csharp-idioms/SKILL.md` for C# best practices
+- Read `skills/workflow/verification-gate/SKILL.md` — every review finding must be backed by evidence
+- Read `skills/workflow/receiving-review-feedback/SKILL.md` — when processing CodeRabbit or external feedback
 
 ## Step 3: Standards Review
 

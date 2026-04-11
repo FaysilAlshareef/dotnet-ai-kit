@@ -6,6 +6,19 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
 ## [1.0.0] — Unreleased
 
+### Added (Superpowers-Inspired Agent Discipline Features)
+- 4 new workflow skills: `verification-gate`, `receiving-review-feedback`, `systematic-debugging`, `git-worktree-isolation`
+- **Verification Gate skill** — Iron Law: no completion claims without fresh `dotnet build`/`dotnet test` evidence. Includes forbidden phrases list, .NET-specific verification commands table, rationalization table, and red flags checklist
+- **Receiving Review Feedback skill** — Anti-sycophancy enforcement for code review. Bans performative agreement ("Great point!", "You're absolutely right!"), requires technical verification before implementing suggestions, source priority hierarchy (user > project rules > CodeRabbit > external reviewers), YAGNI gate for reviewer suggestions, .NET-specific checks (DI, layer boundaries, middleware pipeline)
+- **Systematic Debugging skill** — 4-phase root cause investigation (investigate → pattern analysis → hypothesis → implementation). 3-fix escalation rule: if 3+ fixes fail, question the architecture. .NET-specific escalation examples (EF Core migrations, DI resolution, middleware pipeline)
+- **Git Worktree Isolation skill** — Isolated workspace setup with smart directory selection, safety verification (.gitignore check), .NET project auto-detection (`dotnet restore` → `dotnet build` → `dotnet test`), baseline verification, and cleanup procedures
+- **Session-start bootstrap hook** — `SessionStart` hook in `hooks.json` that reminds the agent to check skills before every action. Lists key workflow skills for quick discovery
+- **Per-task review gate** in `/dai.go` (implement command) — after each task: run `dotnet build` + `dotnet test` with evidence, compare against spec, check against rules. No batching failures across tasks
+- **Spec approval gate** in `/dai.plan` — verifies spec exists AND has been approved before planning proceeds
+- **2-stage review process** in `code-review-workflow` skill — Pass 1: spec compliance (built the right thing?), Pass 2: code quality (built it well?). Pass 2 cannot start until Pass 1 approves
+- **Rationalization tables** added to 3 existing files: `review-checklist` skill, `code-review-workflow` skill, `testing` rule — each gains an Iron Law, rationalization table (agent excuses + rebuttals), and red flags checklist
+- **CSO (Claude Search Optimization)** applied to all 124 skill descriptions — rewritten from workflow summaries to trigger-only "Use when..." format so agents read full skills instead of shortcutting from descriptions
+
 ### Added
 - 27 slash commands for the full SDD lifecycle, code generation, smart workflows, and session management
 - `/dotnet-ai.learn` (`/dai.learn`) command — generates a persistent project constitution at `.dotnet-ai-kit/memory/constitution.md` with detected architecture, domain model, naming conventions, key packages, and established patterns. Chains `/dai.detect` internally. Supports `--update` to refresh and `--dry-run` to preview.

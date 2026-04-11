@@ -1,9 +1,7 @@
 ---
 name: controller-patterns
 description: >
-  Controller-based API design, action results, model binding, routing,
-  and MediatR integration patterns.
-  Trigger: controller, ControllerBase, ApiController, action result, REST.
+  Use when building controller-based REST APIs with action results, model binding, or MediatR integration.
 metadata:
   category: api
   agent: api-designer

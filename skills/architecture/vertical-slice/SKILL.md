@@ -1,9 +1,7 @@
 ---
 name: vertical-slice
 description: >
-  Vertical Slice Architecture with feature folders, MediatR handlers per slice,
-  minimal abstraction, and co-located code.
-  Trigger: vertical slice, VSA, feature folders, feature-based.
+  Use when implementing Vertical Slice Architecture with feature folders and co-located code.
 metadata:
   category: architecture
   agent: dotnet-architect

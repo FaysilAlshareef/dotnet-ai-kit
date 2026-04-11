@@ -1,10 +1,7 @@
 ---
 name: gateway-endpoint
 description: >
-  REST controllers in gateway that delegate to gRPC backend services. Covers
-  ControllerBaseV1 inheritance, gRPC client injection, inline request/response mapping,
-  Paginated<T>, and authorization attributes.
-  Trigger: gateway controller, REST endpoint, gRPC client call, API endpoint.
+  Use when building REST gateway controllers that delegate to gRPC backend services.
 metadata:
   category: microservice/gateway
   agent: gateway-architect

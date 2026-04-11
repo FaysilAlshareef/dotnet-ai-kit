@@ -2,9 +2,7 @@
 name: functional-csharp
 
 description: >
-  Functional programming patterns in C# — Result types, railway-oriented programming,
-  pure functions, immutability, pattern matching, and OOP vs FP decision guidance.
-  Trigger: functional, Result, Option, immutable, pure function, pattern matching, railway.
+  Use when applying functional patterns in C# — Result types, railway-oriented programming, or immutability.
 metadata:
   category: core
   agent: dotnet-architect

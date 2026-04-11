@@ -1,9 +1,7 @@
 ---
 name: ddd-patterns
 description: >
-  Domain-Driven Design tactical patterns. Aggregates, value objects, domain events,
-  strongly-typed IDs, bounded contexts, and rich domain models.
-  Trigger: DDD, aggregate, value object, domain event, bounded context.
+  Use when modeling domain logic with aggregates, value objects, domain events, or bounded contexts.
 metadata:
   category: architecture
   agent: dotnet-architect

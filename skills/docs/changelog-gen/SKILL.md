@@ -1,9 +1,7 @@
 ---
 name: changelog-gen
 description: >
-  Changelog generation from git history using Keep a Changelog format.
-  Covers conventional commits, semantic versioning, and release notes.
-  Trigger: changelog, release notes, conventional commits, version, CHANGELOG.
+  Use when generating changelogs from git history or preparing release notes.
 metadata:
   category: docs
   agent: docs-engineer

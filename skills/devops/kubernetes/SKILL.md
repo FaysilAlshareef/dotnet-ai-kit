@@ -1,9 +1,7 @@
 ---
 name: kubernetes
 description: >
-  Kubernetes manifests for .NET microservices. Covers Deployment, Service, ConfigMap,
-  Secret, health probes, and token placeholders for CI/CD pipelines.
-  Trigger: Kubernetes, K8s, deployment, service, manifest, pod.
+  Use when writing Kubernetes manifests for .NET microservice deployment.
 metadata:
   category: devops
   agent: devops-engineer

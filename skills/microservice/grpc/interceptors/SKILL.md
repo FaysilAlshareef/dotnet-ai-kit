@@ -1,9 +1,7 @@
 ---
 name: interceptors
 description: >
-  gRPC server and client interceptors for cross-cutting concerns. Covers exception
-  mapping, culture switching, access claims extraction, and registration order.
-  Trigger: gRPC interceptor, exception handling, culture, access claims.
+  Use when adding gRPC interceptors for exception mapping, culture switching, or claims extraction.
 metadata:
   category: microservice/grpc
   agent: command-architect

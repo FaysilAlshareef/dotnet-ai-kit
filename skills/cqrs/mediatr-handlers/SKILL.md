@@ -1,9 +1,7 @@
 ---
 name: mediatr-handlers
 description: >
-  MediatR IRequest, IRequestHandler, and INotificationHandler patterns.
-  Command and query handler creation, registration, and dispatch.
-  Trigger: MediatR, IRequest, IRequestHandler, handler, Send.
+  Use when implementing MediatR request handlers, notification handlers, or command/query dispatch.
 metadata:
   category: cqrs
   agent: ef-specialist

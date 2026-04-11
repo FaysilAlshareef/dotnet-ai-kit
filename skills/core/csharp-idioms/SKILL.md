@@ -1,9 +1,7 @@
 ---
 name: csharp-idioms
 description: >
-  Modern C# idioms and language features. File-scoped namespaces, records,
-  pattern matching, primary constructors, collection expressions.
-  Trigger: C# style, modern syntax, idioms, language features.
+  Use when applying modern C# idioms — records, pattern matching, primary constructors, collection expressions.
 metadata:
   category: core
   agent: dotnet-architect

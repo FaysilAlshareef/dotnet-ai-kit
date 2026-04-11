@@ -1,10 +1,7 @@
 ---
 name: event-handler
 description: >
-  Query-side event handlers implementing IRequestHandler<Event<T>, bool>. Returns bool
-  for message completion. Uses IUnitOfWork with named repository properties, strict
-  sequence checking, and idempotent duplicate handling.
-  Trigger: event handler, query projection, sequence check, idempotent.
+  Use when implementing query-side event handlers with sequence checking and idempotency.
 metadata:
   category: microservice/query
   agent: query-architect

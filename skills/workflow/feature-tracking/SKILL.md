@@ -1,9 +1,7 @@
 ---
 name: feature-tracking
 description: >
-  Feature directory structure and status progression for tracking development.
-  Covers feature briefs, specs, status files, and multi-service coordination.
-  Trigger: feature tracking, status, progress, feature directory.
+  Use when tracking feature status, managing feature directories, or coordinating multi-service features.
 metadata:
   category: workflow
   agent: dotnet-architect

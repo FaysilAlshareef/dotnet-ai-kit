@@ -1,9 +1,7 @@
 ---
 name: cors-configuration
 description: >
-  CORS policy configuration for .NET APIs — named policies, origin/method/header control,
-  credentials handling, per-endpoint CORS, preflight caching, and common mistakes.
-  Trigger: CORS, cross-origin, AddCors, AllowOrigins, preflight, Access-Control.
+  Use when configuring CORS policies for .NET APIs.
 metadata:
   category: security
   agent: api-designer

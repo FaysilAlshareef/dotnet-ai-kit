@@ -1,9 +1,7 @@
 ---
 name: event-catalogue
 description: >
-  Event schema documentation per service, cross-service event registry, naming conventions,
-  versioning strategy, and catalogue generation from code.
-  Trigger: event catalogue, event registry, event schema, event documentation.
+  Use when documenting cross-service event schemas or generating an event registry.
 metadata:
   category: microservice
   agent: docs-engineer

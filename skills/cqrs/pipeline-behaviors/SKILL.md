@@ -1,9 +1,7 @@
 ---
 name: pipeline-behaviors
 description: >
-  MediatR pipeline behaviors for validation, logging, performance monitoring,
-  and transaction management.
-  Trigger: pipeline behavior, IPipelineBehavior, validation behavior, logging behavior.
+  Use when adding cross-cutting MediatR pipeline behaviors for validation, logging, or transactions.
 metadata:
   category: cqrs
   agent: ef-specialist

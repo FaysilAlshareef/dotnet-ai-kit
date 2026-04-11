@@ -1,9 +1,7 @@
 ---
 name: code-analysis
 description: >
-  Static code analysis with Roslyn analyzers, StyleCop, and EditorConfig.
-  Covers analyzer configuration, rule customization, and CI enforcement.
-  Trigger: code analysis, Roslyn, StyleCop, EditorConfig, analyzer, lint.
+  Use when configuring Roslyn analyzers, StyleCop, or EditorConfig for static analysis.
 metadata:
   category: quality
   agent: reviewer

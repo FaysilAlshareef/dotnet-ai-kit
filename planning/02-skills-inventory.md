@@ -27,7 +27,7 @@ Sections: Core Principles, Patterns (code examples), Anti-patterns, Decision Gui
 | **dotnet-claude-kit** | ~20 adapted | Modern C#, Architecture, APIs, Resilience, Observability |
 | **dotnet-clean-architecture-skills** | ~10 adapted | Clean Arch, DDD, Repository, Pipeline, Dapper |
 
-**Total: ~120 skills** (deduplicated, merged where overlap exists)
+**Total: ~124 skills** (deduplicated, merged where overlap exists; +4 agent discipline skills in v1.1)
 
 ---
 

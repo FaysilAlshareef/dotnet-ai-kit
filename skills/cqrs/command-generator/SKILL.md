@@ -1,8 +1,7 @@
 ---
 name: command-generator
 description: >
-  CQRS command pattern: command record + handler + validator using
-  MediatR and FluentValidation. Three-section file organization.
+  Use when creating a new CQRS command with handler and FluentValidation validator.
 metadata:
   category: cqrs
   agent: ef-specialist

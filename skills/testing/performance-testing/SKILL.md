@@ -1,9 +1,7 @@
 ---
 name: performance-testing
 description: >
-  Performance testing with BenchmarkDotNet, load testing, and Test.Live projects
-  for Service Bus throughput validation. Covers hot path optimization and baselines.
-  Trigger: benchmark, performance test, load test, throughput, Test.Live.
+  Use when benchmarking with BenchmarkDotNet or running load/throughput tests.
 metadata:
   category: testing
   agent: test-engineer

@@ -1,9 +1,7 @@
 ---
 name: cosmos-repository
 description: >
-  Cosmos DB repository pattern with LINQ queries, FeedIterator for pagination,
-  point reads, and RU monitoring. Covers container-based data access patterns.
-  Trigger: cosmos repository, LINQ query, FeedIterator, point read, RU.
+  Use when implementing Cosmos DB repository with LINQ queries and FeedIterator pagination.
 metadata:
   category: microservice/cosmos
   agent: cosmos-architect

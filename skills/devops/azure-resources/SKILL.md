@@ -1,9 +1,7 @@
 ---
 name: azure-resources
 description: >
-  Azure resource provisioning for microservices. Covers Service Bus topics/subscriptions,
-  Cosmos DB accounts, SQL Server databases, and resource organization.
-  Trigger: Azure Service Bus, Cosmos DB, SQL Server, Azure resources, provisioning.
+  Use when provisioning Azure resources — Service Bus, Cosmos DB, SQL Server — for microservices.
 metadata:
   category: devops
   agent: devops-engineer

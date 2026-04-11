@@ -1,9 +1,7 @@
 ---
 name: runbook
 description: >
-  Deployment runbooks and troubleshooting guides. Covers prerequisites, deployment
-  steps, verification, rollback procedures, and per-environment documentation.
-  Trigger: runbook, deployment guide, troubleshooting, rollback, operations.
+  Use when creating deployment runbooks, troubleshooting guides, or rollback procedures.
 metadata:
   category: docs
   agent: docs-engineer

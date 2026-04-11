@@ -1,9 +1,7 @@
 ---
 name: ef-queries
 description: >
-  EF Core query patterns. LINQ queries, raw SQL, compiled queries,
-  projection with Select, split queries, and performance optimization.
-  Trigger: EF query, LINQ, raw SQL, compiled query, projection, N+1.
+  Use when writing EF Core queries — LINQ, raw SQL, compiled queries, or fixing N+1 patterns.
 metadata:
   category: data
   agent: ef-specialist

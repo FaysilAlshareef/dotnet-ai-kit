@@ -1,9 +1,7 @@
 ---
 name: openapi-scalar
 description: >
-  OpenAPI spec generation with native .NET support, Scalar UI configuration,
-  document transformers, and security scheme setup.
-  Trigger: OpenAPI, Swagger, Scalar, API documentation, spec.
+  Use when setting up OpenAPI spec generation or Scalar API documentation UI.
 metadata:
   category: api
   agent: api-designer

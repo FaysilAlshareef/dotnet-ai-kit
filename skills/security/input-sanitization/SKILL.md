@@ -1,9 +1,7 @@
 ---
 name: input-sanitization
 description: >
-  Input sanitization and XSS prevention — HTML sanitization, CSP headers,
-  output encoding, security headers middleware, and file upload validation.
-  Trigger: XSS, sanitize, sanitization, CSP, Content-Security-Policy, HtmlSanitizer, security headers.
+  Use when preventing XSS, adding CSP headers, or validating file uploads.
 metadata:
   category: security
   agent: api-designer

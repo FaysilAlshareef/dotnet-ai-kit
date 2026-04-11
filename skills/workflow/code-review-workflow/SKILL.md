@@ -1,9 +1,7 @@
 ---
 name: code-review-workflow
 description: >
-  Code review workflow with review checklist and CodeRabbit integration. Covers
-  review categories, severity ratings, and automated review patterns.
-  Trigger: code review, review checklist, CodeRabbit, PR review.
+  Use when performing code review on completed implementation, before merge.
 metadata:
   category: workflow
   agent: reviewer
@@ -124,6 +122,41 @@ if (@event.Sequence != order.Sequence + 1) return false;
 order.Apply(@event);
 ```
 ```
+
+## The Iron Law
+
+```
+EVERY REVIEW HAS TWO PASSES: SPEC COMPLIANCE FIRST, THEN CODE QUALITY
+```
+
+Pass 1 catches "built the wrong thing." Pass 2 catches "built the right thing badly." Never skip Pass 1.
+
+## Two-Stage Review Process
+
+### Pass 1: Spec Compliance
+- Compare implementation against spec/brief requirements
+- Flag missing requirements (incomplete)
+- Flag extra features not in spec (scope creep)
+- Flag behavioral mismatches
+- **Verdict: Spec-Compliant or Not**
+
+### Pass 2: Code Quality (only after Pass 1 approves)
+- Run the review checklist categories
+- Check architecture, security, performance, testing
+- Apply severity ratings
+- **Verdict: Ready to Merge, Needs Fixes, or Rejected**
+
+**Do NOT start Pass 2 if Pass 1 has open issues.** Fix spec compliance first.
+
+## Rationalization Table
+
+| Excuse | Reality |
+|--------|---------|
+| "The code looks good, skip spec check" | Good code for wrong requirements is still wrong. |
+| "Spec is informal, close enough counts" | Close enough is not done. Check each requirement. |
+| "I'll combine both passes for efficiency" | Combined passes miss spec issues. Separate them. |
+| "Tests pass so it meets the spec" | Tests check code behavior, not spec alignment. |
+| "It's a minor feature, one pass is fine" | Minor features still need spec compliance. |
 
 ## Anti-Patterns
 

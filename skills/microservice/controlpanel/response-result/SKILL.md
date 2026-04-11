@@ -1,9 +1,7 @@
 ---
 name: response-result
 description: >
-  ResponseResult<T> pattern with Switch for success/failure handling. Covers
-  SuccessResult, FailedResult, ProblemDetails parsing, and UI integration.
-  Trigger: ResponseResult, Switch pattern, error handling, result pattern.
+  Use when handling API responses with ResponseResult<T> and Switch pattern in the UI.
 metadata:
   category: microservice/controlpanel
   agent: controlpanel-architect

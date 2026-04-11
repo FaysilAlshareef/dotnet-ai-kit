@@ -1,9 +1,7 @@
 ---
 name: fluent-validation
 description: >
-  Standalone FluentValidation patterns — validators, DI registration, manual and auto validation,
-  custom validators, async validators, and integration with ProblemDetails.
-  Trigger: FluentValidation, validator, validation, AbstractValidator, RuleFor.
+  Use when adding FluentValidation validators, custom rules, or async validation to a .NET project.
 metadata:
   category: core
   agent: dotnet-architect

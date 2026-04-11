@@ -1,9 +1,7 @@
 ---
 name: db-transactions
 description: >
-  Database transaction management, isolation levels, EF Core transactions,
-  and cross-context coordination patterns.
-  Trigger: transaction, isolation level, SaveChanges, commit, rollback.
+  Use when managing database transactions, isolation levels, or cross-context coordination.
 metadata:
   category: data
   agent: ef-specialist

@@ -415,7 +415,7 @@ Initializing for Claude Code...
   Created: .dotnet-ai-kit/project.yml
   Copied: 27 commands → .claude/commands/
   Copied: 16 rules → .claude/rules/
-  Copied: 120 skills → .claude/skills/
+  Copied: 124 skills → .claude/skills/
   Copied: 13 agents → .claude/agents/
 
 ✓ dotnet-ai-kit initialized for Claude Code

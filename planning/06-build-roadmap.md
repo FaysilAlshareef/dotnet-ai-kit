@@ -256,7 +256,7 @@ The most complex phase:
 | Doc | File | Purpose |
 |-----|------|---------|
 | 01 | `01-vision.md` | Vision, principles, supported tools |
-| 02 | `02-skills-inventory.md` | 120 skills with detailed descriptions |
+| 02 | `02-skills-inventory.md` | 124 skills with detailed descriptions |
 | 03 | `03-agents-design.md` | 13 agents, routing tables, orchestration |
 | 04 | `04-commands-design.md` | 27 commands, SDD lifecycle flows |
 | 05 | `05-rules-design.md` | 15 always-loaded rules |
@@ -281,3 +281,22 @@ The most complex phase:
 The following were added after the initial build phases:
 - Phase 14: Plugin Ecosystem — `.claude-plugin/plugin.json`, Agent Skills spec compliance, 4 hooks, `.mcp.json` for C# LSP
 - Phase 15 (v1.1): Roslyn MCP tools for semantic .NET analysis
+
+### Phase 16: Agent Discipline (v1.1) — Superpowers-Inspired
+
+Inspired by [obra/superpowers](https://github.com/obra/superpowers). Enforces disciplined AI behavior.
+
+| Deliverable | Status |
+|-------------|--------|
+| `verification-gate` skill (evidence-before-claims) | Complete |
+| `receiving-review-feedback` skill (anti-sycophancy) | Complete |
+| `systematic-debugging` skill (4-phase root cause) | Complete |
+| `git-worktree-isolation` skill (safe workspaces) | Complete |
+| Session-start bootstrap hook | Complete |
+| CSO rewrite of all 124 skill descriptions | Complete |
+| Per-task review gate in implement command | Complete |
+| Spec approval gate in plan command | Complete |
+| 2-stage review process (spec compliance → quality) | Complete |
+| Rationalization tables in review-checklist, code-review-workflow, testing | Complete |
+
+**Skills: 120 → 124 | Hooks: 4 → 5**

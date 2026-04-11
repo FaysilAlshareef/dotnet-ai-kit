@@ -1,9 +1,7 @@
 ---
 name: opentelemetry
 description: >
-  OpenTelemetry integration for distributed tracing, custom metrics,
-  and OTLP exporters. ASP.NET Core, EF Core, and HttpClient instrumentation.
-  Trigger: OpenTelemetry, tracing, metrics, OTLP, distributed tracing, observability.
+  Use when integrating OpenTelemetry for distributed tracing, metrics, or OTLP exporters.
 metadata:
   category: observability
   agent: devops-engineer

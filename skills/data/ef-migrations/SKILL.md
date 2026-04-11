@@ -1,9 +1,7 @@
 ---
 name: ef-migrations
 description: >
-  EF Core migration strategy, CI/CD migration application, data seeding,
-  idempotent scripts, and migration best practices.
-  Trigger: migration, database migration, seed data, schema change, EF migration.
+  Use when creating, applying, or managing EF Core database migrations.
 metadata:
   category: data
   agent: ef-specialist

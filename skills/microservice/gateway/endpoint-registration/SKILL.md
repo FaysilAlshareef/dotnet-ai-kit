@@ -1,10 +1,7 @@
 ---
 name: endpoint-registration
 description: >
-  Service registration for gateway gRPC clients. Covers ServicesURLsOptions with
-  validated properties, AddGrpcClient with RegisterUrl helper, RegisterInterceptors,
-  and AddServicesURLsOptions pattern.
-  Trigger: gateway registration, gRPC client factory, service URL, ValidateOnStart.
+  Use when registering gRPC client factories and service URLs in the gateway.
 metadata:
   category: microservice/gateway
   agent: gateway-architect

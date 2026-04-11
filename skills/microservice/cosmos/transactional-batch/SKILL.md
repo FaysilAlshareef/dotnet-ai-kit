@@ -1,9 +1,7 @@
 ---
 name: transactional-batch
 description: >
-  Cosmos DB TransactionalBatch for atomic multi-document operations. Covers batch
-  creation, ETag concurrency, chunked batches for large operations, and error handling.
-  Trigger: transactional batch, atomic operations, cosmos batch, ETag.
+  Use when performing atomic multi-document operations with Cosmos DB TransactionalBatch.
 metadata:
   category: microservice/cosmos
   agent: cosmos-architect

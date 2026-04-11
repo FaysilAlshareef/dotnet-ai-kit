@@ -1,9 +1,7 @@
 ---
 name: caching-strategies
 description: >
-  Caching patterns for .NET APIs — output caching, response caching, IDistributedCache,
-  HybridCache, ETag conditional requests, and cache invalidation strategies.
-  Trigger: cache, caching, output cache, distributed cache, Redis, ETag, HybridCache.
+  Use when adding caching to .NET APIs or optimizing response times with distributed cache, output cache, or ETags.
 metadata:
   category: api
   agent: api-designer

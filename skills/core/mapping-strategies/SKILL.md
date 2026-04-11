@@ -1,9 +1,7 @@
 ---
 name: mapping-strategies
 description: >
-  Object mapping strategies — manual mapping (recommended), extension methods, LINQ projections,
-  with AutoMapper and Mapster comparison for context. Manual-first approach.
-  Trigger: mapping, map, AutoMapper, Mapster, DTO, projection, ToDto.
+  Use when mapping between DTOs and domain objects — manual mapping, LINQ projections, or AutoMapper.
 metadata:
   category: core
   agent: dotnet-architect

@@ -1,9 +1,7 @@
 ---
 name: multi-tenancy
 description: >
-  Multi-tenant architecture patterns — tenant isolation strategies, per-tenant database,
-  schema separation, shared with discriminator, tenant resolution, and EF Core global query filters.
-  Trigger: multi-tenant, tenant, tenancy, tenant isolation, shared database, tenant resolution.
+  Use when adding multi-tenant support with tenant isolation, per-tenant databases, or query filters.
 metadata:
   category: architecture
   agent: dotnet-architect

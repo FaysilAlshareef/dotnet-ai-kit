@@ -1,9 +1,7 @@
 ---
 name: request-response
 description: >
-  CQRS request/response patterns, FluentValidation integration, Result types,
-  and response DTO design.
-  Trigger: request response, FluentValidation, validator, DTO, Result.
+  Use when designing CQRS request/response contracts with FluentValidation and Result types.
 metadata:
   category: cqrs
   agent: ef-specialist

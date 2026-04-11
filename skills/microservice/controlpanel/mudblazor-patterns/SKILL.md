@@ -1,9 +1,7 @@
 ---
 name: mudblazor-patterns
 description: >
-  MudBlazor theming, dialog patterns, snackbar integration, and common component
-  usage for control panel applications.
-  Trigger: MudBlazor, theme, dialog, snackbar, expansion panel, card.
+  Use when applying MudBlazor theming, dialog patterns, or snackbar integration.
 metadata:
   category: microservice/controlpanel
   agent: controlpanel-architect
