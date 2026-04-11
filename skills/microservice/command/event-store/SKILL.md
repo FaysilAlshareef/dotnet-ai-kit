@@ -1,11 +1,7 @@
 ---
 name: event-store
 description: >
-  EF Core event store with discriminator mapping for event-sourced command services.
-  Covers ApplicationDbContext, GenericEventConfiguration with Newtonsoft.Json Data conversion,
-  EventConfiguration discriminator pattern, OutboxMessageConfiguration with Event FK, and
-  unique index on AggregateId+Sequence.
-  Trigger: event store, command database, EF Core events, discriminator.
+  Use when configuring EF Core event store with discriminator mapping for event sourcing.
 metadata:
   category: microservice/command
   agent: command-architect

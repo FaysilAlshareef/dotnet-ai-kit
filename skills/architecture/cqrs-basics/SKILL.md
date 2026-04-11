@@ -1,9 +1,7 @@
 ---
 name: cqrs-basics
 description: >
-  Command/Query Responsibility Segregation basics. Separate read and write models,
-  MediatR integration, and pipeline behaviors.
-  Trigger: CQRS, command query separation, read model, write model.
+  Use when implementing CQRS with separate read/write models and MediatR pipeline behaviors.
 metadata:
   category: architecture
   agent: dotnet-architect

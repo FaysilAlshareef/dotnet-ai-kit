@@ -1,9 +1,7 @@
 ---
 name: clean-architecture
 description: >
-  4-layer Clean Architecture pattern with dependency rules. Domain, Application,
-  Infrastructure, and Presentation layers with dependency inversion.
-  Trigger: clean architecture, layers, dependency inversion, use cases.
+  Use when implementing or enforcing Clean Architecture with 4-layer separation and dependency inversion.
 metadata:
   category: architecture
   agent: dotnet-architect

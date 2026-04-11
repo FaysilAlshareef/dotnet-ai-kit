@@ -2,9 +2,7 @@
 name: design-patterns
 
 description: >
-  Modern C# design pattern catalog with decision guidance, when to use each pattern,
-  when NOT to use, and which GoF patterns are replaced by language features.
-  Trigger: design pattern, factory, builder, strategy, decorator, observer, mediator, singleton.
+  Use when selecting or implementing design patterns in C# — factory, builder, strategy, decorator, or mediator.
 metadata:
   category: core
   agent: dotnet-architect

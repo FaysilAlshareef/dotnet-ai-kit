@@ -1,9 +1,7 @@
 ---
 name: architecture-docs
 description: >
-  Architecture overview documentation with Mermaid diagrams. Covers service
-  topology, event flows, data flows, and system architecture documentation.
-  Trigger: architecture docs, Mermaid diagram, system overview, service map.
+  Use when documenting system architecture with Mermaid diagrams and service topology.
 metadata:
   category: docs
   agent: docs-engineer

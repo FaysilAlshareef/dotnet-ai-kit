@@ -1,9 +1,7 @@
 ---
 name: serilog-structured
 description: >
-  Serilog configuration with two-stage bootstrap, structured logging,
-  enrichers, Seq sink, and request logging middleware.
-  Trigger: Serilog, structured logging, logging, Seq, enricher, log.
+  Use when setting up Serilog structured logging with enrichers and Seq sink.
 metadata:
   category: observability
   agent: devops-engineer

@@ -1,10 +1,7 @@
 ---
 name: grpc-client
 description: >
-  GrpcClientFactory registration with AddGrpcClient using (provider, client) callback,
-  IOptions<ExternalServicesOptions> for URL resolution, and RetryCallerService wrapper
-  for resilient gRPC calls with retry loop.
-  Trigger: gRPC client, client factory, external service, cross-service call, retry.
+  Use when calling external gRPC services from a processor with retry and client factory.
 metadata:
   category: microservice/processor
   agent: processor-architect

@@ -1,9 +1,7 @@
 ---
 name: gateway-facade
 description: >
-  Gateway management class hierarchy for control panel API calls. Covers typed
-  HttpClient wrappers, nested management classes, HTTP extension methods.
-  Trigger: gateway facade, HttpClient, API client, management class.
+  Use when creating typed HttpClient wrappers for control panel API calls.
 metadata:
   category: microservice/controlpanel
   agent: controlpanel-architect

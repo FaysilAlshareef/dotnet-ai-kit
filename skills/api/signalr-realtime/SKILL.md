@@ -1,9 +1,7 @@
 ---
 name: signalr-realtime
 description: >
-  SignalR real-time communication — hub design, typed clients, group management,
-  authentication, Redis backplane scaling, and JavaScript/.NET client integration.
-  Trigger: SignalR, real-time, WebSocket, hub, push notification, live update.
+  Use when adding real-time communication with SignalR hubs, WebSocket connections, or push notifications.
 metadata:
   category: api
   agent: api-designer

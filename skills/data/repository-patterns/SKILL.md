@@ -1,9 +1,7 @@
 ---
 name: repository-patterns
 description: >
-  Repository pattern with Unit of Work, specification pattern, generic and
-  specialized repositories, and proper EF Core integration.
-  Trigger: repository, unit of work, specification, IRepository, data access.
+  Use when implementing the repository pattern with Unit of Work or specification pattern.
 metadata:
   category: data
   agent: ef-specialist

@@ -1,9 +1,7 @@
 ---
 name: health-checks
 description: >
-  ASP.NET Core health check endpoints, custom health checks,
-  Kubernetes probes, and health check UI.
-  Trigger: health check, liveness, readiness, probe, /health.
+  Use when adding health check endpoints, Kubernetes probes, or health check UI.
 metadata:
   category: observability
   agent: devops-engineer

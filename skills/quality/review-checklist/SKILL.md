@@ -1,9 +1,7 @@
 ---
 name: review-checklist
 description: >
-  Standards review categories and severity ratings for code review.
-  Covers architecture, security, performance, and testing review criteria.
-  Trigger: review checklist, standards, code quality, review criteria.
+  Use when performing code review with standards-based checklists and severity ratings.
 metadata:
   category: quality
   agent: reviewer
@@ -151,6 +149,35 @@ Info       | Alternative approach, educational         | No action required
 
 {Link to relevant skill or documentation}
 ```
+
+## The Iron Law
+
+```
+NO "PASS" VERDICT WITHOUT CHECKING EVERY CATEGORY
+```
+
+If a category wasn't checked, the review is incomplete. "No issues found" requires evidence of looking, not absence of looking.
+
+## Rationalization Table
+
+| Excuse | Reality |
+|--------|---------|
+| "It's a small change, full review is overkill" | Small changes break things. Check every category. |
+| "Build passes, so it's fine" | Build checks compilation, not architecture or security. |
+| "Tests pass, so code is correct" | Tests check behavior, not naming, layering, or performance. |
+| "I already reviewed similar code" | Each change is unique. Review THIS change. |
+| "It's just a CRUD endpoint" | CRUD endpoints still need auth, validation, error handling. |
+| "CodeRabbit found nothing" | CodeRabbit lacks project context. Manual check required. |
+| "The author is experienced" | Experience doesn't prevent mistakes. Check the code. |
+| "Blocking on this will slow the team" | Shipping broken code slows the team more. |
+
+## Red Flags — STOP
+
+- About to write "PASS" without checking security
+- Skipping a category because "it doesn't apply"
+- Copying a previous review's findings
+- Rating everything as Minor to avoid conflict
+- Approving because the diff "looks clean"
 
 ## Anti-Patterns
 

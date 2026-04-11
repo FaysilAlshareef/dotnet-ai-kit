@@ -1,10 +1,7 @@
 ---
 name: gateway-security
 description: >
-  JWT authentication, policy-based authorization, and role-based access for
-  gateway endpoints. Covers AddJwtAuthentication, AddPolicies with ApiScope,
-  custom IAuthorizationHandler, Policy constants, and Roles constants.
-  Trigger: JWT auth, authorization policy, gateway security, Authorize attribute.
+  Use when configuring JWT auth, authorization policies, or role-based access on gateway endpoints.
 metadata:
   category: microservice/gateway
   agent: gateway-architect

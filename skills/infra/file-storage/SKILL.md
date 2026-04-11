@@ -1,9 +1,7 @@
 ---
 name: file-storage
 description: >
-  File storage abstraction with Azure Blob Storage and local file system support.
-  Covers IFileStorage interface, blob operations, and SAS token generation.
-  Trigger: file storage, blob storage, Azure Blob, file upload, download.
+  Use when implementing file upload/download with Azure Blob Storage or local file system.
 metadata:
   category: infra
   agent: dotnet-architect

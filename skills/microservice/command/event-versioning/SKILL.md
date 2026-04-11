@@ -1,9 +1,7 @@
 ---
 name: event-versioning
 description: >
-  Event schema evolution for Event<TData> pattern. Covers backward-compatible changes,
-  upcasting, versioned event data classes, migration strategies, and snapshot compatibility.
-  Trigger: event versioning, event migration, schema evolution, upcaster, event version.
+  Use when evolving event schemas, adding fields, or migrating event data versions.
 metadata:
   category: microservice/command
   agent: command-architect

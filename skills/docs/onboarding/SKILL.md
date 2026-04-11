@@ -1,9 +1,7 @@
 ---
 name: onboarding
 description: >
-  Developer onboarding documentation generation. Covers setup guides, architecture
-  overview, development workflow, and common tasks for new team members.
-  Trigger: onboarding, developer guide, setup guide, getting started.
+  Use when generating developer onboarding documentation or setup guides.
 metadata:
   category: docs
   agent: docs-engineer

@@ -1,10 +1,7 @@
 ---
 name: command-handler
 description: >
-  MediatR command handlers for event-sourced microservices. Covers IRequestHandler pattern,
-  aggregate loading/creation via IUnitOfWork and ICommitEventService, command records with
-  domain command interfaces, and gRPC service mapping.
-  Trigger: command handler, MediatR, CQRS command, business logic.
+  Use when implementing MediatR command handlers in event-sourced microservices.
 metadata:
   category: microservice/command
   agent: command-architect

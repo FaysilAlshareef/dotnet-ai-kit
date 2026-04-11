@@ -34,9 +34,23 @@ Flags: `--dry-run` (preview without writing), `--verbose` (diagnostic output),
 4. Detect mode: **generic** or **microservice**.
 5. If no `.dotnet-ai-kit/config.yml`: prompt to run `/dotnet-ai.configure` first.
 
+## Step 1b: Per-Task Review Gate
+
+After completing each task, before moving to the next:
+
+1. **Verify** — Run `dotnet build` and `dotnet test`. Report actual output.
+   Do NOT claim success without fresh evidence (see `skills/workflow/verification-gate/SKILL.md`).
+2. **Spec check** — Compare the task output against its acceptance criteria in `spec.md`.
+   Flag any deviation: missing requirement, extra scope, or behavioral mismatch.
+3. **Quality check** — Check the changed files against `rules/` conventions.
+   Flag any violations (naming, architecture boundaries, error handling).
+4. If any check fails: fix before proceeding to the next task. Do NOT batch failures.
+
 ## Step 2: Load Skills on Demand
 
 **Always load** (regardless of task type):
+- `skills/workflow/verification-gate/SKILL.md` — Evidence before claims
+- `skills/workflow/receiving-review-feedback/SKILL.md` — Technical rigor on feedback
 - `skills/core/configuration/SKILL.md` — Options pattern, DI registration, ValidateOnStart
 - `skills/core/dependency-injection/SKILL.md` — Service lifetime, registration patterns
 

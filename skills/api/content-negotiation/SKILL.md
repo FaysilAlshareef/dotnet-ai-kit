@@ -1,9 +1,7 @@
 ---
 name: content-negotiation
 description: >
-  Content type negotiation, custom formatters, Accept headers,
-  and response format configuration.
-  Trigger: content negotiation, Accept header, formatter, content type, media type.
+  Use when configuring API response formats, custom formatters, or Accept header handling.
 metadata:
   category: api
   agent: api-designer

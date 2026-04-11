@@ -1,9 +1,7 @@
 ---
 name: circuit-breaker
 description: >
-  Circuit breaker pattern for preventing cascading failures.
-  Health degradation detection, half-open state, and recovery.
-  Trigger: circuit breaker, cascading failure, half-open, break duration.
+  Use when adding circuit breaker protection against cascading failures.
 metadata:
   category: resilience
   agent: api-designer

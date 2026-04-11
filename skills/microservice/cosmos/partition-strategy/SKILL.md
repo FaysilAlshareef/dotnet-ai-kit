@@ -1,9 +1,7 @@
 ---
 name: partition-strategy
 description: >
-  Cosmos DB partition key strategy with composite/hierarchical keys, cross-partition
-  query patterns, and hot partition avoidance. Covers design decisions for data distribution.
-  Trigger: partition key, composite key, data distribution, cross-partition query.
+  Use when choosing partition keys or handling cross-partition queries in Cosmos DB.
 metadata:
   category: microservice/cosmos
   agent: cosmos-architect

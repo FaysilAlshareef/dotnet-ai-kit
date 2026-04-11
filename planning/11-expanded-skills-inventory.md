@@ -8,7 +8,7 @@
 | **dotnet-claude-kit** | ~20 adapted | Modern C#, Architecture, APIs, Resilience, Observability |
 | **dotnet-clean-architecture-skills** | ~10 adapted | Clean Arch, DDD, Repository, Pipeline, Dapper |
 
-**Total: ~120 skills** (deduplicated, merged where overlap exists)
+**Total: ~124 skills** (deduplicated, merged where overlap exists)
 > For the 27 command definitions, see `04-commands-design.md`. For the command alias system, see Section G in that file.
 
 ---
@@ -238,7 +238,26 @@ The `/dotnet-ai.init` or `/dotnet-ai.configure` command detects or asks which mo
 
 ---
 
-## CATEGORY 19: Background Jobs & Email (3 skills)
+## CATEGORY 19: Agent Discipline (4 skills) — v1.1
+
+Inspired by [obra/superpowers](https://github.com/obra/superpowers). These skills enforce disciplined AI behavior through Iron Laws, rationalization tables, and red flags checklists.
+
+| # | Skill | Source | Description |
+|---|-------|--------|-------------|
+| 102 | `workflow/verification-gate` | Superpowers-inspired | Evidence-before-claims gate: no completion claims without fresh `dotnet build`/`dotnet test` output |
+| 103 | `workflow/receiving-review-feedback` | Superpowers-inspired | Anti-sycophancy: verify before implementing review suggestions, source priority hierarchy, YAGNI gate |
+| 104 | `workflow/systematic-debugging` | Superpowers-inspired | 4-phase root cause investigation with 3-fix escalation rule |
+| 105 | `workflow/git-worktree-isolation` | Superpowers-inspired | Isolated workspaces with safety verification and baseline testing |
+
+**Also applied to existing skills:**
+- CSO (Claude Search Optimization) — all 124 skill descriptions rewritten to trigger-only "Use when..." format
+- Rationalization tables added to: `review-checklist`, `code-review-workflow`, `testing` rule
+- 2-stage review process added to `code-review-workflow` (spec compliance → code quality)
+- Per-task review gate added to `/dai.go` (implement command)
+
+---
+
+## CATEGORY 20: Background Jobs & Email (3 skills)
 
 | # | Skill | Source | Description |
 |---|-------|--------|-------------|
@@ -290,7 +309,7 @@ The `/dotnet-ai.init` or `/dotnet-ai.configure` command detects or asks which mo
 
 ---
 
-## TOTAL: 120 skills
+## TOTAL: 124 skills
 
 | Category | Count | Source |
 |----------|-------|--------|
@@ -312,11 +331,12 @@ The `/dotnet-ai.init` or `/dotnet-ai.configure` command detects or asks which mo
 | Testing | 4 | Mixed |
 | DevOps & Infrastructure | 5 | Mixed |
 | Workflow & Productivity | 5 | Mixed |
+| Agent Discipline (v1.1) | 4 | Superpowers-inspired |
 | Background Jobs & Email | 3 | Generic |
 | Code Quality & Review | 3 | Mixed |
 | Cross-Cutting Additions | 10 | Mixed |
 | Documentation | 8 | Mixed |
-| **TOTAL** | **120** | |
+| **TOTAL** | **124** | |
 
 ---
 
@@ -334,7 +354,7 @@ The `/dotnet-ai.init` or `/dotnet-ai.configure` command detects or asks which mo
 | `gateway-architect` | Microservice gateway | microservice/gateway-*, api/* |
 | `controlpanel-architect` | Microservice control panel | microservice/cp-* |
 | `test-engineer` | Testing (all types) | testing/unit-testing, testing/integration-testing, testing/microservice-testing, testing/tdd-workflow, testing/performance-testing |
-| `reviewer` | Code review | quality/*, security/* |
+| `reviewer` | Code review | quality/*, security/*, workflow/verification-gate, workflow/receiving-review-feedback |
 | `devops-engineer` | CI/CD, Docker, K8s | devops/*, observability/* |
 | `docs-engineer` | Documentation (all types) | docs/*, api/openapi, microservice/event-catalogue |
 

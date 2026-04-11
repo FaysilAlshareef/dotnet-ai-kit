@@ -1,9 +1,7 @@
 ---
 name: readme-gen
 description: >
-  README generation from project analysis. Covers badges, setup instructions,
-  architecture diagrams, and API summaries for per-repo and umbrella READMEs.
-  Trigger: README, project documentation, badges, setup, getting started.
+  Use when generating README files from project analysis.
 metadata:
   category: docs
   agent: docs-engineer

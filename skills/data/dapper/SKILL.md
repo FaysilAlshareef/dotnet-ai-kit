@@ -1,8 +1,7 @@
 ---
 name: dapper
 description: >
-  Dapper for read-optimized queries alongside EF Core. Multi-mapping,
-  pagination, dynamic filtering, CTEs, bulk operations.
+  Use when writing read-optimized queries with Dapper alongside EF Core.
 metadata:
   category: data
   agent: ef-specialist

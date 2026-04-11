@@ -2,7 +2,7 @@
   <img src="assets/banner-github.svg" alt="dotnet-ai-kit banner" width="900"/>
 </p>
 
-<h3 align="center">The AI brain for .NET — 120 skills, 13 agents, one command to ship features</h3>
+<h3 align="center">The AI brain for .NET — 124 skills, 13 agents, one command to ship features</h3>
 
 <p align="center">
   <a href="https://github.com/FaysilAlshareef/dotnet-ai-kit/releases"><img src="https://img.shields.io/badge/version-1.0.0-7B3FF2?style=flat-square" alt="Version"></a>
@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <code>120 skills</code> · <code>13 agents</code> · <code>27 commands</code> · <code>16 rules</code> · <code>12 profiles</code> · <code>16 knowledge docs</code> · <code>4 safety hooks</code> · <code>8 CLI commands</code>
+  <code>124 skills</code> · <code>13 agents</code> · <code>27 commands</code> · <code>16 rules</code> · <code>12 profiles</code> · <code>16 knowledge docs</code> · <code>5 safety hooks</code> · <code>8 CLI commands</code>
 </p>
 
 ---
@@ -81,7 +81,7 @@ dotnet-ai init . --ai claude --dry-run
 /plugin install dotnet-ai-kit
 ```
 
-All 27 commands, 120 skills, 13 agents, 16 rules, and 4 safety hooks are available immediately.
+All 27 commands, 124 skills, 13 agents, 16 rules, and 5 safety hooks are available immediately.
 
 <details>
 <summary><b>See plugin install demo</b></summary>
@@ -120,7 +120,7 @@ Without `csharp-ls`, the AI uses grep-based analysis which works but uses signif
 - **Writes**: Generated code files, configuration in `.dotnet-ai-kit/`, feature specs in `specs/`
 - **Executes**: `dotnet` CLI commands (build, test, format, restore, new)
 
-### Safety Hooks (4 automatic guards)
+### Safety Hooks (5 automatic guards)
 
 | Hook | Event | What It Does |
 |------|-------|-------------|
@@ -190,20 +190,20 @@ This single command automatically runs the full 9-phase lifecycle:
 <table>
 <tr><td>
 
-### 120 Skills (17 categories)
+### 124 Skills (17 categories)
 
 | Category | Count |
 |----------|:-----:|
 | Microservice | 33 |
 | Core (C#) | 12 |
 | API | 11 |
+| **Workflow** | **9** |
 | Data (EF Core) | 8 |
 | Docs | 8 |
 | Architecture | 7 |
 | CQRS | 6 |
 | DevOps | 5 |
 | Security | 5 |
-| Workflow | 5 |
 | Infrastructure | 4 |
 | Testing | 4 |
 | Observability | 3 |
@@ -255,7 +255,7 @@ This single command automatically runs the full 9-phase lifecycle:
 | `testing` | Test naming, AAA structure, CQRS patterns |
 | `tool-calls` | Sequential tool usage, verification |
 
-### 4 Safety Hooks
+### 5 Safety Hooks
 
 | Hook | What It Prevents |
 |------|-----------------|
@@ -263,8 +263,31 @@ This single command automatically runs the full 9-phase lifecycle:
 | `post-edit-format.sh` | Auto-formats C# files after every edit |
 | `post-scaffold-restore.sh` | Auto-runs `dotnet restore` after scaffolding |
 | `pre-commit-lint.sh` | Verifies formatting before git commit |
+| `session-start-bootstrap.sh` | Reminds agent to check skills before every action |
 
 All hooks can be disabled via environment variables (e.g., `DOTNET_AI_HOOK_BASH_GUARD=false`).
+
+### Agent Discipline System
+
+Inspired by [obra/superpowers](https://github.com/obra/superpowers), dotnet-ai-kit enforces disciplined AI behavior through four mechanisms:
+
+| Mechanism | What It Does |
+|-----------|-------------|
+| **Iron Laws** | Non-negotiable rules at the top of critical skills (e.g., "NO COMPLETION CLAIMS WITHOUT FRESH VERIFICATION EVIDENCE") |
+| **Rationalization Tables** | Tables of excuses an AI might generate with explicit rebuttals — closing every loophole |
+| **Red Flags Checklists** | Self-check lists agents use to recognize when they're about to break discipline |
+| **Pipeline Gates** | Hard prerequisites between lifecycle phases — no planning without approved spec, no task advancement without verification |
+
+**Key discipline skills:**
+
+| Skill | Purpose |
+|-------|---------|
+| `verification-gate` | Evidence before claims — must run `dotnet build` + `dotnet test` before saying "done" |
+| `receiving-review-feedback` | Anti-sycophancy — no "Great point!", verify before implementing, push back when wrong |
+| `systematic-debugging` | Root cause before fixes — 4-phase investigation, 3-fix escalation rule |
+| `git-worktree-isolation` | Safe workspaces — isolated branches with verified baselines |
+
+**2-stage code review:** Every review runs spec compliance first (built the right thing?), then code quality (built it well?). Pass 2 cannot start until Pass 1 approves.
 
 <details>
 <summary><b>See safety hooks in action</b></summary>
@@ -529,7 +552,7 @@ dotnet-ai-kit automatically detects all affected repos, generates code in each o
 When you run `dotnet-ai configure` in a multi-repo project, the full tooling stack is automatically synced to every configured secondary repository:
 
 - ✅ Commands deployed using **each repo's own** command style
-- ✅ 16 rules, 120 skills, 13 agents deployed
+- ✅ 16 rules, 124 skills, 13 agents deployed
 - ✅ Architecture profile matched to each repo's project type
 - ✅ PreToolUse enforcement hook configured per repo
 - ✅ Branch `chore/brief-deploy-*` created and committed automatically
@@ -704,7 +727,7 @@ dotnet-ai-kit/
 ├── commands/          # 27 slash command definitions
 ├── rules/             # 16 always-loaded convention rules
 ├── agents/            # 13 specialist agent definitions
-├── skills/            # 120 skills across 17 categories
+├── skills/            # 124 skills across 17 categories
 ├── knowledge/         # 16 reference documents
 ├── profiles/          # 12 architecture profiles (auto-deployed on detect)
 ├── prompts/           # Hook prompt templates
@@ -737,7 +760,7 @@ your-project/
 └── .claude/
     ├── commands/               # Deployed slash commands (full or short aliases)
     ├── rules/                  # 16 rules + architecture-profile.md
-    ├── skills/                 # 120 skills
+    ├── skills/                 # 124 skills
     └── agents/                 # 13 specialist agents
 ```
 

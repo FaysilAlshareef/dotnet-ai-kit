@@ -1,10 +1,7 @@
 ---
 name: batch-processing
 description: >
-  Batch event processing with BackgroundService, SemaphoreSlim concurrency control,
-  AcceptNextSessionAsync, ReceiveMessagesAsync batching, deduplication by SourceId,
-  and batch MediatR request. Separate from IHostedService session processor pattern.
-  Trigger: batch processing, semaphore, deduplication, BackgroundService, queue listener.
+  Use when implementing batch event processing with BackgroundService and concurrency control.
 metadata:
   category: microservice/processor
   agent: processor-architect

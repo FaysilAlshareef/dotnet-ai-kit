@@ -1,10 +1,7 @@
 ---
 name: query-handler
 description: >
-  MediatR query handlers using IUnitOfWork with named repository properties. Repositories
-  encapsulate filtering, pagination, and sorting. Single-entity queries use FindAsync
-  with DTO mapping. List queries delegate to repository methods returning output DTOs.
-  Trigger: query handler, pagination, filtering, read operations.
+  Use when implementing MediatR query handlers with pagination, filtering, and DTO mapping.
 metadata:
   category: microservice/query
   agent: query-architect

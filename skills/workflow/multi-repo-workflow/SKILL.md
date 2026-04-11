@@ -1,9 +1,7 @@
 ---
 name: multi-repo-workflow
 description: >
-  Cross-repo coordination for microservice development. Covers dependency chains,
-  deployment order, shared contracts, and parallel development strategies.
-  Trigger: multi-repo, cross-repo, dependency chain, coordination.
+  Use when coordinating changes across multiple microservice repositories.
 metadata:
   category: workflow
   agent: dotnet-architect

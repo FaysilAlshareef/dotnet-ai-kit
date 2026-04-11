@@ -1,9 +1,7 @@
 ---
 name: retry-patterns
 description: >
-  Retry patterns with exponential backoff and jitter. Polly v8 retry strategies,
-  transient fault handling, and idempotency considerations.
-  Trigger: retry, exponential backoff, jitter, transient fault, retry policy.
+  Use when implementing retry logic with exponential backoff and jitter.
 metadata:
   category: resilience
   agent: api-designer

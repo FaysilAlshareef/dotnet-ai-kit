@@ -84,7 +84,7 @@ The tool uses Claude Code's native features — no custom plugin system:
 ├── commands/       ← 27 slash commands (each reads relevant skills on demand)
 ├── rules/          ← 9 always-loaded coding conventions
 CLAUDE.md           ← Project context
-skills/             ← 120 skill files (read by commands when needed)
+skills/             ← 124 skill files (read by commands when needed)
 knowledge/          ← 16 reference docs (read by commands when needed)
 ```
 
@@ -141,7 +141,7 @@ dotnet-ai-kit/                       # Source repository
 ├── src/                             # CLI tool (dotnet-ai init/check/upgrade)
 ├── rules/                           # 9 always-loaded convention files
 ├── agents/                          # 13 specialist agents
-├── skills/                          # 120 skills by domain
+├── skills/                          # 124 skills by domain
 ├── commands/                        # 27 command templates
 ├── knowledge/                       # Reference documents
 ├── templates/                       # Project scaffolding

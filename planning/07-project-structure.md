@@ -53,7 +53,7 @@ dotnet-ai-kit/
 │   ├── reviewer.md                              # Code review specialist
 │   └── docs-engineer.md                         # Documentation specialist
 │
-├── skills/                                      # ~120 skills (max 400 lines each)
+├── skills/                                      # ~124 skills (max 400 lines each)
 │   ├── core/                                    # Language & style (4)
 │   ├── architecture/                            # Architecture patterns (5)
 │   ├── api/                                     # Web API (5)
@@ -72,7 +72,12 @@ dotnet-ai-kit/
 │   │   └── controlpanel/                        # Facade, result, blazor, filter (5)
 │   ├── testing/                                 # Testing (4)
 │   ├── devops/                                  # CI/CD & K8s (5)
-│   ├── workflow/                                # SDD workflow (5)
+│   ├── workflow/                                # SDD workflow + agent discipline (9)
+│   │   ├── verification-gate/                   # Evidence-before-claims gate
+│   │   ├── receiving-review-feedback/           # Anti-sycophancy for code review
+│   │   ├── systematic-debugging/                # 4-phase root cause debugging
+│   │   ├── git-worktree-isolation/              # Isolated workspaces for features
+│   │   └── ... (+ 5 existing workflow skills)
 │   ├── infra/                                   # Background jobs & email (3)
 │   ├── quality/                                 # Code quality & review (3)
 │   └── docs/                                    # Documentation (8)
@@ -161,7 +166,7 @@ dotnet-ai-kit/
 │
 └── planning/                                    # Planning documents (not shipped, 18 files)
     ├── 01-vision.md                             # Vision, principles, supported tools
-    ├── 02-skills-inventory.md                   # 120 skills with descriptions
+    ├── 02-skills-inventory.md                   # 124 skills with descriptions
     ├── 03-agents-design.md                      # 13 agents, routing, orchestration
     ├── 04-commands-design.md                    # 27 commands, SDD lifecycle flows
     ├── 05-rules-design.md                       # 9 always-loaded rules

@@ -1,9 +1,7 @@
 ---
 name: sdd-lifecycle
 description: >
-  Specification-Driven Development lifecycle phases. Covers plan, spec, implement,
-  review, and ship phases adapted for microservice and generic .NET projects.
-  Trigger: SDD, specification driven, lifecycle, phases, plan, implement.
+  Use when following the Specification-Driven Development lifecycle from plan through ship.
 metadata:
   category: workflow
   agent: dotnet-architect

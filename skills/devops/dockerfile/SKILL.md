@@ -1,9 +1,7 @@
 ---
 name: dockerfile
 description: >
-  Multi-stage Docker builds for .NET applications. Covers layer caching optimization,
-  non-root user, health checks, and .NET-specific Dockerfile patterns.
-  Trigger: Dockerfile, Docker, container, multi-stage build, container image.
+  Use when writing or optimizing Dockerfiles for .NET applications.
 metadata:
   category: devops
   agent: devops-engineer

@@ -1,9 +1,7 @@
 ---
 name: auth-jwt
 description: >
-  JWT authentication setup, token generation with claims, refresh token flow,
-  and token validation configuration.
-  Trigger: JWT, authentication, token, Bearer, claims, refresh token.
+  Use when setting up JWT authentication, token generation, or refresh token flows.
 metadata:
   category: security
   agent: api-designer

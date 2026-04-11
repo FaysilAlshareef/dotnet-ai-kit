@@ -1,9 +1,7 @@
 ---
 name: dependency-injection
 description: >
-  DI registration patterns, service lifetimes, keyed services, Options pattern,
-  decorator pattern, and factory delegates.
-  Trigger: DI, dependency injection, services, registration, lifetime, singleton, scoped.
+  Use when registering services, choosing lifetimes, or implementing DI patterns like decorator or keyed services.
 metadata:
   category: core
   agent: dotnet-architect

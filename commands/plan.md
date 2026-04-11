@@ -40,10 +40,12 @@ Load all skills listed in the agent's Skills Loaded section.
 ## Step 1: Load Prerequisites
 
 1. Find the active feature in `.dotnet-ai-kit/features/` (most recent or in-progress).
-2. Load `spec.md` — required. If missing: "No spec found. Run /dotnet-ai.specify first."
-3. Load `.dotnet-ai-kit/config.yml` if it exists.
-4. Note any remaining `[NEEDS CLARIFICATION]` markers — warn but do not block.
-5. If `--verbose`, print loaded artifacts and detected mode.
+2. Load `spec.md` — **required**. If missing: "No spec found. Run /dotnet-ai.specify first." **STOP — do not continue.**
+3. Verify spec was approved: check for `status: approved` or user sign-off marker.
+   If not approved: "Spec exists but hasn't been approved. Review it with /dotnet-ai.clarify or approve it before planning."
+4. Load `.dotnet-ai-kit/config.yml` if it exists.
+5. Note any remaining `[NEEDS CLARIFICATION]` markers — warn but do not block.
+6. If `--verbose`, print loaded artifacts and detected mode.
 
 ## Step 2: Detect Project Mode
 

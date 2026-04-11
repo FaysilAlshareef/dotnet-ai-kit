@@ -1,9 +1,7 @@
 ---
 name: github-actions
 description: >
-  GitHub Actions CI/CD workflows for .NET microservices. Covers build-test-deploy
-  pipelines, Azure OIDC auth, ACR image push, and AKS deployment.
-  Trigger: GitHub Actions, CI/CD, workflow, pipeline, deployment.
+  Use when creating GitHub Actions CI/CD workflows for .NET build, test, and deployment.
 metadata:
   category: devops
   agent: devops-engineer

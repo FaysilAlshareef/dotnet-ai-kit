@@ -1,10 +1,7 @@
 ---
 name: scalar-docs
 description: >
-  Scalar API documentation for gateway endpoints. Covers AddOpenApiDocumentation,
-  AddBaseScalarApiDocumentation, OpenApiDocEntry, BearerSecuritySchemeTransformer,
-  ScalarBasicAuthMiddleware, and Pentagon rate limiting.
-  Trigger: Scalar, API docs, OpenAPI, documentation UI, Pentagon.
+  Use when setting up Scalar API documentation for gateway endpoints.
 metadata:
   category: microservice/gateway
   agent: gateway-architect

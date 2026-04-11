@@ -1,9 +1,7 @@
 ---
 name: api-docs
 description: >
-  OpenAPI enrichment and Markdown API reference generation. Covers operation
-  summaries, request/response examples, and gateway documentation patterns.
-  Trigger: API documentation, OpenAPI, API reference, endpoint docs.
+  Use when generating or enriching API documentation from OpenAPI specs.
 metadata:
   category: docs
   agent: docs-engineer

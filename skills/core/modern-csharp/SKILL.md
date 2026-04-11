@@ -1,9 +1,7 @@
 ---
 name: modern-csharp
 description: >
-  Modern C# 12/13/14 language features: primary constructors, records, collection expressions,
-  field keyword, pattern matching, file-scoped namespaces, required members, raw string literals.
-  Trigger: C# features, primary constructor, record, collection expression, pattern matching, field keyword.
+  Use when adopting C# 12/13/14 features — primary constructors, collection expressions, or field keyword.
 metadata:
   category: core
   agent: dotnet-architect

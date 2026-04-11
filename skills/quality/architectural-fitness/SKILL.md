@@ -1,9 +1,7 @@
 ---
 name: architectural-fitness
 description: >
-  Architecture tests with NetArchTest for enforcing dependency rules and
-  project structure conventions. Covers layer dependency validation and naming rules.
-  Trigger: architecture test, NetArchTest, dependency rule, fitness function.
+  Use when adding NetArchTest architecture tests to enforce dependency rules.
 metadata:
   category: quality
   agent: reviewer

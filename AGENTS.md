@@ -77,11 +77,11 @@ Each step is also available as an independent command for manual control.
 
 ```
 src/dotnet_ai_kit/       # Python CLI package
-skills/                   # 120 skills organized by category
+skills/                   # 124 skills organized by category
 commands/                 # 27 slash command templates
 rules/                    # 15 always-loaded convention rules
 agents/                   # 13 specialist agent definitions
-hooks/                    # 4 safety hooks (bash scripts)
+hooks/                    # 5 safety hooks (bash scripts)
 templates/                # 13 project scaffolding templates
 knowledge/                # 16 reference documents
 config/                   # Permission JSON configs

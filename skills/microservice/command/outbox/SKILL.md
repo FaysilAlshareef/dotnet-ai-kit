@@ -1,9 +1,7 @@
 ---
 name: outbox
 description: >
-  Outbox pattern for reliable event publishing. Covers OutboxMessage entity with Event FK,
-  CommitEventService with IUnitOfWork, and ServiceBusPublisher with lock + Task.Run + batch
-  processing. Trigger: outbox, event publishing, service bus, at-least-once delivery.
+  Use when implementing reliable event publishing with the outbox pattern and Service Bus.
 metadata:
   category: microservice/command
   agent: command-architect

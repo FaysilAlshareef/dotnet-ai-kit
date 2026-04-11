@@ -1,9 +1,7 @@
 ---
 name: blazor-component
 description: >
-  MudBlazor components for control panel pages. Covers MudDataGrid with server-side
-  data, MudDialog for forms, loading states, and gateway integration.
-  Trigger: Blazor, MudBlazor, MudDataGrid, data grid, dialog, form.
+  Use when building MudBlazor data grids, dialogs, or forms for the control panel.
 metadata:
   category: microservice/controlpanel
   agent: controlpanel-architect

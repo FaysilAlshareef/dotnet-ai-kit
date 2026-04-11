@@ -1,9 +1,7 @@
 ---
 name: service-definition
 description: >
-  Proto file design and gRPC service implementation patterns. Covers proto service/message
-  definitions, service class inheritance, MediatR integration, and mapping extensions.
-  Trigger: proto file, gRPC service, protobuf, service definition, rpc.
+  Use when designing proto files or implementing gRPC service classes with MediatR.
 metadata:
   category: microservice/grpc
   agent: command-architect

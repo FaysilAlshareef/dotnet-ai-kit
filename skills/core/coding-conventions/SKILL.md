@@ -1,8 +1,7 @@
 ---
 name: coding-conventions
 description: >
-  Company-agnostic C# coding conventions. File-scoped namespaces, sealed classes,
-  expression-bodied members, var usage, async naming, XML doc patterns.
+  Use when applying or enforcing C# coding style — namespaces, sealed classes, var usage, XML docs.
 metadata:
   category: core
   agent: dotnet-architect

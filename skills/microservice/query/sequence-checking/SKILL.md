@@ -1,10 +1,7 @@
 ---
 name: sequence-checking
 description: >
-  Inline sequence validation for idempotent event handlers. Covers the exact guard pattern
-  using Sequence != @event.Sequence - 1, returning true for already-processed duplicates,
-  and false for out-of-order gaps. No helper class — logic is inlined in each handler.
-  Trigger: sequence check, idempotent, event ordering, gap detection.
+  Use when adding inline sequence validation for idempotent event processing.
 metadata:
   category: microservice/query
   agent: query-architect

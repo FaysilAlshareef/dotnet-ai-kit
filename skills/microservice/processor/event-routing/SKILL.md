@@ -1,10 +1,7 @@
 ---
 name: event-routing
 description: >
-  Subject-based event routing with inline switch statement, typed HandleAsync,
-  MediatR dispatch, and Serilog LogContext enrichment. No separate EventRouter
-  or EventDeserializer class -- routing is inline in each listener.
-  Trigger: event routing, subject dispatch, MediatR send, HandleAsync, deserialize.
+  Use when routing Service Bus events by subject to typed MediatR handlers.
 metadata:
   category: microservice/processor
   agent: processor-architect

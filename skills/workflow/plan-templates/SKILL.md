@@ -1,6 +1,7 @@
 ---
 name: plan-templates
-description: "Mode-specific plan templates for /dotnet-ai.plan"
+description: >
+  Use when creating implementation plans that need mode-specific templates.
 metadata:
   when-to-use: "When generating implementation plan templates based on project mode"
   category: workflow

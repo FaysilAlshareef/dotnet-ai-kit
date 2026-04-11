@@ -1,9 +1,7 @@
 ---
 name: configuration
 description: >
-  IConfiguration, Options pattern, appsettings layering, user secrets,
-  environment variables, and ValidateOnStart.
-  Trigger: configuration, options, appsettings, secrets, IOptions, environment.
+  Use when setting up IConfiguration, Options pattern, appsettings layering, or user secrets.
 metadata:
   category: core
   agent: dotnet-architect

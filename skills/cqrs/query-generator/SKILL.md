@@ -1,8 +1,7 @@
 ---
 name: query-generator
 description: >
-  CQRS query pattern: query record + handler + response DTO with
-  pagination support. EF Core or Dapper read path.
+  Use when creating a new CQRS query with handler, response DTO, and pagination support.
 metadata:
   category: cqrs
   agent: ef-specialist

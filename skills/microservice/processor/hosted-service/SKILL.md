@@ -1,10 +1,7 @@
 ---
 name: hosted-service
 description: >
-  IHostedService with ServiceBusSessionProcessor and paired DLQ processor pattern.
-  Covers lifecycle management, exact session processor configuration,
-  dead letter sub-processor, graceful shutdown, and error handling.
-  Trigger: hosted service, processor, lifecycle, session processor, DLQ.
+  Use when implementing IHostedService with ServiceBusSessionProcessor and DLQ handling.
 metadata:
   category: microservice/processor
   agent: processor-architect

@@ -1,9 +1,7 @@
 ---
 name: adr
 description: >
-  Architecture Decision Records using MADR format. Covers numbered sequence,
-  status lifecycle, decision documentation, and cross-references.
-  Trigger: ADR, architecture decision, MADR, decision record.
+  Use when writing Architecture Decision Records to document technical decisions.
 metadata:
   category: docs
   agent: docs-engineer

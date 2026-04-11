@@ -1,9 +1,7 @@
 ---
 name: versioning
 description: >
-  API versioning strategies using Asp.Versioning. URL segment, header,
-  query string approaches, sunset policies, and OpenAPI integration.
-  Trigger: API version, versioning, Asp.Versioning, v1, v2.
+  Use when adding API versioning or managing multiple API versions in a .NET project.
 metadata:
   category: api
   agent: api-designer

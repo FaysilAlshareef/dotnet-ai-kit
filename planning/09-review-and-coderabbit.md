@@ -165,3 +165,41 @@ The review command can be triggered:
 2. **After implement**: Part of the lifecycle flow
 3. **Before PR**: Automatically suggested before `/dotnet-ai.pr`
 4. **On existing changes**: Review any branch against standards
+
+---
+
+## Agent Discipline Enhancements (v1.1)
+
+### 2-Stage Review Process
+
+Every review now runs two passes:
+1. **Pass 1: Spec Compliance** — Does the implementation match the spec? Missing requirements? Extra scope?
+2. **Pass 2: Code Quality** — Architecture, security, performance, testing checks
+
+Pass 2 cannot start until Pass 1 has no open issues. This catches "built the wrong thing" before evaluating quality.
+
+### Anti-Sycophancy (Receiving Review Feedback)
+
+When the agent receives feedback from CodeRabbit or external reviewers:
+- **Forbidden**: "You're absolutely right!", "Great point!", "Thanks for catching that!"
+- **Required**: Verify suggestion against codebase before implementing
+- **Source priority**: User > project rules > CodeRabbit > external reviewers
+- **YAGNI gate**: Grep for actual usage before "properly implementing" anything
+
+See `skills/workflow/receiving-review-feedback/SKILL.md`.
+
+### Verification Gate
+
+No review finding can be marked "PASS" without fresh evidence:
+- `dotnet build` exit 0 for "build passes"
+- `dotnet test` with 0 failures for "tests pass"
+- Forbidden phrases: "should pass", "looks correct", "seems fine"
+
+See `skills/workflow/verification-gate/SKILL.md`.
+
+### Rationalization Tables
+
+The `review-checklist` and `code-review-workflow` skills now include:
+- **Iron Law** at the top of each skill
+- **Rationalization table** with agent excuses and rebuttals
+- **Red flags checklist** for self-monitoring
