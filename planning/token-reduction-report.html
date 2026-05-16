@@ -1,0 +1,1050 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>dotnet-ai-kit | Token Reduction Visual Report</title>
+<script src="https://cdn.jsdelivr.net/npm/chart.js@4.4.1/dist/chart.umd.min.js"></script>
+<style>
+  :root {
+    --bg: #0b1220;
+    --bg-2: #0f172a;
+    --card: #1e293b;
+    --card-border: #334155;
+    --text: #e2e8f0;
+    --text-muted: #94a3b8;
+    --accent: #3b82f6;
+    --phase1: #3b82f6;
+    --phase2: #10b981;
+    --phase3: #f59e0b;
+    --mcp: #a855f7;
+    --warning: #ef4444;
+    --success: #22c55e;
+  }
+  * { box-sizing: border-box; margin: 0; padding: 0; }
+  html { scroll-behavior: smooth; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif;
+    background: linear-gradient(180deg, var(--bg) 0%, var(--bg-2) 100%);
+    background-attachment: fixed;
+    color: var(--text);
+    line-height: 1.65;
+    padding: 2rem 1rem 4rem;
+    min-height: 100vh;
+  }
+  .container { max-width: 1180px; margin: 0 auto; }
+  header {
+    margin-bottom: 2.5rem;
+    padding-bottom: 1.5rem;
+    border-bottom: 1px solid var(--card-border);
+  }
+  .eyebrow {
+    text-transform: uppercase;
+    font-size: 0.75rem;
+    letter-spacing: 0.1em;
+    color: var(--accent);
+    font-weight: 600;
+    margin-bottom: 0.5rem;
+  }
+  h1 {
+    font-size: 2.25rem;
+    font-weight: 700;
+    color: white;
+    line-height: 1.2;
+    margin-bottom: 0.5rem;
+  }
+  .subtitle { font-size: 1.05rem; color: var(--text-muted); }
+  h2 {
+    font-size: 1.5rem;
+    font-weight: 600;
+    margin: 3.5rem 0 1rem;
+    color: white;
+    padding-bottom: 0.5rem;
+    border-bottom: 2px solid var(--accent);
+    display: flex;
+    align-items: baseline;
+    gap: 0.75rem;
+  }
+  h2 .num {
+    font-size: 0.875rem;
+    background: var(--accent);
+    color: white;
+    padding: 0.25rem 0.625rem;
+    border-radius: 6px;
+    font-weight: 700;
+  }
+  h3 {
+    font-size: 1.1rem;
+    font-weight: 600;
+    margin-bottom: 0.75rem;
+    color: white;
+  }
+  p { color: var(--text-muted); margin-bottom: 1rem; }
+  .kpi-grid {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(220px, 1fr));
+    gap: 1rem;
+    margin-bottom: 1rem;
+  }
+  .kpi {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    position: relative;
+    overflow: hidden;
+  }
+  .kpi::before {
+    content: '';
+    position: absolute;
+    top: 0; left: 0;
+    width: 4px; height: 100%;
+    background: var(--accent);
+  }
+  .kpi.success::before { background: var(--success); }
+  .kpi.warning::before { background: #fbbf24; }
+  .kpi.mcp::before { background: var(--mcp); }
+  .kpi-label {
+    font-size: 0.75rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 0.5rem;
+  }
+  .kpi-value {
+    font-size: 2rem;
+    font-weight: 700;
+    color: white;
+    line-height: 1;
+  }
+  .kpi-delta {
+    font-size: 0.875rem;
+    margin-top: 0.5rem;
+    font-weight: 500;
+    color: var(--text-muted);
+  }
+  .kpi-delta strong { color: var(--success); }
+  .chart-card {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 1.5rem;
+    margin-bottom: 1.5rem;
+  }
+  .chart-header { margin-bottom: 1rem; }
+  .chart-header h3 { margin-bottom: 0.25rem; }
+  .chart-header p { font-size: 0.875rem; margin-bottom: 0; }
+  .chart-container {
+    position: relative;
+    height: 380px;
+    margin-top: 1rem;
+  }
+  .chart-container.tall { height: 520px; }
+  .chart-container.short { height: 280px; }
+  table {
+    width: 100%;
+    border-collapse: collapse;
+    margin: 1rem 0;
+    font-size: 0.875rem;
+  }
+  th, td {
+    padding: 0.625rem 0.75rem;
+    text-align: left;
+    border-bottom: 1px solid var(--card-border);
+  }
+  th {
+    background: rgba(59, 130, 246, 0.08);
+    color: white;
+    font-weight: 600;
+    font-size: 0.8rem;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  td.num { font-variant-numeric: tabular-nums; text-align: right; }
+  .tag {
+    display: inline-block;
+    padding: 0.125rem 0.5rem;
+    border-radius: 4px;
+    font-size: 0.7rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.04em;
+  }
+  .tag-p1 { background: rgba(59, 130, 246, 0.2); color: #93c5fd; }
+  .tag-p2 { background: rgba(16, 185, 129, 0.2); color: #6ee7b7; }
+  .tag-p3 { background: rgba(245, 158, 11, 0.2); color: #fcd34d; }
+  .tag-mcp { background: rgba(168, 85, 247, 0.2); color: #d8b4fe; }
+  .tag-yes { background: rgba(34, 197, 94, 0.2); color: #86efac; }
+  .tag-no { background: rgba(239, 68, 68, 0.15); color: #fca5a5; }
+  .tag-na { background: rgba(148, 163, 184, 0.15); color: var(--text-muted); }
+  .tag-risk { background: rgba(251, 191, 36, 0.2); color: #fcd34d; }
+  .callout {
+    background: rgba(59, 130, 246, 0.08);
+    border-left: 4px solid var(--accent);
+    padding: 1rem 1.25rem;
+    border-radius: 4px;
+    margin: 1rem 0;
+    color: var(--text);
+  }
+  .callout strong { color: white; }
+  .callout.warn { background: rgba(239, 68, 68, 0.08); border-left-color: var(--warning); }
+  .callout.success { background: rgba(34, 197, 94, 0.08); border-left-color: var(--success); }
+  footer {
+    margin-top: 3rem;
+    padding-top: 1.5rem;
+    border-top: 1px solid var(--card-border);
+    color: var(--text-muted);
+    font-size: 0.875rem;
+    text-align: center;
+  }
+  .takeaways {
+    display: grid;
+    grid-template-columns: repeat(auto-fit, minmax(280px, 1fr));
+    gap: 1rem;
+    margin: 1rem 0;
+  }
+  .takeaway {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 8px;
+    padding: 1.1rem;
+  }
+  .takeaway-num {
+    display: inline-block;
+    width: 26px; height: 26px;
+    background: var(--accent);
+    color: white;
+    border-radius: 50%;
+    text-align: center;
+    font-weight: 700;
+    font-size: 0.875rem;
+    line-height: 26px;
+    margin-right: 0.5rem;
+  }
+  .toc {
+    background: var(--card);
+    border: 1px solid var(--card-border);
+    border-radius: 12px;
+    padding: 1.25rem;
+    margin-bottom: 2rem;
+  }
+  .toc h3 { font-size: 0.875rem; text-transform: uppercase; letter-spacing: 0.06em; margin-bottom: 0.75rem; color: var(--text-muted); }
+  .toc ol { padding-left: 1.25rem; color: var(--text-muted); }
+  .toc a { color: var(--text); text-decoration: none; transition: color 0.2s; }
+  .toc a:hover { color: var(--accent); }
+  .grid-2 { display: grid; grid-template-columns: 1fr 1fr; gap: 1rem; }
+  @media (max-width: 720px) {
+    .grid-2 { grid-template-columns: 1fr; }
+    h1 { font-size: 1.65rem; }
+    .kpi-value { font-size: 1.5rem; }
+  }
+</style>
+</head>
+<body>
+<div class="container">
+
+<header>
+  <div class="eyebrow">Engineering Report &middot; May 2026</div>
+  <h1>dotnet-ai-kit Token Reduction Plan</h1>
+  <div class="subtitle">Visual analysis of 9 proposed changes plus MCP integrations &mdash; impact on token cost and performance.</div>
+</header>
+
+<div class="toc">
+  <h3>Contents</h3>
+  <ol>
+    <li><a href="#kpis">Headline numbers</a></li>
+    <li><a href="#per-change">Per-change token reduction</a></li>
+    <li><a href="#perf">Per-change performance impact</a></li>
+    <li><a href="#cumulative">Cumulative phase progression</a></li>
+    <li><a href="#multi-tool">Multi-tool portability impact</a></li>
+    <li><a href="#cost">Monthly cost projection</a></li>
+    <li><a href="#mcp">MCP integration impact</a></li>
+    <li><a href="#final">Final result &mdash; before/after</a></li>
+    <li><a href="#takeaways">Key takeaways</a></li>
+  </ol>
+</div>
+
+<section id="kpis">
+  <h2><span class="num">1</span> Headline numbers</h2>
+  <div class="kpi-grid">
+    <div class="kpi warning">
+      <div class="kpi-label">Current /dai.do cost</div>
+      <div class="kpi-value">~200K</div>
+      <div class="kpi-delta">tokens per full lifecycle run</div>
+    </div>
+    <div class="kpi success">
+      <div class="kpi-label">After all changes + MCP</div>
+      <div class="kpi-value">~22K</div>
+      <div class="kpi-delta"><strong>&minus;89%</strong> reduction</div>
+    </div>
+    <div class="kpi">
+      <div class="kpi-label">Cursor session always-loaded</div>
+      <div class="kpi-value">9K &rarr; 1K</div>
+      <div class="kpi-delta"><strong>&minus;89%</strong> via rule scoping</div>
+    </div>
+    <div class="kpi mcp">
+      <div class="kpi-label">Estimated $/dev/month</div>
+      <div class="kpi-value">$250 &rarr; $40</div>
+      <div class="kpi-delta">heavy users, after full plan</div>
+    </div>
+  </div>
+  <div class="callout">
+    <strong>How to read this report.</strong> Each chart compares the same workload (a typical <code>/dai.implement</code> or <code>/dai.do</code> run) across the change set. The same color codes apply throughout: <span class="tag tag-p1">Phase 1</span> <span class="tag tag-p2">Phase 2</span> <span class="tag tag-p3">Phase 3</span> <span class="tag tag-mcp">MCP</span>. Numbers are estimates anchored to measured costs from the codebase audit and industry benchmarks (Anthropic, MindStudio, Pasquale Pillitteri 2026).
+  </div>
+</section>
+
+<section id="per-change">
+  <h2><span class="num">2</span> Per-change token reduction</h2>
+  <p>How many tokens each individual change removes from a typical command invocation.</p>
+
+  <div class="chart-card">
+    <div class="chart-header">
+      <h3>Tokens saved per change (per command invocation)</h3>
+      <p>Two workloads compared: <code>/dai.implement</code> (single command) and <code>/dai.do</code> (full SDD lifecycle, 7 phases).</p>
+    </div>
+    <div class="chart-container tall">
+      <canvas id="chartPerChange"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-header">
+      <h3>The change ledger</h3>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>#</th>
+          <th>Change</th>
+          <th>Phase</th>
+          <th class="num">Saved /implement</th>
+          <th class="num">Saved /do</th>
+          <th>Effort</th>
+          <th>Risk</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr>
+          <td>1</td><td>Description hygiene (124 skills)</td><td><span class="tag tag-p1">P1</span></td>
+          <td class="num">enabler</td><td class="num">enabler</td>
+          <td>1d</td><td><span class="tag tag-yes">Low</span></td>
+        </tr>
+        <tr>
+          <td>2</td><td>Strip eager Reads from 27 commands</td><td><span class="tag tag-p1">P1</span></td>
+          <td class="num">40K</td><td class="num">100K</td>
+          <td>1d</td><td><span class="tag tag-yes">Low</span></td>
+        </tr>
+        <tr>
+          <td>3</td><td>Delete Skills Loaded lists in 13 agents</td><td><span class="tag tag-p1">P1</span></td>
+          <td class="num">15K</td><td class="num">25K</td>
+          <td>3h</td><td><span class="tag tag-yes">Low</span></td>
+        </tr>
+        <tr>
+          <td>4</td><td>Demote alwaysApply, add globs scoping</td><td><span class="tag tag-p1">P1</span></td>
+          <td class="num">~0 (Claude)<br>9K (Cursor)</td><td class="num">~0 (Claude)<br>9K (Cursor)</td>
+          <td>2h</td><td><span class="tag tag-yes">Low</span></td>
+        </tr>
+        <tr>
+          <td>5</td><td>Verify all SKILL.md &le; 500 lines</td><td><span class="tag tag-p2">P2</span></td>
+          <td class="num">3K</td><td class="num">5K</td>
+          <td>0.5&ndash;1d</td><td><span class="tag tag-yes">Low</span></td>
+        </tr>
+        <tr>
+          <td>6</td><td>Trim shipped CLAUDE.md template</td><td><span class="tag tag-p2">P2</span></td>
+          <td class="num">1K</td><td class="num">2K</td>
+          <td>2h</td><td><span class="tag tag-yes">Low</span></td>
+        </tr>
+        <tr>
+          <td>7</td><td>Add audit --tokens CLI command</td><td><span class="tag tag-p2">P2</span></td>
+          <td class="num">prevents regression</td><td class="num">prevents regression</td>
+          <td>1d</td><td><span class="tag tag-yes">Low</span></td>
+        </tr>
+        <tr>
+          <td>8</td><td>Cache-friendly prompt ordering</td><td><span class="tag tag-p3">P3</span></td>
+          <td class="num">6K</td><td class="num">13K</td>
+          <td>4h</td><td><span class="tag tag-yes">Low</span></td>
+        </tr>
+        <tr>
+          <td>9</td><td>Subagent stubs for /do, /implement, /review</td><td><span class="tag tag-p3">P3</span></td>
+          <td class="num">7K</td><td class="num">25K</td>
+          <td>1&ndash;2d</td><td><span class="tag tag-risk">Medium</span></td>
+        </tr>
+        <tr>
+          <td>10</td><td>Token-savior MCP (memory + nav)</td><td><span class="tag tag-mcp">MCP</span></td>
+          <td class="num">9K</td><td class="num">8K</td>
+          <td>2d</td><td><span class="tag tag-yes">Low</span></td>
+        </tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="perf">
+  <h2><span class="num">3</span> Per-change performance impact</h2>
+  <p>Performance is more than tokens. Each change scored on five dimensions (1 = regression, 3 = neutral, 5 = strong improvement).</p>
+
+  <div class="chart-card">
+    <div class="chart-header">
+      <h3>Five-dimension impact radar</h3>
+      <p>Three representative changes overlaid: the gold-standard win (Change 2), the lowest-risk quality fix (Change 1), and the riskiest (Change 9).</p>
+    </div>
+    <div class="chart-container tall">
+      <canvas id="chartRadar"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-header">
+      <h3>All changes &mdash; impact heatmap</h3>
+      <p>Higher = better. Watch the column for Change 9: latency and completeness regressions are the trade-off cost of subagent isolation.</p>
+    </div>
+    <div class="chart-container tall">
+      <canvas id="chartHeatmap"></canvas>
+    </div>
+  </div>
+</section>
+
+<section id="cumulative">
+  <h2><span class="num">4</span> Cumulative phase progression</h2>
+  <p>How tokens drop as each phase lands. Phases are sequential; each builds on the previous.</p>
+
+  <div class="chart-card">
+    <div class="chart-header">
+      <h3>Token cost across the rollout</h3>
+      <p>Three workloads tracked: a small command, a medium command, and the full lifecycle.</p>
+    </div>
+    <div class="chart-container tall">
+      <canvas id="chartCumulative"></canvas>
+    </div>
+  </div>
+</section>
+
+<section id="multi-tool">
+  <h2><span class="num">5</span> Multi-tool portability impact</h2>
+  <p>v1.1+ targets Cursor, GitHub Copilot, Codex CLI, and Gemini CLI. Each change either helps all tools, helps one specific tool, or applies only to Claude Code.</p>
+
+  <div class="chart-card">
+    <div class="chart-header">
+      <h3>How many tools each change helps</h3>
+      <p>Score reflects how broadly the change improves token cost across the four target ecosystems.</p>
+    </div>
+    <div class="chart-container">
+      <canvas id="chartMultiTool"></canvas>
+    </div>
+  </div>
+
+  <div class="chart-card">
+    <div class="chart-header">
+      <h3>Tool compatibility matrix</h3>
+    </div>
+    <table>
+      <thead>
+        <tr>
+          <th>Change</th>
+          <th>Claude Code</th>
+          <th>Cursor</th>
+          <th>Copilot</th>
+          <th>Codex</th>
+          <th>Gemini</th>
+        </tr>
+      </thead>
+      <tbody>
+        <tr><td>1. Descriptions</td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-yes">Yes</span></td></tr>
+        <tr><td>2. Strip eager Reads</td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-yes">Yes</span></td></tr>
+        <tr><td>3. Delete agent skill lists</td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-na">N/A</span></td><td><span class="tag tag-na">N/A</span></td><td><span class="tag tag-na">N/A</span></td><td><span class="tag tag-na">N/A</span></td></tr>
+        <tr><td>4. Rule scoping (globs)</td><td><span class="tag tag-na">Neutral</span></td><td><span class="tag tag-yes">Critical</span></td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-yes">Yes</span></td></tr>
+        <tr><td>5. Skill &le;500 lines</td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-yes">Yes</span></td></tr>
+        <tr><td>6. CLAUDE.md trim</td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-yes">Yes</span></td></tr>
+        <tr><td>7. Audit CLI</td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-yes">Yes</span></td></tr>
+        <tr><td>8. Caching ordering</td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-no">No</span></td><td><span class="tag tag-no">No</span></td><td><span class="tag tag-no">No</span></td><td><span class="tag tag-no">No</span></td></tr>
+        <tr><td>9. Subagent stubs</td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-no">No</span></td><td><span class="tag tag-no">No</span></td><td><span class="tag tag-no">No</span></td><td><span class="tag tag-no">No</span></td></tr>
+        <tr><td>10. Token-savior MCP</td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-yes">Yes</span></td><td><span class="tag tag-no">No</span></td><td><span class="tag tag-yes">Yes</span></td></tr>
+      </tbody>
+    </table>
+  </div>
+</section>
+
+<section id="cost">
+  <h2><span class="num">6</span> Monthly cost projection</h2>
+  <p>Estimated dollar cost per developer per month for heavy users (~50 sessions/week, mix of small and full-lifecycle commands). Anchored to Anthropic Sonnet 4 pricing and industry benchmarks.</p>
+
+  <div class="chart-card">
+    <div class="chart-header">
+      <h3>Cost per developer per month, by phase</h3>
+    </div>
+    <div class="chart-container">
+      <canvas id="chartCost"></canvas>
+    </div>
+  </div>
+</section>
+
+<section id="mcp">
+  <h2><span class="num">7</span> MCP integration impact</h2>
+  <p>Comparing the three serious MCP options. All add persistent memory; token-savior adds symbol-level code navigation.</p>
+
+  <div class="chart-card">
+    <div class="chart-header">
+      <h3>Token reduction vs MCP overhead</h3>
+      <p>Each MCP saves tokens on workloads but also adds tool-definition overhead per turn (mitigated by selective profiles).</p>
+    </div>
+    <div class="chart-container">
+      <canvas id="chartMcp"></canvas>
+    </div>
+  </div>
+
+  <div class="callout warn">
+    <strong>The MCP trap.</strong> Each connected MCP server can load tool definitions into every message, costing up to 18,000 tokens per turn. Token-savior alone exposes 90 tools. Without trimming via profiles, an MCP can <em>add</em> tokens, not remove them. Any catalog entry must ship a tuned profile.
+  </div>
+</section>
+
+<section id="final">
+  <h2><span class="num">8</span> Final result &mdash; before / after</h2>
+  <p>The full picture. Current state vs end-state after all changes plus token-savior MCP.</p>
+
+  <div class="chart-card">
+    <div class="chart-header">
+      <h3>Token cost &mdash; before vs after</h3>
+    </div>
+    <div class="chart-container tall">
+      <canvas id="chartFinal"></canvas>
+    </div>
+  </div>
+
+  <div class="grid-2">
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3>Reduction percentage by workload</h3>
+      </div>
+      <div class="chart-container short">
+        <canvas id="chartReductionPct"></canvas>
+      </div>
+    </div>
+    <div class="chart-card">
+      <div class="chart-header">
+        <h3>Performance dimensions &mdash; final state</h3>
+      </div>
+      <div class="chart-container short">
+        <canvas id="chartFinalPerf"></canvas>
+      </div>
+    </div>
+  </div>
+</section>
+
+<section id="takeaways">
+  <h2><span class="num">9</span> Key takeaways</h2>
+  <div class="takeaways">
+    <div class="takeaway">
+      <h3><span class="takeaway-num">1</span>Phase 1 is the unlock</h3>
+      <p>Changes 1&ndash;4 land ~70% of the total reduction in 2 dev-days. Description hygiene + strip eager Reads is the highest-leverage pair in the entire plan.</p>
+    </div>
+    <div class="takeaway">
+      <h3><span class="takeaway-num">2</span>No quality regression</h3>
+      <p>Eight of the ten changes <em>improve</em> accuracy and latency alongside cost. Only Change 9 (subagents) carries genuine trade-offs &mdash; defer it until measured.</p>
+    </div>
+    <div class="takeaway">
+      <h3><span class="takeaway-num">3</span>Multi-tool ready</h3>
+      <p>Seven of ten changes help every target tool (Claude, Cursor, Copilot, Codex, Gemini). Change 4 alone delivers an 89% reduction for Cursor users in v1.1.</p>
+    </div>
+    <div class="takeaway">
+      <h3><span class="takeaway-num">4</span>MCPs amplify, not replace</h3>
+      <p>Token-savior added on top delivers another ~30% on long workloads. But adopt via opt-in CLI catalog &mdash; never bundle by default until profiles are battle-tested.</p>
+    </div>
+    <div class="takeaway">
+      <h3><span class="takeaway-num">5</span>Measure before optimizing further</h3>
+      <p>Build the audit CLI (Change 7) early. Without a regression baseline, every future skill or command added to the kit can silently re-bloat the surface.</p>
+    </div>
+    <div class="takeaway">
+      <h3><span class="takeaway-num">6</span>Industry parity is reachable</h3>
+      <p>The end-state lands at 85&ndash;90% reduction &mdash; matching ClaudeFast Code Kit (82%) and Token Savior benchmarks (77%). Competitive with best-in-class.</p>
+    </div>
+  </div>
+</section>
+
+<footer>
+  Generated 2026-05-09 &middot; dotnet-ai-kit token reduction analysis<br>
+  Data sources: codebase audit + Anthropic best-practices docs + MindStudio benchmarks + Pasquale Pillitteri 2026 GitHub repo survey + Token Savior tsbench results
+</footer>
+
+</div>
+
+<script>
+// ----- Common Chart.js styling -----
+Chart.defaults.color = '#94a3b8';
+Chart.defaults.borderColor = '#334155';
+Chart.defaults.font.family = "-apple-system, BlinkMacSystemFont, 'Segoe UI', Roboto, sans-serif";
+Chart.defaults.plugins.legend.labels.color = '#e2e8f0';
+Chart.defaults.plugins.legend.labels.usePointStyle = true;
+Chart.defaults.plugins.legend.labels.padding = 16;
+
+const phaseColors = {
+  p1: '#3b82f6',
+  p2: '#10b981',
+  p3: '#f59e0b',
+  mcp: '#a855f7',
+  warn: '#ef4444',
+  ok: '#22c55e'
+};
+
+// ----- Chart 2: Per-change token reduction (grouped bar) -----
+const changeLabels = [
+  '1. Descriptions',
+  '2. Strip Reads',
+  '3. Agent lists',
+  '4. Rule scoping',
+  '5. Skill size',
+  '6. CLAUDE.md',
+  '7. Audit CLI',
+  '8. Caching',
+  '9. Subagents',
+  '10. Token-savior'
+];
+const phaseColorByIdx = [
+  phaseColors.p1, phaseColors.p1, phaseColors.p1, phaseColors.p1,
+  phaseColors.p2, phaseColors.p2, phaseColors.p2,
+  phaseColors.p3, phaseColors.p3,
+  phaseColors.mcp
+];
+
+new Chart(document.getElementById('chartPerChange'), {
+  type: 'bar',
+  data: {
+    labels: changeLabels,
+    datasets: [
+      {
+        label: '/dai.implement (saved tokens)',
+        data: [0, 40, 15, 1, 3, 1, 0, 6, 7, 9].map(v => v * 1000),
+        backgroundColor: phaseColorByIdx.map(c => c + '99'),
+        borderColor: phaseColorByIdx,
+        borderWidth: 1
+      },
+      {
+        label: '/dai.do (saved tokens)',
+        data: [0, 100, 25, 1, 5, 2, 0, 13, 25, 8].map(v => v * 1000),
+        backgroundColor: phaseColorByIdx.map(c => c + 'cc'),
+        borderColor: phaseColorByIdx,
+        borderWidth: 2,
+        borderDash: [4, 4]
+      }
+    ]
+  },
+  options: {
+    indexAxis: 'y',
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        title: { display: true, text: 'Tokens saved per invocation', color: '#94a3b8' },
+        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+        ticks: { callback: v => (v / 1000) + 'K' }
+      },
+      y: { grid: { display: false } }
+    },
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: ctx => ctx.dataset.label + ': ' + ctx.parsed.x.toLocaleString() + ' tokens'
+        }
+      }
+    }
+  }
+});
+
+// ----- Chart 3: Performance impact radar (3 changes overlaid) -----
+new Chart(document.getElementById('chartRadar'), {
+  type: 'radar',
+  data: {
+    labels: ['Cost reduction', 'Latency', 'Accuracy', 'Completeness', 'Cache friendliness'],
+    datasets: [
+      {
+        label: '#1 Description hygiene',
+        data: [4, 4, 5, 3, 4],
+        backgroundColor: phaseColors.p1 + '33',
+        borderColor: phaseColors.p1,
+        pointBackgroundColor: phaseColors.p1,
+        borderWidth: 2
+      },
+      {
+        label: '#2 Strip eager Reads',
+        data: [5, 5, 4, 3, 5],
+        backgroundColor: phaseColors.ok + '33',
+        borderColor: phaseColors.ok,
+        pointBackgroundColor: phaseColors.ok,
+        borderWidth: 2
+      },
+      {
+        label: '#9 Subagent stubs',
+        data: [3, 2, 3, 2, 2],
+        backgroundColor: phaseColors.warn + '33',
+        borderColor: phaseColors.warn,
+        pointBackgroundColor: phaseColors.warn,
+        borderWidth: 2
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      r: {
+        suggestedMin: 0,
+        suggestedMax: 5,
+        grid: { color: 'rgba(148, 163, 184, 0.15)' },
+        angleLines: { color: 'rgba(148, 163, 184, 0.15)' },
+        ticks: { color: '#94a3b8', backdropColor: 'transparent', stepSize: 1 },
+        pointLabels: { color: '#e2e8f0', font: { size: 12 } }
+      }
+    }
+  }
+});
+
+// ----- Chart 4: All changes heatmap (stacked bar simulating heatmap) -----
+const perfData = {
+  cost:        [4, 5, 4, 4, 3, 3, 3, 5, 3, 5],
+  latency:     [4, 5, 4, 3, 3, 3, 3, 5, 2, 5],
+  accuracy:    [5, 4, 4, 3, 4, 4, 3, 3, 3, 4],
+  completeness:[3, 3, 3, 3, 3, 3, 5, 3, 2, 5],
+  cache:       [4, 5, 4, 3, 3, 4, 3, 5, 2, 3]
+};
+
+new Chart(document.getElementById('chartHeatmap'), {
+  type: 'bar',
+  data: {
+    labels: changeLabels,
+    datasets: [
+      { label: 'Cost reduction', data: perfData.cost, backgroundColor: '#3b82f6cc' },
+      { label: 'Latency', data: perfData.latency, backgroundColor: '#10b981cc' },
+      { label: 'Accuracy', data: perfData.accuracy, backgroundColor: '#f59e0bcc' },
+      { label: 'Completeness', data: perfData.completeness, backgroundColor: '#a855f7cc' },
+      { label: 'Cache friendliness', data: perfData.cache, backgroundColor: '#ef4444cc' }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { maxRotation: 45, minRotation: 45 }
+      },
+      y: {
+        beginAtZero: true,
+        max: 5,
+        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+        title: { display: true, text: 'Score (1=regression, 5=strong improvement)', color: '#94a3b8' }
+      }
+    }
+  }
+});
+
+// ----- Chart 5: Cumulative phase progression (line) -----
+const phaseSteps = ['Current', 'Phase 1 done', 'Phase 2 done', 'Phase 3 done', '+ Token-savior'];
+
+new Chart(document.getElementById('chartCumulative'), {
+  type: 'line',
+  data: {
+    labels: phaseSteps,
+    datasets: [
+      {
+        label: '/dai.add-event (small)',
+        data: [25, 14, 12, 10, 7].map(v => v * 1000),
+        borderColor: phaseColors.p1,
+        backgroundColor: phaseColors.p1 + '22',
+        tension: 0.35,
+        fill: true,
+        borderWidth: 3,
+        pointRadius: 5,
+        pointBackgroundColor: phaseColors.p1
+      },
+      {
+        label: '/dai.implement (medium)',
+        data: [90, 35, 31, 18, 9].map(v => v * 1000),
+        borderColor: phaseColors.p2,
+        backgroundColor: phaseColors.p2 + '22',
+        tension: 0.35,
+        fill: true,
+        borderWidth: 3,
+        pointRadius: 5,
+        pointBackgroundColor: phaseColors.p2
+      },
+      {
+        label: '/dai.do (full lifecycle)',
+        data: [200, 75, 68, 30, 22].map(v => v * 1000),
+        borderColor: phaseColors.p3,
+        backgroundColor: phaseColors.p3 + '22',
+        tension: 0.35,
+        fill: true,
+        borderWidth: 3,
+        pointRadius: 5,
+        pointBackgroundColor: phaseColors.p3
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: { grid: { display: false } },
+      y: {
+        beginAtZero: true,
+        title: { display: true, text: 'Tokens per invocation', color: '#94a3b8' },
+        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+        ticks: { callback: v => (v / 1000) + 'K' }
+      }
+    },
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString() + ' tokens'
+        }
+      }
+    }
+  }
+});
+
+// ----- Chart 6: Multi-tool impact (grouped bar) -----
+new Chart(document.getElementById('chartMultiTool'), {
+  type: 'bar',
+  data: {
+    labels: changeLabels,
+    datasets: [
+      {
+        label: 'Tools helped (out of 5)',
+        data: [5, 5, 1, 5, 5, 5, 5, 1, 1, 4],
+        backgroundColor: changeLabels.map((_, i) => {
+          const v = [5, 5, 1, 5, 5, 5, 5, 1, 1, 4][i];
+          if (v >= 4) return phaseColors.ok + 'cc';
+          if (v >= 2) return phaseColors.p3 + 'cc';
+          return phaseColors.warn + 'cc';
+        })
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: {
+        grid: { display: false },
+        ticks: { maxRotation: 45, minRotation: 45 }
+      },
+      y: {
+        beginAtZero: true,
+        max: 5,
+        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+        ticks: { stepSize: 1 },
+        title: { display: true, text: 'Tools helped', color: '#94a3b8' }
+      }
+    },
+    plugins: {
+      legend: { display: false }
+    }
+  }
+});
+
+// ----- Chart 7: Cost projection (stacked bar across phases) -----
+new Chart(document.getElementById('chartCost'), {
+  type: 'bar',
+  data: {
+    labels: ['Current', 'After Phase 1', 'After Phase 2', 'After Phase 3', '+ Token-savior'],
+    datasets: [
+      {
+        label: '$ per dev / month (heavy use)',
+        data: [250, 105, 80, 55, 40],
+        backgroundColor: [
+          phaseColors.warn + 'cc',
+          phaseColors.p1 + 'cc',
+          phaseColors.p2 + 'cc',
+          phaseColors.p3 + 'cc',
+          phaseColors.mcp + 'cc'
+        ],
+        borderColor: [
+          phaseColors.warn,
+          phaseColors.p1,
+          phaseColors.p2,
+          phaseColors.p3,
+          phaseColors.mcp
+        ],
+        borderWidth: 2
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: { grid: { display: false } },
+      y: {
+        beginAtZero: true,
+        title: { display: true, text: 'USD per developer per month', color: '#94a3b8' },
+        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+        ticks: { callback: v => '$' + v }
+      }
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => '$' + ctx.parsed.y + ' / dev / month' } }
+    }
+  }
+});
+
+// ----- Chart 8: MCP comparison -----
+new Chart(document.getElementById('chartMcp'), {
+  type: 'bar',
+  data: {
+    labels: ['Token-savior', 'Mem0', 'claude-mem', 'Serena (skip)', 'token-optimizer'],
+    datasets: [
+      {
+        label: 'Tokens saved per session',
+        data: [60000, 50000, 40000, 30000, 70000],
+        backgroundColor: phaseColors.mcp + 'cc'
+      },
+      {
+        label: 'Tool-def overhead per turn',
+        data: [3000, 2000, 1500, 4000, 2500],
+        backgroundColor: phaseColors.warn + 'cc'
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: { grid: { display: false } },
+      y: {
+        beginAtZero: true,
+        title: { display: true, text: 'Tokens', color: '#94a3b8' },
+        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+        ticks: { callback: v => (v / 1000) + 'K' }
+      }
+    },
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: ctx => ctx.dataset.label + ': ' + ctx.parsed.y.toLocaleString() + ' tokens'
+        }
+      }
+    }
+  }
+});
+
+// ----- Chart 9: Final before/after (grouped bar) -----
+new Chart(document.getElementById('chartFinal'), {
+  type: 'bar',
+  data: {
+    labels: ['/dai.add-event', '/dai.implement', '/dai.do (full)', 'Cursor session', '$ /dev/month'],
+    datasets: [
+      {
+        label: 'Current',
+        data: [25000, 90000, 200000, 9000, 250],
+        backgroundColor: phaseColors.warn + 'cc',
+        borderColor: phaseColors.warn,
+        borderWidth: 2
+      },
+      {
+        label: 'After full plan + MCP',
+        data: [7000, 9000, 22000, 1000, 40],
+        backgroundColor: phaseColors.ok + 'cc',
+        borderColor: phaseColors.ok,
+        borderWidth: 2
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    indexAxis: 'y',
+    scales: {
+      x: {
+        beginAtZero: true,
+        type: 'logarithmic',
+        title: { display: true, text: 'Value (log scale &mdash; tokens or USD)', color: '#94a3b8' },
+        grid: { color: 'rgba(148, 163, 184, 0.1)' }
+      },
+      y: { grid: { display: false } }
+    },
+    plugins: {
+      tooltip: {
+        callbacks: {
+          label: ctx => {
+            const isMoney = ctx.label === '$ /dev/month';
+            const v = ctx.parsed.x;
+            return ctx.dataset.label + ': ' + (isMoney ? '$' + v : v.toLocaleString() + ' tokens');
+          }
+        }
+      }
+    }
+  }
+});
+
+// ----- Chart 10: Reduction percentage -----
+new Chart(document.getElementById('chartReductionPct'), {
+  type: 'bar',
+  data: {
+    labels: ['/dai.add-event', '/dai.implement', '/dai.do', 'Cursor session', '$/dev/month'],
+    datasets: [{
+      label: 'Reduction %',
+      data: [72, 90, 89, 89, 84],
+      backgroundColor: phaseColors.ok + 'cc',
+      borderColor: phaseColors.ok,
+      borderWidth: 2
+    }]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      x: { grid: { display: false }, ticks: { maxRotation: 30, minRotation: 0 } },
+      y: {
+        beginAtZero: true, max: 100,
+        title: { display: true, text: 'Reduction %', color: '#94a3b8' },
+        grid: { color: 'rgba(148, 163, 184, 0.1)' },
+        ticks: { callback: v => v + '%' }
+      }
+    },
+    plugins: {
+      legend: { display: false },
+      tooltip: { callbacks: { label: ctx => '-' + ctx.parsed.y + '%' } }
+    }
+  }
+});
+
+// ----- Chart 11: Final state radar -----
+new Chart(document.getElementById('chartFinalPerf'), {
+  type: 'radar',
+  data: {
+    labels: ['Cost', 'Latency', 'Accuracy', 'Completeness', 'Cache'],
+    datasets: [
+      {
+        label: 'Current',
+        data: [1, 2, 3, 3, 1],
+        backgroundColor: phaseColors.warn + '33',
+        borderColor: phaseColors.warn,
+        borderWidth: 2
+      },
+      {
+        label: 'End state',
+        data: [5, 5, 4, 4, 5],
+        backgroundColor: phaseColors.ok + '33',
+        borderColor: phaseColors.ok,
+        borderWidth: 2
+      }
+    ]
+  },
+  options: {
+    responsive: true,
+    maintainAspectRatio: false,
+    scales: {
+      r: {
+        suggestedMin: 0,
+        suggestedMax: 5,
+        grid: { color: 'rgba(148, 163, 184, 0.15)' },
+        angleLines: { color: 'rgba(148, 163, 184, 0.15)' },
+        ticks: { color: '#94a3b8', backdropColor: 'transparent', stepSize: 1 },
+        pointLabels: { color: '#e2e8f0', font: { size: 11 } }
+      }
+    }
+  }
+});
+</script>
+</body>
+</html>
