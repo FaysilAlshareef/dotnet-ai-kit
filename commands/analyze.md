@@ -36,7 +36,7 @@ Based on the detected project type, read the specialist agent for architectural 
 - **Generic mode** (VSA, Clean Arch, DDD, Modular Monolith):
   - Read `agents/dotnet-architect.md`
 
-Load all skills listed in the agent's Skills Loaded section.
+Bounded skill selection (FR-012): keep one architect agent for the project type loaded, load at most 2 task-specific skills initially, and run MCP queries (codebase-memory-mcp) before broad file reads.
 
 ## Step 1: Load All Artifacts
 
@@ -175,24 +175,20 @@ Analysis complete for {NNN}-{short-name}.
 Next: /dotnet-ai.implement
 ```
 
-## IMPORTANT: Read-Only Constraint
+## Read-only constraint
 
-This command MUST NOT:
-- Modify spec.md, plan.md, tasks.md, or any other file
-- Create files other than analysis.md (the report)
-- Execute any build, test, or git commands
-- Suggest auto-fixes that change files (only suggest, never apply)
+MUST NOT modify any file other than `analysis.md`. MUST NOT run build/test/git commands. MUST NOT apply auto-fixes (only suggest).
 
-## Dry-Run Behavior
+## Dry-Run / Errors
 
-When `--dry-run` is active:
-- Print which passes WOULD run based on detected mode
-- Print artifact paths that WOULD be analyzed
-- Do NOT run any analysis passes
-- Prefix output with `[DRY-RUN]`
+- `--dry-run`: list passes + artifact paths; do NOT run; prefix `[DRY-RUN]`.
+- Missing artifacts: skip related passes, mark `SKIPPED: {reason}`.
+- Missing spec/plan: direct user to the appropriate previous command.
 
-## Error Handling
+## MCP-first (FR-021 / FR-022)
 
-- Missing artifacts: skip related passes, note in report as "SKIPPED: {reason}"
-- Missing spec: "Cannot analyze. Run /dotnet-ai.specify first."
-- Missing plan: "Cannot analyze fully. Run /dotnet-ai.plan first."
+Graph/dependency/ownership/architecture questions: query `codebase-memory-mcp` first; use `csharp-ls` for symbol-precise lookups; `grep`/file reads only as last resort.
+
+If MCP is unavailable, emit exactly:
+> MCP unavailable: codebase-memory-mcp is not connected or below >=0.6.1; falling back to csharp-ls + grep/read.
+

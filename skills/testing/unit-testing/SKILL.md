@@ -1,12 +1,11 @@
 ---
 name: unit-testing
-description: >
-  Use when writing unit tests with xUnit, NSubstitute/Moq, or FluentAssertions.
+description: Use when writing unit tests with xUnit, NSubstitute/Moq, or FluentAssertions.
 metadata:
   category: testing
   agent: test-engineer
-  when-to-use: "When writing unit tests, creating fakers, assertion extensions"
-  paths: "${detected_paths.tests}/**/*.cs"
+when_to_use: When writing unit tests, creating fakers, assertion extensions
+paths: ${detected_paths.tests}/**/*.cs
 ---
 
 # Unit Testing — xUnit, Mocking, Assertions

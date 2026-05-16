@@ -1,6 +1,8 @@
 ---
-alwaysApply: true
 description: Enforces naming conventions using configured company name and detected project patterns.
+paths:
+  - "src/**/*.cs"
+  - "tests/**/*.cs"
 ---
 
 # Naming Conventions

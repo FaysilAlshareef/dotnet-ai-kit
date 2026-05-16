@@ -1,11 +1,10 @@
 ---
 name: ef-queries
-description: >
-  Use when writing EF Core queries — LINQ, raw SQL, compiled queries, or fixing N+1 patterns.
+description: Use when writing EF Core queries — LINQ, raw SQL, compiled queries, or fixing N+1 patterns.
 metadata:
   category: data
   agent: ef-specialist
-  when-to-use: "When writing or optimizing EF Core LINQ queries, projections, or raw SQL"
+when_to_use: When writing or optimizing EF Core LINQ queries, projections, or raw SQL
 ---
 
 # EF Core Query Patterns

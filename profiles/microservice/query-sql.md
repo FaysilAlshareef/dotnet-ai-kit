@@ -1,6 +1,8 @@
 ---
-alwaysApply: true
 description: "Architecture profile for query (SQL) projects — hard constraints"
+paths:
+  - "src/**/ReadModels/**/*.cs"
+  - "src/**/EfProjections/**/*.cs"
 ---
 
 # Architecture Profile: Query — SQL Read Model

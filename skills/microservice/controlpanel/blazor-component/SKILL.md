@@ -1,11 +1,10 @@
 ---
 name: blazor-component
-description: >
-  Use when building MudBlazor data grids, dialogs, or forms for the control panel.
+description: Use when building MudBlazor data grids, dialogs, or forms for the control panel.
 metadata:
   category: microservice/controlpanel
   agent: controlpanel-architect
-  when-to-use: "When creating or modifying Blazor control panel pages with MudBlazor components"
+when_to_use: When creating or modifying Blazor control panel pages with MudBlazor components
 ---
 
 # Blazor Component — MudBlazor Page Patterns

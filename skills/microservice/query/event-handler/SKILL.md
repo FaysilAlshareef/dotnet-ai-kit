@@ -1,12 +1,11 @@
 ---
 name: event-handler
-description: >
-  Use when implementing query-side event handlers with sequence checking and idempotency.
+description: Use when implementing query-side event handlers with sequence checking and idempotency.
 metadata:
   category: microservice/query
   agent: query-architect
-  when-to-use: "When creating or modifying event handlers on query side, sequence checking"
-  paths: "${detected_paths.handlers}/**/*.cs"
+when_to_use: When creating or modifying event handlers on query side, sequence checking
+paths: ${detected_paths.handlers}/**/*.cs
 ---
 
 # Event Handler — IRequestHandler<Event<T>, bool>

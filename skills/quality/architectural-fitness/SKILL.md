@@ -1,11 +1,10 @@
 ---
 name: architectural-fitness
-description: >
-  Use when adding NetArchTest architecture tests to enforce dependency rules.
+description: Use when adding NetArchTest architecture tests to enforce dependency rules.
 metadata:
   category: quality
   agent: reviewer
-  when-to-use: "When writing architecture fitness tests with NetArchTest or dependency rules"
+when_to_use: When writing architecture fitness tests with NetArchTest or dependency rules
 ---
 
 # Architectural Fitness — NetArchTest & Dependency Rules

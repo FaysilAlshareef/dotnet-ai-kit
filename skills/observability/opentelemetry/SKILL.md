@@ -1,11 +1,10 @@
 ---
 name: opentelemetry
-description: >
-  Use when integrating OpenTelemetry for distributed tracing, metrics, or OTLP exporters.
+description: Use when integrating OpenTelemetry for distributed tracing, metrics, or OTLP exporters.
 metadata:
   category: observability
   agent: devops-engineer
-  when-to-use: "When configuring OpenTelemetry tracing, metrics, or OTLP exporters"
+when_to_use: When configuring OpenTelemetry tracing, metrics, or OTLP exporters
 ---
 
 # OpenTelemetry Traces & Metrics

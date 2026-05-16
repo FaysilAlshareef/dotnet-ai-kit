@@ -1,11 +1,10 @@
 ---
 name: retry-patterns
-description: >
-  Use when implementing retry logic with exponential backoff and jitter.
+description: Use when implementing retry logic with exponential backoff and jitter.
 metadata:
   category: resilience
   agent: api-designer
-  when-to-use: "When implementing retry patterns with exponential backoff and jitter"
+when_to_use: When implementing retry patterns with exponential backoff and jitter
 ---
 
 # Retry Patterns

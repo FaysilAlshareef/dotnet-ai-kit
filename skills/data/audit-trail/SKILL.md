@@ -1,11 +1,10 @@
 ---
 name: audit-trail
-description: >
-  Use when adding automatic audit trail (CreatedAt, UpdatedBy) via EF Core interceptors.
+description: Use when adding automatic audit trail (CreatedAt, UpdatedBy) via EF Core interceptors.
 metadata:
   category: data
   agent: ef-specialist
-  when-to-use: "When implementing audit trail with IAuditable interface or EF Core interceptor"
+when_to_use: When implementing audit trail with IAuditable interface or EF Core interceptor
 ---
 
 # Audit Trail

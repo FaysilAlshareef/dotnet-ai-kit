@@ -1,6 +1,7 @@
 ---
-alwaysApply: true
 description: "Architecture profile for generic .NET projects — hard constraints"
+paths:
+  - "src/**/*.cs"
 ---
 
 # Architecture Profile: Generic .NET

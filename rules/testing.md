@@ -1,6 +1,9 @@
 ---
-alwaysApply: true
 description: Enforces test naming, structure, and isolation patterns for both .NET and Python tests.
+paths:
+  - "tests/**/*.cs"
+  - "**/*.Tests/**/*.cs"
+  - "tests/**/*.py"
 ---
 
 # Testing Rules

@@ -1,11 +1,10 @@
 ---
 name: specification-pattern
-description: >
-  Use when building composable query criteria with the specification pattern.
+description: Use when building composable query criteria with the specification pattern.
 metadata:
   category: data
   agent: ef-specialist
-  when-to-use: "When implementing specification pattern for composable query criteria"
+when_to_use: When implementing specification pattern for composable query criteria
 ---
 
 # Specification Pattern

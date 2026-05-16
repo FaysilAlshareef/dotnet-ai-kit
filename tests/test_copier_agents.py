@@ -77,13 +77,14 @@ class TestTransformAgentFrontmatter:
         result = _transform_agent_frontmatter(fm, mapping)
         assert result["disallowedTools"] == ["Write", "Edit"]
 
-    def test_expertise_maps_to_skills(self) -> None:
+    def test_expertise_does_not_lift_to_skills(self) -> None:
+        """FR-013: ``expertise`` MUST NOT lift to a ``skills:`` agent frontmatter field."""
         from dotnet_ai_kit.agents import AGENT_FRONTMATTER_MAP
 
         mapping = AGENT_FRONTMATTER_MAP["claude"]
         fm = {"name": "test", "expertise": ["aggregate-design", "event-design"]}
         result = _transform_agent_frontmatter(fm, mapping)
-        assert result["skills"] == ["aggregate-design", "event-design"]
+        assert "skills" not in result
 
     def test_high_complexity_maps_to_effort_and_model(self) -> None:
         from dotnet_ai_kit.agents import AGENT_FRONTMATTER_MAP
@@ -159,7 +160,9 @@ class TestCopyAgentsIntegration:
 
         assert fm["name"] == "test-agent"
         assert fm["disallowedTools"] == ["Write", "Edit"]
-        assert fm["skills"] == ["skill-a", "skill-b"]
+        # FR-013: expertise must NOT lift to a `skills:` frontmatter field
+        # (Claude Code has no such field; lifting silently bulk-loads).
+        assert "skills" not in fm
         assert fm["effort"] == "high"
         assert fm["model"] == "opus"
         assert fm["maxTurns"] == 20

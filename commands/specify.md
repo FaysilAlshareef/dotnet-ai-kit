@@ -37,7 +37,7 @@ Based on the detected project type, read the specialist agent for architectural 
 - **Generic mode** (VSA, Clean Arch, DDD, Modular Monolith):
   - Read `agents/dotnet-architect.md`
 
-Load all skills listed in the agent's Skills Loaded section.
+Bounded skill selection (FR-012): keep one architect agent for the project type loaded, load at most 2 task-specific skills initially, and run MCP queries (codebase-memory-mcp) before broad file reads.
 
 ## Step 1: Detect Project Mode
 

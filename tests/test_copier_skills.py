@@ -4,7 +4,9 @@ from __future__ import annotations
 
 from pathlib import Path
 
-from dotnet_ai_kit.copier import _resolve_detected_path_tokens, copy_skills
+import pytest
+
+from dotnet_ai_kit.copier import DeploymentError, _resolve_detected_path_tokens, copy_skills
 
 
 def _create_skill(source_dir: Path, category: str, name: str, content: str) -> Path:
@@ -25,12 +27,14 @@ class TestResolveDetectedPathTokens:
         result = _resolve_detected_path_tokens(content, paths)
         assert 'paths: "Company.Domain/Core/**/*.cs"' in result
 
-    def test_unresolved_token_removes_paths_line(self) -> None:
+    def test_unresolved_token_raises_deployment_error(self) -> None:
+        """FR-033: a missing detected_paths key must abort the deployment
+        instead of silently substituting an empty string or glob-only path."""
         content = '---\nname: test\npaths: "${detected_paths.cosmos}/**/*.cs"\n---\n\n# Body'
         paths = {"aggregates": "Company.Domain/Core"}
-        result = _resolve_detected_path_tokens(content, paths)
-        assert "paths:" not in result
-        assert "# Body" in result
+        with pytest.raises(DeploymentError) as exc:
+            _resolve_detected_path_tokens(content, paths)
+        assert "cosmos" in str(exc.value)
 
     def test_multiple_tokens_all_resolve(self) -> None:
         content = (
@@ -74,40 +78,82 @@ class TestCopySkillsIntegration:
         assert 'paths: "Company.Domain/Core/**/*.cs"' in deployed
         assert "when-to-use" in deployed
 
-    def test_none_detected_paths_leaves_unchanged(self, tmp_path: Path) -> None:
+    def test_none_detected_paths_skips_token_bearing_skills(self, tmp_path: Path) -> None:
+        """FR-033 fail-closed: with no detected_paths, a SKILL.md that
+        references ``${detected_paths.X}`` is skipped entirely. The previous
+        behaviour (deploy with literal tokens left in) was a regression
+        because the rule router would silently match a glob-only path."""
         source = tmp_path / "skills"
         target = tmp_path / "project"
         tool_config = {"skills_dir": ".claude/skills"}
 
-        original = '---\nname: test\npaths: "${detected_paths.aggregates}/**/*.cs"\n---\n\n# Body\n'
-        _create_skill(source, "test", "skill", original)
+        # Token-bearing skill (would have been broken if deployed).
+        _create_skill(
+            source,
+            "test",
+            "token_user",
+            '---\nname: token_user\npaths: "${detected_paths.aggregates}/**/*.cs"\n---\n\n# Body\n',
+        )
+        # Token-free skill (should still deploy).
+        _create_skill(
+            source,
+            "test",
+            "plain",
+            "---\nname: plain\n---\n\n# Plain Body\n",
+        )
 
         count = copy_skills(source, target, tool_config, detected_paths=None)
         assert count == 1
 
-        deployed = (target / ".claude/skills/test/skill/SKILL.md").read_text(encoding="utf-8")
-        # Token should remain unresolved since detected_paths is None
-        assert "${detected_paths." in deployed
+        assert not (target / ".claude/skills/test/token_user/SKILL.md").exists()
+        deployed = (target / ".claude/skills/test/plain/SKILL.md").read_text(encoding="utf-8")
+        assert "Plain Body" in deployed
+        assert "${detected_paths." not in deployed
 
-    def test_missing_path_removes_paths_line(self, tmp_path: Path) -> None:
+    def test_skill_referencing_missing_key_is_skipped(
+        self, tmp_path: Path, caplog: pytest.LogCaptureFixture
+    ) -> None:
+        """FR-033 fail-closed at the SKILL level: a skill referencing a
+        detected_paths key the project doesn't populate is SKIPPED, not
+        deployed with a broken `**/*.cs` fallback. Calling
+        `_resolve_detected_path_tokens` directly still raises (see
+        test_path_token_substitution.py); copy_skills catches per-file."""
         source = tmp_path / "skills"
         target = tmp_path / "project"
         tool_config = {"skills_dir": ".claude/skills"}
 
+        # Resolvable skill
         _create_skill(
             source,
-            "test",
-            "skill",
-            '---\nname: test\npaths: "${detected_paths.cosmos}/**/*.cs"\n---\n\n# Body\n',
+            "command",
+            "ok",
+            '---\nname: ok\npaths: "${detected_paths.aggregates}/**/*.cs"\n---\n\n# Body\n',
+        )
+        # Unresolvable skill
+        _create_skill(
+            source,
+            "query",
+            "miss",
+            '---\nname: miss\npaths: "${detected_paths.cosmos}/**/*.cs"\n---\n\n# Body\n',
         )
 
-        detected_paths = {"aggregates": "Domain/Core"}  # No cosmos key
-        count = copy_skills(source, target, tool_config, detected_paths=detected_paths)
+        detected_paths = {"aggregates": "Domain/Core"}
+        with caplog.at_level("WARNING", logger="dotnet_ai_kit.copier"):
+            count = copy_skills(source, target, tool_config, detected_paths=detected_paths)
 
         assert count == 1
-        deployed = (target / ".claude/skills/test/skill/SKILL.md").read_text(encoding="utf-8")
-        assert "paths:" not in deployed
-        assert "# Body" in deployed
+        deployed = target / ".claude/skills"
+        files = [p.name for p in deployed.rglob("SKILL.md")]
+        assert "SKILL.md" in files
+        # The skipped skill must not have any artifact in the deployed tree.
+        assert not (deployed / "query" / "miss" / "SKILL.md").exists()
+
+        # Maintainer must be able to find what got skipped from the log.
+        skip_lines = [r for r in caplog.records if "skipping" in r.getMessage()]
+        assert any("miss" in r.getMessage() for r in skip_lines), [
+            r.getMessage() for r in caplog.records
+        ]
+        assert any("cosmos" in r.getMessage() for r in skip_lines)
 
     def test_no_skills_dir_returns_zero(self, tmp_path: Path) -> None:
         source = tmp_path / "skills"

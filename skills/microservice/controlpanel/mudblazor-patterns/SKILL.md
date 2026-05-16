@@ -1,11 +1,10 @@
 ---
 name: mudblazor-patterns
-description: >
-  Use when applying MudBlazor theming, dialog patterns, or snackbar integration.
+description: Use when applying MudBlazor theming, dialog patterns, or snackbar integration.
 metadata:
   category: microservice/controlpanel
   agent: controlpanel-architect
-  when-to-use: "When configuring MudBlazor theming, dialogs, or snackbar integration"
+when_to_use: When configuring MudBlazor theming, dialogs, or snackbar integration
 ---
 
 # MudBlazor Patterns — Theming, Dialogs, Snackbar

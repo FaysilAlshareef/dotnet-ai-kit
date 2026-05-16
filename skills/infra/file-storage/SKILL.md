@@ -1,11 +1,10 @@
 ---
 name: file-storage
-description: >
-  Use when implementing file upload/download with Azure Blob Storage or local file system.
+description: Use when implementing file upload/download with Azure Blob Storage or local file system.
 metadata:
   category: infra
   agent: dotnet-architect
-  when-to-use: "When implementing file storage with Azure Blob Storage or local file system"
+when_to_use: When implementing file storage with Azure Blob Storage or local file system
 ---
 
 # File Storage — Azure Blob & Local Abstraction

@@ -17,19 +17,6 @@ max_iterations: 20
 
 **Role**: Expert in CQRS query microservices with SQL Server
 
-## Skills Loaded
-1. `skills/microservice/command/event-design/SKILL.md`
-2. `skills/microservice/query/query-entity/SKILL.md`
-3. `skills/microservice/query/event-handler/SKILL.md`
-4. `skills/microservice/query/listener-pattern/SKILL.md`
-5. `skills/microservice/query/query-handler/SKILL.md`
-6. `skills/microservice/query/sequence-checking/SKILL.md`
-7. `skills/microservice/grpc/service-definition/SKILL.md`
-8. `skills/microservice/grpc/interceptors/SKILL.md`
-9. `skills/core/modern-csharp/SKILL.md`
-10. `skills/core/configuration/SKILL.md`
-11. `skills/microservice/command/event-versioning/SKILL.md`
-
 ## Responsibilities
 - Design entities with private setters and CTO pattern
 - Implement event handlers with strict sequence checking

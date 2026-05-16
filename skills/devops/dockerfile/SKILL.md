@@ -1,11 +1,10 @@
 ---
 name: dockerfile
-description: >
-  Use when writing or optimizing Dockerfiles for .NET applications.
+description: Use when writing or optimizing Dockerfiles for .NET applications.
 metadata:
   category: devops
   agent: devops-engineer
-  when-to-use: "When creating or modifying Dockerfiles for .NET application containers"
+when_to_use: When creating or modifying Dockerfiles for .NET application containers
 ---
 
 # Dockerfile — Multi-Stage .NET Builds

@@ -1,11 +1,10 @@
 ---
 name: runbook
-description: >
-  Use when creating deployment runbooks, troubleshooting guides, or rollback procedures.
+description: Use when creating deployment runbooks, troubleshooting guides, or rollback procedures.
 metadata:
   category: docs
   agent: docs-engineer
-  when-to-use: "When creating deployment runbooks, troubleshooting guides, or rollback procedures"
+when_to_use: When creating deployment runbooks, troubleshooting guides, or rollback procedures
 ---
 
 # Runbook — Deployment & Troubleshooting

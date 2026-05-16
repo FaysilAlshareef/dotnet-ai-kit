@@ -1,5 +1,4 @@
 ---
-alwaysApply: true
 description: Enforces C# coding conventions, version-aware (respects detected .NET version).
 ---
 

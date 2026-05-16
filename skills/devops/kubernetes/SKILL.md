@@ -1,11 +1,10 @@
 ---
 name: kubernetes
-description: >
-  Use when writing Kubernetes manifests for .NET microservice deployment.
+description: Use when writing Kubernetes manifests for .NET microservice deployment.
 metadata:
   category: devops
   agent: devops-engineer
-  when-to-use: "When creating or modifying Kubernetes deployment manifests or service configurations"
+when_to_use: When creating or modifying Kubernetes deployment manifests or service configurations
 ---
 
 # Kubernetes — Deployment Manifests

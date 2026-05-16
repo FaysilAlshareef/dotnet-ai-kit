@@ -1,11 +1,10 @@
 ---
 name: content-negotiation
-description: >
-  Use when configuring API response formats, custom formatters, or Accept header handling.
+description: Use when configuring API response formats, custom formatters, or Accept header handling.
 metadata:
   category: api
   agent: api-designer
-  when-to-use: "When configuring content type negotiation, custom formatters, or Accept headers"
+when_to_use: When configuring content type negotiation, custom formatters, or Accept headers
 ---
 
 # Content Negotiation

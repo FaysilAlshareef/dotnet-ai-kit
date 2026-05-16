@@ -1,6 +1,7 @@
 ---
-alwaysApply: true
 description: "Architecture profile for Modular Monolith projects — hard constraints"
+paths:
+  - "src/**/*.cs"
 ---
 
 # Architecture Profile: Modular Monolith

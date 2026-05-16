@@ -1,11 +1,10 @@
 ---
 name: outbox
-description: >
-  Use when implementing reliable event publishing with the outbox pattern and Service Bus.
+description: Use when implementing reliable event publishing with the outbox pattern and Service Bus.
 metadata:
   category: microservice/command
   agent: command-architect
-  when-to-use: "When implementing outbox pattern, CommitEventService, or ServiceBusPublisher"
+when_to_use: When implementing outbox pattern, CommitEventService, or ServiceBusPublisher
 ---
 
 # Outbox Pattern -- Reliable Event Publishing

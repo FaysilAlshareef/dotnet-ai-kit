@@ -1,11 +1,10 @@
 ---
 name: data-protection
-description: >
-  Use when encrypting data at rest with ASP.NET Core Data Protection API.
+description: Use when encrypting data at rest with ASP.NET Core Data Protection API.
 metadata:
   category: security
   agent: api-designer
-  when-to-use: "When implementing data encryption, key management, or Data Protection API"
+when_to_use: When implementing data encryption, key management, or Data Protection API
 ---
 
 # Data Protection API

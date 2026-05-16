@@ -1,11 +1,10 @@
 ---
 name: vertical-slice
-description: >
-  Use when implementing Vertical Slice Architecture with feature folders and co-located code.
+description: Use when implementing Vertical Slice Architecture with feature folders and co-located code.
 metadata:
   category: architecture
   agent: dotnet-architect
-  when-to-use: "When organizing code by feature using Vertical Slice Architecture"
+when_to_use: When organizing code by feature using Vertical Slice Architecture
 ---
 
 # Vertical Slice Architecture

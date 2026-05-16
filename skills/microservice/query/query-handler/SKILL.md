@@ -1,11 +1,10 @@
 ---
 name: query-handler
-description: >
-  Use when implementing MediatR query handlers with pagination, filtering, and DTO mapping.
+description: Use when implementing MediatR query handlers with pagination, filtering, and DTO mapping.
 metadata:
   category: microservice/query
   agent: query-architect
-  when-to-use: "When creating or modifying MediatR query handlers with IUnitOfWork repositories"
+when_to_use: When creating or modifying MediatR query handlers with IUnitOfWork repositories
 ---
 
 # Query Handler — IUnitOfWork with Repository Queries

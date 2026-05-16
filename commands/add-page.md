@@ -47,7 +47,7 @@ Create a Blazor page in the control panel project with MudDataGrid, filter model
 
 ## Load Specialist Agent
 
-Read `agents/controlpanel-architect.md` for Blazor page patterns. Load all skills listed in the agent's Skills Loaded section.
+Read `agents/controlpanel-architect.md` for Blazor page patterns. Bounded skill selection (FR-012): keep one architect agent for the project type loaded, load at most 2 task-specific skills initially, and run MCP queries (codebase-memory-mcp) before broad file reads.
 
 ## Skills to Read
 

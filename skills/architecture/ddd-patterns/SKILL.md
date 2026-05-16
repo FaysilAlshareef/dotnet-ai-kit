@@ -1,11 +1,10 @@
 ---
 name: ddd-patterns
-description: >
-  Use when modeling domain logic with aggregates, value objects, domain events, or bounded contexts.
+description: Use when modeling domain logic with aggregates, value objects, domain events, or bounded contexts.
 metadata:
   category: architecture
   agent: dotnet-architect
-  when-to-use: "When implementing DDD tactical patterns like aggregates, value objects, or domain events"
+when_to_use: When implementing DDD tactical patterns like aggregates, value objects, or domain events
 ---
 
 # Domain-Driven Design Patterns

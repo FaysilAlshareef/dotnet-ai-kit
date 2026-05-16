@@ -1,6 +1,7 @@
 ---
-alwaysApply: true
 description: "Architecture profile for Clean Architecture projects — hard constraints"
+paths:
+  - "src/**/*.cs"
 ---
 
 # Architecture Profile: Clean Architecture

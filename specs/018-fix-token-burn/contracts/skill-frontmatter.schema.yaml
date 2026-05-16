@@ -1,0 +1,76 @@
+# SKILL.md frontmatter contract (post FR-006 / FR-007 / FR-008 fix)
+# Validates the top of every skills/**/SKILL.md file.
+#
+# Hard rules:
+#   1. Activation fields MUST live at top level (description, when_to_use, paths,
+#      disable-model-invocation, user-invocable). They MUST NOT live under metadata:.
+#   2. alwaysApply MUST NOT appear anywhere (FR-008).
+#   3. description MUST be a trigger sentence (starts with "Use when " — enforced by
+#      pytest, not by JSON Schema regex).
+#   4. metadata: block survives (for Cursor/Copilot future) but MUST NOT contain
+#      Claude-visible activation fields.
+
+$schema: https://json-schema.org/draft/2020-12/schema
+title: dotnet-ai-kit SKILL.md Frontmatter
+description: Validates the YAML frontmatter block of every SKILL.md after FR-006 lift.
+type: object
+required:
+  - name
+  - description
+additionalProperties: true   # tolerate future Claude Code top-level fields
+properties:
+  name:
+    type: string
+    pattern: "^[a-z][a-z0-9-]*$"
+    description: Slug matching the file's directory name.
+  description:
+    type: string
+    minLength: 20
+    description: |
+      Concrete trigger sentence the Claude Code skill router reads.
+      Convention: "Use when …". A pytest separately asserts the "Use when" prefix
+      where appropriate; this schema only enforces non-empty meaningful text.
+  when_to_use:
+    type: string
+    description: |
+      Optional longer trigger context. Normalised from legacy metadata.when-to-use.
+  paths:
+    oneOf:
+      - type: string
+      - type: array
+        items: { type: string }
+    description: |
+      Top-level path scope. Glob string or list of globs. ${detected_paths.X}
+      tokens resolved to concrete paths at deployment time (FR-010).
+  disable-model-invocation:
+    type: boolean
+  user-invocable:
+    type: boolean
+  metadata:
+    type: object
+    description: |
+      Reserved for non-Claude consumers (Cursor `category`, internal `agent` routing).
+      MUST NOT contain Claude-visible activation fields.
+    not:
+      anyOf:
+        - { required: ["paths"] }
+        - { required: ["when_to_use"] }
+        - { required: ["when-to-use"] }
+        - { required: ["disable-model-invocation"] }
+        - { required: ["user-invocable"] }
+        - { required: ["alwaysApply"] }
+  alwaysApply:
+    not: {}
+    description: |
+      Cursor-style field. MUST NOT appear at top level (FR-008). Use absence-of-paths
+      for always-loaded behaviour in Claude.
+
+examples:
+  - name: aggregate-design
+    description: Use when designing or implementing event-sourced aggregate roots.
+    when_to_use: When creating or modifying aggregates, factory methods, or Apply methods.
+    paths:
+      - "src/MyDomain.Commands/Domain/Aggregates/**/*.cs"
+    metadata:
+      category: microservice/command
+      agent: command-architect

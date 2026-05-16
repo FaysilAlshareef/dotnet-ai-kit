@@ -1,12 +1,9 @@
 ---
 name: functional-csharp
-
-description: >
-  Use when applying functional patterns in C# — Result types, railway-oriented programming, or immutability.
+description: Use when applying functional patterns in C# — Result types, railway-oriented programming, or immutability.
 metadata:
   category: core
   agent: dotnet-architect
-  alwaysApply: true
 ---
 
 # Functional Programming in C#

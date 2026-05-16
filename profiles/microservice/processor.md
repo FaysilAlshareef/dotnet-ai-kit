@@ -1,6 +1,8 @@
 ---
-alwaysApply: true
 description: "Architecture profile for processor projects — hard constraints"
+paths:
+  - "src/**/Handlers/**/*.cs"
+  - "src/**/HostedServices/**/*.cs"
 ---
 
 # Architecture Profile: Processor (Event Consumer)

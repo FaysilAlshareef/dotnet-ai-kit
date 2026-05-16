@@ -1,11 +1,10 @@
 ---
 name: serilog-structured
-description: >
-  Use when setting up Serilog structured logging with enrichers and Seq sink.
+description: Use when setting up Serilog structured logging with enrichers and Seq sink.
 metadata:
   category: observability
   agent: devops-engineer
-  when-to-use: "When configuring Serilog structured logging, enrichers, or Seq sink"
+when_to_use: When configuring Serilog structured logging, enrichers, or Seq sink
 ---
 
 # Serilog Structured Logging

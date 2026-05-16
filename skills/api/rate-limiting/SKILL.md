@@ -1,11 +1,10 @@
 ---
 name: rate-limiting
-description: >
-  Use when adding rate limiting or throttling to .NET API endpoints.
+description: Use when adding rate limiting or throttling to .NET API endpoints.
 metadata:
   category: api
   agent: api-designer
-  when-to-use: "When implementing rate limiting policies or throttling for API endpoints"
+when_to_use: When implementing rate limiting policies or throttling for API endpoints
 ---
 
 # Rate Limiting

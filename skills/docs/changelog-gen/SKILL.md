@@ -1,11 +1,10 @@
 ---
 name: changelog-gen
-description: >
-  Use when generating changelogs from git history or preparing release notes.
+description: Use when generating changelogs from git history or preparing release notes.
 metadata:
   category: docs
   agent: docs-engineer
-  when-to-use: "When generating changelogs or release notes from git history"
+when_to_use: When generating changelogs or release notes from git history
 ---
 
 # Changelog Generation — Keep a Changelog Format

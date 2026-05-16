@@ -1,11 +1,10 @@
 ---
 name: input-sanitization
-description: >
-  Use when preventing XSS, adding CSP headers, or validating file uploads.
+description: Use when preventing XSS, adding CSP headers, or validating file uploads.
 metadata:
   category: security
   agent: api-designer
-  when-to-use: "When implementing input sanitization, XSS prevention, or security headers"
+when_to_use: When implementing input sanitization, XSS prevention, or security headers
 ---
 
 # Input Sanitization & XSS Prevention

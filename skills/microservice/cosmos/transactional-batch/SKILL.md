@@ -1,11 +1,10 @@
 ---
 name: transactional-batch
-description: >
-  Use when performing atomic multi-document operations with Cosmos DB TransactionalBatch.
+description: Use when performing atomic multi-document operations with Cosmos DB TransactionalBatch.
 metadata:
   category: microservice/cosmos
   agent: cosmos-architect
-  when-to-use: "When implementing Cosmos DB TransactionalBatch or atomic multi-document operations"
+when_to_use: When implementing Cosmos DB TransactionalBatch or atomic multi-document operations
 ---
 
 # Transactional Batch — Atomic Multi-Document Operations

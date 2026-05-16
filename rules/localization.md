@@ -1,6 +1,9 @@
 ---
-alwaysApply: true
 description: Enforces resource-based localization in all projects using resource files.
+paths:
+  - "**/Resources/**"
+  - "**/*.resx"
+  - "**/Localization/**/*.cs"
 ---
 
 # Localization Rules

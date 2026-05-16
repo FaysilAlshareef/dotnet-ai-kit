@@ -4,6 +4,12 @@
       "command": "csharp-ls",
       "args": ["--solution", "."],
       "transport": "stdio"
+    },
+    "codebase-memory-mcp": {
+      "command": "codebase-memory-mcp",
+      "args": ["--project", "."],
+      "transport": "stdio",
+      "dotnet_ai_kit_min_version": "0.6.1"
     }
   }
 }

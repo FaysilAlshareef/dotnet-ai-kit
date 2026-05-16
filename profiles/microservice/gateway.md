@@ -1,6 +1,9 @@
 ---
-alwaysApply: true
 description: "Architecture profile for gateway projects — hard constraints"
+paths:
+  - "**/Program.cs"
+  - "**/Endpoints/**/*.cs"
+  - "**/Protos/**"
 ---
 
 # Architecture Profile: Gateway (REST-to-gRPC Bridge)

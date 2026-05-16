@@ -1,11 +1,10 @@
 ---
 name: grpc-design
-description: >
-  Use when designing gRPC services, proto files, or adding gRPC-Web or JSON transcoding.
+description: Use when designing gRPC services, proto files, or adding gRPC-Web or JSON transcoding.
 metadata:
   category: api
   agent: api-designer
-  when-to-use: "When designing gRPC APIs, proto file conventions, or gRPC-Web configuration"
+when_to_use: When designing gRPC APIs, proto file conventions, or gRPC-Web configuration
 ---
 
 # gRPC API Design for .NET

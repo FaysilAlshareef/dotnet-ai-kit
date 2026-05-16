@@ -23,6 +23,15 @@ Configure dotnet-ai-kit settings for this project.
 $ARGUMENTS
 ```
 
+## Required dependencies (FR-020)
+
+This project relies on two MCP servers configured in `.mcp.json`:
+
+- `csharp-ls` — symbol-precise C# navigation. `dotnet tool install -g csharp-ls`.
+- `codebase-memory-mcp >= 0.6.1` — project graph queries. Install via `pip install "codebase-memory-mcp>=0.6.1"` or download the platform-specific release zip.
+
+`/dai.configure` invokes `mcp_check.check_codebase_memory_mcp()` and writes the result to `.dotnet-ai-kit/mcp-state.yml :: mcp.codebase-memory-mcp` (`accepted` / `below-minimum` / `unavailable`).
+
 ## Instructions
 
 **Quick update mode**: If `$ARGUMENTS` names a specific setting, skip the full wizard and update only that setting:

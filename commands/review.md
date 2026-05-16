@@ -24,7 +24,9 @@ Flags: `--dry-run` (preview review scope), `--verbose` (diagnostic output),
 
 ## Load Specialist Agent
 
-Read `agents/reviewer.md` for review standards and quality checks. Load all skills listed in the agent's Skills Loaded section.
+Read `agents/reviewer.md` for review standards and quality checks. Bounded skill selection (FR-012): keep one architect agent for the project type loaded, load at most 2 task-specific skills initially, and run MCP queries (codebase-memory-mcp) before broad file reads.
+
+When checking project-specific conventions, read `.dotnet-ai-kit/memory/conventions.md` and `.dotnet-ai-kit/memory/interfaces.md` rather than the full constitution (FR-024).
 
 ## Step 1: Detect Changes
 
@@ -120,79 +122,37 @@ Unless `--skip-coderabbit` is set:
 
 ## Step 5: Auto-Fix (if --auto-fix)
 
-**Safe fixes** (apply automatically):
-- Remove unused `using` statements
-- Add missing `sealed` keyword on classes with no inheritors
-- Apply file-scoped namespaces (if .editorconfig requires)
-- Fix formatting issues (whitespace, indentation)
-- Add missing XML doc comment stubs on public members
+Safe (auto-apply): remove unused `using`s, add `sealed`, file-scoped namespaces, formatting, XML-doc stubs. Unsafe (list, don't apply): logic, error-handling, architecture, authorization.
 
-**Unsafe fixes** (require user approval — list but do not apply):
-- Logic changes, error handling modifications
-- Architecture restructuring, dependency additions
-- Adding/removing authorization attributes
-
-If `--auto-fix`:
-1. Apply all safe fixes.
-2. Run `dotnet build` to verify fixes did not break compilation. If build fails, revert the last fix and report the error.
-3. Record each auto-fixed file in the feature's `undo-log.md` so `/dotnet-ai.undo` can revert them:
-   ```
-   ## Auto-Fix - Review ({DATE})
-   - modified: {file path} (removed unused usings)
-   - modified: {file path} (added sealed keyword)
-   ```
-4. List unsafe fixes and ask: "Apply these {N} changes? [y/N/select]"
-5. Report what was auto-fixed.
+If `--auto-fix`: apply safe fixes; `dotnet build` to verify; record each in `undo-log.md`; list unsafe fixes and ask "Apply these {N} changes? [y/N/select]".
 
 ## Step 6: Output Report
 
-Generate report per repo. Save to `review.md` in the feature directory:
+Write `review.md`:
 
 ```markdown
-# Review Report: {Feature Name}
-
+# Review Report: {Feature}
 **Date**: {DATE} | **Mode**: {mode}
-
-## {Repo Name} ({PASS|NEEDS FIXES})
-### Standards Review
-- {check name}: {PASS|{N} violations}
-  - {finding description} [{severity}]
-
-### CodeRabbit (if run)
-- {N} suggestions, {M} warnings
-
-### Auto-Fixed (if --auto-fix)
-- {list of applied fixes}
-
-## Summary
-- Total findings: {N}
-- CRITICAL: {count} | HIGH: {count} | MEDIUM: {count} | LOW: {count}
-- Auto-fixed: {count}
-- Remaining: {count}
+## {Repo} ({PASS|NEEDS FIXES})
+- {check}: {PASS|N violations}
+  - {finding} [{severity}]
+## Summary — CRITICAL/HIGH/MEDIUM/LOW counts, auto-fixed, remaining
 ```
 
-Print summary to terminal:
-```
-Review complete for {NNN}-{short-name}.
-  {Repo}: {PASS|NEEDS FIXES} ({N} findings)
-  ...
+Print: `Review complete for {NNN}-{short-name}.` per-repo PASS/FIXES + counts. Next: `/dotnet-ai.verify`.
 
-{If auto-fix applied}: Auto-fixed {N} safe issues.
-{If findings remain}: Review review.md for details.
-
-Next: /dotnet-ai.verify    (run verification pipeline)
-```
-
-## Dry-Run Behavior
-
-When `--dry-run` is active:
-- Print which repos and files WOULD be reviewed
-- Print which checks WOULD run
-- Do NOT analyze code or generate report
-- Prefix output with `[DRY-RUN]`
+## Dry-Run / Errors
 
 ## Error Handling
 
 - No changes to review: direct to `/dotnet-ai.implement`
 - Git not available: "Cannot detect changes without git."
 - CodeRabbit fails: continue with standards review, note the failure
+
+## MCP-first (FR-021 / FR-022)
+
+Graph/dependency/ownership/architecture questions: query `codebase-memory-mcp` first; use `csharp-ls` for symbol-precise lookups; `grep`/file reads only as last resort.
+
+If MCP is unavailable, emit exactly:
+> MCP unavailable: codebase-memory-mcp is not connected or below >=0.6.1; falling back to csharp-ls + grep/read.
+

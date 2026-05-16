@@ -1,12 +1,9 @@
 ---
 name: solid-principles
-
-description: >
-  Use when evaluating code against SOLID principles or deciding when to apply or skip them.
+description: Use when evaluating code against SOLID principles or deciding when to apply or skip them.
 metadata:
   category: core
   agent: dotnet-architect
-  alwaysApply: true
 ---
 
 # SOLID Principles in C#

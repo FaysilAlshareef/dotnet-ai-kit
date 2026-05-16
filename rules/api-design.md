@@ -1,6 +1,9 @@
 ---
-alwaysApply: true
 description: Enforces REST API conventions — status codes, ProblemDetails, versioning, and endpoint design.
+paths:
+  - "**/Controllers/**/*.cs"
+  - "**/Endpoints/**/*.cs"
+  - "**/Program.cs"
 ---
 
 # API Design Rules

@@ -1,11 +1,10 @@
 ---
 name: background-jobs
-description: >
-  Use when adding background jobs, recurring tasks, or Hangfire scheduled work.
+description: Use when adding background jobs, recurring tasks, or Hangfire scheduled work.
 metadata:
   category: infra
   agent: dotnet-architect
-  when-to-use: "When implementing background jobs, recurring tasks, or fire-and-forget patterns"
+when_to_use: When implementing background jobs, recurring tasks, or fire-and-forget patterns
 ---
 
 # Background Jobs — Hangfire & Hosted Services

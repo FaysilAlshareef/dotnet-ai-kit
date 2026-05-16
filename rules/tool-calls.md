@@ -1,5 +1,4 @@
 ---
-alwaysApply: true
 description: Guides AI assistants to use sequential tool calls and verify tool availability.
 ---
 

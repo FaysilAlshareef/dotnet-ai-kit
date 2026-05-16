@@ -1,0 +1,114 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/FaysilAlshareef/dotnet-ai-kit/schemas/hooks.schema.json",
+  "title": "dotnet-ai-kit hooks/hooks.json contract",
+  "description": "Validates the plugin-manifest hooks.json after FR-004 / FR-005 / FR-034 fix. matcher contains only tool names; command/file patterns belong in handler-level if:. Blocking hooks must use exit 2.",
+  "type": "object",
+  "required": ["hooks"],
+  "additionalProperties": false,
+  "properties": {
+    "hooks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "SessionStart": { "$ref": "#/$defs/HookEventArray" },
+        "PreToolUse":   { "$ref": "#/$defs/HookEventArray" },
+        "PostToolUse":  { "$ref": "#/$defs/HookEventArray" },
+        "Stop":         { "$ref": "#/$defs/HookEventArray" }
+      }
+    }
+  },
+  "$defs": {
+    "HookEventArray": {
+      "type": "array",
+      "items": { "$ref": "#/$defs/HookGroup" }
+    },
+    "HookGroup": {
+      "type": "object",
+      "required": ["hooks"],
+      "additionalProperties": false,
+      "properties": {
+        "matcher": {
+          "type": "string",
+          "description": "Tool-name matcher ONLY. Must NOT contain permission-rule syntax like 'Bash(git commit*)' — those belong in the handler-level 'if' field.",
+          "pattern": "^([A-Za-z]+)(\\|[A-Za-z]+)*$"
+        },
+        "hooks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/HookHandler" }
+        }
+      }
+    },
+    "HookHandler": {
+      "type": "object",
+      "required": ["type", "command"],
+      "additionalProperties": true,
+      "properties": {
+        "type": { "type": "string", "enum": ["command"] },
+        "command": { "type": "string" },
+        "timeout": { "type": "integer", "minimum": 1 },
+        "statusMessage": { "type": "string" },
+        "if": {
+          "type": "string",
+          "description": "Permission-rule-style filter (e.g. 'Bash(git commit*)', 'Edit(*.cs)'). Requires Claude Code v2.1.85+."
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "hooks": {
+        "SessionStart": [
+          {
+            "hooks": [
+              {
+                "type": "command",
+                "command": "${CLAUDE_PLUGIN_ROOT}/hooks/session-start-bootstrap.sh"
+              }
+            ]
+          }
+        ],
+        "PreToolUse": [
+          {
+            "matcher": "Bash",
+            "hooks": [
+              { "type": "command", "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pre-bash-guard.sh" }
+            ]
+          },
+          {
+            "matcher": "Bash",
+            "hooks": [
+              {
+                "type": "command",
+                "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pre-commit-lint.sh",
+                "if": "Bash(git commit*)"
+              }
+            ]
+          }
+        ],
+        "PostToolUse": [
+          {
+            "matcher": "Edit|Write",
+            "hooks": [
+              {
+                "type": "command",
+                "command": "${CLAUDE_PLUGIN_ROOT}/hooks/post-edit-format.sh",
+                "if": "Edit(*.cs)"
+              }
+            ]
+          },
+          {
+            "matcher": "Bash",
+            "hooks": [
+              {
+                "type": "command",
+                "command": "${CLAUDE_PLUGIN_ROOT}/hooks/post-scaffold-restore.sh",
+                "if": "Bash(dotnet new*)"
+              }
+            ]
+          }
+        ]
+      }
+    }
+  ]
+}

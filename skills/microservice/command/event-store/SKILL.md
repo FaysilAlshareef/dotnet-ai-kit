@@ -1,11 +1,10 @@
 ---
 name: event-store
-description: >
-  Use when configuring EF Core event store with discriminator mapping for event sourcing.
+description: Use when configuring EF Core event store with discriminator mapping for event sourcing.
 metadata:
   category: microservice/command
   agent: command-architect
-  when-to-use: "When configuring EF Core event store, discriminator mapping, or outbox message tables"
+when_to_use: When configuring EF Core event store, discriminator mapping, or outbox message tables
 ---
 
 # Event Store -- EF Core Configuration

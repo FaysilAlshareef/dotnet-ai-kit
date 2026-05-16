@@ -1,11 +1,10 @@
 ---
 name: interceptors
-description: >
-  Use when adding gRPC interceptors for exception mapping, culture switching, or claims extraction.
+description: Use when adding gRPC interceptors for exception mapping, culture switching, or claims extraction.
 metadata:
   category: microservice/grpc
   agent: command-architect
-  when-to-use: "When creating or modifying gRPC interceptors for exception mapping, culture, or claims"
+when_to_use: When creating or modifying gRPC interceptors for exception mapping, culture, or claims
 ---
 
 # Interceptors — Cross-Cutting gRPC Concerns

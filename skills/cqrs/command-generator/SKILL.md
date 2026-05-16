@@ -1,11 +1,10 @@
 ---
 name: command-generator
-description: >
-  Use when creating a new CQRS command with handler and FluentValidation validator.
+description: Use when creating a new CQRS command with handler and FluentValidation validator.
 metadata:
   category: cqrs
   agent: ef-specialist
-  when-to-use: "When generating CQRS command records with handler and validator scaffolding"
+when_to_use: When generating CQRS command records with handler and validator scaffolding
 ---
 
 # CQRS Command Generator

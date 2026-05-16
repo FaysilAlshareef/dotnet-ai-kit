@@ -1,12 +1,11 @@
 ---
 name: query-entity
-description: >
-  Use when designing query-side entities with private setters and event-based state updates.
+description: Use when designing query-side entities with private setters and event-based state updates.
 metadata:
   category: microservice/query
   agent: query-architect
-  when-to-use: "When creating or modifying read-model entities with private setters"
-  paths: "${detected_paths.entities}/**/*.cs"
+when_to_use: When creating or modifying read-model entities with private setters
+paths: ${detected_paths.entities}/**/*.cs
 ---
 
 # Query Entity — Event-Projected Read Model

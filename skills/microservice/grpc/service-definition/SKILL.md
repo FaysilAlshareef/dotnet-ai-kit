@@ -1,11 +1,10 @@
 ---
 name: service-definition
-description: >
-  Use when designing proto files or implementing gRPC service classes with MediatR.
+description: Use when designing proto files or implementing gRPC service classes with MediatR.
 metadata:
   category: microservice/grpc
   agent: command-architect
-  when-to-use: "When creating or modifying gRPC service definitions or protobuf files"
+when_to_use: When creating or modifying gRPC service definitions or protobuf files
 ---
 
 # Service Definition — Proto Files & Implementation

@@ -1,11 +1,10 @@
 ---
 name: sequence-checking
-description: >
-  Use when adding inline sequence validation for idempotent event processing.
+description: Use when adding inline sequence validation for idempotent event processing.
 metadata:
   category: microservice/query
   agent: query-architect
-  when-to-use: "When implementing inline sequence validation for idempotent event handlers"
+when_to_use: When implementing inline sequence validation for idempotent event handlers
 ---
 
 # Sequence Checking — Inline Idempotent Guard

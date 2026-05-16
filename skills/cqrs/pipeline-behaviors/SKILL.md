@@ -1,11 +1,10 @@
 ---
 name: pipeline-behaviors
-description: >
-  Use when adding cross-cutting MediatR pipeline behaviors for validation, logging, or transactions.
+description: Use when adding cross-cutting MediatR pipeline behaviors for validation, logging, or transactions.
 metadata:
   category: cqrs
   agent: ef-specialist
-  when-to-use: "When creating MediatR pipeline behaviors for validation, logging, or transactions"
+when_to_use: When creating MediatR pipeline behaviors for validation, logging, or transactions
 ---
 
 # Pipeline Behaviors

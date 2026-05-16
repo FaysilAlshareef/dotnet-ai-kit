@@ -1,6 +1,8 @@
 ---
-alwaysApply: true
 description: Enforces architectural boundaries appropriate to the detected architecture pattern.
+paths:
+  - "src/**/*.cs"
+  - "**/*.csproj"
 ---
 
 # Architecture Rules

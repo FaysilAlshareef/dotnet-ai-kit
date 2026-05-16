@@ -1,11 +1,10 @@
 ---
 name: ef-core-basics
-description: >
-  Use when configuring EF Core DbContext, entity configuration, or connection resiliency.
+description: Use when configuring EF Core DbContext, entity configuration, or connection resiliency.
 metadata:
   category: data
   agent: ef-specialist
-  when-to-use: "When configuring EF Core DbContext, entity configurations, migrations"
+when_to_use: When configuring EF Core DbContext, entity configurations, migrations
 ---
 
 # EF Core Basics

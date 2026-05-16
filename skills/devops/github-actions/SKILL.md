@@ -1,11 +1,10 @@
 ---
 name: github-actions
-description: >
-  Use when creating GitHub Actions CI/CD workflows for .NET build, test, and deployment.
+description: Use when creating GitHub Actions CI/CD workflows for .NET build, test, and deployment.
 metadata:
   category: devops
   agent: devops-engineer
-  when-to-use: "When creating or modifying GitHub Actions CI/CD workflows for .NET projects"
+when_to_use: When creating or modifying GitHub Actions CI/CD workflows for .NET projects
 ---
 
 # GitHub Actions — CI/CD Pipelines

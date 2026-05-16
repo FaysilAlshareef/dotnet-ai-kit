@@ -1,11 +1,10 @@
 ---
 name: event-catalogue
-description: >
-  Use when documenting cross-service event schemas or generating an event registry.
+description: Use when documenting cross-service event schemas or generating an event registry.
 metadata:
   category: microservice
   agent: docs-engineer
-  when-to-use: "When documenting event schemas, building an event registry, or generating event catalogues"
+when_to_use: When documenting event schemas, building an event registry, or generating event catalogues
 ---
 
 # Event Catalogue -- Schema Registry for CQRS Microservices

@@ -1,11 +1,10 @@
 ---
 name: mediatr-handlers
-description: >
-  Use when implementing MediatR request handlers, notification handlers, or command/query dispatch.
+description: Use when implementing MediatR request handlers, notification handlers, or command/query dispatch.
 metadata:
   category: cqrs
   agent: ef-specialist
-  when-to-use: "When creating or modifying MediatR request handlers or notification handlers"
+when_to_use: When creating or modifying MediatR request handlers or notification handlers
 ---
 
 # MediatR Handlers

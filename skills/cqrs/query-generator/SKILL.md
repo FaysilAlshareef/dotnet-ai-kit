@@ -1,11 +1,10 @@
 ---
 name: query-generator
-description: >
-  Use when creating a new CQRS query with handler, response DTO, and pagination support.
+description: Use when creating a new CQRS query with handler, response DTO, and pagination support.
 metadata:
   category: cqrs
   agent: ef-specialist
-  when-to-use: "When generating CQRS query records with handler and response DTO scaffolding"
+when_to_use: When generating CQRS query records with handler and response DTO scaffolding
 ---
 
 # CQRS Query Generator

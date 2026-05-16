@@ -1,11 +1,10 @@
 ---
 name: hosted-service
-description: >
-  Use when implementing IHostedService with ServiceBusSessionProcessor and DLQ handling.
+description: Use when implementing IHostedService with ServiceBusSessionProcessor and DLQ handling.
 metadata:
   category: microservice/processor
   agent: processor-architect
-  when-to-use: "When creating or modifying IHostedService with ServiceBusSessionProcessor lifecycle"
+when_to_use: When creating or modifying IHostedService with ServiceBusSessionProcessor lifecycle
 ---
 
 # Hosted Service — ServiceBusSessionProcessor Lifecycle

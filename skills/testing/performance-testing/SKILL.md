@@ -1,11 +1,10 @@
 ---
 name: performance-testing
-description: >
-  Use when benchmarking with BenchmarkDotNet or running load/throughput tests.
+description: Use when benchmarking with BenchmarkDotNet or running load/throughput tests.
 metadata:
   category: testing
   agent: test-engineer
-  when-to-use: "When writing performance benchmarks, load tests, or throughput validation"
+when_to_use: When writing performance benchmarks, load tests, or throughput validation
 ---
 
 # Performance Testing — Benchmarks & Load Tests

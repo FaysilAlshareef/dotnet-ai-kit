@@ -90,42 +90,19 @@ Based on the current task's domain, also load a secondary specialist agent:
 - Documentation tasks → Read `agents/docs-engineer.md`
 - Review tasks → Read `agents/reviewer.md`
 
-Load all skills listed in the secondary agent's Skills Loaded section.
+Bounded skill selection (FR-012): keep one architect agent for the project type loaded, load at most 2 task-specific skills initially, and run MCP queries (codebase-memory-mcp) before broad file reads.
 
 ## Step 3: Resume Logic
 
-If `--resume` flag is set:
-1. Read `tasks.md` and find the first unchecked task `- [ ]`.
-2. Check `undo-log.md` for the last failed task — show the error.
-3. Skip all tasks marked `- [x]` (already complete).
-4. Print: "Resuming from T{NNN}: {task description}"
-
-If NOT resuming:
-1. Verify no tasks are already checked (fresh start).
-2. If tasks are partially complete without `--resume`: ask "Tasks partially complete. Use --resume to continue, or reset?"
+`--resume`: find first unchecked `- [ ]` in tasks.md, show last failed task from `undo-log.md`, skip `- [x]` tasks. Without `--resume`: verify fresh start; if partially complete, ask "Resume or reset?".
 
 ## Step 4: Execute Tasks (Generic Mode)
 
-1. Create feature branch: `feature/{NNN}-{short-name}`
-   - If branch exists (resume), switch to it.
-2. For each task in order (respecting dependencies):
-   a. Print: "T{NNN}: {description}"
-   b. Read the plan for implementation guidance.
-   c. Scan existing code for patterns to follow (detect-first).
-   d. Generate code following detected conventions.
-   e. Write files to the specified paths.
-   f. Log the action to `undo-log.md`:
-      ```
-      ## T{NNN} - {description}
-      - created: {file path}
-      - modified: {file path} (added {what})
-      ```
-   f2. If the task created or modified a `.resx` file, also update the matching `.Designer.cs` file with corresponding static properties. `dotnet build` does NOT auto-regenerate Designer files -- see `rules/localization.md` for the required pattern.
-   g. Mark task complete in tasks.md: `- [x] T{NNN} ...`
-3. After each layer (Domain, Application, Infrastructure, API):
-   - Run `dotnet build` -- if it fails, stop and report the error.
-4. After all tasks: run `dotnet test` on unit test projects only (e.g., `*.Test.csproj`). Exclude `*.Test.Live` and integration test projects -- those require infrastructure and should run via `/dotnet-ai.verify`.
-5. If a task fails: stop, report error, suggest fix. User can fix and `--resume`.
+1. Create / switch to `feature/{NNN}-{short-name}`.
+2. For each task (in dependency order): print task; read plan; scan existing code; generate code following detected conventions; write files; log to `undo-log.md`; mark `- [x]`. If a `.resx` is touched, also update the matching `.Designer.cs` (see `rules/localization.md`).
+3. After each layer (Domain, Application, Infrastructure, API) run `dotnet build`; stop on failure.
+4. After all tasks: `dotnet test` on `*.Test.csproj` only (skip `*.Test.Live` / integration).
+5. On task failure: stop, report, suggest fix; user re-runs with `--resume`.
 
 ## Step 5: Execute Tasks (Microservice Mode)
 
@@ -184,52 +161,22 @@ Read `skills/workflow/multi-repo-workflow/SKILL.md` for orchestration patterns.
 
 ## Step 6: Undo Log
 
-For every file created or modified, record in `undo-log.md` in the feature directory using this format:
-
-```markdown
-# Undo Log: {NNN}-{short-name}
-
-## T{NNN} - {description}
-**Timestamp**: {ISO 8601}
-**Repo**: {repo-name or "primary"}
-**Status**: OK
-
-- created: {file path}
-- modified: {file path} (added {what})
-
-## T{NNN} - {description}
-**Timestamp**: {ISO 8601}
-**Repo**: {repo-name}
-**Status**: FAILED -- {error summary}
-
-- created: {file path}
-```
-
-Each entry must include task ID, timestamp, repo, status, and per-file actions. On failure, set `**Status**: FAILED -- {error}`. The `--resume` flag uses this file to find the last failed task.
+Record every created/modified file in `undo-log.md` per task. Each entry: task ID, ISO timestamp, repo, status (`OK` / `FAILED -- {error}`), per-file actions. `--resume` reads this file to find the last failed task.
 
 ## Step 7: Completion Report
 
 Report: tasks completed/total, files created/modified, build status, test results. For microservice mode, include per-repo summary. Suggest next: `/dotnet-ai.review` or `/dotnet-ai.verify`.
 
-## Dry-Run Behavior
+## Dry-Run, Branch Safety, Errors
 
-When `--dry-run`: print tasks and files that WOULD be created/modified, show file counts per repo. Do NOT write code, create branches, run builds, or modify tasks.md. Prefix with `[DRY-RUN]`.
+- `--dry-run`: print would-be tasks/files per repo; never write code, branches, builds, or `tasks.md`. Prefix `[DRY-RUN]`.
+- Secondary repo branch: read repos from `.dotnet-ai-kit/config.yml`. For each local path, check current branch; if main/master/develop, create or switch to `chore/brief-{NNN}-{name}`. Skip if working tree dirty. Never commit to main/master/develop.
+- Errors: build failure → stop, show error, `--resume`. Test failure → report, continue if `--verbose`. Missing repo → prompt. Unmet dep → skip, report `Blocked by T{N}`.
 
-## Secondary Repo Branch Safety
+## MCP-first (FR-021 / FR-022)
 
-When projecting feature briefs to linked secondary repos:
-1. Read linked repos from `.dotnet-ai-kit/config.yml` repos section
-2. For each linked repo with a local path:
-   - Run `git -C {repo_path} rev-parse --abbrev-ref HEAD` to check current branch
-   - If on main/master/develop: `git -C {repo_path} checkout -b chore/brief-{NNN}-{name}`
-   - If `chore/brief-{NNN}-{name}` already exists: `git -C {repo_path} checkout chore/brief-{NNN}-{name}`
-   - If working directory dirty (`git -C {repo_path} status --porcelain`): warn and skip
-3. After writing the brief, stage and commit on the chore branch
-4. NEVER commit directly to main, master, or develop branches
+Graph/dependency/ownership/architecture questions: query `codebase-memory-mcp` first; use `csharp-ls` for symbol-precise lookups; `grep`/file reads only as last resort.
 
-## Error Handling
+If MCP is unavailable, emit exactly:
+> MCP unavailable: codebase-memory-mcp is not connected or below >=0.6.1; falling back to csharp-ls + grep/read.
 
-- Build failure: stop, show error, suggest fix, user can `--resume`
-- Test failure: report failing tests, continue if `--verbose`
-- Missing repo: prompt for clone URL or local path
-- Task dependency not met: skip, report "Blocked by T{N}"

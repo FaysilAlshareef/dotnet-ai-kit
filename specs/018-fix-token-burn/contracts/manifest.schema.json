@@ -1,0 +1,87 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/FaysilAlshareef/dotnet-ai-kit/schemas/manifest.schema.json",
+  "title": "dotnet-ai-kit Generated-File Manifest",
+  "description": "Schema for .dotnet-ai-kit/manifest.json (FR-032). Lists every file deployed by the plugin in this project, with checksums for atomic upgrade rollback.",
+  "type": "object",
+  "required": ["plugin_version", "schema_version", "created_at", "files"],
+  "additionalProperties": false,
+  "properties": {
+    "plugin_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(\\.\\d+)?$",
+      "description": "Plugin version (matches dotnet_ai_kit.__version__) at last manifest write."
+    },
+    "schema_version": {
+      "type": "string",
+      "enum": ["1"],
+      "description": "Manifest schema version. Starts at \"1\"; bumped only on shape changes."
+    },
+    "created_at": {
+      "type": "string",
+      "format": "date-time",
+      "description": "ISO-8601 UTC timestamp of first manifest write (typically /dai.init)."
+    },
+    "last_upgrade_at": {
+      "type": ["string", "null"],
+      "format": "date-time",
+      "description": "ISO-8601 UTC timestamp of last successful /dai.upgrade. Null until first upgrade."
+    },
+    "files": {
+      "type": "array",
+      "uniqueItems": true,
+      "description": "All files deployed by the plugin in this project. Empty array permitted (post-init, pre-deploy).",
+      "items": { "$ref": "#/$defs/DeployedFile" }
+    }
+  },
+  "$defs": {
+    "DeployedFile": {
+      "type": "object",
+      "required": ["path", "sha256", "plugin_version", "deployed_at"],
+      "additionalProperties": false,
+      "properties": {
+        "path": {
+          "type": "string",
+          "pattern": "^(?!.*\\.\\.).+$",
+          "description": "Project-relative path with forward slashes. Must not contain '..' segments."
+        },
+        "sha256": {
+          "type": "string",
+          "pattern": "^[0-9a-f]{64}$",
+          "description": "Lowercase hex SHA-256 of the file's bytes at deployment time."
+        },
+        "plugin_version": {
+          "type": "string",
+          "pattern": "^\\d+\\.\\d+\\.\\d+(\\.\\d+)?$",
+          "description": "Plugin version that deployed this file."
+        },
+        "deployed_at": {
+          "type": "string",
+          "format": "date-time",
+          "description": "ISO-8601 UTC timestamp of deployment."
+        },
+        "source_template": {
+          "type": ["string", "null"],
+          "description": "Path within the plugin repo (e.g. 'skills/api/controllers/SKILL.md') that this file was rendered from. Null for non-template-derived files."
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "plugin_version": "1.0.0",
+      "schema_version": "1",
+      "created_at": "2026-05-16T14:30:00Z",
+      "last_upgrade_at": null,
+      "files": [
+        {
+          "path": ".claude/skills/api/controllers/SKILL.md",
+          "sha256": "e3b0c44298fc1c149afbf4c8996fb92427ae41e4649b934ca495991b7852b855",
+          "plugin_version": "1.0.0",
+          "deployed_at": "2026-05-16T14:30:00Z",
+          "source_template": "skills/api/controllers/SKILL.md"
+        }
+      ]
+    }
+  ]
+}

@@ -1,11 +1,10 @@
 ---
 name: repository-patterns
-description: >
-  Use when implementing the repository pattern with Unit of Work or specification pattern.
+description: Use when implementing the repository pattern with Unit of Work or specification pattern.
 metadata:
   category: data
   agent: ef-specialist
-  when-to-use: "When implementing repository pattern, Unit of Work, or data access abstractions"
+when_to_use: When implementing repository pattern, Unit of Work, or data access abstractions
 ---
 
 # Repository & Unit of Work Patterns

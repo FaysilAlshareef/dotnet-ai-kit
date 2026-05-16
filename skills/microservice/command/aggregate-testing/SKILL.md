@@ -1,11 +1,10 @@
 ---
 name: aggregate-testing
-description: >
-  Use when writing tests for event-sourced aggregates with fakers and assertion extensions.
+description: Use when writing tests for event-sourced aggregates with fakers and assertion extensions.
 metadata:
   category: microservice/command
   agent: test-engineer
-  when-to-use: "When writing tests for event-sourced aggregates"
+when_to_use: When writing tests for event-sourced aggregates
 ---
 
 # Aggregate Testing -- CustomConstructorFaker and Test Patterns

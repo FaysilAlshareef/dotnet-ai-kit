@@ -1,6 +1,7 @@
 ---
-alwaysApply: true
 description: Enforces performance best practices — no N+1 queries, proper caching, efficient async, memory awareness.
+paths:
+  - "**/*.cs"
 ---
 
 # Performance Rules

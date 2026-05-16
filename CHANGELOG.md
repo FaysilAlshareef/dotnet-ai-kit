@@ -4,6 +4,60 @@ All notable changes to dotnet-ai-kit will be documented in this file.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [Unreleased] — Fix Token Burn (feature 018)
+
+7-PR feature branch tackling 18 token-burn issues from `issues/token-burn-optimization/FINAL-REPORT.md`.
+
+### Changed — startup safety (PR1)
+- Session-start hook rewritten with lazy-default + MCP-first wording (≤30 lines).
+- `pre-bash-guard.sh` and `pre-commit-lint.sh` exit `2` (block) instead of `1`.
+- `hooks/hooks.json` restructured: `matcher` carries tool names only; permission patterns moved to handler `if:` (Claude Code v2.1.85+).
+- Dynamic architecture hook in `copier.py` uses `if: Edit(*.cs)` / `Write(*.cs)` on v2.1.85+; falls back to command-pattern matcher on older.
+- `.claude/settings.json` no longer duplicates plugin hooks.
+- Wheel bundles `.claude-plugin/`, `hooks/`, `.mcp.json`.
+
+### Changed — frontmatter discipline (PR2a)
+- 124 `skills/**/SKILL.md` rewritten: activation fields lifted from nested `metadata:` to top level; `when-to-use` → `when_to_use`; `alwaysApply` removed everywhere.
+- 16 rules, 12 profiles, 13 agents stripped of `alwaysApply` and `## Skills Loaded` blocks.
+
+### Added — manifest + atomic upgrade (PR2b)
+- `src/dotnet_ai_kit/manifest.py` — pydantic v2 `Manifest` / `DeployedFile`.
+- `src/dotnet_ai_kit/upgrade.py` — `run_upgrade()` orchestrator with SHA-256 user-modified detection, per-file backups under `.dotnet-ai-kit/backups/upgrade/<iso>/`, atomic rollback, last-3-runs rotation.
+- `.dotnet-ai-kit/.gitignore` generated on init/upgrade.
+- `copier._resolve_detected_path_tokens()` raises `DeploymentError` on missing keys; `copy_skills` catches per-skill so a project missing one token key (e.g. `cosmos_entities` on a command service) skips that skill instead of aborting the whole deploy.
+- `cli.py::upgrade` is atomic via the `_atomic_upgrade()` context manager: snapshots every managed path into `.dotnet-ai-kit/backups/upgrade/<iso>-<uuid>/`, restores byte-for-byte on any exception, rotates to last 3 runs on success. Closes SC-013 + FR-031 through the actual CLI surface, not just the orchestrator in isolation. Manifest pre-check additionally refuses to clobber user-modified files without `--force`. The standalone `upgrade.run_upgrade()` orchestrator stays as the reference implementation for callers that want per-file backup granularity.
+
+### Changed — lazy loading (PR3)
+- 12 non-universal rules now carry top-level `paths:`; 4 universal rules combined ≤300 lines.
+- 12 profiles carry `paths:`.
+- 16 commands replaced "Load all skills listed" with bounded-selection wording (FR-012).
+- `agents.py` no longer lifts `expertise` → `skills` (FR-013).
+- `implement.md`, `tasks.md`, `clarify.md` trimmed to ≤200 physical lines.
+- Constitution amended to v1.0.7: 16 rules = 4 universal + 12 path-scoped.
+
+### Added — MCP + memory split (PR4)
+- `.mcp.json` registers `codebase-memory-mcp >= 0.6.1` alongside `csharp-ls`.
+- `src/dotnet_ai_kit/mcp_check.py` runtime version check; outcome persisted to `.dotnet-ai-kit/mcp-state.yml` (sibling of `config.yml`).
+- 7 operational commands carry the MCP-first block + exact FR-022 fallback line.
+- `/dai.learn` produces a 6-file memory split + ≤100-line index; `/dai.plan` and `/dai.review` selectively load topic files.
+
+### Added — measurement + CI gates (PR5)
+- `scripts/measure.py`, `scripts/check.py`, `scripts/check.ps1`.
+- `scripts/violation_harness.py` — 17-class SC-010 coverage proof.
+- `.github/workflows/ci.yml` split into `static-unit` (every PR) + gated `smoke` (label `[smoke]` OR nightly cron).
+- `specs/018-fix-token-burn/traceability.md` — every FR + finding maps to ≥1 test row.
+
+### Token-reduction targets (soft, captured by maintainer with live Claude Code)
+
+| Scenario | Baseline → Post-fix | Target |
+|---|---|---|
+| Session startup | DEFERRED | ≥ 40% reduction |
+| Implementation | DEFERRED | ≥ 30% reduction |
+| Review | DEFERRED | ≥ 30% reduction |
+| Graph question | DEFERRED | ≥ 30% reduction (answer parity) |
+
+Hard release gates (SC-004/005/006/013/014/015/016) are binary and verified by the static + unit suite.
+
 ## [1.0.0] — Unreleased
 
 ### Added (Superpowers-Inspired Agent Discipline Features)

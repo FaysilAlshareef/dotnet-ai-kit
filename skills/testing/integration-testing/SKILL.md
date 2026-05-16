@@ -1,12 +1,11 @@
 ---
 name: integration-testing
-description: >
-  Use when writing integration tests with WebApplicationFactory, TestContainers, or test fixtures.
+description: Use when writing integration tests with WebApplicationFactory, TestContainers, or test fixtures.
 metadata:
   category: testing
   agent: test-engineer
-  when-to-use: "When writing integration tests with WebApplicationFactory"
-  paths: "${detected_paths.test_live}/**/*.cs"
+when_to_use: When writing integration tests with WebApplicationFactory
+paths: ${detected_paths.test_live}/**/*.cs
 ---
 
 # Integration Testing — WebApplicationFactory & TestContainers

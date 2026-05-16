@@ -1,11 +1,10 @@
 ---
 name: feature-tracking
-description: >
-  Use when tracking feature status, managing feature directories, or coordinating multi-service features.
+description: Use when tracking feature status, managing feature directories, or coordinating multi-service features.
 metadata:
   category: workflow
   agent: dotnet-architect
-  when-to-use: "When managing feature directory structure, status tracking, or multi-service coordination"
+when_to_use: When managing feature directory structure, status tracking, or multi-service coordination
 ---
 
 # Feature Tracking — Directory Structure & Status

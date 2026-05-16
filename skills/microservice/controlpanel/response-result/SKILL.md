@@ -1,11 +1,10 @@
 ---
 name: response-result
-description: >
-  Use when handling API responses with ResponseResult<T> and Switch pattern in the UI.
+description: Use when handling API responses with ResponseResult<T> and Switch pattern in the UI.
 metadata:
   category: microservice/controlpanel
   agent: controlpanel-architect
-  when-to-use: "When implementing ResponseResult Switch pattern or gateway call error handling"
+when_to_use: When implementing ResponseResult Switch pattern or gateway call error handling
 ---
 
 # ResponseResult<T> — Switch Pattern

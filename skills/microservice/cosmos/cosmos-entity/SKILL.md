@@ -1,12 +1,11 @@
 ---
 name: cosmos-entity
-description: >
-  Use when designing Cosmos DB document entities with partition keys and discriminators.
+description: Use when designing Cosmos DB document entities with partition keys and discriminators.
 metadata:
   category: microservice/cosmos
   agent: cosmos-architect
-  when-to-use: "When creating or modifying Cosmos DB entities, partition keys, discriminators"
-  paths: "${detected_paths.cosmos_entities}/**/*.cs"
+when_to_use: When creating or modifying Cosmos DB entities, partition keys, discriminators
+paths: ${detected_paths.cosmos_entities}/**/*.cs
 ---
 
 # Cosmos Entity — IContainerDocument Pattern

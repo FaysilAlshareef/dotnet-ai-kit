@@ -1,6 +1,8 @@
 ---
-alwaysApply: true
 description: "Architecture profile for query (Cosmos DB) projects — hard constraints"
+paths:
+  - "src/**/ReadModels/**/*.cs"
+  - "src/**/CosmosRepositories/**/*.cs"
 ---
 
 # Architecture Profile: Query — Cosmos DB

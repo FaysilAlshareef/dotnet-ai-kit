@@ -1,11 +1,10 @@
 ---
 name: versioning
-description: >
-  Use when adding API versioning or managing multiple API versions in a .NET project.
+description: Use when adding API versioning or managing multiple API versions in a .NET project.
 metadata:
   category: api
   agent: api-designer
-  when-to-use: "When configuring API versioning strategies or sunset policies"
+when_to_use: When configuring API versioning strategies or sunset policies
 ---
 
 # API Versioning

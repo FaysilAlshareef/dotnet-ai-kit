@@ -1,11 +1,10 @@
 ---
 name: architecture-docs
-description: >
-  Use when documenting system architecture with Mermaid diagrams and service topology.
+description: Use when documenting system architecture with Mermaid diagrams and service topology.
 metadata:
   category: docs
   agent: docs-engineer
-  when-to-use: "When creating architecture overview documentation or Mermaid diagrams"
+when_to_use: When creating architecture overview documentation or Mermaid diagrams
 ---
 
 # Architecture Docs — Overview & Diagrams

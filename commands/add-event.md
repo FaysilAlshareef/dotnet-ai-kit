@@ -44,7 +44,7 @@ Add a new event to an existing aggregate in a command project. Creates the event
 
 ## Load Specialist Agent
 
-Read `agents/command-architect.md` for event design guidance. Load all skills listed in the agent's Skills Loaded section.
+Read `agents/command-architect.md` for event design guidance. Bounded skill selection (FR-012): keep one architect agent for the project type loaded, load at most 2 task-specific skills initially, and run MCP queries (codebase-memory-mcp) before broad file reads.
 
 ## Skills to Read
 

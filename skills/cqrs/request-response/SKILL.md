@@ -1,11 +1,10 @@
 ---
 name: request-response
-description: >
-  Use when designing CQRS request/response contracts with FluentValidation and Result types.
+description: Use when designing CQRS request/response contracts with FluentValidation and Result types.
 metadata:
   category: cqrs
   agent: ef-specialist
-  when-to-use: "When designing CQRS request/response patterns with FluentValidation and Result types"
+when_to_use: When designing CQRS request/response patterns with FluentValidation and Result types
 ---
 
 # Request/Response Patterns

@@ -1,11 +1,10 @@
 ---
 name: cosmos-repository
-description: >
-  Use when implementing Cosmos DB repository with LINQ queries and FeedIterator pagination.
+description: Use when implementing Cosmos DB repository with LINQ queries and FeedIterator pagination.
 metadata:
   category: microservice/cosmos
   agent: cosmos-architect
-  when-to-use: "When creating or modifying Cosmos DB repository classes or LINQ queries"
+when_to_use: When creating or modifying Cosmos DB repository classes or LINQ queries
 ---
 
 # Cosmos Repository — LINQ Queries & Data Access

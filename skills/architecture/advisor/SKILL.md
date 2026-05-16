@@ -1,11 +1,10 @@
 ---
 name: advisor
-description: >
-  Use when choosing between architecture patterns (VSA, Clean Architecture, DDD, Modular Monolith, Microservices) for a new project.
+description: Use when choosing between architecture patterns (VSA, Clean Architecture, DDD, Modular Monolith, Microservices) for a new project.
 metadata:
   category: architecture
   agent: dotnet-architect
-  when-to-use: "When evaluating architecture options or recommending an architectural approach"
+when_to_use: When evaluating architecture options or recommending an architectural approach
 ---
 
 # Architecture Advisor

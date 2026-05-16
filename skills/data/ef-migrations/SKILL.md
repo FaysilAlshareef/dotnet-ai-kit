@@ -1,11 +1,10 @@
 ---
 name: ef-migrations
-description: >
-  Use when creating, applying, or managing EF Core database migrations.
+description: Use when creating, applying, or managing EF Core database migrations.
 metadata:
   category: data
   agent: ef-specialist
-  when-to-use: "When creating EF Core migrations, data seeding, or schema change scripts"
+when_to_use: When creating EF Core migrations, data seeding, or schema change scripts
 ---
 
 # EF Core Migrations
