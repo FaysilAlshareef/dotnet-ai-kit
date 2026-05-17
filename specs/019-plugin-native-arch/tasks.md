@@ -100,18 +100,18 @@ Per `plan.md` "single feature branch, 16 sequenced commits", code MUST land in t
 
 ### Commit 8 — `project.yml` JSON schema + pydantic exposure
 
-- [ ] T020 [P] (commit 8) Add `tests/contract/test_project_yml_schema.py` asserting `data-model.md` § 2 field shapes: 12 valid `project_type` values (clarify Q1), `architecture_branch` derivation rule (microservice vs generic), invalid project_type rejected (test FAILS first)
-- [ ] T021 [P] (commit 8) Add `tests/unit/test_project_yml_validation.py` asserting `architecture_branch` derived correctly from `project_type` per data-model § 2 derivation, and `linked_repos` array shape per § 11
-- [ ] T022 (commit 8) Extend pydantic `ProjectMetadata` model in `src/dotnet_ai_kit/models.py` per data-model § 2 with `field_validator` decorators that derive `architecture_branch` from `project_type` and validate the 12-enum values
-- [ ] T023 [P] (commit 8) Create `schemas/project-yml.schema.json` (auto-generated from pydantic model via `model_json_schema()`) matching `contracts/project-yml.schema.json`
-- [ ] T024 [P] (commit 8) Create `schemas/config-yml.schema.json` matching `contracts/config-yml.schema.json`
-- [ ] T025 [P] (commit 8) Create `schemas/manifest-json.schema.json` matching `contracts/manifest-json.schema.json` (`oneOf` v1/v2 dual-read per R16)
-- [ ] T026 [P] (commit 8) Create `schemas/hooks-json.schema.json` matching `contracts/hooks-json.schema.json` (event-keyed `SessionStart`/`PreToolUse`/`PostToolUse`)
-- [ ] T027 (commit 8) Add `jsonschema>=4.0` to `pyproject.toml [project.dependencies]` per research R9
+- [X] T020 [P] (commit 8) Add `tests/contract/test_project_yml_schema.py` asserting `data-model.md` § 2 field shapes: 12 valid `project_type` values (clarify Q1), `architecture_branch` derivation rule (microservice vs generic), invalid project_type rejected (test FAILS first)
+- [X] T021 [P] (commit 8) Add `tests/unit/test_project_yml_validation.py` asserting `architecture_branch` derived correctly from `project_type` per data-model § 2 derivation, and `linked_repos` array shape per § 11
+- [X] T022 (commit 8) Extend pydantic `ProjectMetadata` model in `src/dotnet_ai_kit/models.py` per data-model § 2 with `field_validator` decorators that derive `architecture_branch` from `project_type` and validate the 12-enum values
+- [X] T023 [P] (commit 8) Create `schemas/project-yml.schema.json` (auto-generated from pydantic model via `model_json_schema()`) matching `contracts/project-yml.schema.json`
+- [X] T024 [P] (commit 8) Create `schemas/config-yml.schema.json` matching `contracts/config-yml.schema.json`
+- [X] T025 [P] (commit 8) Create `schemas/manifest-json.schema.json` matching `contracts/manifest-json.schema.json` (`oneOf` v1/v2 dual-read per R16)
+- [X] T026 [P] (commit 8) Create `schemas/hooks-json.schema.json` matching `contracts/hooks-json.schema.json` (event-keyed `SessionStart`/`PreToolUse`/`PostToolUse`)
+- [X] T027 (commit 8) Add `jsonschema>=4.0` to `pyproject.toml [project.dependencies]` per research R9
 
 ### Cross-cutting Foundational tests
 
-- [ ] T028 [P] (Foundational) Add `tests/unit/test_no_network_no_telemetry.py` asserting the import graph of `src/dotnet_ai_kit/` contains no `requests`, `urllib.request.urlopen`, `httpx`, `socket.create_connection`, or analytics SDK imports per A-011 (clarify Q5)
+- [X] T028 [P] (Foundational) Add `tests/unit/test_no_network_no_telemetry.py` asserting the import graph of `src/dotnet_ai_kit/` contains no `requests`, `urllib.request.urlopen`, `httpx`, `socket.create_connection`, or analytics SDK imports per A-011 (clarify Q5)
 
 **Checkpoint**: Packaging produces all 3 plugin-manifest directories on Win+macOS+Linux; schemas published; project.yml validates against pydantic-derived schema; no-network invariant asserted. Foundation ready — user-story phases can now begin in parallel (capacity permitting).
 

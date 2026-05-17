@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/FaysilAlshareef/dotnet-ai-kit/specs/019-plugin-native-arch/contracts/hooks-json.schema.json",
+  "title": "Hooks Config (hooks/hooks.json)",
+  "description": "Schema modeled on the actual current hooks/hooks.json:2-60 and Codex docs https://developers.openai.com/codex/plugins/build:930-955. The top-level `hooks` value is an OBJECT keyed by event name (SessionStart, PreToolUse, PostToolUse), not a flat array. Each event's value is an array of handler entries; each handler has optional `matcher` (PreToolUse/PostToolUse only) and a nested `hooks` array of `type:command` entries.",
+  "type": "object",
+  "required": ["hooks"],
+  "additionalProperties": false,
+  "properties": {
+    "hooks": {
+      "type": "object",
+      "additionalProperties": false,
+      "properties": {
+        "SessionStart": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/HookEntry" },
+          "description": "After commit 13: REPLACED with compact ≤500-token bootstrap (per spec FR-013 / SC-013). One handler entry calling session-start-bootstrap.sh."
+        },
+        "PreToolUse": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/HookEntry" },
+          "description": "After commit 13: existing pre-bash-guard.sh + pre-commit-lint.sh handlers unchanged from feature 018, plus NEW pretooluse-arch-profile.sh handler reading project.yml at fire-time per FR-034."
+        },
+        "PostToolUse": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/HookEntry" },
+          "description": "After commit 13: existing post-edit-format.sh + post-scaffold-restore.sh handlers unchanged from feature 018."
+        }
+      }
+    }
+  },
+  "$defs": {
+    "HookEntry": {
+      "type": "object",
+      "required": ["hooks"],
+      "additionalProperties": false,
+      "properties": {
+        "matcher": {
+          "type": "string",
+          "description": "Tool-name matcher (PreToolUse/PostToolUse only). e.g., 'Bash', 'Edit|Write'. Not used for SessionStart entries."
+        },
+        "hooks": {
+          "type": "array",
+          "items": { "$ref": "#/$defs/HookHandler" },
+          "minItems": 1
+        }
+      }
+    },
+    "HookHandler": {
+      "type": "object",
+      "required": ["type", "command"],
+      "additionalProperties": false,
+      "properties": {
+        "type": {
+          "type": "string",
+          "const": "command"
+        },
+        "command": {
+          "type": "string",
+          "pattern": "^\\$\\{CLAUDE_PLUGIN_ROOT\\}/hooks/.+\\.sh$",
+          "description": "Path under hooks/ resolved via ${CLAUDE_PLUGIN_ROOT}. Codex CLI uses ${PLUGIN_ROOT} as equivalent per developers.openai.com/codex/plugins/build:954-955."
+        },
+        "if": {
+          "type": "string",
+          "description": "Handler-level filter expression (Claude Code 2.1.85+). e.g., 'Bash(git commit*)', 'Edit(*.cs)'."
+        }
+      }
+    }
+  }
+}

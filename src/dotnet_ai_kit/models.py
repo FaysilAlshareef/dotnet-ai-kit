@@ -41,6 +41,153 @@ KNOWN_PATH_KEYS: frozenset[str] = frozenset(
 )
 
 # ---------------------------------------------------------------------------
+# Feature 019: ProjectMetadata (`.dotnet-ai-kit/project.yml`) per data-model § 2
+# ---------------------------------------------------------------------------
+
+_PROJECT_TYPE_ENUM = (
+    "command",
+    "query-sql",
+    "query-cosmos",
+    "processor",
+    "gateway",
+    "controlpanel",
+    "hybrid",
+    "vsa",
+    "clean-arch",
+    "ddd",
+    "modular-monolith",
+    "generic",
+)
+
+# `architecture_branch` derivation rule per data-model.md § 2 / schema allOf:
+# command/query-sql/query-cosmos/processor/gateway/controlpanel/hybrid → microservice
+# vsa/clean-arch/ddd/modular-monolith/generic                          → generic
+_MICROSERVICE_PROJECT_TYPES: frozenset[str] = frozenset(
+    {"command", "query-sql", "query-cosmos", "processor", "gateway", "controlpanel", "hybrid"}
+)
+
+_DOTNET_VERSION_RE = re.compile(r"^\d+\.\d+$")
+
+
+def derive_architecture_branch(project_type: str) -> Literal["microservice", "generic"]:
+    """Derive `architecture_branch` from `project_type` per data-model § 2.
+
+    Used by `ProjectMetadata` validators and by the `dotnet-ai check` command
+    when verifying project.yml consistency.
+    """
+    return "microservice" if project_type in _MICROSERVICE_PROJECT_TYPES else "generic"
+
+
+class LinkedRepo(BaseModel):
+    """A linked secondary repository per data-model.md § 2 / § 11 / FR-033."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(min_length=1, description="Secondary repo directory name.")
+    path: str = Field(min_length=1, description="Filesystem path or github:org/repo reference.")
+    hosts: list[_HostName] = Field(
+        min_length=1,
+        description=(
+            "Subset of `UserConfig.enabled_hosts` to deploy in this linked repo. "
+            "Plugin-native footprint per FR-033 / SC-014."
+        ),
+    )
+
+    @field_validator("hosts")
+    @classmethod
+    def validate_hosts_unique(cls, v: list[str]) -> list[str]:
+        seen: set[str] = set()
+        out: list[str] = []
+        for host in v:
+            key = host.lower()
+            if key in seen:
+                raise ValueError(f"Duplicate host '{host}' in linked_repos.hosts")
+            seen.add(key)
+            out.append(key)
+        return out
+
+
+class ProjectMetadata(BaseModel):
+    """Per-solution project metadata stored at `.dotnet-ai-kit/project.yml`.
+
+    Validated against `contracts/project-yml.schema.json` (feature 019 / T020).
+    The `architecture_branch` is derived from `project_type` per the rule in
+    `derive_architecture_branch()`; when both are supplied, the explicit value
+    must match the derived value (a `model_validator` enforces consistency).
+    """
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    company: str = Field(min_length=1, description="e.g., `Contoso` (used in C# namespaces).")
+    domain: str = Field(min_length=1, description="e.g., `Sales` (logical product domain).")
+    side: Literal["server", "client"] = Field(description="server | client")
+    project_type: Literal[
+        "command",
+        "query-sql",
+        "query-cosmos",
+        "processor",
+        "gateway",
+        "controlpanel",
+        "hybrid",
+        "vsa",
+        "clean-arch",
+        "ddd",
+        "modular-monolith",
+        "generic",
+    ] = Field(description="One of 12 values per clarify Q1 / models.py:88-99.")
+    architecture_branch: Literal["microservice", "generic"] = Field(
+        description="Derived from project_type per data-model § 2."
+    )
+    detected_paths: dict[str, str] = Field(
+        default_factory=dict,
+        description="Layer paths discovered during detection (runtime-resolved by skills).",
+    )
+    architecture_profile_name: Optional[str] = Field(
+        default=None,
+        description=(
+            "Optional override referencing `profiles/<branch>/<name>.md`. "
+            "Drives PreToolUse hook output per FR-034."
+        ),
+    )
+    dotnet_version: str = Field(description="e.g., 8.0, 9.0, 10.0 (semver subset).")
+    linked_repos: list[LinkedRepo] = Field(
+        default_factory=list,
+        description="Linked secondary repositories per FR-033 / SC-014.",
+    )
+
+    @field_validator("dotnet_version")
+    @classmethod
+    def validate_dotnet_version(cls, v: str) -> str:
+        if not _DOTNET_VERSION_RE.match(v):
+            raise ValueError(f"dotnet_version '{v}' must match pattern ^\\d+\\.\\d+$ (e.g., 8.0)")
+        return v
+
+    @field_validator("detected_paths")
+    @classmethod
+    def validate_detected_paths_nonempty_values(cls, v: dict[str, str]) -> dict[str, str]:
+        for key, value in v.items():
+            if not isinstance(value, str) or not value:
+                raise ValueError(f"detected_paths['{key}'] must be a non-empty string")
+        return v
+
+    @model_validator(mode="after")
+    def validate_architecture_branch_derivation(self) -> ProjectMetadata:
+        """Ensure declared `architecture_branch` matches the derived value.
+
+        Per data-model § 2 / schema allOf rule. This is the single source-of-
+        truth derivation rule used by `dotnet-ai check` and the migrate flow.
+        """
+        derived = derive_architecture_branch(self.project_type)
+        if self.architecture_branch != derived:
+            raise ValueError(
+                f"architecture_branch '{self.architecture_branch}' does not match "
+                f"the value derived from project_type '{self.project_type}' "
+                f"(expected '{derived}'). The mapping is binding per data-model.md § 2."
+            )
+        return self
+
+
+# ---------------------------------------------------------------------------
 # Feature 019: UserConfig (`.dotnet-ai-kit/config.yml`) per data-model § 3
 # ---------------------------------------------------------------------------
 #
