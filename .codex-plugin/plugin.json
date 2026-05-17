@@ -1,4 +1,8 @@
 {
-  "_stub": "Replaced by commit 3 (T018) with full Codex CLI plugin manifest per data-model.md § 1b",
-  "name": "dotnet-ai-kit"
+  "name": "dotnet-ai-kit",
+  "version": "1.0.0",
+  "description": "Full .NET development lifecycle plugin for Codex CLI: 124 skills, MCP integration, hooks. Native agents deferred to v1.1 per OOS-004.",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "hooks": "./hooks/hooks.json"
 }

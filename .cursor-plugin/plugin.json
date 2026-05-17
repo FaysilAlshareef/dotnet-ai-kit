@@ -1,4 +1,10 @@
 {
-  "_stub": "Replaced by commit 3 (T019) with full Cursor plugin manifest per data-model.md § 1c",
-  "name": "dotnet-ai-kit"
+  "name": "dotnet-ai-kit",
+  "version": "1.0.0",
+  "description": "Full .NET development lifecycle plugin for Cursor: 124 skills, 16 rules, MCP integration, hooks. Sub-agents conditional on A-005 spike fixture (CHK003).",
+  "skills": "./skills/",
+  "rules": "./rules/cursor/",
+  "mcpServers": "./.mcp.json",
+  "hooks": "./hooks/hooks.json",
+  "agents": "./agents/"
 }

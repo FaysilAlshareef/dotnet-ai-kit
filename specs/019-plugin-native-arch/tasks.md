@@ -88,15 +88,15 @@ Per `plan.md` "single feature branch, 16 sequenced commits", code MUST land in t
 
 ### Commit 3 — Plugin manifests + schemas
 
-- [ ] T011 [P] (commit 3) Add `tests/contract/test_claude_plugin_schema.py` asserting `.claude-plugin/plugin.json` validates against `schemas/claude-plugin.schema.json`, includes `agents` array field (was missing per `final-merged-findings.md:104`), and structurally honors `data-model.md` § 1a (test FAILS first)
-- [ ] T012 [P] (commit 3) Add `tests/contract/test_codex_plugin_schema.py` asserting `.codex-plugin/plugin.json` uses scalar relative-path strings with `./` prefix (NOT arrays), has NO `agents`/`lspServers`/`monitors`/`settings`/`bin` fields per `data-model.md` § 1b (test FAILS first)
-- [ ] T013 [P] (commit 3) Add `tests/contract/test_cursor_plugin_schema.py` asserting `.cursor-plugin/plugin.json` uses scalar relative-path strings with `./` prefix, the agent-bearing field is `agents` (NOT `subagents`), and `./agents/` is the verified path per `data-model.md` § 1c (test FAILS first)
-- [ ] T014 [P] (commit 3) Create `schemas/claude-plugin.schema.json` matching `contracts/claude-plugin.schema.json`
-- [ ] T015 [P] (commit 3) Create `schemas/codex-plugin.schema.json` matching `contracts/codex-plugin.schema.json` (scalar paths)
-- [ ] T016 [P] (commit 3) Create `schemas/cursor-plugin.schema.json` matching `contracts/cursor-plugin.schema.json` (`agents` key + `./agents/`)
-- [ ] T017 [P] (commit 3) Create/update `.claude-plugin/plugin.json` adding the `agents` field per data-model § 1a; preserve existing `skills`, `commands`, `hooks`, `mcpServers` from feature 018
-- [ ] T018 [P] (commit 3) Create `.codex-plugin/plugin.json` with scalar `"skills": "./skills/"`, `"mcpServers": "./.mcp.json"`, `"hooks": "./hooks/hooks.json"` per data-model § 1b (no `agents` per OOS-004)
-- [ ] T019 [P] (commit 3) Create `.cursor-plugin/plugin.json` with scalar `"skills": "./skills/"`, `"rules": "./rules/cursor/"`, `"mcpServers": "./.mcp.json"`, `"hooks": "./hooks/hooks.json"` per data-model § 1c; emit `"agents": "./agents/"` ONLY if Cursor spike (commit 6) passes — implementation defers per cursor-fixture-decision.contract.md
+- [X] T011 [P] (commit 3) Add `tests/contract/test_claude_plugin_schema.py` asserting `.claude-plugin/plugin.json` validates against `schemas/claude-plugin.schema.json`, includes `agents` array field (was missing per `final-merged-findings.md:104`), and structurally honors `data-model.md` § 1a (test FAILS first)
+- [X] T012 [P] (commit 3) Add `tests/contract/test_codex_plugin_schema.py` asserting `.codex-plugin/plugin.json` uses scalar relative-path strings with `./` prefix (NOT arrays), has NO `agents`/`lspServers`/`monitors`/`settings`/`bin` fields per `data-model.md` § 1b (test FAILS first)
+- [X] T013 [P] (commit 3) Add `tests/contract/test_cursor_plugin_schema.py` asserting `.cursor-plugin/plugin.json` uses scalar relative-path strings with `./` prefix, the agent-bearing field is `agents` (NOT `subagents`), and `./agents/` is the verified path per `data-model.md` § 1c (test FAILS first)
+- [X] T014 [P] (commit 3) Create `schemas/claude-plugin.schema.json` matching `contracts/claude-plugin.schema.json`
+- [X] T015 [P] (commit 3) Create `schemas/codex-plugin.schema.json` matching `contracts/codex-plugin.schema.json` (scalar paths)
+- [X] T016 [P] (commit 3) Create `schemas/cursor-plugin.schema.json` matching `contracts/cursor-plugin.schema.json` (`agents` key + `./agents/`)
+- [X] T017 [P] (commit 3) Create/update `.claude-plugin/plugin.json` adding the `agents` field per data-model § 1a; preserve existing `skills`, `commands`, `hooks`, `mcpServers` from feature 018
+- [X] T018 [P] (commit 3) Create `.codex-plugin/plugin.json` with scalar `"skills": "./skills/"`, `"mcpServers": "./.mcp.json"`, `"hooks": "./hooks/hooks.json"` per data-model § 1b (no `agents` per OOS-004)
+- [X] T019 [P] (commit 3) Create `.cursor-plugin/plugin.json` with scalar `"skills": "./skills/"`, `"rules": "./rules/cursor/"`, `"mcpServers": "./.mcp.json"`, `"hooks": "./hooks/hooks.json"` per data-model § 1c; emit `"agents": "./agents/"` ONLY if Cursor spike (commit 6) passes — implementation defers per cursor-fixture-decision.contract.md
 
 ### Commit 8 — `project.yml` JSON schema + pydantic exposure
 
