@@ -1,0 +1,16 @@
+---
+name: {{ name }}
+description: {{ description }}
+{% if target %}target: {{ target }}{% endif %}
+{% if tools %}tools:
+{% for tool in tools %}  - {{ tool }}
+{% endfor %}{% endif %}
+{% if model %}model: {{ model }}{% endif %}
+{% if disable_model_invocation is not none %}disable-model-invocation: {{ disable_model_invocation }}{% endif %}
+{% if user_invocable is not none %}user-invocable: {{ user_invocable }}{% endif %}
+{% if mcp_servers %}mcp-servers:
+{% for server in mcp_servers %}  - {{ server }}
+{% endfor %}{% endif %}
+---
+
+{{ body }}
