@@ -34,7 +34,7 @@ from dotnet_ai_kit.copier import (
     CopyError,
     copy_agents,
     copy_commands,
-    copy_commands_codex,
+    # T049: copy_commands_codex removed — root AGENTS.md emitter deleted.
     copy_commands_cursor,
     copy_hook,
     copy_permissions,
@@ -757,7 +757,10 @@ def init(
         if tool_name == "cursor":
             cmd_count = copy_commands_cursor(commands_source, target, tool_config, rules_source)
         elif tool_name == "codex":
-            cmd_count = copy_commands_codex(commands_source, target, tool_config)
+            # T049: copy_commands_codex deleted — Codex plugin-native mode uses
+            # the plugin install path's `.codex-plugin/plugin.json` exclusively.
+            # No per-solution writes for Codex under feature 019.
+            cmd_count = 0
         else:
             cmd_count = copy_commands(
                 commands_source,
@@ -1432,7 +1435,8 @@ def upgrade(
                     commands_source, target, tool_config, rules_source
                 )
             elif tool_name == "codex":
-                total_cmds += copy_commands_codex(commands_source, target, tool_config)
+                # T049: copy_commands_codex deleted — Codex no per-solution writes
+                pass
             else:
                 total_cmds += copy_commands(
                     commands_source,
@@ -1970,7 +1974,8 @@ def configure(
                 rules_source,
             )
         elif tool_name == "codex":
-            total_cmds += copy_commands_codex(commands_source, target, tool_config)
+            # T049: copy_commands_codex deleted — Codex no per-solution writes
+            pass
         else:
             total_cmds += copy_commands(
                 commands_source,

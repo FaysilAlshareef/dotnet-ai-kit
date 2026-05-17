@@ -17,6 +17,7 @@ from __future__ import annotations
 
 from dotnet_ai_kit.hosts.base import Host, InstallStatus
 from dotnet_ai_kit.hosts.claude import ClaudeHost
+from dotnet_ai_kit.hosts.codex import CodexHost
 
 # Registry of host adapters by host name. Populated incrementally across
 # feature-019 commits: commit 4 ships claude; commit 5 adds codex; commit 6
@@ -49,9 +50,18 @@ def available_hosts() -> list[str]:
     return sorted(_HOSTS.keys())
 
 
-# Commit 4: register the Claude adapter. Other hosts register themselves as
-# their modules import this package in commits 5/6/7.
+# Commit 4: claude adapter. Commit 5: codex adapter.
+# Commits 6/7 will register cursor/copilot.
 register_host("claude", ClaudeHost())
+register_host("codex", CodexHost())
 
 
-__all__ = ["Host", "InstallStatus", "ClaudeHost", "register_host", "get_host", "available_hosts"]
+__all__ = [
+    "Host",
+    "InstallStatus",
+    "ClaudeHost",
+    "CodexHost",
+    "register_host",
+    "get_host",
+    "available_hosts",
+]

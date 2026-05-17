@@ -146,13 +146,13 @@ Maps to **commits 4, 5, 6** in plan.md.
 
 ### Commit 5 — Codex documented primitives
 
-- [ ] T044 [P] [US1] (commit 5) Add `tests/integration/test_smoke_codex.py` (gated by `CODEX_SMOKE=1` + `codex` CLI on PATH) verifying a Codex-format skill is visible to Codex CLI's skill enumeration per CHK002 / FR-029
-- [ ] T045 [P] [US1] (commit 5) Add `tests/unit/test_unmanaged_paths_untouched.py` asserting root `AGENTS.md` is never written, modified, or deleted by any tool command per FR-008 / A-008
-- [ ] T046 [P] [US1] (commit 5) Add `tests/unit/test_fr008_unmanaged_paths_parameterized.py` parameterized across the A-008 list (`.editorconfig`, `Directory.Build.props`, `Directory.Build.targets`, `Directory.Packages.props`, `global.json`, `nuget.config`, `.gitignore`, `.gitattributes`, `Dockerfile`, `docker-compose.yml`, CI workflows, READMEs, license, .sln/.csproj) × every write command (`init`, `upgrade`, `configure`, `migrate`); asserts none of these paths is ever written by the tool
-- [ ] T047 [US1] (commit 5) Create `src/dotnet_ai_kit/hosts/codex.py` implementing `Host` for Codex: plugin-cache path detection (`~/.codex/plugins/cache/<marketplace>/<plugin>/<version>/` per R7), skills + MCP + hooks only (no native agents per OOS-004), `verify_install()` via filesystem inspection
-- [ ] T048 [US1] (commit 5) Remove `AGENT_CONFIG["codex"]["agents_file"] = "AGENTS.md"` mapping from `src/dotnet_ai_kit/agents.py:51` per R13
-- [ ] T049 [US1] (commit 5) Delete `copy_commands_codex` function in `src/dotnet_ai_kit/copier.py:276-317` (the root-AGENTS.md emitter) per R13; ensure no code path writes root `AGENTS.md`
-- [ ] T050 [US1] (commit 5) Extend `src/dotnet_ai_kit/agent_generators.py` with `generate_codex_agent(source: AgentSource) -> None` that raises `NotImplementedError("Codex native plugin agents deferred to v1.1 per OOS-004")` to make FR-035 admission-gate explicit
+- [X] T044 [P] [US1] (commit 5) Add `tests/integration/test_smoke_codex.py` (gated by `CODEX_SMOKE=1` + `codex` CLI on PATH) verifying a Codex-format skill is visible to Codex CLI's skill enumeration per CHK002 / FR-029
+- [X] T045 [P] [US1] (commit 5) Add `tests/unit/test_unmanaged_paths_untouched.py` asserting root `AGENTS.md` is never written, modified, or deleted by any tool command per FR-008 / A-008
+- [X] T046 [P] [US1] (commit 5) Add `tests/unit/test_fr008_unmanaged_paths_parameterized.py` parameterized across the A-008 list (`.editorconfig`, `Directory.Build.props`, `Directory.Build.targets`, `Directory.Packages.props`, `global.json`, `nuget.config`, `.gitignore`, `.gitattributes`, `Dockerfile`, `docker-compose.yml`, CI workflows, READMEs, license, .sln/.csproj) × every write command (`init`, `upgrade`, `configure`, `migrate`); asserts none of these paths is ever written by the tool
+- [X] T047 [US1] (commit 5) Create `src/dotnet_ai_kit/hosts/codex.py` implementing `Host` for Codex: plugin-cache path detection (`~/.codex/plugins/cache/<marketplace>/<plugin>/<version>/` per R7), skills + MCP + hooks only (no native agents per OOS-004), `verify_install()` via filesystem inspection
+- [X] T048 [US1] (commit 5) Remove `AGENT_CONFIG["codex"]["agents_file"] = "AGENTS.md"` mapping from `src/dotnet_ai_kit/agents.py:51` per R13
+- [X] T049 [US1] (commit 5) Delete `copy_commands_codex` function in `src/dotnet_ai_kit/copier.py:276-317` (the root-AGENTS.md emitter) per R13; ensure no code path writes root `AGENTS.md`
+- [X] T050 [US1] (commit 5) Extend `src/dotnet_ai_kit/agent_generators.py` with `generate_codex_agent(source: AgentSource) -> None` that raises `NotImplementedError("Codex native plugin agents deferred to v1.1 per OOS-004")` to make FR-035 admission-gate explicit
 
 ### Commit 6 — Cursor rules + sub-agent spike
 

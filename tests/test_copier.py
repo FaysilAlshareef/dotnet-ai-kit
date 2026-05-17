@@ -11,7 +11,7 @@ from dotnet_ai_kit.copier import (
     CopyError,
     copy_agents,
     copy_commands,
-    copy_commands_codex,
+    # T049: copy_commands_codex deleted — root-AGENTS.md emitter gone per FR-008
     copy_commands_cursor,
     copy_permissions,
     copy_rules,
@@ -401,23 +401,16 @@ def test_copy_commands_cursor_creates_mdc(tmp_path: Path) -> None:
     assert "Command: dotnet-ai.plan" in content
 
 
-def test_copy_commands_codex_creates_agents_md(tmp_path: Path) -> None:
-    """Codex mode should create an AGENTS.md file."""
-    source = tmp_path / "commands_src"
-    _create_command_files(source, ["specify", "plan"])
-    target = tmp_path / "project"
-    target.mkdir()
+def test_copy_commands_codex_removed_per_t049() -> None:
+    """T049: `copy_commands_codex` (root-AGENTS.md emitter) is deleted per FR-008.
 
-    agent_config = {"agents_file": "AGENTS.md"}
-
-    count = copy_commands_codex(source, target, agent_config)
-
-    assert count == 1
-    agents_path = target / "AGENTS.md"
-    assert agents_path.is_file()
-    content = agents_path.read_text(encoding="utf-8")
-    assert "dotnet-ai.specify" in content
-    assert "dotnet-ai.plan" in content
+    Codex CLI plugin-native mode uses the `.codex-plugin/plugin.json` manifest
+    exclusively; root `AGENTS.md` is now an unmanaged path per A-008.
+    """
+    from dotnet_ai_kit import copier as _copier
+    assert not hasattr(_copier, "copy_commands_codex"), (
+        "copy_commands_codex still present in copier.py — T049 incomplete"
+    )
 
 
 # ---------------------------------------------------------------------------

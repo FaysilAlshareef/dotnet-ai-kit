@@ -273,48 +273,16 @@ def copy_commands_cursor(
     return 1
 
 
-def copy_commands_codex(
-    source_dir: Path,
-    target_dir: Path,
-    agent_config: dict[str, Any],
-) -> int:
-    """Generate an AGENTS.md file for Codex CLI with all agent routing.
-
-    Args:
-        source_dir: Directory containing command template .md files.
-        target_dir: Root of the user's project.
-        agent_config: Configuration dict for Codex.
-
-    Returns:
-        1 if AGENTS.md was created, 0 otherwise.
-    """
-    agents_file = agent_config.get("agents_file")
-    if not agents_file:
-        return 0
-
-    sections: list[str] = ["# dotnet-ai-kit Agent Routing\n"]
-
-    for cmd_file in sorted(source_dir.glob("*.md")):
-        cmd_name = cmd_file.stem
-        content = cmd_file.read_text(encoding="utf-8")
-        # Extract first non-frontmatter line as description
-        lines = content.strip().splitlines()
-        desc = ""
-        in_frontmatter = False
-        for line in lines:
-            stripped = line.strip()
-            if stripped == "---":
-                in_frontmatter = not in_frontmatter
-                continue
-            if not in_frontmatter and stripped:
-                desc = stripped
-                break
-
-        sections.append(f"## dotnet-ai.{cmd_name}\n\n{desc}\n")
-
-    out_path = target_dir / agents_file
-    out_path.write_text("\n".join(sections), encoding="utf-8")
-    return 1
+# Feature 019 / T049: `copy_commands_codex` (the root-AGENTS.md emitter)
+# is DELETED per research R13 / FR-008 / A-008. Codex CLI plugin-native mode
+# uses the plugin install path's `.codex-plugin/plugin.json` exclusively;
+# the legacy root `AGENTS.md` write surface is a forbidden write under
+# A-008's unmanaged-paths-untouched rule.
+#
+# Call sites in cli.py (init, upgrade, configure) are updated to no-op for
+# Codex tool — `dotnet-ai init --ai codex` now writes only the per-solution
+# files via `hosts/codex.py.write_per_solution_files()` (which is itself a
+# no-op under feature 019 since Codex has no per-solution writes).
 
 
 class DeploymentError(RuntimeError):

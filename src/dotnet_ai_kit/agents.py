@@ -48,7 +48,10 @@ AGENT_CONFIG: dict[str, dict[str, Any]] = {
         "command_ext": None,
         "command_prefix": "dotnet-ai",
         "args_placeholder": None,
-        "agents_file": "AGENTS.md",
+        # T048: `agents_file` mapping deleted per research R13.
+        # The root-AGENTS.md emitter (copy_commands_codex) is gone; Codex
+        # plugin-native mode uses the plugin install path exclusively.
+        # See data-model.md § 1b.
     },
 }
 
