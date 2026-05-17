@@ -27,14 +27,56 @@ SHA256_RE = re.compile(r"^[0-9a-f]{64}$")
 VERSION_RE = re.compile(r"^\d+\.\d+\.\d+(\.\d+)?$")
 
 
+# Feature 019 / commit 10 / R16: v1/v2 manifest schema versioning.
+# v1 reader infers host_owner from path patterns when missing; writer always
+# emits v2 with host_owner per file.
+_HOST_OWNER_VALUES = frozenset({"claude", "codex", "cursor", "copilot"})
+
+
+def infer_host_owner(path: str) -> str | None:
+    """Infer host_owner from a managed file's repo-root-relative path per R16.
+
+    Used by the v1 reader to fill in host_owner for legacy manifests.
+
+    Mapping:
+      .claude/*                                 → claude
+      .codex/*                                  → codex
+      .cursor/*                                 → cursor
+      .github/agents/*.agent.md                 → copilot
+      .github/copilot-instructions.md           → copilot
+      .github/instructions/*.instructions.md    → copilot
+      .dotnet-ai-kit/*                          → null (per-solution data, not host-specific)
+      otherwise                                 → null
+    """
+    p = path.replace("\\", "/")
+    if p.startswith(".claude/"):
+        return "claude"
+    if p.startswith(".codex/"):
+        return "codex"
+    if p.startswith(".cursor/"):
+        return "cursor"
+    if p.startswith(".github/agents/") and p.endswith(".agent.md"):
+        return "copilot"
+    if p == ".github/copilot-instructions.md":
+        return "copilot"
+    if p.startswith(".github/instructions/") and p.endswith(".instructions.md"):
+        return "copilot"
+    return None
+
+
 class DeployedFile(BaseModel):
-    """One file deployed by the plugin in this project."""
+    """One file deployed by the plugin in this project.
+
+    Feature 019 adds `host_owner` (optional on read, defaulted by inference
+    per R16 for legacy v1 manifests; required on write for v2).
+    """
 
     path: str
     sha256: str
     plugin_version: str
     deployed_at: str
     source_template: str | None = None
+    host_owner: str | None = None
 
     @field_validator("path")
     @classmethod
@@ -57,21 +99,39 @@ class DeployedFile(BaseModel):
             raise ValueError(f"plugin_version {v!r} is not N.N.N[.N]")
         return v
 
+    @field_validator("host_owner")
+    @classmethod
+    def _host_owner_value(cls, v: str | None) -> str | None:
+        if v is None:
+            return v
+        if v not in _HOST_OWNER_VALUES:
+            raise ValueError(
+                f"host_owner must be one of {_HOST_OWNER_VALUES} or null, got {v!r}"
+            )
+        return v
+
 
 class Manifest(BaseModel):
-    """The full ``.dotnet-ai-kit/manifest.json`` payload."""
+    """The full ``.dotnet-ai-kit/manifest.json`` payload.
+
+    Feature 019 / commit 10: schema_version "1" (legacy from feature 018) or
+    "2" (new). The reader accepts both; the writer always emits "2" with
+    `host_owner` populated per file (inferred from path patterns when reading
+    a legacy v1 manifest per R16).
+    """
 
     plugin_version: str
-    schema_version: str = Field(default="1")
+    schema_version: str = Field(default="2")
     created_at: str
     last_upgrade_at: str | None = None
+    last_migrate_at: str | None = None  # Added in v2
     files: list[DeployedFile] = Field(default_factory=list)
 
     @field_validator("schema_version")
     @classmethod
-    def _schema_one(cls, v: str) -> str:
-        if v != "1":
-            raise ValueError(f"manifest schema_version must be '1' (got {v!r})")
+    def _schema_valid(cls, v: str) -> str:
+        if v not in ("1", "2"):
+            raise ValueError(f"manifest schema_version must be '1' or '2' (got {v!r})")
         return v
 
     @field_validator("plugin_version")
@@ -109,10 +169,23 @@ def sha256_file(path: Path) -> str:
 
 
 def read_manifest(project_root: Path) -> Manifest | None:
+    """Read manifest from disk, transparently upgrading v1 → in-memory v2.
+
+    Per R16 / feature 019: legacy v1 manifests (feature 018) lack
+    `host_owner` per file. The reader infers `host_owner` from path
+    patterns via `infer_host_owner()`. Writer always emits v2.
+    """
     p = manifest_path(project_root)
     if not p.is_file():
         return None
     data = json.loads(p.read_text(encoding="utf-8"))
+
+    # Fill in host_owner for v1 entries that lack it
+    if data.get("schema_version") == "1":
+        for entry in data.get("files", []):
+            if "host_owner" not in entry:
+                entry["host_owner"] = infer_host_owner(entry.get("path", ""))
+
     return Manifest.model_validate(data)
 
 
@@ -261,3 +334,23 @@ def integrity_check(project_root: Path) -> IntegrityReport:
             )
 
     return report
+
+
+# ---------------------------------------------------------------------------
+# Feature 019 / commit 10 / T098: classification helpers for migrate
+# ---------------------------------------------------------------------------
+
+
+def classify_file(project_root: Path, entry: DeployedFile) -> str:
+    """Classify a managed file's current state per FR-020 / CHK020.
+
+    Returns one of:
+      "clean"         — file exists + sha256 matches manifest
+      "user-modified" — file exists + sha256 differs from manifest
+      "missing"       — file no longer on disk
+    """
+    target = project_root / entry.path
+    if not target.is_file():
+        return "missing"
+    actual = sha256_file(target)
+    return "clean" if actual == entry.sha256 else "user-modified"

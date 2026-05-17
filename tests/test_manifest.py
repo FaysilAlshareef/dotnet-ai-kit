@@ -72,9 +72,10 @@ def test_root_fields_enforced() -> None:
     # missing created_at
     with pytest.raises(Exception):
         Manifest(plugin_version="1.0.0", schema_version="1", files=[])  # type: ignore[arg-type]
-    # missing schema_version defaults to "1" — verify default
+    # Feature 019 / commit 10: schema_version defaults to "2" (writer always
+    # emits v2). The reader still accepts "1" for backward compatibility.
     m = Manifest(plugin_version="1.0.0", created_at=utc_now_iso(), files=[])
-    assert m.schema_version == "1"
+    assert m.schema_version == "2"
 
 
 def test_path_traversal_rejected() -> None:
@@ -83,14 +84,25 @@ def test_path_traversal_rejected() -> None:
 
 
 def test_json_schema_validation() -> None:
+    """Feature 019 / commit 10: validate against the new feature-019 schema.
+
+    The legacy feature-018 schema doesn't know about host_owner or
+    schema_version="2"; the model's default is now v2 with host_owner per
+    file. We validate against the new schema (specs/019-plugin-native-arch/
+    contracts/manifest-json.schema.json) which has v1/v2 dual-read via oneOf.
+    """
     jsonschema = pytest.importorskip("jsonschema")
-    schema = json.loads(SCHEMA.read_text(encoding="utf-8"))
+    new_schema_path = (
+        REPO / "schemas" / "manifest-json.schema.json"
+    )
+    schema = json.loads(new_schema_path.read_text(encoding="utf-8"))
     m = Manifest(
         plugin_version="1.0.0",
-        schema_version="1",
+        schema_version="2",
         created_at=utc_now_iso(),
         last_upgrade_at=None,
-        files=[DeployedFile(**_file())],
+        last_migrate_at=None,
+        files=[DeployedFile(**_file(), host_owner="claude")],
     )
     jsonschema.validate(m.model_dump(mode="json"), schema)
 

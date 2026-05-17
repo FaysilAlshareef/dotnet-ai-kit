@@ -423,12 +423,15 @@ def _collect_deployed_files(project_root: Path) -> list[DeployedFile]:
             if rel_path in seen:
                 continue
             seen.add(rel_path)
+            # Feature 019 / commit 10: infer host_owner from path per R16.
+            from dotnet_ai_kit.manifest import infer_host_owner
             deployed.append(
                 DeployedFile(
                     path=rel_path,
                     sha256=sha256_file(p),
                     plugin_version=__version__,
                     deployed_at=now,
+                    host_owner=infer_host_owner(rel_path),
                 )
             )
     return deployed
@@ -440,9 +443,10 @@ def _finalize_manifest(project_root: Path) -> Path | None:
     existing = read_manifest(project_root)
     created_at = existing.created_at if existing else utc_now_iso()
     last_upgrade = utc_now_iso() if existing else None
+    # Feature 019 / commit 10: writer always emits v2 (host_owner per file).
+    # The model defaults schema_version to "2".
     manifest = Manifest(
         plugin_version=__version__,
-        schema_version="1",
         created_at=created_at,
         last_upgrade_at=last_upgrade,
         files=files,
@@ -2159,6 +2163,199 @@ def configure(
 
     # T052 - Next-command suggestion
     console.print("\nNext: Run [bold]dotnet-ai check[/bold] to verify your setup.\n")
+
+
+# ---------------------------------------------------------------------------
+# Feature 019 / commit 10 / T099: `dotnet-ai migrate` command
+# ---------------------------------------------------------------------------
+
+
+@app.command()
+def migrate(
+    project_path: str = typer.Argument(
+        ".",
+        help="Project root to migrate (defaults to current directory).",
+    ),
+    dry_run: bool = typer.Option(
+        False,
+        "--dry-run",
+        help="Print classification report and planned actions without mutating files (Constitution V).",
+    ),
+    include_modified: bool = typer.Option(
+        False,
+        "--include-modified",
+        help="Explicit opt-in to also remove user-modified files (per FR-022). Default: preserve in place.",
+    ),
+    host: str = typer.Option(
+        "",
+        "--host",
+        help="Scope migration to files with host_owner == <host>. Default: all hosts.",
+    ),
+) -> None:
+    """Migrate legacy per-solution copies to the plugin-native architecture.
+
+    Per FR-018, FR-020-FR-025 / US4 / contracts/migrate-cli.contract.md.
+
+    For each file in `.dotnet-ai-kit/manifest.json`:
+    - **clean** (hash matches manifest): MOVE to `.dotnet-ai-kit/backups/migrate/<timestamp>/`
+    - **user-modified** (hash differs): PRESERVE in place unless `--include-modified`
+    - **missing**: already gone; will be removed from updated manifest
+
+    Backups use 3-keep rotation per FR-023. Does NOT re-render Copilot
+    files (FR-024 — that's `upgrade --copilot`'s job). Does NOT delete
+    files outright (FR-021 — always moves to backup).
+    """
+    import shutil as _shutil
+    from datetime import datetime, timezone
+
+    from dotnet_ai_kit.manifest import (
+        classify_file,
+        manifest_path,
+        read_manifest,
+        utc_now_iso,
+        write_manifest,
+    )
+
+    target = Path(project_path).resolve()
+
+    manifest_p = manifest_path(target)
+    if not manifest_p.is_file():
+        err_console.print(
+            f"[red]manifest.json not found at {manifest_p}[/red]\n"
+            f"Run [bold]dotnet-ai init {target}[/bold] first to (re)create it."
+        )
+        raise typer.Exit(code=1)
+
+    manifest = read_manifest(target)
+    assert manifest is not None  # narrowed
+
+    # Build classification per file
+    actions: dict[str, list] = {
+        "move": [],     # (DeployedFile, target_in_backup)
+        "preserve": [], # DeployedFile
+        "remove_modified": [],  # DeployedFile (only when --include-modified)
+        "drop_from_manifest": [],  # DeployedFile (file already missing on disk)
+    }
+
+    host_filter = host.lower() if host else None
+
+    for entry in manifest.files:
+        # Host scoping
+        if host_filter and (entry.host_owner or "").lower() != host_filter:
+            continue
+
+        classification = classify_file(target, entry)
+        if classification == "missing":
+            actions["drop_from_manifest"].append(entry)
+        elif classification == "clean":
+            actions["move"].append(entry)
+        elif classification == "user-modified":
+            if include_modified:
+                actions["remove_modified"].append(entry)
+            else:
+                actions["preserve"].append(entry)
+
+    timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+    backup_folder = target / ".dotnet-ai-kit" / "backups" / "migrate" / timestamp
+
+    # --- Print classification report ---
+    console.print(
+        f"\n[bold]dotnet-ai migrate{' (dry-run)' if dry_run else ''}[/bold]"
+    )
+    console.print("=" * 32)
+    console.print(
+        f"Manifest: {manifest_p} (schema_version={manifest.schema_version})"
+    )
+
+    if actions["move"]:
+        console.print(
+            f"\n  {len(actions['move'])} files MOVE to {backup_folder}/"
+        )
+        for entry in actions["move"][:10]:
+            console.print(
+                f"    {entry.path}    [clean, host_owner={entry.host_owner or '-'}]"
+            )
+        if len(actions["move"]) > 10:
+            console.print(f"    ... ({len(actions['move']) - 10} more)")
+
+    if actions["preserve"]:
+        console.print(
+            f"\n  {len(actions['preserve'])} files PRESERVE in place (user-modified):"
+        )
+        for entry in actions["preserve"][:5]:
+            console.print(
+                f"    {entry.path}    [host_owner={entry.host_owner or '-'}, hash mismatch]"
+            )
+        if len(actions["preserve"]) > 5:
+            console.print(f"    ... ({len(actions['preserve']) - 5} more)")
+
+    if actions["remove_modified"]:
+        console.print(
+            f"\n  {len(actions['remove_modified'])} files MOVE to backup "
+            "(--include-modified opt-in)"
+        )
+
+    if actions["drop_from_manifest"]:
+        console.print(
+            f"\n  {len(actions['drop_from_manifest'])} files already missing "
+            "(will be removed from manifest):"
+        )
+        for entry in actions["drop_from_manifest"][:3]:
+            console.print(f"    {entry.path}")
+
+    if dry_run:
+        console.print(f"\n[dim]To apply, run: dotnet-ai migrate {target}[/dim]")
+        if actions["preserve"]:
+            console.print(
+                f"[dim]To also remove user-modified files: "
+                f"dotnet-ai migrate {target} --include-modified[/dim]"
+            )
+        return
+
+    # --- Apply ---
+    moved_paths: list[Path] = []
+    backup_folder.mkdir(parents=True, exist_ok=True)
+
+    to_move = actions["move"] + actions["remove_modified"]
+    for entry in to_move:
+        src = target / entry.path
+        dst = backup_folder / entry.path
+        dst.parent.mkdir(parents=True, exist_ok=True)
+        _shutil.move(str(src), str(dst))
+        moved_paths.append(src)
+
+    # 3-keep rotation (FR-023)
+    migrate_backups_root = target / ".dotnet-ai-kit" / "backups" / "migrate"
+    if migrate_backups_root.is_dir():
+        existing = sorted(
+            (p for p in migrate_backups_root.iterdir() if p.is_dir()),
+            key=lambda p: p.name,
+        )
+        excess = len(existing) - 3
+        if excess > 0:
+            for old in existing[:excess]:
+                _shutil.rmtree(old, ignore_errors=True)
+
+    # Update manifest: keep only preserved/missing files; bump schema to v2
+    moved_path_set = {entry.path for entry in to_move + actions["drop_from_manifest"]}
+    remaining = [f for f in manifest.files if f.path not in moved_path_set]
+
+    new_manifest = manifest.model_copy(
+        update={
+            "schema_version": "2",
+            "files": remaining,
+            "last_migrate_at": utc_now_iso(),
+        }
+    )
+    write_manifest(target, new_manifest)
+
+    console.print(
+        f"\n[green]Migration complete. Backup at {backup_folder}.[/green]"
+    )
+    if actions["preserve"]:
+        console.print(
+            f"[yellow]{len(actions['preserve'])} user-modified files preserved in place.[/yellow]"
+        )
 
 
 # ---------------------------------------------------------------------------

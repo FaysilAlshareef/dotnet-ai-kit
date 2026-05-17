@@ -167,10 +167,11 @@ def run_upgrade(
         )
 
     # Successful deploy — write/refresh manifest.
+    # Feature 019 / commit 10: writer always emits v2 (host_owner per file).
+    # The model defaults schema_version to "2".
     created_at = existing_manifest.created_at if existing_manifest else utc_now_iso()
     manifest = Manifest(
         plugin_version=plugin_version,
-        schema_version="1",
         created_at=created_at,
         last_upgrade_at=utc_now_iso(),
         files=deployed,

@@ -46,7 +46,12 @@ def test_init_then_upgrade_produces_valid_manifest(tmp_path: Path) -> None:
     assert manifest.is_file(), f"init must produce a manifest; stdout={init.stdout!r}"
 
     data = json.loads(manifest.read_text(encoding="utf-8"))
-    assert data["schema_version"] == "1"
+    # Feature 019 / commit 10: writer always emits v2. The reader still
+    # accepts v1 for backward compatibility, but newly-written manifests
+    # ship with schema_version="2".
+    assert data["schema_version"] in ("1", "2"), (
+        f"schema_version must be '1' (legacy) or '2' (feature 019), got {data['schema_version']!r}"
+    )
     assert "files" in data and data["files"], "manifest must list deployed files"
 
     # Pydantic + JSON Schema validation.
@@ -56,11 +61,13 @@ def test_init_then_upgrade_produces_valid_manifest(tmp_path: Path) -> None:
     try:
         import jsonschema
 
-        schema = json.loads(
-            (
-                REPO / "specs" / "018-fix-token-burn" / "contracts" / "manifest.schema.json"
-            ).read_text(encoding="utf-8")
-        )
+        # Feature 019: validate against the new feature-019 manifest schema
+        # which has v1/v2 dual-read via oneOf. Falls back to legacy schema if
+        # the new one isn't present.
+        new_schema = REPO / "schemas" / "manifest-json.schema.json"
+        legacy_schema = REPO / "specs" / "018-fix-token-burn" / "contracts" / "manifest.schema.json"
+        schema_path = new_schema if new_schema.is_file() else legacy_schema
+        schema = json.loads(schema_path.read_text(encoding="utf-8"))
         jsonschema.validate(data, schema)
     except ImportError:
         pass
@@ -75,9 +82,10 @@ def test_init_then_upgrade_produces_valid_manifest(tmp_path: Path) -> None:
     )
 
     # Manifest must remain valid after upgrade.
+    # Feature 019 / commit 10: writer always emits v2. Reader accepts both.
     data2 = json.loads(manifest.read_text(encoding="utf-8"))
     Manifest.model_validate(data2)
-    assert data2["schema_version"] == "1"
+    assert data2["schema_version"] in ("1", "2")
 
     # Backup directory must have been created and rotated.
     backups = project / ".dotnet-ai-kit" / "backups" / "upgrade"
