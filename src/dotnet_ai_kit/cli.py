@@ -2166,6 +2166,73 @@ def configure(
 
 
 # ---------------------------------------------------------------------------
+# Feature 019 / commit 14b / T118: `dotnet-ai render` command
+# ---------------------------------------------------------------------------
+
+
+@app.command()
+def render(
+    kind: str = typer.Argument(..., help="One of: `skill`, `rule`."),
+    name: str = typer.Argument(..., help="Skill or rule name (no .md extension)."),
+    host: str = typer.Option(
+        "claude",
+        "--host",
+        help="Output shape. v1 supports `claude` only.",
+    ),
+    project_path: str = typer.Option(
+        ".",
+        "--project",
+        help="Project root containing .dotnet-ai-kit/project.yml (defaults to cwd).",
+    ),
+) -> None:
+    """Render a skill or rule with current project.yml metadata substituted.
+
+    Per FR-019 / SC-012 / US6 / contracts/render-cli.contract.md.
+
+    Exit codes:
+      0  Success
+      20 Unsupported --host shape in v1
+      21 Skill or rule not found
+      22 project.yml missing or corrupt
+      23 Substitution failure (metadata key absent)
+    """
+    from dotnet_ai_kit import render as _render
+
+    project_root = Path(project_path).resolve()
+    plugin_root = _get_package_dir()
+
+    if kind not in ("skill", "rule"):
+        err_console.print(
+            f"[red]<kind> must be 'skill' or 'rule', got {kind!r}[/red]"
+        )
+        raise typer.Exit(code=2)
+
+    try:
+        if kind == "skill":
+            output = _render.render_skill(name, plugin_root, project_root, host=host)
+        else:
+            output = _render.render_rule(name, plugin_root, project_root, host=host)
+    except _render.UnsupportedHost as exc:
+        err_console.print(f"[red]Error: {exc}[/red]")
+        raise typer.Exit(code=exc.exit_code) from None
+    except _render.SkillOrRuleNotFound as exc:
+        err_console.print(f"[red]Error: {exc}[/red]")
+        raise typer.Exit(code=exc.exit_code) from None
+    except _render.ProjectMetadataMissing as exc:
+        err_console.print(f"[red]Error: {exc}[/red]")
+        raise typer.Exit(code=exc.exit_code) from None
+    except _render.SubstitutionFailure as exc:
+        err_console.print(f"[red]Error: {exc}[/red]")
+        raise typer.Exit(code=exc.exit_code) from None
+
+    # Use plain sys.stdout to bypass Rich color codes — keeps output
+    # consumable by downstream pipes.
+    import sys as _sys
+    _sys.stdout.write(output)
+    _sys.stdout.flush()
+
+
+# ---------------------------------------------------------------------------
 # Feature 019 / commit 10 / T099: `dotnet-ai migrate` command
 # ---------------------------------------------------------------------------
 
