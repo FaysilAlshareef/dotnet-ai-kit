@@ -284,8 +284,8 @@ Maps to **commits 9 (check half), 11, 12** in plan.md.
 
 ### Commit 11 — `csharp-lsp` plugin dependency added
 
-- [ ] T110 [P] [US5] (commit 11) Add `tests/integration/test_smoke_claude_lsp.py` producing a transcript artifact proving C# diagnostics surface at edit time (not via explicit AI tool invocation) per FR-028 / CHK011 (gated by `CLAUDE_CODE_SMOKE=1` + `claude` CLI on PATH)
-- [ ] T111 [US5] (commit 11) Update `.claude-plugin/plugin.json` to add `csharp-lsp` to the `dependencies` array per R6 / CHK010; extend `tests/contract/test_claude_plugin_schema.py` (from T011) to assert `csharp-lsp` is in `dependencies`
+- [X] T110 [P] [US5] (commit 11) Add `tests/integration/test_smoke_claude_lsp.py` producing a transcript artifact proving C# diagnostics surface at edit time (not via explicit AI tool invocation) per FR-028 / CHK011 (gated by `CLAUDE_CODE_SMOKE=1` + `claude` CLI on PATH)
+- [X] T111 [US5] (commit 11) Update `.claude-plugin/plugin.json` to add `csharp-lsp` to the `dependencies` array per R6 / CHK010; extend `tests/contract/test_claude_plugin_schema.py` (from T011) to assert `csharp-lsp` is in `dependencies` — **landed early in commit 3 manifest generation; T011's `test_claude_plugin_has_csharp_lsp_dependency` already asserts this**
 
 ### Commit 12 — Remove `csharp-ls` from `.mcp.json` (gated on commit 11's CHK009/CHK010/CHK011 passing in CI)
 
