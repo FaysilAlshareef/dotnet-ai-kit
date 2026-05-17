@@ -11,7 +11,7 @@ from pathlib import Path
 import yaml
 from pydantic import ValidationError
 
-from dotnet_ai_kit.models import DetectedProject, DotnetAiConfig
+from dotnet_ai_kit.models import DetectedProject, DotnetAiConfig, UserConfig
 
 # Name of the configuration directory inside a project root
 _CONFIG_DIR_NAME = ".dotnet-ai-kit"
@@ -142,6 +142,84 @@ def save_project(project: DetectedProject, path: Path) -> None:
     path.parent.mkdir(parents=True, exist_ok=True)
 
     data = {"detected": project.model_dump(mode="json", exclude_none=False)}
+
+    text = yaml.dump(
+        data,
+        default_flow_style=False,
+        sort_keys=False,
+        allow_unicode=True,
+    )
+
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(text, encoding="utf-8")
+    tmp.replace(path)
+
+
+# ---------------------------------------------------------------------------
+# Feature 019: UserConfig load/save (T004 / plan.md commit 1)
+# ---------------------------------------------------------------------------
+#
+# Reader accepts both legacy `ai_tools: [...]` and new `enabled_hosts: [...]`
+# field names (mapped via pydantic AliasChoices on UserConfig). Writer always
+# emits the canonical `enabled_hosts` so future reads do not depend on the
+# alias path.
+
+
+def load_user_config(path: Path) -> UserConfig:
+    """Load and validate a UserConfig from a YAML file.
+
+    Per data-model.md § 3, the reader accepts the legacy `ai_tools` field
+    name and maps it to `enabled_hosts`. The model's `AliasChoices` handles
+    the rename transparently.
+
+    Args:
+        path: Path to the config.yml file.
+
+    Returns:
+        Validated UserConfig instance.
+
+    Raises:
+        FileNotFoundError: If the config file does not exist.
+        ValueError: If the YAML content is invalid or fails validation.
+    """
+    if not path.is_file():
+        raise FileNotFoundError(f"User config file not found: {path}")
+
+    text = path.read_text(encoding="utf-8")
+    try:
+        data = yaml.safe_load(text)
+    except yaml.YAMLError as exc:
+        raise ValueError(
+            f"Invalid YAML syntax in {path}: {exc}. "
+            "Fix the file manually or run 'dotnet-ai configure --reset'."
+        ) from exc
+
+    if data is None:
+        data = {}
+
+    if not isinstance(data, dict):
+        raise ValueError(f"Expected a YAML mapping in {path}, got {type(data).__name__}")
+
+    try:
+        return UserConfig(**data)
+    except ValidationError as exc:
+        raise ValueError(f"Invalid user config in {path}: {exc}") from exc
+
+
+def save_user_config(config: UserConfig, path: Path) -> None:
+    """Save a UserConfig to a YAML file.
+
+    Always emits the canonical `enabled_hosts` field name (never the legacy
+    `ai_tools` alias). Creates parent directories if they do not exist.
+
+    Args:
+        config: The UserConfig to save.
+        path: Destination file path.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    # by_alias=False forces canonical field names; ensure `enabled_hosts` not `ai_tools`
+    data = config.model_dump(mode="json", exclude_none=False, by_alias=False)
 
     text = yaml.dump(
         data,

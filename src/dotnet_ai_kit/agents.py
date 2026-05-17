@@ -52,9 +52,11 @@ AGENT_CONFIG: dict[str, dict[str, Any]] = {
     },
 }
 
-# v1.0: Only Claude Code is fully supported.
-# Cursor, Copilot, Codex planned for v1.1.
-SUPPORTED_AI_TOOLS: frozenset[str] = frozenset({"claude"})
+# Feature 019 (plugin-native architecture): all four hosts are first-class.
+# - claude/codex/cursor: plugin-native install (via each host's plugin model)
+# - copilot: render-only into `.github/` (no plugin model per FR-004)
+# v1-only single-host frozenset was replaced per T002 / plan.md commit 1.
+SUPPORTED_AI_TOOLS: frozenset[str] = frozenset({"claude", "codex", "cursor", "copilot"})
 
 # Per-tool transformation mapping for universal agent frontmatter.
 # Agent source files use tool-agnostic fields (role, expertise, complexity,

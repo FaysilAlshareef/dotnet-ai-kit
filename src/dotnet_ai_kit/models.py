@@ -4,9 +4,16 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Optional
+from typing import Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    AliasChoices,
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_validator,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +39,67 @@ KNOWN_PATH_KEYS: frozenset[str] = frozenset(
         "components",
     }
 )
+
+# ---------------------------------------------------------------------------
+# Feature 019: UserConfig (`.dotnet-ai-kit/config.yml`) per data-model § 3
+# ---------------------------------------------------------------------------
+#
+# Per-solution descriptor of the developer's tool preferences. Pydantic reader
+# accepts the legacy `ai_tools` field name (used in pre-019 code at
+# `copier.py:1096-1100`) and maps it to `enabled_hosts` on read via
+# AliasChoices; writer always emits `enabled_hosts` (the canonical name) when
+# saved by `config.py.save_user_config()`. T003-T004 / plan.md commit 1.
+
+_HostName = Literal["claude", "codex", "cursor", "copilot"]
+_PermissionProfile = Literal["minimal", "standard", "full", "mcp"]
+
+
+class UserConfig(BaseModel):
+    """Per-solution descriptor of the developer's tool preferences.
+
+    Validated against `contracts/config-yml.schema.json` (feature 019).
+    Pydantic reader accepts legacy `ai_tools` as an alias for `enabled_hosts`
+    (data-model.md § 3). Writer always emits `enabled_hosts`.
+    """
+
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+
+    enabled_hosts: list[_HostName] = Field(
+        default_factory=list,
+        validation_alias=AliasChoices("enabled_hosts", "ai_tools"),
+        description=(
+            "Subset of supported plugin hosts: claude, codex, cursor, copilot. "
+            "Accepts legacy `ai_tools` field name on read; writer emits `enabled_hosts`."
+        ),
+    )
+    retention: int = Field(
+        default=3,
+        ge=1,
+        description="Backup rotation depth — matches feature 018's 3-keep retention.",
+    )
+    permission_profile: Optional[_PermissionProfile] = Field(
+        default=None,
+        description="One of minimal, standard, full, mcp; matches existing config/ JSON files.",
+    )
+    plugin_version: str = Field(
+        default="",
+        description="Semver of the installed plugin at last init/upgrade.",
+    )
+
+    @field_validator("enabled_hosts")
+    @classmethod
+    def validate_unique_hosts(cls, v: list[str]) -> list[str]:
+        """Lowercase host names and reject duplicates."""
+        seen: set[str] = set()
+        out: list[str] = []
+        for host in v:
+            key = host.lower()
+            if key in seen:
+                raise ValueError(f"Duplicate host '{host}' in enabled_hosts")
+            seen.add(key)
+            out.append(key)
+        return out
+
 
 # ---------------------------------------------------------------------------
 # Detection signal models (used by signal-based detection pipeline)

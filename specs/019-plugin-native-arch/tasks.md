@@ -62,11 +62,11 @@ Per `plan.md` "single feature branch, 16 sequenced commits", code MUST land in t
 
 **Purpose**: Multi-host config foundation that every later commit depends on. Maps to **commit 1** in plan.md.
 
-- [ ] T001 [P] (commit 1) Update `tests/test_agents.py` (existing file, line 31-33 asserts `frozenset({"claude"})` today, line 21-28 asserts `AGENT_CONFIG["claude"]`) — change the v1-only assertion to multi-host `frozenset({"claude", "codex", "cursor", "copilot"})`, add per-host AGENT_CONFIG assertions for `codex`, `cursor`, `copilot`, AND keep the existing Claude assertions (test must FAIL first per TDD against the current single-host frozenset)
-- [ ] T002 (commit 1) Expand `SUPPORTED_AI_TOOLS` in `src/dotnet_ai_kit/agents.py:57` from `frozenset({"claude"})` to `frozenset({"claude", "codex", "cursor", "copilot"})` — makes T001 PASS
-- [ ] T003 [P] (commit 1) Add multi-host pydantic models in `src/dotnet_ai_kit/models.py` per `data-model.md` § 3 `UserConfig`: `enabled_hosts: list[Literal["claude","codex","cursor","copilot"]]`, `retention: int = 3`, `permission_profile: Literal["minimal","standard","full","mcp"] | None`, `plugin_version: str`
-- [ ] T004 [P] (commit 1) Update `src/dotnet_ai_kit/config.py` reader to accept legacy `ai_tools` field name and map it to `enabled_hosts` on read (per `data-model.md` § 3 alias note); writer always emits `enabled_hosts`
-- [ ] T005 [P] (commit 1) Add `tests/contract/test_config_yml_schema.py` asserting pydantic-derived JSON Schema for `UserConfig` validates the 4-host enum and the `ai_tools` alias migration (legacy `ai_tools: ["claude"]` reads identically to `enabled_hosts: ["claude"]`)
+- [X] T001 [P] (commit 1) Update `tests/test_agents.py` (existing file, line 31-33 asserts `frozenset({"claude"})` today, line 21-28 asserts `AGENT_CONFIG["claude"]`) — change the v1-only assertion to multi-host `frozenset({"claude", "codex", "cursor", "copilot"})`, add per-host AGENT_CONFIG assertions for `codex`, `cursor`, `copilot`, AND keep the existing Claude assertions (test must FAIL first per TDD against the current single-host frozenset)
+- [X] T002 (commit 1) Expand `SUPPORTED_AI_TOOLS` in `src/dotnet_ai_kit/agents.py:57` from `frozenset({"claude"})` to `frozenset({"claude", "codex", "cursor", "copilot"})` — makes T001 PASS
+- [X] T003 [P] (commit 1) Add multi-host pydantic models in `src/dotnet_ai_kit/models.py` per `data-model.md` § 3 `UserConfig`: `enabled_hosts: list[Literal["claude","codex","cursor","copilot"]]`, `retention: int = 3`, `permission_profile: Literal["minimal","standard","full","mcp"] | None`, `plugin_version: str`
+- [X] T004 [P] (commit 1) Update `src/dotnet_ai_kit/config.py` reader to accept legacy `ai_tools` field name and map it to `enabled_hosts` on read (per `data-model.md` § 3 alias note); writer always emits `enabled_hosts`
+- [X] T005 [P] (commit 1) Add `tests/contract/test_config_yml_schema.py` asserting pydantic-derived JSON Schema for `UserConfig` validates the 4-host enum and the `ai_tools` alias migration (legacy `ai_tools: ["claude"]` reads identically to `enabled_hosts: ["claude"]`)
 
 **Checkpoint**: `SUPPORTED_AI_TOOLS` is 4-host; `UserConfig` model accepts both legacy `ai_tools` and new `enabled_hosts`; ready for Foundational.
 

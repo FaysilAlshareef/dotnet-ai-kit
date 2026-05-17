@@ -846,21 +846,25 @@ def test_init_accepts_all_valid_types(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# --ai validation (v1.0: claude only)
+# --ai validation (feature 019: claude/codex/cursor/copilot all supported)
 # ---------------------------------------------------------------------------
 
 
-def test_init_rejects_unsupported_ai_tool(tmp_path: Path) -> None:
-    """Init should reject AI tools not supported in v1.0."""
+def test_init_rejects_unknown_ai_tool(tmp_path: Path) -> None:
+    """Init should reject AI tool names outside the SUPPORTED_AI_TOOLS set.
+
+    Per feature 019 / T002, SUPPORTED_AI_TOOLS = {claude, codex, cursor, copilot}.
+    Hosts inside the set are accepted by `--ai`; only true unknowns are rejected.
+    """
     _create_dotnet_project(tmp_path)
 
     result = runner.invoke(
         app,
-        ["init", str(tmp_path), "--ai", "cursor"],
+        ["init", str(tmp_path), "--ai", "nonexistent-host"],
     )
 
     assert result.exit_code == 1
-    assert "unsupported" in result.output.lower()
+    assert "unsupported" in result.output.lower() or "unknown" in result.output.lower()
 
 
 # ---------------------------------------------------------------------------
