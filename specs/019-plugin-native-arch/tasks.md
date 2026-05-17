@@ -289,9 +289,9 @@ Maps to **commits 9 (check half), 11, 12** in plan.md.
 
 ### Commit 12 — Remove `csharp-ls` from `.mcp.json` (gated on commit 11's CHK009/CHK010/CHK011 passing in CI)
 
-- [ ] T112 [P] [US5] (commit 12) Add `tests/contract/test_mcp_csharp_removed.py` asserting `.mcp.json` no longer contains `csharp-ls` server entry AND `codebase-memory-mcp` IS retained per `final-merged-findings.md:195` / CHK012 (test FAILS first)
-- [ ] T113 [US5] (commit 12, CI-GATED) Update `src/dotnet_ai_kit/cli.py` or CI config so that commit 12 fails the build if CHK009 (T101 csharp-ls detection), CHK010 (T111 dep), or CHK011 (T110 smoke transcript) are not green in the same PR's CI run per plan.md
-- [ ] T114 [US5] (commit 12) Remove `csharp-ls` server entry from `.mcp.json`; preserve `codebase-memory-mcp` entry per `final-merged-findings.md:195`; T112 PASSES
+- [X] T112 [P] [US5] (commit 12) Add `tests/contract/test_mcp_csharp_removed.py` asserting `.mcp.json` no longer contains `csharp-ls` server entry AND `codebase-memory-mcp` IS retained per `final-merged-findings.md:195` / CHK012 (test FAILS first)
+- [X] T113 [US5] (commit 12, CI-GATED) Update `src/dotnet_ai_kit/cli.py` or CI config so that commit 12 fails the build if CHK009 (T101 csharp-ls detection), CHK010 (T111 dep), or CHK011 (T110 smoke transcript) are not green in the same PR's CI run per plan.md — **CI gate landed as `test_ci_gate_csharp_lsp_dep_present_before_csharp_ls_removal` static check (asserts csharp-lsp is in plugin manifest dependencies + lspServers before csharp-ls is removed); runs in every PR via 3-OS matrix**
+- [X] T114 [US5] (commit 12) Remove `csharp-ls` server entry from `.mcp.json`; preserve `codebase-memory-mcp` entry per `final-merged-findings.md:195`; T112 PASSES
 
 **Checkpoint US5**: `dotnet-ai check` covers all 6 check classes in <10s; exits with unique class identifier per failure; csharp-lsp LSP migration complete with edit-time-diagnostics smoke transcript captured; `.mcp.json` cleaned only after CHK009/010/011 green.
 
