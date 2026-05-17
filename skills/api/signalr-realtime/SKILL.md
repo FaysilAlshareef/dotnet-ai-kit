@@ -1,11 +1,10 @@
 ---
 name: signalr-realtime
-description: >
-  Use when adding real-time communication with SignalR hubs, WebSocket connections, or push notifications.
+description: Use when adding real-time communication with SignalR hubs, WebSocket connections, or push notifications.
 metadata:
   category: api
   agent: api-designer
-  when-to-use: "When implementing real-time communication with SignalR hubs or WebSocket connections"
+when_to_use: When implementing real-time communication with SignalR hubs or WebSocket connections
 ---
 
 # SignalR Real-Time Communication

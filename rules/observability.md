@@ -1,6 +1,9 @@
 ---
-alwaysApply: true
 description: Enforces structured logging, distributed tracing, health checks, and metrics conventions.
+paths:
+  - "**/Program.cs"
+  - "**/Logging/**/*.cs"
+  - "**/Telemetry/**/*.cs"
 ---
 
 # Observability Rules

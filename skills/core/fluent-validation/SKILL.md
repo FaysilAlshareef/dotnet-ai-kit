@@ -1,11 +1,10 @@
 ---
 name: fluent-validation
-description: >
-  Use when adding FluentValidation validators, custom rules, or async validation to a .NET project.
+description: Use when adding FluentValidation validators, custom rules, or async validation to a .NET project.
 metadata:
   category: core
   agent: dotnet-architect
-  when-to-use: "When writing input validation rules using FluentValidation"
+when_to_use: When writing input validation rules using FluentValidation
 ---
 
 # FluentValidation (Standalone)

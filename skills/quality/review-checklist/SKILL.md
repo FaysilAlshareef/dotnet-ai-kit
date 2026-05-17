@@ -1,11 +1,10 @@
 ---
 name: review-checklist
-description: >
-  Use when performing code review with standards-based checklists and severity ratings.
+description: Use when performing code review with standards-based checklists and severity ratings.
 metadata:
   category: quality
   agent: reviewer
-  when-to-use: "When performing code reviews using standards checklists and severity ratings"
+when_to_use: When performing code reviews using standards checklists and severity ratings
 ---
 
 # Review Checklist — Standards & Severity Ratings

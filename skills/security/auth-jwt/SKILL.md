@@ -1,11 +1,10 @@
 ---
 name: auth-jwt
-description: >
-  Use when setting up JWT authentication, token generation, or refresh token flows.
+description: Use when setting up JWT authentication, token generation, or refresh token flows.
 metadata:
   category: security
   agent: api-designer
-  when-to-use: "When configuring JWT authentication, token generation, or refresh token flows"
+when_to_use: When configuring JWT authentication, token generation, or refresh token flows
 ---
 
 # JWT Authentication

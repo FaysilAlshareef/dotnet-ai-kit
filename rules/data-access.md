@@ -1,6 +1,9 @@
 ---
-alwaysApply: true
 description: Enforces EF Core and data access best practices — query efficiency, DbContext lifetime, no N+1.
+paths:
+  - "**/Infrastructure/**/*.cs"
+  - "**/Persistence/**/*.cs"
+  - "**/Repositories/**/*.cs"
 ---
 
 # Data Access Rules

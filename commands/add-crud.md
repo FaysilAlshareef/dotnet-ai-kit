@@ -61,7 +61,7 @@ For microservice mode: Read the project's primary architect based on detected pr
 - hybrid → Read both `agents/command-architect.md` and `agents/query-architect.md`
 
 Also read `agents/ef-specialist.md` for data patterns and `agents/api-designer.md` for API patterns.
-Load all skills listed in each loaded agent's Skills Loaded section.
+Bounded skill selection (FR-012): keep one architect agent for the project type loaded, load at most 2 task-specific skills initially, and run MCP queries (codebase-memory-mcp) before broad file reads.
 
 ## Skills to Read (architecture-dependent)
 

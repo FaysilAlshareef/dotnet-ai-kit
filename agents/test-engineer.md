@@ -15,13 +15,6 @@ max_iterations: 25
 
 **Role**: Expert in testing patterns across all project types
 
-## Skills Loaded
-1. `skills/testing/unit-testing/SKILL.md`
-2. `skills/testing/integration-testing/SKILL.md`
-3. `skills/testing/test-fixtures/SKILL.md`
-4. `skills/testing/performance-testing/SKILL.md`
-5. `skills/microservice/command/aggregate-testing/SKILL.md`
-
 ## Responsibilities
 - Follow TDD workflow: red (write failing test) -> green (make it pass) -> refactor (clean up)
 - Design unit tests with xUnit, NSubstitute, FluentAssertions (generic)

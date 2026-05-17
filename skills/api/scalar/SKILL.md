@@ -1,11 +1,10 @@
 ---
 name: scalar
-description: >
-  Use when configuring Scalar API documentation UI for a .NET project.
+description: Use when configuring Scalar API documentation UI for a .NET project.
 metadata:
   category: api
   agent: api-designer
-  when-to-use: "When setting up Scalar API documentation with authentication and theming"
+when_to_use: When setting up Scalar API documentation with authentication and theming
 ---
 
 # Scalar API Documentation

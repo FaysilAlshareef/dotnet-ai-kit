@@ -1,11 +1,10 @@
 ---
 name: aspire-orchestration
-description: >
-  Use when setting up .NET Aspire for local development orchestration and service discovery.
+description: Use when setting up .NET Aspire for local development orchestration and service discovery.
 metadata:
   category: devops
   agent: devops-engineer
-  when-to-use: "When configuring .NET Aspire orchestration, AppHost, or service defaults"
+when_to_use: When configuring .NET Aspire orchestration, AppHost, or service defaults
 ---
 
 # Aspire Orchestration — Local Development

@@ -1,6 +1,7 @@
 ---
-alwaysApply: true
 description: Enforces async/await correctness — CancellationToken propagation, no blocking, proper concurrency.
+paths:
+  - "**/*.cs"
 ---
 
 # Async & Concurrency Rules

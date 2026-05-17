@@ -1,11 +1,10 @@
 ---
 name: cors-configuration
-description: >
-  Use when configuring CORS policies for .NET APIs.
+description: Use when configuring CORS policies for .NET APIs.
 metadata:
   category: security
   agent: api-designer
-  when-to-use: "When configuring CORS policies, allowed origins, or preflight request handling"
+when_to_use: When configuring CORS policies, allowed origins, or preflight request handling
 ---
 
 # CORS Configuration

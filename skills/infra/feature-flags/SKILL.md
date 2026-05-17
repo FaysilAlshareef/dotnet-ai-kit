@@ -1,11 +1,10 @@
 ---
 name: feature-flags
-description: >
-  Use when adding feature flags, percentage rollouts, or toggling features at runtime.
+description: Use when adding feature flags, percentage rollouts, or toggling features at runtime.
 metadata:
   category: infra
   agent: dotnet-architect
-  when-to-use: "When implementing feature flags, percentage rollouts, or feature toggles"
+when_to_use: When implementing feature flags, percentage rollouts, or feature toggles
 ---
 
 # Feature Flags — Microsoft.FeatureManagement

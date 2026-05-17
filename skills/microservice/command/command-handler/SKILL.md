@@ -1,12 +1,11 @@
 ---
 name: command-handler
-description: >
-  Use when implementing MediatR command handlers in event-sourced microservices.
+description: Use when implementing MediatR command handlers in event-sourced microservices.
 metadata:
   category: microservice/command
   agent: command-architect
-  when-to-use: "When creating or modifying command handlers using MediatR IRequestHandler"
-  paths: "${detected_paths.handlers}/**/*.cs"
+when_to_use: When creating or modifying command handlers using MediatR IRequestHandler
+paths: ${detected_paths.handlers}/**/*.cs
 ---
 
 # Command Handler -- MediatR Command Pattern

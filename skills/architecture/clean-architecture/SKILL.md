@@ -1,11 +1,10 @@
 ---
 name: clean-architecture
-description: >
-  Use when implementing or enforcing Clean Architecture with 4-layer separation and dependency inversion.
+description: Use when implementing or enforcing Clean Architecture with 4-layer separation and dependency inversion.
 metadata:
   category: architecture
   agent: dotnet-architect
-  when-to-use: "When designing or reviewing Clean Architecture layer structure and dependency rules"
+when_to_use: When designing or reviewing Clean Architecture layer structure and dependency rules
 ---
 
 # Clean Architecture

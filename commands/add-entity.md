@@ -50,7 +50,7 @@ Based on detected project type:
 - query-sql → Read `agents/query-architect.md`
 - query-cosmos → Read `agents/cosmos-architect.md`
 
-Also read `agents/ef-specialist.md` for data access patterns. Load all skills listed in each loaded agent's Skills Loaded section.
+Also read `agents/ef-specialist.md` for data access patterns. Bounded skill selection (FR-012): keep one architect agent for the project type loaded, load at most 2 task-specific skills initially, and run MCP queries (codebase-memory-mcp) before broad file reads.
 
 ## Skills to Read
 

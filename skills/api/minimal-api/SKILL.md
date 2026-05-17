@@ -1,11 +1,10 @@
 ---
 name: minimal-api
-description: >
-  Use when building minimal API endpoints with route groups, filters, or TypedResults.
+description: Use when building minimal API endpoints with route groups, filters, or TypedResults.
 metadata:
   category: api
   agent: api-designer
-  when-to-use: "When creating minimal API endpoints, route groups, or endpoint filters"
+when_to_use: When creating minimal API endpoints, route groups, or endpoint filters
 ---
 
 # Minimal API Endpoints

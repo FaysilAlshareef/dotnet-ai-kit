@@ -183,3 +183,11 @@ Pass these as part of `$ARGUMENTS`:
 - `--path <dir>`: Detect in a specific directory (default: current directory)
 - `--type <type>`: Skip detection and set type directly
 - `--json`: Output results as JSON instead of interactive display
+
+## MCP-first (FR-021 / FR-022)
+
+Graph/dependency/ownership/architecture questions: query `codebase-memory-mcp` first; use `csharp-ls` for symbol-precise lookups; `grep`/file reads only as last resort.
+
+If MCP is unavailable, emit exactly:
+> MCP unavailable: codebase-memory-mcp is not connected or below >=0.6.1; falling back to csharp-ls + grep/read.
+

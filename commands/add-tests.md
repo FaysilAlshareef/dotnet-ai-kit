@@ -72,7 +72,7 @@ Read `agents/test-engineer.md` for testing patterns. Also read the project's pri
 - **Generic mode** (VSA, Clean Arch, DDD, Modular Monolith):
   - Read `agents/dotnet-architect.md`
 
-Load all skills listed in each loaded agent's Skills Loaded section.
+Bounded skill selection (FR-012): keep one architect agent for the project type loaded, load at most 2 task-specific skills initially, and run MCP queries (codebase-memory-mcp) before broad file reads.
 
 ## Skills to Read
 
@@ -136,3 +136,11 @@ Load all skills listed in each loaded agent's Skills Loaded section.
 
 - `--dry-run`: Show generated test code with file headers. No writes.
 - `--list`: List test files that would be created with class counts. No code, no writes.
+
+## MCP-first (FR-021 / FR-022)
+
+Graph/dependency/ownership/architecture questions: query `codebase-memory-mcp` first; use `csharp-ls` for symbol-precise lookups; `grep`/file reads only as last resort.
+
+If MCP is unavailable, emit exactly:
+> MCP unavailable: codebase-memory-mcp is not connected or below >=0.6.1; falling back to csharp-ls + grep/read.
+

@@ -1,11 +1,10 @@
 ---
 name: dapper
-description: >
-  Use when writing read-optimized queries with Dapper alongside EF Core.
+description: Use when writing read-optimized queries with Dapper alongside EF Core.
 metadata:
   category: data
   agent: ef-specialist
-  when-to-use: "When writing read-optimized SQL queries using Dapper alongside EF Core"
+when_to_use: When writing read-optimized SQL queries using Dapper alongside EF Core
 ---
 
 # Dapper Queries

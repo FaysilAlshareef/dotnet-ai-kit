@@ -1,12 +1,11 @@
 ---
 name: aggregate-design
-description: >
-  Use when designing or implementing event-sourced aggregate roots for a command microservice.
+description: Use when designing or implementing event-sourced aggregate roots for a command microservice.
 metadata:
   category: microservice/command
   agent: command-architect
-  when-to-use: "When creating or modifying event-sourced aggregates, factory methods, Apply methods"
-  paths: "${detected_paths.aggregates}/**/*.cs"
+when_to_use: When creating or modifying event-sourced aggregates, factory methods, Apply methods
+paths: ${detected_paths.aggregates}/**/*.cs
 ---
 
 # Aggregate Design -- Event-Sourced Aggregate Root

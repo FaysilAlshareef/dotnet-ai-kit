@@ -1,11 +1,10 @@
 ---
 name: email-notifications
-description: >
-  Use when implementing email sending with templates, SendGrid, or SES integration.
+description: Use when implementing email sending with templates, SendGrid, or SES integration.
 metadata:
   category: infra
   agent: dotnet-architect
-  when-to-use: "When implementing email service abstraction or notification templates"
+when_to_use: When implementing email service abstraction or notification templates
 ---
 
 # Email Notifications — Service Abstraction & Templates

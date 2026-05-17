@@ -1,6 +1,10 @@
 ---
-alwaysApply: true
 description: Enforces strongly-typed configuration via the Options pattern with startup validation.
+paths:
+  - "**/Program.cs"
+  - "**/Startup.cs"
+  - "**/*Options.cs"
+  - "**/appsettings*.json"
 ---
 
 # Configuration Rules

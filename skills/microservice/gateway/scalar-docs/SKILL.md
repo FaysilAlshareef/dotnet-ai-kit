@@ -1,11 +1,10 @@
 ---
 name: scalar-docs
-description: >
-  Use when setting up Scalar API documentation for gateway endpoints.
+description: Use when setting up Scalar API documentation for gateway endpoints.
 metadata:
   category: microservice/gateway
   agent: gateway-architect
-  when-to-use: "When configuring Scalar API documentation or OpenAPI doc entries for gateway endpoints"
+when_to_use: When configuring Scalar API documentation or OpenAPI doc entries for gateway endpoints
 ---
 
 # Scalar Docs — API Documentation & Rate Limiting

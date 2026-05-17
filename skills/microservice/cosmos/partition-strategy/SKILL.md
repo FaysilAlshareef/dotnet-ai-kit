@@ -1,11 +1,10 @@
 ---
 name: partition-strategy
-description: >
-  Use when choosing partition keys or handling cross-partition queries in Cosmos DB.
+description: Use when choosing partition keys or handling cross-partition queries in Cosmos DB.
 metadata:
   category: microservice/cosmos
   agent: cosmos-architect
-  when-to-use: "When designing Cosmos DB partition keys or optimizing cross-partition queries"
+when_to_use: When designing Cosmos DB partition keys or optimizing cross-partition queries
 ---
 
 # Partition Strategy — Hierarchical Partition Keys

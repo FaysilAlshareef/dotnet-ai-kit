@@ -1,6 +1,8 @@
 ---
-alwaysApply: true
 description: "Architecture profile for Vertical Slice Architecture projects — hard constraints"
+paths:
+  - "src/**/*.cs"
+  - "**/Features/**/*.cs"
 ---
 
 # Architecture Profile: Vertical Slice Architecture

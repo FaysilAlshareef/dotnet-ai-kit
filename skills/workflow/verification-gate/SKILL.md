@@ -1,12 +1,9 @@
 ---
 name: verification-gate
-description: >
-  Use when about to claim work is complete, fixed, passing, or ready — before
-  committing, creating PRs, or moving to the next task. Requires running
-  verification commands and confirming output before making any success claims.
+description: Use when about to claim work is complete, fixed, passing, or ready — before committing, creating PRs, or moving to the next task. Requires running verification commands and confirming output before making any success claims.
 metadata:
   category: workflow
-  when-to-use: "Before any completion claim, commit, PR, or task transition"
+when_to_use: Before any completion claim, commit, PR, or task transition
 ---
 
 # Verification Gate — Evidence Before Claims

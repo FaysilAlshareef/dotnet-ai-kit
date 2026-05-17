@@ -1,11 +1,10 @@
 ---
 name: gateway-facade
-description: >
-  Use when creating typed HttpClient wrappers for control panel API calls.
+description: Use when creating typed HttpClient wrappers for control panel API calls.
 metadata:
   category: microservice/controlpanel
   agent: controlpanel-architect
-  when-to-use: "When creating or modifying gateway facade classes or typed HttpClient wrappers"
+when_to_use: When creating or modifying gateway facade classes or typed HttpClient wrappers
 ---
 
 # Gateway Facade — Typed HttpClient Wrappers

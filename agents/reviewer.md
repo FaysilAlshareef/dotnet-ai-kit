@@ -11,17 +11,7 @@ max_iterations: 15
 
 # Code Review Specialist
 
-**Availability**: Always (loaded for every interaction)
-
 **Role**: Expert in code review against company standards
-
-## Skills Loaded
-1. `skills/quality/review-checklist/SKILL.md`
-2. `skills/quality/code-analysis/SKILL.md`
-3. `skills/quality/architectural-fitness/SKILL.md`
-4. `skills/security/data-protection/SKILL.md`
-5. `skills/security/input-sanitization/SKILL.md`
-6. `skills/core/solid-principles/SKILL.md` *(alwaysApply)*
 
 ## Responsibilities
 - Run standards review checklist (architecture, naming, localization, error handling)

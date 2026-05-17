@@ -1,0 +1,9 @@
+project_type: microservice
+detected_paths:
+  src_root: src
+  test_root: tests
+  domain_layer: src/MeasurementSvc.Domain
+  application_layer: src/MeasurementSvc.Application
+  infrastructure_layer: src/MeasurementSvc.Infrastructure
+  api_layer: src/MeasurementSvc.Api
+architecture: clean-arch

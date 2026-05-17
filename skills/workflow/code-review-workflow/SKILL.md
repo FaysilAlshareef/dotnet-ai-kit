@@ -1,11 +1,10 @@
 ---
 name: code-review-workflow
-description: >
-  Use when performing code review on completed implementation, before merge.
+description: Use when performing code review on completed implementation, before merge.
 metadata:
   category: workflow
   agent: reviewer
-  when-to-use: "When performing code reviews or configuring automated review workflows"
+when_to_use: When performing code reviews or configuring automated review workflows
 ---
 
 # Code Review Workflow — Checklist & Automation

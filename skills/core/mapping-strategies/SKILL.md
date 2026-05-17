@@ -1,11 +1,10 @@
 ---
 name: mapping-strategies
-description: >
-  Use when mapping between DTOs and domain objects — manual mapping, LINQ projections, or AutoMapper.
+description: Use when mapping between DTOs and domain objects — manual mapping, LINQ projections, or AutoMapper.
 metadata:
   category: core
   agent: dotnet-architect
-  when-to-use: "When implementing object mapping between DTOs and domain models"
+when_to_use: When implementing object mapping between DTOs and domain models
 ---
 
 # Mapping Strategies

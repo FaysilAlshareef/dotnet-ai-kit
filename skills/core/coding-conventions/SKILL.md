@@ -1,11 +1,9 @@
 ---
 name: coding-conventions
-description: >
-  Use when applying or enforcing C# coding style — namespaces, sealed classes, var usage, XML docs.
+description: Use when applying or enforcing C# coding style — namespaces, sealed classes, var usage, XML docs.
 metadata:
   category: core
   agent: dotnet-architect
-  alwaysApply: true
 ---
 
 # Coding Conventions

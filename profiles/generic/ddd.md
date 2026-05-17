@@ -1,6 +1,7 @@
 ---
-alwaysApply: true
 description: "Architecture profile for Domain-Driven Design projects — hard constraints"
+paths:
+  - "src/**/*.cs"
 ---
 
 # Architecture Profile: Domain-Driven Design

@@ -18,6 +18,7 @@ import jinja2
 
 from dotnet_ai_kit.models import DotnetAiConfig
 from dotnet_ai_kit.utils import HOOK_MODEL, HOOK_TIMEOUT_MS, parse_version
+from dotnet_ai_kit.version_check import check_claude_code_version
 
 logger = logging.getLogger(__name__)
 
@@ -316,51 +317,79 @@ def copy_commands_codex(
     return 1
 
 
+class DeploymentError(RuntimeError):
+    """Raised when a skill / rule / profile cannot be deployed safely
+    (FR-033 — path-token referencing a missing detected_paths key)."""
+
+
+def merge_mcp_config(project_root: Path, source_mcp_json: Path) -> Path:
+    """Merge the plugin's ``.mcp.json`` into the project's, preserving any
+    third-party servers already registered (T066a / FR-018).
+
+    Existing entries are NOT overwritten. New plugin entries are added.
+    Returns the path of the merged file.
+    """
+    plugin_data = json.loads(source_mcp_json.read_text(encoding="utf-8"))
+    target = project_root / ".mcp.json"
+
+    if target.is_file():
+        existing = json.loads(target.read_text(encoding="utf-8"))
+    else:
+        existing = {"mcpServers": {}}
+
+    servers = existing.setdefault("mcpServers", {})
+    for name, entry in plugin_data.get("mcpServers", {}).items():
+        if name not in servers:
+            servers[name] = entry
+
+    target.write_text(
+        json.dumps(existing, indent=2, ensure_ascii=False) + "\n",
+        encoding="utf-8",
+    )
+    return target
+
+
 def _resolve_detected_path_tokens(
     content: str,
     detected_paths: dict[str, str],
+    *,
+    source: str | None = None,
 ) -> str:
-    """Resolve ${detected_paths.*} tokens in skill file content.
-
-    If a token references a missing key, the entire paths: line is removed.
+    """Resolve ``${detected_paths.X}`` tokens. FR-033: when ``X`` is missing
+    from ``detected_paths`` (or maps to a falsy value), raise
+    ``DeploymentError`` instead of silently substituting an empty string or
+    a glob-only fragment like ``**/*.cs``.
 
     Args:
-        content: Skill file content.
-        detected_paths: Mapping of path category names to actual paths.
+        content: File content to resolve.
+        detected_paths: Mapping of key → concrete path.
+        source: Optional source path for richer error messages.
 
     Returns:
-        Content with tokens resolved or paths line removed.
+        Content with all ``${detected_paths.X}`` tokens substituted.
     """
+
+    missing: list[str] = []
 
     def _replace_token(match: re.Match) -> str:
         key = match.group(1)
-        return detected_paths.get(key, "")
+        value = detected_paths.get(key)
+        if not value:
+            missing.append(key)
+            return match.group(0)
+        return value
 
     resolved = re.sub(r"\$\{detected_paths\.(\w+)\}", _replace_token, content)
 
-    # If any paths: line has empty value after resolution, remove it
-    lines = resolved.split("\n")
-    filtered = []
-    for line in lines:
-        stripped = line.strip()
-        # Remove paths: lines with empty or glob-only value after token resolution
-        if stripped.startswith("paths:"):
-            value = stripped[len("paths:") :].strip().strip("\"'")
-            # Empty, or starts with a glob wildcard (token resolved to empty)
-            if not value or value.startswith("/") or value.startswith("*"):
-                # Extract the original token key from the line for logging
-                import re as _re
+    if missing:
+        unique = sorted(set(missing))
+        raise DeploymentError(
+            f"missing detected_paths keys: {unique}"
+            + (f" while resolving {source}" if source else "")
+            + "; populate them in .dotnet-ai-kit/project.yml or re-run `/dai.detect`."
+        )
 
-                token_match = _re.search(r"\$\{detected_paths\.(\w+)\}", line)
-                key = token_match.group(1) if token_match else "unknown"
-                logger.debug(
-                    "Removing paths: line — token %s resolved to empty",
-                    key,
-                )
-                continue
-        filtered.append(line)
-
-    return "\n".join(filtered)
+    return resolved
 
 
 def copy_skills(
@@ -401,8 +430,31 @@ def copy_skills(
         dest.parent.mkdir(parents=True, exist_ok=True)
         content = skill_file.read_text(encoding="utf-8")
 
-        if detected_paths and "${detected_paths." in content:
-            content = _resolve_detected_path_tokens(content, detected_paths)
+        # FR-033 fail-closed at the SKILL level: we never deploy a SKILL.md
+        # with a literal ``${detected_paths.`` substring — that would let the
+        # rule router fall back to a project-root glob and load the skill on
+        # every C# edit. Three branches:
+        #   1. detected_paths is None / empty (legacy install, linked-repo
+        #      fallback): skip every token-bearing skill.
+        #   2. detected_paths is partial (e.g. command service missing
+        #      ``cosmos_entities``): skip skills whose token can't resolve;
+        #      deploy the rest with substituted paths.
+        #   3. detected_paths is complete: resolve cleanly and deploy.
+        if "${detected_paths." in content:
+            if not detected_paths:
+                logger.warning(
+                    "skipping %s: ${detected_paths.*} tokens require "
+                    "running /dai.detect (no detected_paths available)",
+                    rel_path,
+                )
+                continue
+            try:
+                content = _resolve_detected_path_tokens(
+                    content, detected_paths, source=str(rel_path)
+                )
+            except DeploymentError as exc:
+                logger.warning("skipping %s: %s", rel_path, exc)
+                continue
 
         dest.write_text(content, encoding="utf-8")
         count += 1
@@ -666,20 +718,48 @@ def copy_hook(
     # Remove existing architecture hook if present
     pre_tool_use = [h for h in pre_tool_use if h.get("_source") != "dotnet-ai-kit-arch"]
 
-    pre_tool_use.append(
-        {
-            "_source": "dotnet-ai-kit-arch",
-            "matcher": "Write|Edit",
-            "hooks": [
-                {
-                    "type": "prompt",
-                    "prompt": prompt,
-                    "model": HOOK_MODEL,
-                    "timeout": HOOK_TIMEOUT_MS,
-                }
-            ],
-        }
-    )
+    # FR-005 (T018b): on Claude Code >= v2.1.85, emit the dynamic arch hook
+    # with handler-level `if:` filters so the prompt only fires on .cs edits.
+    # On older Claude Code, fall back to the command-pattern matcher.
+    meets_minimum, _ = check_claude_code_version()
+    if meets_minimum:
+        pre_tool_use.append(
+            {
+                "_source": "dotnet-ai-kit-arch",
+                "matcher": "Edit|Write",
+                "hooks": [
+                    {
+                        "type": "prompt",
+                        "prompt": prompt,
+                        "model": HOOK_MODEL,
+                        "timeout": HOOK_TIMEOUT_MS,
+                        "if": "Edit(*.cs)",
+                    },
+                    {
+                        "type": "prompt",
+                        "prompt": prompt,
+                        "model": HOOK_MODEL,
+                        "timeout": HOOK_TIMEOUT_MS,
+                        "if": "Write(*.cs)",
+                    },
+                ],
+            }
+        )
+    else:
+        pre_tool_use.append(
+            {
+                "_source": "dotnet-ai-kit-arch",
+                "matcher": "Write|Edit",
+                "hooks": [
+                    {
+                        "type": "prompt",
+                        "prompt": prompt,
+                        "model": HOOK_MODEL,
+                        "timeout": HOOK_TIMEOUT_MS,
+                    }
+                ],
+            }
+        )
 
     hooks["PreToolUse"] = pre_tool_use
     settings["hooks"] = hooks
@@ -977,13 +1057,16 @@ def deploy_to_linked_repos(
                     )
                     continue
 
-            # Read secondary project type (fallback to generic if missing)
+            # Read secondary project type via load_project (FR-009).
+            from .config import load_project as _load_proj
+
             if project_yml.is_file():
-                proj_data = yaml.safe_load(project_yml.read_text(encoding="utf-8")) or {}
+                _sec_proj = _load_proj(project_yml)
+                sec_project_type = _sec_proj.project_type or "generic"
+                sec_confidence = _sec_proj.confidence or "low"
             else:
-                proj_data = {}
-            sec_project_type = proj_data.get("project_type", "generic")
-            sec_confidence = proj_data.get("confidence", "low")
+                sec_project_type = "generic"
+                sec_confidence = "low"
             # Create branch
             subprocess.run(
                 ["git", "checkout", "-b", branch_name],
@@ -1000,7 +1083,9 @@ def deploy_to_linked_repos(
             )
 
             # Read secondary detected_paths for skill token resolution
-            sec_detected_paths = proj_data.get("detected_paths")
+            sec_detected_paths = (
+                _sec_proj.detected_paths if project_yml.is_file() and _sec_proj else None
+            )
 
             # Deploy full tooling stack for each configured AI tool
             commands_dir = package_dir / "commands"

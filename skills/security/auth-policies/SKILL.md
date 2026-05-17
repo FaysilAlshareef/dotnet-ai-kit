@@ -1,11 +1,10 @@
 ---
 name: auth-policies
-description: >
-  Use when implementing policy-based authorization with custom requirements or permissions.
+description: Use when implementing policy-based authorization with custom requirements or permissions.
 metadata:
   category: security
   agent: api-designer
-  when-to-use: "When implementing policy-based authorization or permission-based access control"
+when_to_use: When implementing policy-based authorization or permission-based access control
 ---
 
 # Policy-Based Authorization

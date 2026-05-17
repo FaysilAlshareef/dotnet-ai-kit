@@ -1,11 +1,10 @@
 ---
 name: batch-processing
-description: >
-  Use when implementing batch event processing with BackgroundService and concurrency control.
+description: Use when implementing batch event processing with BackgroundService and concurrency control.
 metadata:
   category: microservice/processor
   agent: processor-architect
-  when-to-use: "When implementing batch event processing with BackgroundService and session batching"
+when_to_use: When implementing batch event processing with BackgroundService and session batching
 ---
 
 # Batch Processing — BackgroundService with Session Batching

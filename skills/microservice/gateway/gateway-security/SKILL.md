@@ -1,11 +1,10 @@
 ---
 name: gateway-security
-description: >
-  Use when configuring JWT auth, authorization policies, or role-based access on gateway endpoints.
+description: Use when configuring JWT auth, authorization policies, or role-based access on gateway endpoints.
 metadata:
   category: microservice/gateway
   agent: gateway-architect
-  when-to-use: "When configuring gateway JWT authentication, authorization policies, or role-based access"
+when_to_use: When configuring gateway JWT authentication, authorization policies, or role-based access
 ---
 
 # Gateway Security — Authentication & Authorization

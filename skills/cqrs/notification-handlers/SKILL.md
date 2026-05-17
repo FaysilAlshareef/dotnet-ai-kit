@@ -1,11 +1,10 @@
 ---
 name: notification-handlers
-description: >
-  Use when dispatching domain events via MediatR notifications with multiple handlers.
+description: Use when dispatching domain events via MediatR notifications with multiple handlers.
 metadata:
   category: cqrs
   agent: ef-specialist
-  when-to-use: "When implementing domain event dispatch using MediatR notification handlers"
+when_to_use: When implementing domain event dispatch using MediatR notification handlers
 ---
 
 # Notification Handlers (Domain Events)

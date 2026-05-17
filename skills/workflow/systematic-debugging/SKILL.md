@@ -1,11 +1,9 @@
 ---
 name: systematic-debugging
-description: >
-  Use when encountering any bug, test failure, build error, or unexpected
-  behavior — before proposing fixes or making changes.
+description: Use when encountering any bug, test failure, build error, or unexpected behavior — before proposing fixes or making changes.
 metadata:
   category: workflow
-  when-to-use: "When any test fails, build breaks, or behavior is unexpected during development"
+when_to_use: When any test fails, build breaks, or behavior is unexpected during development
 ---
 
 # Systematic Debugging — Root Cause Before Fixes

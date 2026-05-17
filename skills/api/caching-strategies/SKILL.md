@@ -1,11 +1,10 @@
 ---
 name: caching-strategies
-description: >
-  Use when adding caching to .NET APIs or optimizing response times with distributed cache, output cache, or ETags.
+description: Use when adding caching to .NET APIs or optimizing response times with distributed cache, output cache, or ETags.
 metadata:
   category: api
   agent: api-designer
-  when-to-use: "When implementing caching strategies, output caching, or distributed cache patterns"
+when_to_use: When implementing caching strategies, output caching, or distributed cache patterns
 ---
 
 # Caching Strategies

@@ -1,11 +1,10 @@
 ---
 name: grpc-client
-description: >
-  Use when calling external gRPC services from a processor with retry and client factory.
+description: Use when calling external gRPC services from a processor with retry and client factory.
 metadata:
   category: microservice/processor
   agent: processor-architect
-  when-to-use: "When configuring gRPC client factory or cross-service communication with retry"
+when_to_use: When configuring gRPC client factory or cross-service communication with retry
 ---
 
 # gRPC Client -- Cross-Service Communication

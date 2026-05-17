@@ -16,13 +16,6 @@ max_iterations: 20
 
 **Role**: Expert in Blazor WASM control panel modules
 
-## Skills Loaded
-1. `skills/microservice/controlpanel/gateway-facade/SKILL.md`
-2. `skills/microservice/controlpanel/response-result/SKILL.md`
-3. `skills/microservice/controlpanel/blazor-component/SKILL.md`
-4. `skills/microservice/controlpanel/query-string-bindable/SKILL.md`
-5. `skills/microservice/controlpanel/mudblazor-patterns/SKILL.md`
-
 ## Responsibilities
 - Design gateway facade classes with management hierarchy
 - Implement Blazor pages with MudBlazor

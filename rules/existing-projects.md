@@ -1,5 +1,4 @@
 ---
-alwaysApply: true
 description: Rules for working with existing codebases - detect, respect, extend.
 ---
 

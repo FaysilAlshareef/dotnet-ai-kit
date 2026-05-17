@@ -1,11 +1,10 @@
 ---
 name: openapi-scalar
-description: >
-  Use when setting up OpenAPI spec generation or Scalar API documentation UI.
+description: Use when setting up OpenAPI spec generation or Scalar API documentation UI.
 metadata:
   category: api
   agent: api-designer
-  when-to-use: "When configuring OpenAPI spec generation or Scalar API documentation UI"
+when_to_use: When configuring OpenAPI spec generation or Scalar API documentation UI
 ---
 
 # OpenAPI & Scalar API Documentation

@@ -1,11 +1,10 @@
 ---
 name: cqrs-basics
-description: >
-  Use when implementing CQRS with separate read/write models and MediatR pipeline behaviors.
+description: Use when implementing CQRS with separate read/write models and MediatR pipeline behaviors.
 metadata:
   category: architecture
   agent: dotnet-architect
-  when-to-use: "When implementing CQRS patterns with separate read and write models"
+when_to_use: When implementing CQRS patterns with separate read and write models
 ---
 
 # CQRS Basics

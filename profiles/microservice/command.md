@@ -1,6 +1,9 @@
 ---
-alwaysApply: true
 description: "Architecture profile for command projects — hard constraints"
+paths:
+  - "src/**/Aggregates/**/*.cs"
+  - "src/**/Events/**/*.cs"
+  - "src/**/Handlers/**/*.cs"
 ---
 
 # Architecture Profile: Command (Event-Sourced CQRS)

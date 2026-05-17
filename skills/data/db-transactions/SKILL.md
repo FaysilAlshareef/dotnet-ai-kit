@@ -1,11 +1,10 @@
 ---
 name: db-transactions
-description: >
-  Use when managing database transactions, isolation levels, or cross-context coordination.
+description: Use when managing database transactions, isolation levels, or cross-context coordination.
 metadata:
   category: data
   agent: ef-specialist
-  when-to-use: "When managing database transactions, isolation levels, or cross-context coordination"
+when_to_use: When managing database transactions, isolation levels, or cross-context coordination
 ---
 
 # Database Transactions

@@ -1,0 +1,70 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/FaysilAlshareef/dotnet-ai-kit/schemas/mcp.schema.json",
+  "title": "dotnet-ai-kit .mcp.json contract",
+  "description": "Validates the .mcp.json after FR-018 / FR-035 fix. Two required servers: csharp-ls (symbol precision) and codebase-memory-mcp (graph/impact/architecture). Sidecar metadata key dotnet_ai_kit_min_version is documentation-only; runtime enforcement lives in src/dotnet_ai_kit/mcp_check.py.",
+  "type": "object",
+  "required": ["mcpServers"],
+  "additionalProperties": true,
+  "properties": {
+    "mcpServers": {
+      "type": "object",
+      "required": ["csharp-ls", "codebase-memory-mcp"],
+      "additionalProperties": { "$ref": "#/$defs/MCPServerEntry" },
+      "properties": {
+        "csharp-ls": { "$ref": "#/$defs/MCPServerEntry" },
+        "codebase-memory-mcp": {
+          "allOf": [
+            { "$ref": "#/$defs/MCPServerEntry" },
+            {
+              "type": "object",
+              "properties": {
+                "dotnet_ai_kit_min_version": {
+                  "type": "string",
+                  "pattern": "^\\d+\\.\\d+\\.\\d+$",
+                  "description": "Plugin-side minimum version constraint. Documentation only; runtime enforcement in mcp_check.py. Current target: 0.6.1"
+                }
+              },
+              "required": ["dotnet_ai_kit_min_version"]
+            }
+          ]
+        }
+      }
+    }
+  },
+  "$defs": {
+    "MCPServerEntry": {
+      "type": "object",
+      "required": ["command"],
+      "additionalProperties": true,
+      "properties": {
+        "command": { "type": "string", "minLength": 1 },
+        "args": {
+          "type": "array",
+          "items": { "type": "string" }
+        },
+        "transport": {
+          "type": "string",
+          "enum": ["stdio", "sse"]
+        }
+      }
+    }
+  },
+  "examples": [
+    {
+      "mcpServers": {
+        "csharp-ls": {
+          "command": "csharp-ls",
+          "args": ["--solution", "."],
+          "transport": "stdio"
+        },
+        "codebase-memory-mcp": {
+          "command": "codebase-memory-mcp",
+          "args": ["--project", "."],
+          "transport": "stdio",
+          "dotnet_ai_kit_min_version": "0.6.1"
+        }
+      }
+    }
+  ]
+}

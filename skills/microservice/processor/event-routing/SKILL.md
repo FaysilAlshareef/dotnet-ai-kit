@@ -1,11 +1,10 @@
 ---
 name: event-routing
-description: >
-  Use when routing Service Bus events by subject to typed MediatR handlers.
+description: Use when routing Service Bus events by subject to typed MediatR handlers.
 metadata:
   category: microservice/processor
   agent: processor-architect
-  when-to-use: "When implementing subject-based event routing or inline HandleAsync dispatch"
+when_to_use: When implementing subject-based event routing or inline HandleAsync dispatch
 ---
 
 # Event Routing — Subject-Based Inline Dispatch

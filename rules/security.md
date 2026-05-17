@@ -1,5 +1,4 @@
 ---
-alwaysApply: true
 description: Enforces security best practices — authentication, input validation, secrets, CORS, and output encoding.
 ---
 

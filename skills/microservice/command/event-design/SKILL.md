@@ -1,12 +1,11 @@
 ---
 name: event-design
-description: >
-  Use when designing domain events with Event<TData> hierarchy for event sourcing.
+description: Use when designing domain events with Event<TData> hierarchy for event sourcing.
 metadata:
   category: microservice/command
   agent: command-architect
-  when-to-use: "When creating or modifying domain events, event data records, EventType enums"
-  paths: "${detected_paths.events}/**/*.cs"
+when_to_use: When creating or modifying domain events, event data records, EventType enums
+paths: ${detected_paths.events}/**/*.cs
 ---
 
 # Event Design -- Event Hierarchy Pattern

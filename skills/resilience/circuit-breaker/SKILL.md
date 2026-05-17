@@ -1,11 +1,10 @@
 ---
 name: circuit-breaker
-description: >
-  Use when adding circuit breaker protection against cascading failures.
+description: Use when adding circuit breaker protection against cascading failures.
 metadata:
   category: resilience
   agent: api-designer
-  when-to-use: "When implementing circuit breaker pattern to prevent cascading failures"
+when_to_use: When implementing circuit breaker pattern to prevent cascading failures
 ---
 
 # Circuit Breaker Pattern

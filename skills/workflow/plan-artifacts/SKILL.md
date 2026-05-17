@@ -1,10 +1,9 @@
 ---
 name: plan-artifacts
-description: >
-  Use when generating supporting artifacts (briefs, service maps) during implementation planning.
+description: Use when generating supporting artifacts (briefs, service maps) during implementation planning.
 metadata:
-  when-to-use: "When generating supporting artifacts like research docs for complex feature plans"
   category: workflow
+when_to_use: When generating supporting artifacts like research docs for complex feature plans
 ---
 
 # Plan Artifacts Skill

@@ -1,11 +1,10 @@
 ---
 name: azure-resources
-description: >
-  Use when provisioning Azure resources — Service Bus, Cosmos DB, SQL Server — for microservices.
+description: Use when provisioning Azure resources — Service Bus, Cosmos DB, SQL Server — for microservices.
 metadata:
   category: devops
   agent: devops-engineer
-  when-to-use: "When provisioning Azure resources like Service Bus, Cosmos DB, or SQL Server"
+when_to_use: When provisioning Azure resources like Service Bus, Cosmos DB, or SQL Server
 ---
 
 # Azure Resources — Service Bus, Cosmos DB, SQL Server

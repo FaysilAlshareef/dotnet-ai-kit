@@ -1,12 +1,10 @@
 ---
 name: receiving-review-feedback
-description: >
-  Use when receiving code review feedback from CodeRabbit, PR reviewers, or
-  human reviewers — before implementing any suggested changes.
+description: Use when receiving code review feedback from CodeRabbit, PR reviewers, or human reviewers — before implementing any suggested changes.
 metadata:
   category: workflow
   agent: reviewer
-  when-to-use: "When processing review comments, PR feedback, or CodeRabbit suggestions on implemented code"
+when_to_use: When processing review comments, PR feedback, or CodeRabbit suggestions on implemented code
 ---
 
 # Receiving Review Feedback — Technical Rigor Over Social Performance

@@ -35,7 +35,7 @@ Based on the detected project type, read the specialist agent for architectural 
 - **Generic mode** (VSA, Clean Arch, DDD, Modular Monolith):
   - Read `agents/dotnet-architect.md`
 
-Load all skills listed in the agent's Skills Loaded section.
+Bounded skill selection (FR-012): keep one architect agent for the project type loaded, load at most 2 task-specific skills initially, and run MCP queries (codebase-memory-mcp) before broad file reads.
 
 ## Step 1: Load Prerequisites
 
@@ -168,14 +168,7 @@ For generic .NET projects, organize by architectural layer:
 
 ## Task Format Rules
 
-- Every task has a unique ID: `T001`, `T002`, etc.
-- `[P]` = can run in parallel (different files, no dependency within the phase)
-- `[depends: T{N}]` = blocked until single task completes
-- `[depends: T{N}, T{M}]` = blocked until multiple specific tasks complete
-- `[depends: T{N}-T{M}]` = blocked until a range of tasks complete (inclusive)
-- `[Repo:{name}]` = target repo (microservice mode)
-- Tasks without markers depend on the previous task (sequential default)
-- Include exact file paths; each task should be completable in one step
+- Unique `T001`, `T002` IDs. `[P]` parallelizable. `[depends: T{N} | T{N},T{M} | T{N}-T{M}]` to block. `[Repo:{name}]` in microservice mode. No marker = sequential after previous. Each task must list exact file paths and be one-step completable.
 
 ## Step 5: Report
 

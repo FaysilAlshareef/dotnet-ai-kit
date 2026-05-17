@@ -1,0 +1,44 @@
+# rules/*.md and profiles/**/*.md frontmatter contract (post FR-008, FR-011, FR-017)
+# Hard rules:
+#   1. No `alwaysApply` field anywhere (FR-008). Always-loaded = absence of `paths:`.
+#   2. Universal whitelist (existing-projects, tool-calls, coding-style, security)
+#      MAY have no `paths:`. Every other rule MUST have a top-level `paths:` list
+#      (FR-011). Profiles MUST have `paths:` (FR-017).
+#   3. `description` is optional but recommended.
+
+$schema: https://json-schema.org/draft/2020-12/schema
+title: dotnet-ai-kit Rule / Profile Frontmatter
+description: Validates the YAML frontmatter block of every rules/*.md and profiles/**/*.md after the FR-008/011/017 fix.
+type: object
+additionalProperties: true
+properties:
+  description:
+    type: string
+    description: One-sentence summary visible to humans browsing the rule.
+  paths:
+    oneOf:
+      - type: string
+      - type: array
+        items: { type: string }
+    description: |
+      Top-level path scope. Glob string or list. Required for non-universal rules
+      (FR-011) and for all profiles (FR-017). Absence means always-loaded.
+  alwaysApply:
+    not: {}
+    description: |
+      Cursor-style field with no effect in Claude. MUST NOT appear (FR-008).
+
+allOf:
+  - description: |
+      Universal whitelist enforcement is performed by pytest, not schema:
+      tests/test_rule_frontmatter.py checks that any rule outside the
+      4-file whitelist has a `paths:` field.
+
+examples:
+  - description: Detect-first, respect-existing — never auto-refactor.
+    # universal: no paths
+  - description: API design rules — status codes, ProblemDetails, versioning.
+    paths:
+      - "**/Controllers/**/*.cs"
+      - "**/Endpoints/**/*.cs"
+      - "**/Program.cs"

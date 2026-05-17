@@ -1,11 +1,10 @@
 ---
 name: validation
-description: >
-  Use when adding FluentValidation to gRPC requests with Calzolari integration.
+description: Use when adding FluentValidation to gRPC requests with Calzolari integration.
 metadata:
   category: microservice/grpc
   agent: command-architect
-  when-to-use: "When writing FluentValidation validators for gRPC request messages"
+when_to_use: When writing FluentValidation validators for gRPC request messages
 ---
 
 # Validation — FluentValidation + gRPC

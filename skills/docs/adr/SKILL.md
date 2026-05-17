@@ -1,11 +1,10 @@
 ---
 name: adr
-description: >
-  Use when writing Architecture Decision Records to document technical decisions.
+description: Use when writing Architecture Decision Records to document technical decisions.
 metadata:
   category: docs
   agent: docs-engineer
-  when-to-use: "When writing or reviewing Architecture Decision Records"
+when_to_use: When writing or reviewing Architecture Decision Records
 ---
 
 # ADR — Architecture Decision Records

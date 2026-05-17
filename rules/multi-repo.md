@@ -1,6 +1,10 @@
 ---
 description: "Multi-repo event contract and deployment conventions for microservice architectures"
-alwaysApply: true
+paths:
+  - ".dotnet-ai-kit/briefs/**"
+  - ".dotnet-ai-kit/features/**/service-map.md"
+  - "**/Events/**/*.cs"
+  - "**/Protos/**"
 ---
 
 # Multi-Repo Conventions

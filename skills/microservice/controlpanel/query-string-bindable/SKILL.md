@@ -1,11 +1,10 @@
 ---
 name: query-string-bindable
-description: >
-  Use when synchronizing filter models with URL query strings in Blazor data grids.
+description: Use when synchronizing filter models with URL query strings in Blazor data grids.
 metadata:
   category: microservice/controlpanel
   agent: controlpanel-architect
-  when-to-use: "When implementing URL-synchronized filter models or QueryStringBindable patterns"
+when_to_use: When implementing URL-synchronized filter models or QueryStringBindable patterns
 ---
 
 # QueryStringBindable — URL-Synchronized Filters

@@ -1,11 +1,10 @@
 ---
 name: modular-monolith
-description: >
-  Use when structuring a modular monolith with module isolation and inter-module communication.
+description: Use when structuring a modular monolith with module isolation and inter-module communication.
 metadata:
   category: architecture
   agent: dotnet-architect
-  when-to-use: "When designing modular monolith structure, module isolation, or inter-module communication"
+when_to_use: When designing modular monolith structure, module isolation, or inter-module communication
 ---
 
 # Modular Monolith

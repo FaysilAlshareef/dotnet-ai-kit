@@ -1,11 +1,9 @@
 ---
 name: modern-csharp
-description: >
-  Use when adopting C# 12/13/14 features — primary constructors, collection expressions, or field keyword.
+description: Use when adopting C# 12/13/14 features — primary constructors, collection expressions, or field keyword.
 metadata:
   category: core
   agent: dotnet-architect
-  alwaysApply: true
 ---
 
 # Modern C# Features

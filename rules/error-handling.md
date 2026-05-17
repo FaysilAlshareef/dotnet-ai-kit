@@ -1,6 +1,7 @@
 ---
-alwaysApply: true
 description: Enforces error handling patterns appropriate to the project mode.
+paths:
+  - "**/*.cs"
 ---
 
 # Error Handling

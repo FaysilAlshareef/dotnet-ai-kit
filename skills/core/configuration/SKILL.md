@@ -1,11 +1,10 @@
 ---
 name: configuration
-description: >
-  Use when setting up IConfiguration, Options pattern, appsettings layering, or user secrets.
+description: Use when setting up IConfiguration, Options pattern, appsettings layering, or user secrets.
 metadata:
   category: core
   agent: dotnet-architect
-  when-to-use: "When configuring IOptions pattern, appsettings layering, or ValidateOnStart"
+when_to_use: When configuring IOptions pattern, appsettings layering, or ValidateOnStart
 ---
 
 # Configuration & Options Pattern

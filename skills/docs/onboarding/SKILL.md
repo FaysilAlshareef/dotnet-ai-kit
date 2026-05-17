@@ -1,11 +1,10 @@
 ---
 name: onboarding
-description: >
-  Use when generating developer onboarding documentation or setup guides.
+description: Use when generating developer onboarding documentation or setup guides.
 metadata:
   category: docs
   agent: docs-engineer
-  when-to-use: "When creating developer onboarding documentation or setup guides"
+when_to_use: When creating developer onboarding documentation or setup guides
 ---
 
 # Onboarding — Developer Documentation

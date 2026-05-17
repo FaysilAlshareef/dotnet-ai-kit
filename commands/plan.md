@@ -35,7 +35,7 @@ Based on the detected project type, read the specialist agent for architectural 
 - **Generic mode** (VSA, Clean Arch, DDD, Modular Monolith):
   - Read `agents/dotnet-architect.md`
 
-Load all skills listed in the agent's Skills Loaded section.
+Bounded skill selection (FR-012): keep one architect agent for the project type loaded, load at most 2 task-specific skills initially, and run MCP queries (codebase-memory-mcp) before broad file reads.
 
 ## Step 1: Load Prerequisites
 
@@ -59,10 +59,12 @@ Load all skills listed in the agent's Skills Loaded section.
 
 If `.dotnet-ai-kit/memory/constitution.md` does not exist, skip this gate with a warning: "Project constitution not found — run /dai.learn to generate." Continue to Phase 0.
 
-Read `.dotnet-ai-kit/memory/constitution.md` and verify compliance:
-- Detect-First: plan must research existing code before proposing changes
-- Pattern Fidelity: plan must follow detected conventions
-- Architecture Agnostic: plan must match the project's architecture
+Read the topic files relevant to planning — typically `.dotnet-ai-kit/memory/architecture.md` and `.dotnet-ai-kit/memory/domain-model.md` — *not* the full monolithic constitution (FR-024). The `constitution.md` index lists which topic to read for which check.
+
+Verify compliance:
+- Detect-First: plan must research existing code before proposing changes (uses `architecture.md` + `conventions.md`).
+- Pattern Fidelity: plan must follow detected conventions (`conventions.md`).
+- Architecture Agnostic: plan must match the project's architecture (`architecture.md`).
 
 Document result in `## Constitution Check`. Violations go to `## Complexity Tracking`.
 
@@ -153,3 +155,11 @@ When updating projected briefs in linked secondary repos:
 - Missing spec: direct to `/dotnet-ai.specify`
 - Missing config: proceed with auto-detection, warn user
 - Constitution violations: document but do not block
+
+## MCP-first (FR-021 / FR-022)
+
+Graph/dependency/ownership/architecture questions: query `codebase-memory-mcp` first; use `csharp-ls` for symbol-precise lookups; `grep`/file reads only as last resort.
+
+If MCP is unavailable, emit exactly:
+> MCP unavailable: codebase-memory-mcp is not connected or below >=0.6.1; falling back to csharp-ls + grep/read.
+

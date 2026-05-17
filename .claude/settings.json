@@ -107,54 +107,5 @@
       "WebFetch(domain:learn.microsoft.com)"
     ]
   },
-  "hooks": {
-    "PreToolUse": [
-      {
-        "matcher": "Bash",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash hooks/pre-bash-guard.sh",
-            "timeout": 10,
-            "statusMessage": "Checking command safety..."
-          }
-        ]
-      },
-      {
-        "matcher": "Bash(git commit*)",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash hooks/pre-commit-lint.sh",
-            "timeout": 30,
-            "statusMessage": "Verifying code formatting..."
-          }
-        ]
-      }
-    ],
-    "PostToolUse": [
-      {
-        "matcher": "Edit|Write",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash hooks/post-edit-format.sh",
-            "timeout": 30,
-            "statusMessage": "Formatting C# file..."
-          }
-        ]
-      },
-      {
-        "matcher": "Bash(dotnet new*)",
-        "hooks": [
-          {
-            "type": "command",
-            "command": "bash hooks/post-scaffold-restore.sh",
-            "timeout": 15,
-            "statusMessage": "Restoring packages..."
-          }
-        ]
-      }
-    ]
-  }
+  "hooks": {}
 }

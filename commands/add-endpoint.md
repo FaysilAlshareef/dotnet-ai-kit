@@ -49,7 +49,7 @@ Create a REST endpoint in a gateway project with controller action, gRPC client 
 
 ## Load Specialist Agent
 
-Read `agents/gateway-architect.md` for gateway patterns. Also read `agents/api-designer.md` for REST API design. Load all skills listed in each agent's Skills Loaded section.
+Read `agents/gateway-architect.md` for gateway patterns. Also read `agents/api-designer.md` for REST API design. Bounded skill selection (FR-012): keep one architect agent for the project type loaded, load at most 2 task-specific skills initially, and run MCP queries (codebase-memory-mcp) before broad file reads.
 
 ## Skills to Read
 

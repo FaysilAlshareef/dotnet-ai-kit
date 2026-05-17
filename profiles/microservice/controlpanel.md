@@ -1,6 +1,8 @@
 ---
-alwaysApply: true
 description: "Architecture profile for control panel projects — hard constraints"
+paths:
+  - "**/*.razor"
+  - "src/**/*.cs"
 ---
 
 # Architecture Profile: Control Panel (Blazor + MudBlazor)

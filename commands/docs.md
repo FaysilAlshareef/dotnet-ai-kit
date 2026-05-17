@@ -42,7 +42,7 @@ Generate or update technical and business documentation. With no subcommand, sca
 
 ## Load Specialist Agent
 
-Read `agents/docs-engineer.md` for documentation patterns. Load all skills listed in the agent's Skills Loaded section.
+Read `agents/docs-engineer.md` for documentation patterns. Bounded skill selection (FR-012): keep one architect agent for the project type loaded, load at most 2 task-specific skills initially, and run MCP queries (codebase-memory-mcp) before broad file reads.
 
 ## Pre-Generation (all subcommands)
 

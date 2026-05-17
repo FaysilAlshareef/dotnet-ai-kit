@@ -1,11 +1,10 @@
 ---
 name: code-analysis
-description: >
-  Use when configuring Roslyn analyzers, StyleCop, or EditorConfig for static analysis.
+description: Use when configuring Roslyn analyzers, StyleCop, or EditorConfig for static analysis.
 metadata:
   category: quality
   agent: reviewer
-  when-to-use: "When configuring static code analysis, Roslyn analyzers, or EditorConfig rules"
+when_to_use: When configuring static code analysis, Roslyn analyzers, or EditorConfig rules
 ---
 
 # Code Analysis — Roslyn Analyzers & EditorConfig

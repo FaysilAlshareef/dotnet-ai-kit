@@ -1,12 +1,11 @@
 ---
 name: gateway-endpoint
-description: >
-  Use when building REST gateway controllers that delegate to gRPC backend services.
+description: Use when building REST gateway controllers that delegate to gRPC backend services.
 metadata:
   category: microservice/gateway
   agent: gateway-architect
-  when-to-use: "When creating or modifying REST controllers or gRPC service endpoints"
-  paths: "${detected_paths.controllers}/**/*.cs"
+when_to_use: When creating or modifying REST controllers or gRPC service endpoints
+paths: ${detected_paths.controllers}/**/*.cs
 ---
 
 # Gateway Endpoint — REST to gRPC Bridge

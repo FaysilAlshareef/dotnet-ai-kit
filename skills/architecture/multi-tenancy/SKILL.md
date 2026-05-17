@@ -1,11 +1,10 @@
 ---
 name: multi-tenancy
-description: >
-  Use when adding multi-tenant support with tenant isolation, per-tenant databases, or query filters.
+description: Use when adding multi-tenant support with tenant isolation, per-tenant databases, or query filters.
 metadata:
   category: architecture
   agent: dotnet-architect
-  when-to-use: "When implementing multi-tenant architecture, tenant isolation, or tenant resolution"
+when_to_use: When implementing multi-tenant architecture, tenant isolation, or tenant resolution
 ---
 
 # Multi-Tenancy

@@ -24,7 +24,7 @@ Flags: `--dry-run` (preview checks without running), `--verbose` (diagnostic out
 
 ## Load Specialist Agents
 
-Read `agents/test-engineer.md` for test verification. Read `agents/devops-engineer.md` for build/deploy checks. Load all skills listed in both agents' Skills Loaded sections.
+Read `agents/test-engineer.md` for test verification. Read `agents/devops-engineer.md` for build/deploy checks. Bounded skill selection (FR-012): keep one architect agent for the project type loaded, load at most 2 task-specific skills initially, and run MCP queries (codebase-memory-mcp) before broad file reads.
 
 ## Step 1: Identify Affected Repos
 

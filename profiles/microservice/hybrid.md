@@ -1,6 +1,7 @@
 ---
-alwaysApply: true
 description: "Architecture profile for hybrid (command+query) projects — hard constraints"
+paths:
+  - "src/**/*.cs"
 ---
 
 # Architecture Profile: Hybrid (Command + Query Combined)

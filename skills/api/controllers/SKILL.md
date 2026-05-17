@@ -1,11 +1,10 @@
 ---
 name: controllers
-description: >
-  Use when creating RESTful API controllers with MediatR dispatch and ProblemDetails error responses.
+description: Use when creating RESTful API controllers with MediatR dispatch and ProblemDetails error responses.
 metadata:
   category: api
   agent: api-designer
-  when-to-use: "When creating RESTful API controllers with authorization and ProblemDetails"
+when_to_use: When creating RESTful API controllers with authorization and ProblemDetails
 ---
 
 # Controller Patterns

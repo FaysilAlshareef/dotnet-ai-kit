@@ -1,11 +1,10 @@
 ---
 name: diagram-gen
-description: >
-  Use when creating Mermaid diagrams for architecture, event flows, or sequence diagrams.
+description: Use when creating Mermaid diagrams for architecture, event flows, or sequence diagrams.
 metadata:
   category: docs
   agent: docs-engineer
-  when-to-use: "When generating Mermaid diagrams for service topology, event flows, or class structures"
+when_to_use: When generating Mermaid diagrams for service topology, event flows, or class structures
 ---
 
 # Diagram Generation — Mermaid Patterns

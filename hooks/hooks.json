@@ -25,7 +25,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pre-commit-lint.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pre-commit-lint.sh",
+            "if": "Bash(git commit*)"
           }
         ]
       }
@@ -36,7 +37,13 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/post-edit-format.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/post-edit-format.sh",
+            "if": "Edit(*.cs)"
+          },
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/post-edit-format.sh",
+            "if": "Write(*.cs)"
           }
         ]
       },
@@ -45,7 +52,8 @@
         "hooks": [
           {
             "type": "command",
-            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/post-scaffold-restore.sh"
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/post-scaffold-restore.sh",
+            "if": "Bash(dotnet new*)"
           }
         ]
       }

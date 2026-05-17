@@ -55,10 +55,17 @@ packages = ["src/dotnet_ai_kit"]
 "config" = "dotnet_ai_kit/bundled/config"
 "profiles" = "dotnet_ai_kit/bundled/profiles"
 "prompts" = "dotnet_ai_kit/bundled/prompts"
+".claude-plugin" = "dotnet_ai_kit/bundled/.claude-plugin"
+"hooks" = "dotnet_ai_kit/bundled/hooks"
+".mcp.json" = "dotnet_ai_kit/bundled/.mcp.json"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
 pythonpath = ["src"]
+markers = [
+    "smoke: requires CLAUDE_CODE_SMOKE=1 and claude on PATH",
+    "windows_only: requires sys.platform == 'win32'",
+]
 
 [tool.ruff]
 target-version = "py310"
@@ -66,6 +73,14 @@ line-length = 100
 
 [tool.ruff.lint]
 select = ["E", "F", "I", "W"]
+
+[tool.ruff.lint.per-file-ignores]
+# violation_harness.py uses dense tabular Violation declarations; readability
+# wins over column 100. cli.py keeps a few long template strings.
+"scripts/violation_harness.py" = ["E501"]
+"scripts/rewrite_skill_frontmatter.py" = ["E501"]
+"src/dotnet_ai_kit/cli.py" = ["E501"]
+"tests/integration/test_end_to_end_install.py" = ["E501"]
 
 [dependency-groups]
 dev = [

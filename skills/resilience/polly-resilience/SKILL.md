@@ -1,11 +1,10 @@
 ---
 name: polly-resilience
-description: >
-  Use when building Polly v8 resilience pipelines with retry, timeout, or fallback.
+description: Use when building Polly v8 resilience pipelines with retry, timeout, or fallback.
 metadata:
   category: resilience
   agent: api-designer
-  when-to-use: "When implementing Polly v8 resilience pipelines for retry, timeout, or fallback"
+when_to_use: When implementing Polly v8 resilience pipelines for retry, timeout, or fallback
 ---
 
 # Polly Resilience Pipelines

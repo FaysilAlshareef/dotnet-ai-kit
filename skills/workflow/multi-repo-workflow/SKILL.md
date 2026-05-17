@@ -1,11 +1,10 @@
 ---
 name: multi-repo-workflow
-description: >
-  Use when coordinating changes across multiple microservice repositories.
+description: Use when coordinating changes across multiple microservice repositories.
 metadata:
   category: workflow
   agent: dotnet-architect
-  when-to-use: "When coordinating cross-repo development, dependency chains, or deployment order"
+when_to_use: When coordinating cross-repo development, dependency chains, or deployment order
 ---
 
 # Multi-Repo Workflow — Cross-Service Coordination

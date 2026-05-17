@@ -68,7 +68,9 @@ AGENT_FRONTMATTER_MAP: dict[str, dict[str, Any]] = {
             "testing": {},
             "review": {"disallowedTools": ["Write", "Edit"]},
         },
-        "expertise": lambda skills: {"skills": skills},
+        # FR-013: do NOT emit ``skills:`` from agent ``expertise``. Claude Code
+        # has no ``skills:`` agent field; lifting expertise into it just
+        # silently bulk-loads skills the user did not ask for.
         "complexity": {
             "high": {"effort": "high", "model": "opus"},
             "medium": {"effort": "medium", "model": "sonnet"},

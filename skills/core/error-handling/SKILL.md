@@ -1,11 +1,9 @@
 ---
 name: error-handling
-description: >
-  Use when implementing error handling with domain exceptions, ProblemDetails, or RpcException mapping.
+description: Use when implementing error handling with domain exceptions, ProblemDetails, or RpcException mapping.
 metadata:
   category: core
   agent: dotnet-architect
-  alwaysApply: true
 ---
 
 # Error Handling Patterns

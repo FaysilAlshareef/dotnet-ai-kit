@@ -1,11 +1,9 @@
 ---
 name: git-worktree-isolation
-description: >
-  Use when starting feature work that needs isolation from the current
-  workspace, or before executing implementation plans with multiple tasks.
+description: Use when starting feature work that needs isolation from the current workspace, or before executing implementation plans with multiple tasks.
 metadata:
   category: workflow
-  when-to-use: "Before feature implementation, multi-task plans, or parallel development work"
+when_to_use: Before feature implementation, multi-task plans, or parallel development work
 ---
 
 # Git Worktree Isolation — Safe Workspaces for Features

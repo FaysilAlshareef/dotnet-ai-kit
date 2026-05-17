@@ -1,11 +1,10 @@
 ---
 name: event-versioning
-description: >
-  Use when evolving event schemas, adding fields, or migrating event data versions.
+description: Use when evolving event schemas, adding fields, or migrating event data versions.
 metadata:
   category: microservice/command
   agent: command-architect
-  when-to-use: "When creating or modifying event schema versions, upcasters, or migration strategies"
+when_to_use: When creating or modifying event schema versions, upcasters, or migration strategies
 ---
 
 # Event Versioning — Schema Evolution

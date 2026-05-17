@@ -76,6 +76,18 @@ Confirm the following files/directories exist:
 - AI tool command directory (e.g., `.claude/commands/`)
 - AI tool rules directory (e.g., `.claude/rules/`)
 - `.dotnet-ai-kit/project.yml` (only if detection succeeded)
+- `.dotnet-ai-kit/manifest.json` (generated-file inventory, FR-032)
+
+### Step 6: Detect codebase-memory-mcp (FR-019)
+
+After deployment, the CLI runs `codebase-memory-mcp --version` and records the outcome under `.dotnet-ai-kit/mcp-state.yml :: mcp.codebase-memory-mcp`:
+
+- `accepted` — version `>= 0.6.1`, ready to use.
+- `below-minimum` — present but below `0.6.1`; falls back to csharp-ls + grep.
+- `unavailable` — not on PATH; offer three install paths:
+  1. `pip install "codebase-memory-mcp>=0.6.1"`
+  2. Windows: download the latest `codebase-memory-mcp-windows-amd64.zip` release and unzip onto PATH.
+  3. From source: `git clone … && pip install -e .`
 
 ## Error Handling
 

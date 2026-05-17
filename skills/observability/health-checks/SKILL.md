@@ -1,11 +1,10 @@
 ---
 name: health-checks
-description: >
-  Use when adding health check endpoints, Kubernetes probes, or health check UI.
+description: Use when adding health check endpoints, Kubernetes probes, or health check UI.
 metadata:
   category: observability
   agent: devops-engineer
-  when-to-use: "When configuring health check endpoints, Kubernetes probes, or health check UI"
+when_to_use: When configuring health check endpoints, Kubernetes probes, or health check UI
 ---
 
 # Health Checks

@@ -91,24 +91,42 @@ All 27 commands, 124 skills, 13 agents, 16 rules, and 5 safety hooks are availab
 </p>
 </details>
 
-### Optional: C# Language Intelligence (MCP)
+### Required dependencies
+
+The plugin ships with two MCP servers configured in `.mcp.json`:
+
+- **`csharp-ls`** — semantic C# navigation (symbol/reference precision).
+- **`codebase-memory-mcp >= 0.6.1`** — project graph, ownership, architecture (lazy queries instead of broad reads).
+
+#### Install csharp-ls
 
 ```bash
 dotnet tool install -g csharp-ls
 ```
 
-Enables semantic code navigation via MCP — ~10x fewer tokens than grep-based analysis.
+#### Install codebase-memory-mcp (>= 0.6.1)
 
-The included `.mcp.json` configures `csharp-ls` as an MCP server automatically. Once installed, the AI can:
+```bash
+# Cross-platform via PyPI
+pip install "codebase-memory-mcp>=0.6.1"
 
-| Capability | What It Does |
-|------------|-------------|
-| `find_symbol` | Navigate to any class, method, or interface by name |
-| `find_references` | Find all usages of a symbol across the solution |
-| `get_diagnostics` | See compiler errors and warnings in real time |
-| Semantic analysis | Understand inheritance, interfaces, and type relationships |
+# Windows (PowerShell) — download the latest release zip
+Invoke-WebRequest "https://github.com/.../codebase-memory-mcp-windows-amd64.zip" -OutFile cmm.zip
+Expand-Archive cmm.zip -DestinationPath "$env:LOCALAPPDATA\Programs\codebase-memory-mcp"
+# Then add that folder to PATH.
 
-Without `csharp-ls`, the AI uses grep-based analysis which works but uses significantly more context tokens on large codebases.
+# From source
+git clone https://github.com/.../codebase-memory-mcp.git
+pip install -e codebase-memory-mcp
+```
+
+`/dai.init` and `/dai.configure` run `codebase-memory-mcp --version` and record the outcome in `.dotnet-ai-kit/mcp-state.yml :: mcp.codebase-memory-mcp` (`accepted` / `below-minimum` / `unavailable`). Stored in a sibling file so the pydantic-validated `config.yml` schema stays narrow.
+
+Without `codebase-memory-mcp`, project-graph questions fall back to `csharp-ls + grep/read`. Without `csharp-ls`, the AI uses grep-based analysis which works but uses significantly more context tokens on large codebases.
+
+### Claude Code compatibility
+
+Claude Code **v2.1.85+** recommended. v1.0 is supported with reduced hook fidelity — the dynamic architecture hook falls back to a command-pattern matcher (no per-tool `if:` scoping).
 
 ---
 
@@ -766,7 +784,12 @@ your-project/
 
 ### Constitution & Persistent Knowledge
 
-Running `/dai.learn` generates `.dotnet-ai-kit/memory/constitution.md` — a persistent file that captures your project's architecture patterns, domain model, naming conventions, and established practices. Every subsequent `/dai.plan` reads this file as a compliance gate before generating implementation tasks. Update it anytime with `/dai.learn --update`.
+Running `/dai.learn` generates seven files under `.dotnet-ai-kit/memory/`:
+
+- `constitution.md` — index (≤100 lines)
+- `architecture.md`, `domain-model.md`, `event-flow.md`, `interfaces.md`, `dependencies.md`, `conventions.md` — topic files
+
+Consumers (`/dai.plan`, `/dai.review`) load only the topic file they need (FR-024), cutting plan/review context by ~80% versus reading a monolithic constitution. Update at any time with `/dai.learn --update`.
 
 ---
 

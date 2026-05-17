@@ -1,11 +1,9 @@
 ---
 name: csharp-idioms
-description: >
-  Use when applying modern C# idioms — records, pattern matching, primary constructors, collection expressions.
+description: Use when applying modern C# idioms — records, pattern matching, primary constructors, collection expressions.
 metadata:
   category: core
   agent: dotnet-architect
-  alwaysApply: true
 ---
 
 # Modern C# Idioms

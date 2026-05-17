@@ -1,10 +1,9 @@
 ---
 name: plan-templates
-description: >
-  Use when creating implementation plans that need mode-specific templates.
+description: Use when creating implementation plans that need mode-specific templates.
 metadata:
-  when-to-use: "When generating implementation plan templates based on project mode"
   category: workflow
+when_to_use: When generating implementation plan templates based on project mode
 ---
 
 # Plan Templates Skill
@@ -23,7 +22,7 @@ Generate the plan.md structure based on project mode.
 {1-2 sentence overview}
 
 ## Constitution Check
-Source: `.dotnet-ai-kit/memory/constitution.md`
+Source: `.dotnet-ai-kit/memory/architecture.md` + `domain-model.md` (per FR-024 split)
 {PASS/FAIL with notes}
 
 ## Technical Context
@@ -70,7 +69,7 @@ Source: `.dotnet-ai-kit/memory/constitution.md`
 
 ## Summary
 ## Constitution Check
-Source: `.dotnet-ai-kit/memory/constitution.md`
+Source: `.dotnet-ai-kit/memory/architecture.md` + `domain-model.md` (per FR-024 split)
 ## Research Findings
 
 ## Service Plan

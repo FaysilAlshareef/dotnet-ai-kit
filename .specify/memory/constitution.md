@@ -1,15 +1,17 @@
 <!--
 Sync Impact Report
 ===================
-- Version change: 1.0.5 → 1.0.6
+- Version change: 1.0.6 → 1.0.7
 - Modified principles: N/A
 - Updated sections:
-  - Technology Constraints: skills 106 → 120
-  - Technology Constraints: rules 9 → 15
-  - Token discipline: rules 9 → 15, budget ~600 → ~900
+  - Token discipline: rule semantics — 16 rules total = 4 universal
+    (always loaded) + 12 path-scoped (loaded only when a matching file
+    is touched). Combined budget ≤300 lines for universals.
+  - Knowledge base composition: rule count + universal/path-scoped split
 - Removed sections: N/A
 - Templates requiring updates: none
 - Follow-up TODOs: none
+- Driver: feature 018-fix-token-burn (PR3)
 -->
 
 # dotnet-ai-kit Constitution
@@ -66,8 +68,10 @@ The tool MUST support any .NET project without assumption:
 
 - **Architectures**: Vertical Slice, Clean Architecture, DDD,
   Modular Monolith, CQRS + Event Sourcing Microservices
-- **AI tools**: Claude Code (v1.0), with Cursor, Copilot,
-  Codex, and Antigravity planned. Core knowledge is portable
+- **AI tools**: Claude Code (v2.1.85+ recommended for full
+  hook fidelity; v1.0 supported with reduced fidelity), with
+  Cursor, Copilot, Codex, and Antigravity planned. Core
+  knowledge is portable
 - **Platforms**: Windows, macOS, Linux — no OS-specific shell
   commands, file path assumptions, or line ending issues
 - **Company**: No hardcoded company names. All references
@@ -114,8 +118,13 @@ The tool MUST prioritize safety and context efficiency:
 **Token discipline**:
 - Skills: maximum 400 lines per file
 - Commands: maximum 200 lines per file
-- Rules: maximum 100 lines per file (16 rules, ~900 lines
-  total budget)
+- Rules: maximum 100 lines per file. 16 rules total —
+  4 universal (always loaded; combined ≤300 lines) and
+  12 path-scoped (loaded only when a matching file is
+  touched). Universal whitelist: `existing-projects`,
+  `tool-calls`, `coding-style`, `security`.
+- Agents: maximum 120 lines per file
+- Profiles: maximum 100 lines per file
 - Skills loaded on-demand by commands, not upfront
 - Minimize context window usage while maximizing relevant
   knowledge
@@ -147,9 +156,10 @@ implementation, and linked PR creation.
 - YAML for configuration (`.dotnet-ai-kit/config.yml`)
 
 **Knowledge base composition**:
-- 16 rules (always loaded)
+- 16 rules total: 4 universal (always loaded) + 12 path-scoped
+  (loaded only when a matching file is touched)
 - 13 specialist agents (routing logic in commands)
-- 120 skills (loaded on demand, Agent Skills spec compliant)
+- 124 skills (loaded on demand, Agent Skills spec compliant)
 - 27 commands (slash commands)
 - 16 knowledge documents (reference material)
 - 13 templates (project scaffolds)
@@ -212,4 +222,4 @@ compliance with this constitution. Complexity that violates
 a principle MUST be explicitly justified in the plan's
 Complexity Tracking table.
 
-**Version**: 1.0.6 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-03-28
+**Version**: 1.0.7 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-05-16

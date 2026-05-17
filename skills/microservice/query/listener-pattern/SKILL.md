@@ -1,11 +1,10 @@
 ---
 name: listener-pattern
-description: >
-  Use when building Service Bus session-based listeners as IHostedService.
+description: Use when building Service Bus session-based listeners as IHostedService.
 metadata:
   category: microservice/query
   agent: query-architect
-  when-to-use: "When creating or modifying Service Bus session-based listener services"
+when_to_use: When creating or modifying Service Bus session-based listener services
 ---
 
 # Listener Pattern — ServiceBusSessionProcessor + DLQ Processor
