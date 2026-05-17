@@ -492,125 +492,69 @@ def _parse_yaml_frontmatter(content: str) -> tuple[dict[str, Any], str]:
     return fm, body
 
 
-def _transform_agent_frontmatter(
-    universal_fm: dict[str, Any],
-    mapping: dict[str, Any],
-) -> dict[str, Any]:
-    """Transform universal agent frontmatter to tool-specific format.
-
-    Args:
-        universal_fm: Parsed universal frontmatter fields.
-        mapping: Tool-specific transformation mapping from AGENT_FRONTMATTER_MAP.
-
-    Returns:
-        Tool-specific frontmatter dict.
-    """
-    result: dict[str, Any] = {}
-
-    # Pass through name and description
-    if "name" in universal_fm:
-        result["name"] = universal_fm["name"]
-    if "description" in universal_fm:
-        result["description"] = universal_fm["description"]
-
-    # Transform role
-    role = universal_fm.get("role")
-    if role and "role" in mapping:
-        role_map = mapping["role"]
-        if role in role_map:
-            result.update(role_map[role])
-
-    # Transform expertise
-    expertise = universal_fm.get("expertise")
-    if expertise and "expertise" in mapping:
-        transform = mapping["expertise"]
-        if callable(transform):
-            result.update(transform(expertise))
-
-    # Transform complexity
-    complexity = universal_fm.get("complexity")
-    if complexity and "complexity" in mapping:
-        complexity_map = mapping["complexity"]
-        if complexity in complexity_map:
-            result.update(complexity_map[complexity])
-
-    # Transform max_iterations
-    max_iter = universal_fm.get("max_iterations")
-    if max_iter is not None and "max_iterations" in mapping:
-        transform = mapping["max_iterations"]
-        if callable(transform):
-            result.update(transform(max_iter))
-
-    return result
-
-
 def copy_agents(
     source_dir: Path,
     target_dir: Path,
     agent_config: dict[str, Any],
     tool_name: str = "claude",
 ) -> int:
-    """Copy agent files, transforming universal frontmatter to tool-specific format.
+    """Copy agent files via the feature-019 per-host generator pipeline.
 
-    Reads universal frontmatter (role, expertise, complexity, max_iterations)
-    from source files and transforms to the target tool's format using
-    AGENT_FRONTMATTER_MAP.
+    Per feature 019 / T041a / T043, this function NO LONGER does bulk-copy
+    of generated agents into `.claude/agents/`. The agents are now served
+    from the plugin install path; per-solution `.claude/agents/` is empty.
+
+    The function is kept for two legacy code paths:
+    1. Tests that exercise the legacy API surface.
+    2. The linked-secondary-repository writer at copier.py:882-1202 (commit 4
+       T042 routes this through `hosts/` adapters; until that lands, the
+       function is callable but emits an empty-result + warning for Claude).
+
+    For Claude tool: returns 0 immediately and logs a warning explaining
+    the new plugin-native architecture.
+    For Codex tool: returns 0 (Codex has no native agents per OOS-004).
+    For Cursor/Copilot: returns 0 (handled by their respective host
+    adapters in commits 6 and 7).
 
     Args:
-        source_dir: Directory containing agent .md files.
-        target_dir: Root of the user's project.
-        agent_config: Configuration dict for the target AI tool.
-        tool_name: AI tool name for frontmatter transformation.
+        source_dir: Directory containing agent .md files (unused under v019).
+        target_dir: Root of the user's project (unused under v019).
+        agent_config: Configuration dict for the target AI tool (unused).
+        tool_name: AI tool name. Determines the log message only.
 
     Returns:
-        Number of agent files copied.
+        Always 0 (no files copied under plugin-native architecture).
     """
     import logging
 
-    import yaml
-
-    from dotnet_ai_kit.agents import AGENT_FRONTMATTER_MAP
-
     logger = logging.getLogger(__name__)
 
-    agents_dir_rel = agent_config.get("agents_dir")
-    if not agents_dir_rel:
-        return 0
-
-    agents_dir = target_dir / agents_dir_rel
-    # Remove existing agents directory to ensure clean overwrite
-    if agents_dir.is_dir():
-        shutil.rmtree(agents_dir)
-    agents_dir.mkdir(parents=True, exist_ok=True)
-
-    mapping = AGENT_FRONTMATTER_MAP.get(tool_name)
-    if mapping is None:
-        logger.warning(
-            "Agent transformation for %s not yet supported"
-            " — skipping agent deployment for this tool.",
+    # Plugin-native hosts (claude/codex/cursor): agents live in the plugin
+    # install path. Per-solution .claude/agents/ MUST NOT receive copies
+    # under feature 019.
+    if tool_name in {"claude", "codex", "cursor"}:
+        logger.debug(
+            "copy_agents() is a no-op for plugin-native host '%s' under "
+            "feature 019. Agents are served from the plugin install path. "
+            "Per-solution path '%s' is left untouched.",
             tool_name,
+            agent_config.get("agents_dir") or "(unset)",
         )
         return 0
 
-    count = 0
-    agent_files = sorted(source_dir.glob("*.md"))
+    if tool_name == "copilot":
+        # Copilot rendering is implemented in commit 7 (T070 / hosts/copilot.py)
+        # via a different path. Here we just no-op.
+        logger.debug(
+            "copy_agents() no-op for Copilot — render path landed in commit 7."
+        )
+        return 0
 
-    for agent_file in agent_files:
-        content = agent_file.read_text(encoding="utf-8")
-        universal_fm, body = _parse_yaml_frontmatter(content)
-
-        if universal_fm:
-            tool_fm = _transform_agent_frontmatter(universal_fm, mapping)
-            fm_yaml = yaml.dump(tool_fm, default_flow_style=False, sort_keys=False)
-            output = f"---\n{fm_yaml}---{body}"
-        else:
-            output = content
-
-        dest = agents_dir / agent_file.name
-        dest.write_text(output, encoding="utf-8")
-        count += 1
-
-    return count
+    logger.warning(
+        "Unknown tool_name '%s' in copy_agents — skipping (no host adapter known).",
+        tool_name,
+    )
+    return 0
 
 
 def copy_profile(

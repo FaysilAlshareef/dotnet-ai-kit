@@ -593,44 +593,49 @@ def _create_agent_files(source_dir: Path) -> None:
         )
 
 
-def test_copy_agents_flat_copy(tmp_path: Path) -> None:
-    """copy_agents should flat-copy all agent .md files."""
+def test_copy_agents_is_noop_under_feature_019(tmp_path: Path) -> None:
+    """copy_agents() is a no-op under feature 019 plugin-native architecture.
+
+    Per T041a / T043: agents are served from the plugin install path, NOT
+    bulk-copied to `.claude/agents/`. This test (renamed from the legacy
+    `test_copy_agents_flat_copy`) asserts the new no-op contract.
+    """
     source = tmp_path / "agents_src"
     _create_agent_files(source)
     target = tmp_path / "project"
     target.mkdir()
 
     agent_config = {"agents_dir": ".claude/agents"}
+    count = copy_agents(source, target, agent_config, tool_name="claude")
 
-    count = copy_agents(source, target, agent_config)
-
-    assert count == 3
-    assert (target / ".claude" / "agents" / "command-architect.md").is_file()
-    assert (target / ".claude" / "agents" / "query-architect.md").is_file()
-    assert (target / ".claude" / "agents" / "processor-architect.md").is_file()
+    # Under feature 019: 0 files copied. The .claude/agents directory should
+    # NOT have been populated.
+    assert count == 0
+    assert not (target / ".claude" / "agents").is_dir()
 
 
-def test_copy_agents_overwrites_existing(tmp_path: Path) -> None:
-    """copy_agents should overwrite existing agents directory."""
+def test_copy_agents_does_not_overwrite_existing(tmp_path: Path) -> None:
+    """copy_agents() MUST NOT touch a pre-existing .claude/agents/ under v019.
+
+    The user's local .claude/agents/ — whatever's there — is left alone. The
+    plugin install path is the source of truth for plugin-provided agents.
+    """
     source = tmp_path / "agents_src"
     _create_agent_files(source)
     target = tmp_path / "project"
     target.mkdir()
 
-    agent_config = {"agents_dir": ".claude/agents"}
+    # Pre-existing user-managed file in .claude/agents/
+    (target / ".claude" / "agents").mkdir(parents=True)
+    user_file = target / ".claude" / "agents" / "user-custom.md"
+    user_file.write_text("user-managed agent", encoding="utf-8")
 
-    # First copy
-    copy_agents(source, target, agent_config)
+    count = copy_agents(source, target, {"agents_dir": ".claude/agents"}, tool_name="claude")
 
-    # Add stale file
-    stale = target / ".claude" / "agents" / "stale-agent.md"
-    stale.write_text("stale", encoding="utf-8")
-
-    # Second copy should overwrite
-    count = copy_agents(source, target, agent_config)
-
-    assert count == 3
-    assert not stale.exists()
+    # User file preserved; no copy attempted
+    assert count == 0
+    assert user_file.exists()
+    assert user_file.read_text(encoding="utf-8") == "user-managed agent"
 
 
 def test_copy_agents_no_agents_dir(tmp_path: Path) -> None:
