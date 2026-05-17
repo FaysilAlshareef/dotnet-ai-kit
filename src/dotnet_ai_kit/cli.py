@@ -929,8 +929,8 @@ def init(
 # ---------------------------------------------------------------------------
 
 
-@app.command()
-def check(
+@app.command("status")
+def status(
     verbose: bool = typer.Option(
         False,
         "--verbose",
@@ -943,7 +943,13 @@ def check(
         help="Output JSON.",
     ),
 ) -> None:
-    """Report the current state of dotnet-ai-kit in the project."""
+    """Report the current state of dotnet-ai-kit in the project.
+
+    NOTE: Feature 019 (commit 9): renamed from `check` to `status` because the
+    `check` command is now the spec-mandated validation command per FR-017.
+    The status command keeps the legacy informational behavior — tool tables,
+    config status, project info.
+    """
     target = Path(".").resolve()
 
     if not json_output:
@@ -2153,6 +2159,246 @@ def configure(
 
     # T052 - Next-command suggestion
     console.print("\nNext: Run [bold]dotnet-ai check[/bold] to verify your setup.\n")
+
+
+# ---------------------------------------------------------------------------
+# Feature 019 / commit 9 / T108: `dotnet-ai check` command
+# ---------------------------------------------------------------------------
+
+
+@app.command()
+def check(
+    project_path: str = typer.Argument(
+        ".",
+        help="Project root to validate (defaults to current directory).",
+    ),
+    verbose: bool = typer.Option(
+        False,
+        "--verbose",
+        "-v",
+        help="Per-check breakdown with status, path, details.",
+    ),
+    json_output: bool = typer.Option(
+        False,
+        "--json",
+        help="Machine-readable JSON output per check-cli.contract.md:64-80.",
+    ),
+    host: str = typer.Option(
+        "",
+        "--host",
+        help="Scope checks to a single host (claude/codex/cursor/copilot). Default: all enabled_hosts.",
+    ),
+) -> None:
+    """Validate the dotnet-ai-kit install + project state (feature 019 / FR-017).
+
+    Runs the 6 check classes per `contracts/check-cli.contract.md`:
+    1. Plugin install per configured host (filesystem inspection per clarify Q3)
+    2. External binary prerequisites (csharp-ls on PATH)
+    3. project.yml schema validity
+    4. Detected-path correctness
+    5. manifest.json integrity (sha256 hashes)
+    6. Copilot render freshness
+
+    Exit codes per the contract (lowest code wins on multiple failures):
+      0  All checks pass
+      10 Plugin install missing
+      11 External binary missing
+      12 project.yml schema
+      13 Detected-path inconsistency
+      14 Manifest integrity
+      15 Copilot render stale
+      16 Host symmetric / loader failure
+      99 Unknown error
+
+    Read-only — never mutates files. No network calls. No telemetry.
+    """
+    import json as _json
+    import shutil as _shutil
+    import time as _time
+
+    from dotnet_ai_kit.config import get_config_dir as _get_cfg_dir
+    from dotnet_ai_kit.config import load_project as _load_project
+    from dotnet_ai_kit.hosts import available_hosts, get_host
+    from dotnet_ai_kit.manifest import integrity_check as _integrity_check
+
+    start_ts = _time.time()
+    target = Path(project_path).resolve()
+    checks: list[dict] = []
+    exit_code = 0
+
+    def _add(name: str, status: str, details: str = "") -> None:
+        checks.append({"name": name, "status": status, "details": details})
+
+    def _fail(name: str, details: str, code: int) -> None:
+        nonlocal exit_code
+        _add(name, "fail", details)
+        if exit_code == 0 or code < exit_code:
+            exit_code = code
+
+    # 1. Plugin install per configured host (exit 10 on miss)
+    if host:
+        host_names = [host.lower()]
+    else:
+        config_dir = _get_cfg_dir(target)
+        cfg_file = config_dir / "config.yml"
+        if cfg_file.is_file():
+            try:
+                from dotnet_ai_kit.config import load_user_config as _load_user_cfg
+                user_cfg = _load_user_cfg(cfg_file)
+                host_names = user_cfg.enabled_hosts or available_hosts()
+            except Exception:
+                host_names = available_hosts()
+        else:
+            host_names = available_hosts()
+
+    for host_name in host_names:
+        try:
+            host_obj = get_host(host_name)
+        except KeyError:
+            _fail(
+                f"{host_name}_plugin_install",
+                f"host '{host_name}' not registered",
+                16,
+            )
+            continue
+
+        status_obj = host_obj.verify_install()
+        if status_obj.installed:
+            _add(
+                f"{host_name}_plugin_install",
+                "pass",
+                status_obj.notes or "installed",
+            )
+        else:
+            # Copilot's "install" is just .github/ presence — treat absence as
+            # informational rather than a hard fail at exit 10.
+            if host_name == "copilot":
+                _add(
+                    f"{host_name}_plugin_install",
+                    "skip",
+                    "Copilot is render-only — no plugin install required",
+                )
+            else:
+                _fail(
+                    f"{host_name}_plugin_install",
+                    status_obj.notes or "not installed",
+                    10,
+                )
+
+    # 2. External binary prerequisites (exit 11 on miss)
+    csharp_ls = _shutil.which("csharp-ls")
+    if csharp_ls:
+        _add("csharp_ls_binary", "pass", csharp_ls)
+    else:
+        _fail(
+            "csharp_ls_binary",
+            "csharp-ls binary not on PATH — install: https://github.com/razzmatazz/csharp-language-server",
+            11,
+        )
+
+    # 3. project.yml schema (exit 12 on miss)
+    project_yml = _get_cfg_dir(target) / "project.yml"
+    if project_yml.is_file():
+        try:
+            _load_project(project_yml)
+            _add("project_yml_schema", "pass", str(project_yml))
+        except Exception as exc:
+            _fail("project_yml_schema", f"{exc}", 12)
+    else:
+        _add(
+            "project_yml_schema",
+            "skip",
+            "project.yml not found (run `dotnet-ai detect` to create it)",
+        )
+
+    # 4. Detected-path correctness (exit 13 on miss)
+    if project_yml.is_file():
+        try:
+            detected = _load_project(project_yml)
+            missing_paths = []
+            for key, value in (detected.detected_paths or {}).items():
+                resolved = target / value
+                if not resolved.exists():
+                    missing_paths.append(f"{key}={value}")
+            if missing_paths:
+                _fail(
+                    "detected_paths",
+                    f"missing on disk: {', '.join(missing_paths)}",
+                    13,
+                )
+            else:
+                _add(
+                    "detected_paths",
+                    "pass",
+                    f"{len(detected.detected_paths or {})} paths exist",
+                )
+        except Exception as exc:
+            _add("detected_paths", "skip", f"could not load: {exc}")
+    else:
+        _add("detected_paths", "skip", "project.yml not found")
+
+    # 5. manifest.json integrity (exit 14 on miss)
+    integrity = _integrity_check(target)
+    if integrity.ok:
+        _add(
+            "manifest_integrity",
+            "pass",
+            "all files tracked + hashes match",
+        )
+    else:
+        _fail("manifest_integrity", integrity.fail_message(), 14)
+
+    # 6. Copilot render freshness (exit 15 on stale)
+    # v1 minimal: just report copilot install status; full freshness check
+    # comes when commit 10 manifest-v2 work lands the source_template tracking.
+    if "copilot" in host_names:
+        copilot_dir = target / ".github"
+        if copilot_dir.is_dir():
+            _add(
+                "copilot_freshness",
+                "pass",
+                f"{copilot_dir} present (full freshness check pending commit 10)",
+            )
+        else:
+            _add("copilot_freshness", "skip", ".github/ not present")
+    else:
+        _add("copilot_freshness", "skip", "Copilot not enabled")
+
+    duration_ms = int((_time.time() - start_ts) * 1000)
+
+    if json_output:
+        payload = {
+            "version": "1.0.0",
+            "duration_ms": duration_ms,
+            "exit_code": exit_code,
+            "checks": checks,
+        }
+        # Use plain print to avoid Rich color codes corrupting JSON output.
+        import sys as _sys
+        _sys.stdout.write(_json.dumps(payload, indent=2, ensure_ascii=False) + "\n")
+        _sys.stdout.flush()
+    else:
+        # ASCII-safe markers — works across cp1252/cp1256/etc. on Windows
+        _markers = {"pass": "[OK]", "fail": "[FAIL]", "skip": "[--]"}
+        if verbose or exit_code != 0:
+            for entry in checks:
+                marker = _markers.get(entry["status"], "[?]")
+                console.print(
+                    f"{marker} {entry['name']}: {entry['details'] or entry['status']}"
+                )
+        else:
+            for entry in checks:
+                if entry["status"] == "pass":
+                    console.print(f"[OK] {entry['name']}: {entry['details']}")
+
+        if exit_code == 0:
+            console.print(f"\n[green]dotnet-ai check passed in {duration_ms / 1000:.1f}s[/green]")
+        else:
+            console.print(
+                f"\n[red]dotnet-ai check failed (exit {exit_code}) in {duration_ms / 1000:.1f}s[/red]"
+            )
+
+    raise typer.Exit(code=exit_code)
 
 
 # ---------------------------------------------------------------------------

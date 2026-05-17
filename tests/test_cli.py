@@ -154,7 +154,7 @@ def test_init_skips_detection_without_type_flag(tmp_path: Path) -> None:
 
 def test_check_not_initialized(tmp_path: Path) -> None:
     """Check should report not initialized when .dotnet-ai-kit/ is missing."""
-    result = runner.invoke(app, ["check"])
+    result = runner.invoke(app, ["status"])
 
     # This may or may not fail depending on cwd; we just verify it handles gracefully
     # The command checks cwd, which may not have .dotnet-ai-kit
@@ -603,7 +603,7 @@ def test_check_json_produces_valid_json(tmp_path: Path, monkeypatch) -> None:
 
     # Now run check --json from the project directory
     monkeypatch.chdir(tmp_path)
-    result = runner.invoke(app, ["check", "--json"], catch_exceptions=False)
+    result = runner.invoke(app, ["status", "--json"], catch_exceptions=False)
 
     assert result.exit_code == 0, result.output
 
@@ -638,7 +638,7 @@ def test_check_exit_code_no_config(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.chdir(tmp_path)
     # No .dotnet-ai-kit directory exists
 
-    result = runner.invoke(app, ["check"])
+    result = runner.invoke(app, ["status"])
 
     assert result.exit_code == 1
 
@@ -714,7 +714,7 @@ def test_check_config_error_exit_code_2(tmp_path: Path, monkeypatch) -> None:
         encoding="utf-8",
     )
 
-    result = runner.invoke(app, ["check"])
+    result = runner.invoke(app, ["status"])
 
     assert result.exit_code == 2
 
@@ -724,7 +724,7 @@ def test_check_error_message_includes_fix(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.chdir(tmp_path)
     # No .dotnet-ai-kit directory
 
-    result = runner.invoke(app, ["check"])
+    result = runner.invoke(app, ["status"])
 
     assert result.exit_code == 1
     # Should tell user how to fix the problem
@@ -987,7 +987,7 @@ def test_check_displays_project_info(tmp_path: Path, monkeypatch) -> None:
     )
     monkeypatch.chdir(tmp_path)
 
-    result = runner.invoke(app, ["check"], catch_exceptions=False)
+    result = runner.invoke(app, ["status"], catch_exceptions=False)
     assert result.exit_code == 0
     assert "command" in result.output.lower()
 
@@ -1004,7 +1004,7 @@ def test_check_json_includes_project(tmp_path: Path, monkeypatch) -> None:
     )
     monkeypatch.chdir(tmp_path)
 
-    result = runner.invoke(app, ["check", "--json"], catch_exceptions=False)
+    result = runner.invoke(app, ["status", "--json"], catch_exceptions=False)
     assert result.exit_code == 0
 
     json_lines = [ln for ln in result.output.strip().splitlines() if ln.strip().startswith("{")]
@@ -1245,7 +1245,7 @@ def test_check_detects_permission_mismatch(tmp_path: Path, monkeypatch) -> None:
     config_path.write_text(yaml.dump(cfg), encoding="utf-8")
 
     monkeypatch.chdir(tmp_path)
-    result = runner.invoke(app, ["check"], catch_exceptions=False)
+    result = runner.invoke(app, ["status"], catch_exceptions=False)
 
     assert result.exit_code == 0
     assert "mismatch" in result.output.lower() or "bypassPermissions" in result.output
@@ -1528,7 +1528,7 @@ def test_check_json_includes_tool_detail_fields(tmp_path: Path, monkeypatch) -> 
     runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
 
     monkeypatch.chdir(tmp_path)
-    result = runner.invoke(app, ["check", "--json"], catch_exceptions=False)
+    result = runner.invoke(app, ["status", "--json"], catch_exceptions=False)
 
     assert result.exit_code == 0, result.output
     json_lines = [ln for ln in result.output.strip().splitlines() if ln.strip().startswith("{")]
@@ -1565,7 +1565,7 @@ def test_check_json_includes_linked_from_and_repos(tmp_path: Path, monkeypatch) 
     config_path.write_text(_yaml.dump(cfg), encoding="utf-8")
 
     monkeypatch.chdir(tmp_path)
-    result = runner.invoke(app, ["check", "--json"], catch_exceptions=False)
+    result = runner.invoke(app, ["status", "--json"], catch_exceptions=False)
 
     assert result.exit_code == 0, result.output
     json_lines = [ln for ln in result.output.strip().splitlines() if ln.strip().startswith("{")]
@@ -1592,7 +1592,7 @@ def test_check_table_includes_skill_agent_columns(tmp_path: Path, monkeypatch) -
     runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
 
     monkeypatch.chdir(tmp_path)
-    result = runner.invoke(app, ["check"], catch_exceptions=False)
+    result = runner.invoke(app, ["status"], catch_exceptions=False)
 
     assert result.exit_code == 0, result.output
     assert "Skills" in result.output
@@ -1611,7 +1611,7 @@ def test_check_verbose_shows_profile_detail(tmp_path: Path, monkeypatch) -> None
     )
     monkeypatch.chdir(tmp_path)
 
-    result = runner.invoke(app, ["check", "--verbose"], catch_exceptions=False)
+    result = runner.invoke(app, ["status", "--verbose"], catch_exceptions=False)
 
     assert result.exit_code == 0, result.output
     # When profile is deployed, verbose output includes profile path info
@@ -1626,7 +1626,7 @@ def test_check_table_includes_profile_hook_columns(tmp_path: Path, monkeypatch) 
     runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
 
     monkeypatch.chdir(tmp_path)
-    result = runner.invoke(app, ["check"], catch_exceptions=False)
+    result = runner.invoke(app, ["status"], catch_exceptions=False)
 
     assert result.exit_code == 0, result.output
     assert "Profile" in result.output
