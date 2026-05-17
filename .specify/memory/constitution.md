@@ -1,17 +1,24 @@
 <!--
 Sync Impact Report
 ===================
-- Version change: 1.0.6 → 1.0.7
+- Version change: 1.0.7 → 1.0.8
 - Modified principles: N/A
 - Updated sections:
-  - Token discipline: rule semantics — 16 rules total = 4 universal
-    (always loaded) + 12 path-scoped (loaded only when a matching file
-    is touched). Combined budget ≤300 lines for universals.
+  - Token discipline: rule semantics — 16 rules total = 5 universal
+    (always loaded) + 11 path-scoped (loaded only when a matching file
+    is touched). Added `async-concurrency` to the universal whitelist
+    per feature 019 / FR-011 (it has no architecture-specific branches
+    and applies to ALL .NET code).
   - Knowledge base composition: rule count + universal/path-scoped split
 - Removed sections: N/A
 - Templates requiring updates: none
 - Follow-up TODOs: none
-- Driver: feature 018-fix-token-burn (PR3)
+- Driver: feature 019-plugin-native-arch (commit 14 PASS-CONDITIONAL gate)
+- Amendment reason: plugin-native architecture spec FR-011 elevates
+  async-concurrency to always-on. The rule has no architecture-specific
+  branches (unlike error-handling) and no runtime-substitution
+  requirements (unlike naming), so it qualifies as a universal
+  convention.
 -->
 
 # dotnet-ai-kit Constitution
@@ -119,10 +126,11 @@ The tool MUST prioritize safety and context efficiency:
 - Skills: maximum 400 lines per file
 - Commands: maximum 200 lines per file
 - Rules: maximum 100 lines per file. 16 rules total —
-  4 universal (always loaded; combined ≤300 lines) and
-  12 path-scoped (loaded only when a matching file is
-  touched). Universal whitelist: `existing-projects`,
-  `tool-calls`, `coding-style`, `security`.
+  5 universal (always loaded; combined ≤300 lines) and
+  11 path-scoped (loaded only when a matching file is
+  touched). Universal whitelist: `async-concurrency`,
+  `coding-style`, `existing-projects`, `security`,
+  `tool-calls`.
 - Agents: maximum 120 lines per file
 - Profiles: maximum 100 lines per file
 - Skills loaded on-demand by commands, not upfront
@@ -156,7 +164,7 @@ implementation, and linked PR creation.
 - YAML for configuration (`.dotnet-ai-kit/config.yml`)
 
 **Knowledge base composition**:
-- 16 rules total: 4 universal (always loaded) + 12 path-scoped
+- 16 rules total: 5 universal (always loaded) + 11 path-scoped
   (loaded only when a matching file is touched)
 - 13 specialist agents (routing logic in commands)
 - 124 skills (loaded on demand, Agent Skills spec compliant)
@@ -222,4 +230,4 @@ compliance with this constitution. Complexity that violates
 a principle MUST be explicitly justified in the plan's
 Complexity Tracking table.
 
-**Version**: 1.0.7 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-05-16
+**Version**: 1.0.8 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-05-18

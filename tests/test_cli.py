@@ -512,30 +512,36 @@ def test_validate_tools_verbose_shows_table_even_when_all_found() -> None:
 
 
 def test_tool_calls_rule_exists() -> None:
-    """T031b: A rule file in rules/ should mention sequential tool calls, not && chains."""
+    """T031b: A rule file should mention sequential tool calls, not && chains.
+
+    Feature 019 / commit 14: rules now live under rules/conventions/ +
+    rules/domain/. The tool-calls rule is a universal convention so it lives
+    in rules/conventions/tool-calls.md.
+    """
     rules_dir = Path(__file__).resolve().parent.parent / "rules"
     assert rules_dir.is_dir(), f"rules/ directory not found at {rules_dir}"
 
     found_rule = False
-    for rule_file in rules_dir.iterdir():
-        if rule_file.suffix == ".md":
-            content = rule_file.read_text(encoding="utf-8")
-            # Check that at least one rule file discusses sequential tool calls
-            if "sequential" in content.lower() and "&&" in content:
-                found_rule = True
-                # Verify the rule advises AGAINST && chains
-                assert "do not" in content.lower() or "don't" in content.lower(), (
-                    f"Rule file {rule_file.name} mentions && but does not advise against it"
-                )
-                # Check the file is under 100 lines
-                line_count = len(content.splitlines())
-                assert line_count <= 100, (
-                    f"Rule file {rule_file.name} has {line_count} lines, exceeds 100 limit"
-                )
-                break
+    # Search recursively to handle both legacy (rules/*.md) and feature 019
+    # (rules/conventions/*.md + rules/domain/*.md) layouts.
+    for rule_file in rules_dir.rglob("*.md"):
+        content = rule_file.read_text(encoding="utf-8")
+        # Check that at least one rule file discusses sequential tool calls
+        if "sequential" in content.lower() and "&&" in content:
+            found_rule = True
+            # Verify the rule advises AGAINST && chains
+            assert "do not" in content.lower() or "don't" in content.lower(), (
+                f"Rule file {rule_file.name} mentions && but does not advise against it"
+            )
+            # Check the file is under 100 lines
+            line_count = len(content.splitlines())
+            assert line_count <= 100, (
+                f"Rule file {rule_file.name} has {line_count} lines, exceeds 100 limit"
+            )
+            break
 
     assert found_rule, (
-        "No rule file found in rules/ that discusses sequential tool calls and && chains"
+        "No rule file found under rules/ that discusses sequential tool calls and && chains"
     )
 
 

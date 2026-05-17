@@ -217,7 +217,16 @@ def copy_rules(
     rules_dir.mkdir(parents=True, exist_ok=True)
 
     count = 0
-    rule_files = sorted(source_dir.glob("*.md"))
+    # Feature 019 / commit 14: rules now live under `rules/conventions/`
+    # (5 universal) and `rules/domain/` (11 path-scoped). Fall back to legacy
+    # top-level glob for backward compatibility with pre-rename installs.
+    rule_files = sorted(source_dir.glob("*.md"))  # legacy top-level
+    if not rule_files:
+        # Feature 019 layout: rules/conventions/*.md + rules/domain/*.md
+        rule_files = sorted(
+            list((source_dir / "conventions").glob("*.md"))
+            + list((source_dir / "domain").glob("*.md"))
+        )
 
     for rule_file in rule_files:
         content = rule_file.read_text(encoding="utf-8")
