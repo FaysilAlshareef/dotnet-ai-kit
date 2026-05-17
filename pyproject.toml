@@ -58,6 +58,22 @@ packages = ["src/dotnet_ai_kit"]
 ".claude-plugin" = "dotnet_ai_kit/bundled/.claude-plugin"
 "hooks" = "dotnet_ai_kit/bundled/hooks"
 ".mcp.json" = "dotnet_ai_kit/bundled/.mcp.json"
+# Feature 019 (T009 / plan.md commit 2): plugin-native architecture extras.
+# `.codex-plugin` + `.cursor-plugin`: per-host plugin manifests
+#   (commit 3 contents land plugin.json; commit 2 ships stubs).
+# `agents-source/`: source-of-truth agent definitions
+#   (renamed from `agents/` in commit 6).
+# `agents-claude/`: generated Claude-shape agent files (commit 4 T041 output).
+# `agents-copilot-templates/`: Copilot agent jinja2 templates (commit 7 T069).
+# `schemas/`: JSON Schema definitions (commits 3 + 8).
+# Note: `rules/` already includes everything under it
+#   (conventions/, domain/, cursor/) via the line above.
+".codex-plugin" = "dotnet_ai_kit/bundled/.codex-plugin"
+".cursor-plugin" = "dotnet_ai_kit/bundled/.cursor-plugin"
+"agents-source" = "dotnet_ai_kit/bundled/agents-source"
+"agents-claude" = "dotnet_ai_kit/bundled/agents-claude"
+"agents-copilot-templates" = "dotnet_ai_kit/bundled/agents-copilot-templates"
+"schemas" = "dotnet_ai_kit/bundled/schemas"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]
