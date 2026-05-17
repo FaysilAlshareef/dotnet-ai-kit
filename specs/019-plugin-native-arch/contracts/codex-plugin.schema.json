@@ -1,0 +1,53 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/FaysilAlshareef/dotnet-ai-kit/specs/019-plugin-native-arch/contracts/codex-plugin.schema.json",
+  "title": "Codex CLI Plugin Manifest (dotnet-ai-kit)",
+  "description": "Schema for .codex-plugin/plugin.json per https://developers.openai.com/codex/plugins/build (lines 843-899). Manifest fields are scalar relative paths with the `./` prefix (e.g., `\"skills\": \"./skills/\"`), NOT object/array wrappers. Codex CLI's documented plugin primitives are skills, MCP, hooks, apps, and assets only. Native agents (OOS-004), LSP, monitors, settings, and bin MUST NOT appear in this manifest (per spec FR-002).",
+  "type": "object",
+  "required": ["name", "version", "description", "skills", "mcpServers", "hooks"],
+  "additionalProperties": false,
+  "properties": {
+    "name": { "type": "string", "const": "dotnet-ai-kit" },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+(-[A-Za-z0-9\\.\\-]+)?$" },
+    "description": { "type": "string", "minLength": 1 },
+    "interface": {
+      "type": "string",
+      "description": "Per Codex docs (developers.openai.com/codex/plugins/build:884-899): optional metadata field. Allowed value patterns per docs."
+    },
+    "skills": {
+      "type": "string",
+      "pattern": "^\\./.+/?$",
+      "const": "./skills/",
+      "description": "Scalar relative path to the skills directory. The `./` prefix is required per Codex docs path rules."
+    },
+    "mcpServers": {
+      "type": "string",
+      "pattern": "^\\./.+$",
+      "const": "./.mcp.json",
+      "description": "Scalar relative path to the MCP servers config file."
+    },
+    "hooks": {
+      "type": "string",
+      "pattern": "^\\./.+$",
+      "const": "./hooks/hooks.json",
+      "description": "Scalar relative path to the hooks config file."
+    },
+    "apps": {
+      "type": "string",
+      "description": "Scalar relative path to apps. Unused in v1."
+    },
+    "assets": {
+      "type": "string",
+      "description": "Scalar relative path to assets. Unused in v1."
+    }
+  },
+  "not": {
+    "anyOf": [
+      { "required": ["agents"] },
+      { "required": ["lspServers"] },
+      { "required": ["monitors"] },
+      { "required": ["settings"] },
+      { "required": ["bin"] }
+    ]
+  }
+}

@@ -1,0 +1,35 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/FaysilAlshareef/dotnet-ai-kit/specs/019-plugin-native-arch/contracts/config-yml.schema.json",
+  "title": "UserConfig (.dotnet-ai-kit/config.yml)",
+  "description": "Per-solution descriptor of the developer's tool preferences. Distinct from project metadata. Populated by the configure command's interactive flow per FR-016 (clarify Q4).",
+  "type": "object",
+  "required": ["enabled_hosts", "plugin_version"],
+  "additionalProperties": false,
+  "description-migration": "Existing v0 code uses `ai_tools` (e.g., copier.py:1096-1100). The pydantic loader for UserConfig MUST accept `ai_tools` as a legacy alias and map it to `enabled_hosts` on read; on write, only `enabled_hosts` is emitted. The migration is one-way: writing `ai_tools` is forbidden in v1.",
+  "properties": {
+    "enabled_hosts": {
+      "type": "array",
+      "items": { "type": "string", "enum": ["claude", "codex", "cursor", "copilot"] },
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Subset of supported hosts the user selected. Determines which files init writes (per FR-016) and which checks the validation command runs."
+    },
+    "retention": {
+      "type": "integer",
+      "minimum": 1,
+      "default": 3,
+      "description": "Backup-folder retention count. Matches feature 018's 3-keep rotation (FR-023)."
+    },
+    "permission_profile": {
+      "type": "string",
+      "enum": ["minimal", "standard", "full", "mcp"],
+      "description": "Matches existing config/ JSON files."
+    },
+    "plugin_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[A-Za-z0-9\\.\\-]+)?$",
+      "description": "Recorded at init time. Used by migrate to identify legacy artifacts that pre-date this version."
+    }
+  }
+}
