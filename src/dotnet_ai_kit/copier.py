@@ -1003,7 +1003,14 @@ def deploy_to_linked_repos(
             commands_dir = package_dir / "commands"
             rules_dir_src = package_dir / "rules"
             skills_dir_src = package_dir / "skills"
-            agents_dir_src = package_dir / "agents"
+            # Feature 019 / commit 6 / T054: agents/ -> agents-source/ rename.
+            # Pick agents-source/ when present, fall back to legacy agents/.
+            _agents_source = package_dir / "agents-source"
+            agents_dir_src = (
+                _agents_source
+                if _agents_source.is_dir() and any(_agents_source.glob("*.md"))
+                else package_dir / "agents"
+            )
 
             # Load secondary config once — used for command_style and ai_tools
             _sec_raw = yaml.safe_load(config_path.read_text(encoding="utf-8")) or {}

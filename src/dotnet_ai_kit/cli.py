@@ -170,8 +170,18 @@ def _find_skills_source() -> Path:
 
 
 def _find_agents_source() -> Path:
-    """Find the agents source directory in the package."""
+    """Find the source-of-truth agents directory in the package.
+
+    Feature 019 / commit 6 / T054: agents/ -> agents-source/ rename. The
+    canonical location is `agents-source/`; the legacy `agents/` path is
+    kept as a fallback for installs still on the pre-rename layout (will
+    be removed in a future cleanup).
+    """
     pkg = _get_package_dir()
+    new_dir = pkg / "agents-source"
+    if new_dir.is_dir() and any(new_dir.glob("*.md")):
+        return new_dir
+    # Fallback (legacy install with pre-rename layout)
     return pkg / "agents"
 
 

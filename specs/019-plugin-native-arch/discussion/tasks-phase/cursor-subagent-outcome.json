@@ -1,0 +1,7 @@
+{
+  "outcome": "pending",
+  "timestamp": null,
+  "failure_log_path": null,
+  "ci_run_url": null,
+  "_note": "T060 (commit 6) writes this file on both PASS and FAIL paths once the smoke test runs in CI. Default 'pending' state means the spike has not yet been exercised. Commit 15's T125 reads this file and emits the branch-appropriate release-notes statement; T125a asserts cross-artifact consistency. Per cursor-fixture-decision.contract.md."
+}
