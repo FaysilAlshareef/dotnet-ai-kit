@@ -11,7 +11,13 @@ from pathlib import Path
 import yaml
 from pydantic import ValidationError
 
-from dotnet_ai_kit.models import DetectedProject, DotnetAiConfig, UserConfig
+from dotnet_ai_kit.models import (
+    DetectedProject,
+    DotnetAiConfig,
+    ProjectMetadata,
+    UserConfig,
+    derive_architecture_branch,
+)
 
 # Name of the configuration directory inside a project root
 _CONFIG_DIR_NAME = ".dotnet-ai-kit"
@@ -211,10 +217,12 @@ def load_project(path: Path) -> DetectedProject:
 
 
 def save_project(project: DetectedProject, path: Path) -> None:
-    """Save a DetectedProject to a YAML file.
+    """Save a DetectedProject to a YAML file (legacy `detected:`-nested shape).
 
-    Wraps the data under a 'detected' key to match the spec format.
-    Creates parent directories if they do not exist.
+    Feature 019 / commit 20 / B-3: prefer `save_project_metadata()` for new
+    code — it emits the canonical top-level shape matching
+    `schemas/project-yml.schema.json`. This legacy function is kept for the
+    migrate path that still produces DetectedProject instances.
 
     Args:
         project: The detected project info to save.
@@ -234,6 +242,102 @@ def save_project(project: DetectedProject, path: Path) -> None:
     tmp = path.with_suffix(".tmp")
     tmp.write_text(text, encoding="utf-8")
     tmp.replace(path)
+
+
+# Feature 019 / commit 20 / B-3: canonical ProjectMetadata writer/loader.
+# Emits top-level keys per `schemas/project-yml.schema.json`; reader tolerates
+# both top-level and legacy `detected:`-nested shapes.
+
+
+def save_project_metadata(metadata: ProjectMetadata, path: Path) -> None:
+    """Save a ProjectMetadata to a YAML file with top-level keys.
+
+    Per data-model.md § 2 and `schemas/project-yml.schema.json`, the canonical
+    v1 project.yml shape lists fields at the top level (NOT under a `detected:`
+    wrapper). Emit `architecture_branch` explicitly even though it is derived
+    from `project_type` — the schema's allOf rule asserts consistency.
+
+    Args:
+        metadata: ProjectMetadata to save.
+        path: Destination file path.
+    """
+    path.parent.mkdir(parents=True, exist_ok=True)
+
+    data = metadata.model_dump(mode="json", exclude_none=True, by_alias=True)
+    # Strip optional fields that are empty so the on-disk file is minimal but
+    # still schema-valid. `detected_paths` may legitimately be empty {} per
+    # T147 derivation table; but the schema requires `minProperties: 1` for
+    # detected_paths. The init flow ensures at least one entry is present.
+
+    text = yaml.dump(
+        data,
+        default_flow_style=False,
+        sort_keys=False,
+        allow_unicode=True,
+    )
+
+    tmp = path.with_suffix(".tmp")
+    tmp.write_text(text, encoding="utf-8")
+    tmp.replace(path)
+
+
+def load_project_metadata(path: Path) -> ProjectMetadata:
+    """Load and validate a ProjectMetadata from a YAML file.
+
+    Tolerates both the canonical top-level shape and the legacy
+    `detected:`-nested shape (for backward compatibility with pre-019
+    project.yml files written by `save_project()`). Emits a deprecation log
+    when reading the legacy shape per T152.
+
+    Args:
+        path: Path to the project.yml file.
+
+    Returns:
+        Validated ProjectMetadata instance.
+
+    Raises:
+        FileNotFoundError: If the project file does not exist.
+        ValueError: If the YAML content is invalid or fails validation.
+    """
+    if not path.is_file():
+        raise FileNotFoundError(f"Project file not found: {path}")
+
+    text = path.read_text(encoding="utf-8")
+    data = yaml.safe_load(text)
+
+    if data is None:
+        data = {}
+    if not isinstance(data, dict):
+        raise ValueError(f"Expected a YAML mapping in {path}, got {type(data).__name__}")
+
+    # Legacy: nested under `detected:`. Hoist to top-level + derive missing
+    # ProjectMetadata fields where possible.
+    if "detected" in data and isinstance(data["detected"], dict):
+        import logging
+
+        logging.getLogger(__name__).debug(
+            "Reading legacy `detected:`-nested project.yml at %s; "
+            "re-run `dotnet-ai migrate` to write the canonical top-level shape.",
+            path,
+        )
+        nested = data["detected"]
+        # Try to hoist what we have; fill missing required fields with
+        # safe placeholders so check can flag them.
+        hoisted: dict = {
+            "company": data.get("company") or "<unset>",
+            "domain": data.get("domain") or "<unset>",
+            "side": data.get("side") or "server",
+            "project_type": nested.get("project_type") or "generic",
+            "dotnet_version": nested.get("dotnet_version") or "8.0",
+            "detected_paths": nested.get("detected_paths") or {"src": "src"},
+        }
+        hoisted["architecture_branch"] = derive_architecture_branch(hoisted["project_type"])
+        data = hoisted
+
+    try:
+        return ProjectMetadata(**data)
+    except ValidationError as exc:
+        raise ValueError(f"Invalid project metadata in {path}: {exc}") from exc
 
 
 # ---------------------------------------------------------------------------

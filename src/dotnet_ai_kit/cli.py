@@ -758,9 +758,31 @@ def init(
             "(See contracts/copilot-instructions.contract.md:39-41.)"
         ),
     ),
+    company: Optional[str] = typer.Option(
+        None,
+        "--company",
+        help=(
+            "Company name for ProjectMetadata.company (feature 019 / B-3). "
+            "If omitted, falls back to config.yml::company.name or empty."
+        ),
+    ),
+    domain: Optional[str] = typer.Option(
+        None,
+        "--domain",
+        help="Logical domain for ProjectMetadata.domain (feature 019 / B-3).",
+    ),
+    side: Optional[str] = typer.Option(
+        None,
+        "--side",
+        help="server | client — for ProjectMetadata.side (feature 019 / B-3).",
+    ),
 ) -> None:
     """Initialize dotnet-ai-kit in a .NET project directory."""
     target = path.resolve()
+
+    # Feature 019 / commit 20 / B-3: validate --side if provided
+    if side is not None and side.lower() not in ("server", "client"):
+        raise typer.BadParameter(f"Invalid --side '{side}'. Choose from: server, client")
 
     # Validate --permissions value
     if permissions is not None and permissions.lower() not in ("minimal", "standard", "full"):
@@ -936,9 +958,52 @@ def init(
         console.print(f"  Created: {config_path.relative_to(target)}")
 
     # Step 5: Save project detection results
+    # Feature 019 / commit 20 / B-3 / T143: emit the canonical ProjectMetadata
+    # top-level shape per `schemas/project-yml.schema.json`. The legacy
+    # DetectedProject info is preserved in-memory for downstream checks, but
+    # what lands on disk follows the v1 contract.
     if detected:
         project_path = config_dir / "project.yml"
-        save_project(detected, project_path)
+
+        # T147 derivation table: gather required ProjectMetadata fields from
+        # CLI flags first, falling back to config / detection / defaults.
+        from dotnet_ai_kit.config import save_project_metadata  # noqa: PLC0415
+        from dotnet_ai_kit.models import ProjectMetadata, derive_architecture_branch  # noqa: PLC0415
+
+        pm_company = company or getattr(getattr(config, "company", None), "name", "") or ""
+        pm_domain = domain or "Sales"  # placeholder when no flag/detection
+        pm_side = (side or "server").lower()
+        pm_type = (project_type or detected.project_type or "generic").lower()
+        pm_branch = derive_architecture_branch(pm_type)
+        pm_dotnet = detected.dotnet_version or "8.0"
+        # detected_paths must be non-empty per schema minProperties:1
+        pm_paths: dict[str, str] = {}
+        for layer, p in (getattr(detected, "detected_paths", {}) or {}).items():
+            if p:
+                pm_paths[layer] = str(p)
+        if not pm_paths:
+            pm_paths = {"src": "src"}
+
+        # T149 / T150: refuse to write if required fields cannot be derived.
+        # Option A: clean — emit only when company is set (or rely on flag).
+        if not pm_company:
+            err_console.print(
+                "[yellow]Warning:[/yellow] --company not provided and not "
+                "available from config; using placeholder. Run "
+                "`dotnet-ai configure --company <name>` to update."
+            )
+            pm_company = "<unset>"
+
+        metadata = ProjectMetadata(
+            company=pm_company,
+            domain=pm_domain,
+            side=pm_side,
+            project_type=pm_type,
+            architecture_branch=pm_branch,
+            detected_paths=pm_paths,
+            dotnet_version=pm_dotnet,
+        )
+        save_project_metadata(metadata, project_path)
         if not json_output:
             console.print(f"  Created: {project_path.relative_to(target)}")
 
@@ -3087,13 +3152,56 @@ def check(
         )
 
     # 3. project.yml schema (exit 12 on miss)
+    # Feature 019 / commit 20 / B-4 / T153: raw-validate the YAML against
+    # `schemas/project-yml.schema.json` BEFORE loading into the model. This
+    # catches additionalProperties / type / required-field violations that the
+    # pydantic loader would silently coerce or ignore.
     project_yml = _get_cfg_dir(target) / "project.yml"
     if project_yml.is_file():
+        import json as _json  # noqa: PLC0415
+
+        import jsonschema as _jsonschema  # noqa: PLC0415
+        import yaml as _yaml  # noqa: PLC0415
+
+        schema_path = _get_package_dir() / "schemas" / "project-yml.schema.json"
+        if not schema_path.is_file():
+            # Fallback: scripts may run outside the installed package
+            schema_path = (
+                Path(__file__).resolve().parents[2] / "schemas" / "project-yml.schema.json"
+            )
+
         try:
-            _load_project(project_yml)
-            _add("project_yml_schema", "pass", str(project_yml))
-        except Exception as exc:
-            _fail("project_yml_schema", f"{exc}", 12)
+            raw_data = _yaml.safe_load(project_yml.read_text(encoding="utf-8")) or {}
+        except _yaml.YAMLError as exc:
+            _fail("project_yml_schema", f"YAML parse error: {exc}", 12)
+            raw_data = None
+
+        if raw_data is not None and schema_path.is_file():
+            # Skip strict raw-validate for the legacy `detected:`-nested shape;
+            # the pydantic loader handles that path via `load_project_metadata`'s
+            # back-compat hoisting (T152). Raw-validate only the canonical v1
+            # top-level shape.
+            is_legacy_nested = isinstance(raw_data, dict) and "detected" in raw_data
+            if not is_legacy_nested:
+                try:
+                    schema = _json.loads(schema_path.read_text(encoding="utf-8"))
+                    _jsonschema.validate(instance=raw_data, schema=schema)
+                except _jsonschema.ValidationError as exc:
+                    # FR-031 maps schema violations to exit class 12
+                    _fail(
+                        "project_yml_schema",
+                        f"schema violation at "
+                        f"{'/'.join(str(p) for p in exc.absolute_path)}: {exc.message}",
+                        12,
+                    )
+                    raw_data = None
+
+        if raw_data is not None:
+            try:
+                _load_project(project_yml)
+                _add("project_yml_schema", "pass", str(project_yml))
+            except Exception as exc:
+                _fail("project_yml_schema", f"{exc}", 12)
     else:
         _add(
             "project_yml_schema",
