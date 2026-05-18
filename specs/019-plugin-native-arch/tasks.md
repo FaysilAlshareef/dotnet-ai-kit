@@ -394,10 +394,10 @@ Maps to **commit 14b** (NEW commit inserted during tasks-phase round 1 per Codex
 
 ### Commit 22 — CI smoke gate: 3-OS matrix + 4 binaries + preflight (B-7, ~3-4h)
 
-- [ ] T157 [P] (commit 22) Update `.github/workflows/ci.yml::smoke` to add `workflow_dispatch` trigger alongside `schedule` and `[smoke]` label. Add 3-OS matrix `[ubuntu-latest, macos-latest, windows-latest]` per A-010.
-- [ ] T158 [P] (commit 22) Add provisioning steps for `claude`, `codex`, `cursor`, **and `csharp-ls`** (the 4th binary missed in round 2) to the smoke job. Document per-OS install commands.
-- [ ] T159 [P] (commit 22) Add a `Preflight` step in the smoke job that runs `for bin in claude codex cursor csharp-ls; do command -v $bin || { echo "::error::missing $bin"; exit 1; }; done`. This ensures pytest skip marks cannot produce a false-green smoke job.
-- [ ] T160 (commit 22) Replace the smoke job's `pytest tests/smoke -q` invocation with the 4 feature-019 fixture files: `tests/integration/test_smoke_claude.py`, `tests/integration/test_smoke_claude_lsp.py`, `tests/integration/test_smoke_codex.py`, `tests/integration/test_smoke_cursor.py`. Set `CLAUDE_CODE_SMOKE=1`, `CODEX_SMOKE=1`, `CURSOR_SMOKE=1` in the job env. **Acceptance**: maintainer triggers `workflow_dispatch` on the branch, all 3 OS lanes run all 4 fixtures with preflight pass, job is green pre-tag.
+- [X] T157 [P] (commit 22) Update `.github/workflows/ci.yml::smoke` to add `workflow_dispatch` trigger alongside `schedule` and `[smoke]` label. Add 3-OS matrix `[ubuntu-latest, macos-latest, windows-latest]` per A-010.
+- [X] T158 [P] (commit 22) Add provisioning steps for `claude`, `codex`, `cursor`, **and `csharp-ls`** (the 4th binary missed in round 2) to the smoke job. Document per-OS install commands.
+- [X] T159 [P] (commit 22) Add a `Preflight` step in the smoke job that runs `for bin in claude codex cursor csharp-ls; do command -v $bin || { echo "::error::missing $bin"; exit 1; }; done`. This ensures pytest skip marks cannot produce a false-green smoke job.
+- [X] T160 (commit 22) Replace the smoke job's `pytest tests/smoke -q` invocation with the 4 feature-019 fixture files: `tests/integration/test_smoke_claude.py`, `tests/integration/test_smoke_claude_lsp.py`, `tests/integration/test_smoke_codex.py`, `tests/integration/test_smoke_cursor.py`. Set `CLAUDE_CODE_SMOKE=1`, `CODEX_SMOKE=1`, `CURSOR_SMOKE=1` in the job env. **Acceptance**: maintainer triggers `workflow_dispatch` on the branch, all 3 OS lanes run all 4 fixtures with preflight pass, job is green pre-tag.
 
 ### Commit 23 — `agents-source/` migration to `host_overrides` (F-F P1, ~2-3h)
 

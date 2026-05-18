@@ -8,6 +8,9 @@ on:
   schedule:
     # Nightly smoke run at 04:00 UTC. Requires the `claude` CLI on the runner.
     - cron: "0 4 * * *"
+  # Feature 019 / commit 22 / B-7 / T157: maintainer can dispatch smoke
+  # manually before tagging v1.0.0 to satisfy the release gate (T200).
+  workflow_dispatch:
 
 jobs:
   static-unit:
@@ -62,14 +65,30 @@ jobs:
         run: python scripts/check.py --cov=dotnet_ai_kit --cov-report=term-missing --cov-fail-under=85 -q
 
   smoke:
-    # Smoke tests need a real `claude` CLI. They run when the PR carries the
-    # [smoke] label OR on the nightly schedule above. (FR-029)
+    # Feature 019 / commit 22 / B-7 (T157-T160): smoke job runs the 4 feature-019
+    # host fixtures (Claude, Claude+LSP, Codex, Cursor) across the 3-OS matrix
+    # required by A-010 / SC-008. Triggered by:
+    #   - workflow_dispatch (maintainer-initiated, see T200 release gate)
+    #   - [smoke] PR label
+    #   - nightly schedule
+    # The preflight step (T159) ensures all 4 host binaries (`claude`, `codex`,
+    # `cursor`, `csharp-ls`) are on PATH before pytest runs, so pytest skip-marks
+    # cannot produce a false-green smoke job.
     name: Smoke (gated)
-    if: github.event_name == 'schedule' || contains(github.event.pull_request.labels.*.name, 'smoke')
-    runs-on: ubuntu-latest
+    if: >-
+      github.event_name == 'workflow_dispatch'
+      || github.event_name == 'schedule'
+      || contains(github.event.pull_request.labels.*.name, 'smoke')
+    strategy:
+      matrix:
+        os: [ubuntu-latest, macos-latest, windows-latest]
+      fail-fast: false
+    runs-on: ${{ matrix.os }}
     needs: static-unit
     env:
       CLAUDE_CODE_SMOKE: "1"
+      CODEX_SMOKE: "1"
+      CURSOR_SMOKE: "1"
 
     steps:
       - uses: actions/checkout@v6
@@ -81,8 +100,65 @@ jobs:
 
       - name: Install dependencies
         run: |
-          pip install pytest
+          pip install pytest pytest-cov
           pip install -e .
 
-      - name: Run smoke suite
-        run: python -m pytest tests/smoke -q
+      # T158: provision the 4 host binaries on each runner OS.
+      # `csharp-ls` is the .NET LSP added in commit 11; it joins claude/codex/cursor
+      # as the fourth binary the smoke suite expects on PATH (B-7 round-2 fix).
+      - name: Install Claude Code CLI (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          curl -fsSL https://claude.ai/install.sh | bash -s -- --yes || true
+          echo "$HOME/.local/bin" >> $GITHUB_PATH
+      - name: Install Claude Code CLI (Windows)
+        if: runner.os == 'Windows'
+        shell: pwsh
+        run: |
+          iwr -useb https://claude.ai/install.ps1 | iex
+          echo "$env:USERPROFILE\\AppData\\Local\\Programs\\claude\\bin" | Out-File -Append -Encoding utf8 $env:GITHUB_PATH
+
+      - name: Install Codex CLI (npm)
+        run: npm install -g @openai/codex || true
+
+      - name: Install Cursor CLI (Linux/macOS)
+        if: runner.os != 'Windows'
+        run: |
+          curl -fsSL https://downloads.cursor.com/production/cli/linux/x64/cursor -o /usr/local/bin/cursor || true
+          chmod +x /usr/local/bin/cursor || true
+
+      - name: Install csharp-ls (dotnet tool)
+        run: |
+          dotnet tool install -g csharp-ls || true
+          echo "$HOME/.dotnet/tools" >> $GITHUB_PATH
+
+      # T159: preflight — every host binary required by the smoke suite must
+      # be on PATH or we hard-fail. Prevents pytest skip-marks from producing
+      # a false-green smoke job.
+      - name: Preflight — verify smoke binaries on PATH
+        shell: bash
+        run: |
+          missing=0
+          for bin in claude codex cursor csharp-ls; do
+            if ! command -v "$bin" >/dev/null 2>&1; then
+              echo "::error::missing $bin on PATH; smoke job cannot validate ${bin}'s plugin pathway"
+              missing=$((missing + 1))
+            else
+              echo "found $bin: $(command -v $bin)"
+            fi
+          done
+          if [ "$missing" -gt 0 ]; then
+            echo "::error::$missing binaries missing — failing the smoke job (T159)"
+            exit 1
+          fi
+
+      # T160: run the 4 feature-019 host fixture files explicitly. The
+      # previous `tests/smoke` glob conflated smoke and unit tests; the
+      # explicit list ensures every B-7-tracked fixture runs on every OS.
+      - name: Run feature-019 smoke fixtures
+        run: |
+          python -m pytest -q \
+            tests/integration/test_smoke_claude.py \
+            tests/integration/test_smoke_claude_lsp.py \
+            tests/integration/test_smoke_codex.py \
+            tests/integration/test_smoke_cursor.py
