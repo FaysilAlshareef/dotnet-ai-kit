@@ -2271,7 +2271,7 @@ def configure(
         perm_map = {"1": "minimal", "2": "standard", "3": "full"}
         config.permissions_level = perm_map.get(perm_choice, "standard")
 
-        # AI tools multi-select (T041) — v1.0: Claude only
+        # AI tools multi-select (T041 / T133 commit 17, B-6) — all 4 hosts per FR-016
         current_tools = config.ai_tools or []
         tools_result = questionary.checkbox(
             "AI tools to configure:",
@@ -2280,6 +2280,21 @@ def configure(
                     "Claude Code",
                     value="claude",
                     checked="claude" in current_tools,
+                ),
+                questionary.Choice(
+                    "Codex CLI",
+                    value="codex",
+                    checked="codex" in current_tools,
+                ),
+                questionary.Choice(
+                    "Cursor",
+                    value="cursor",
+                    checked="cursor" in current_tools,
+                ),
+                questionary.Choice(
+                    "GitHub Copilot",
+                    value="copilot",
+                    checked="copilot" in current_tools,
                 ),
             ],
         ).ask()

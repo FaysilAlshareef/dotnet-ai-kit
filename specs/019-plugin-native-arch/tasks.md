@@ -354,8 +354,8 @@ Maps to **commit 14b** (NEW commit inserted during tasks-phase round 1 per Codex
 
 ### Commit 17 — Configure interactive picker shows all 4 hosts (B-6, ~30m)
 
-- [ ] T132 [P] (commit 17) Add `tests/unit/test_configure_multi_host_picker.py` asserting the `questionary.checkbox` in `configure` interactive flow shows all 4 hosts (`claude`, `codex`, `cursor`, `copilot`) per FR-016 / CHK037. Test FAILS first against current `cli.py:2286-2297` "v1.0: Claude only" implementation.
-- [ ] T133 (commit 17) Expand `src/dotnet_ai_kit/cli.py:2286-2297` `questionary.checkbox` choices from `[Claude Code]` to all 4 hosts with `checked` reflecting current `config.enabled_hosts` (or legacy `config.ai_tools` until B-2 migration lands). Remove the "v1.0: Claude only" comment. T132 PASSES. **Acceptance**: interactive `dotnet-ai configure` shows all 4 hosts as selectable checkboxes.
+- [X] T132 [P] (commit 17) Add `tests/unit/test_configure_multi_host_picker.py` asserting the `questionary.checkbox` in `configure` interactive flow shows all 4 hosts (`claude`, `codex`, `cursor`, `copilot`) per FR-016 / CHK037. Test FAILS first against current `cli.py:2286-2297` "v1.0: Claude only" implementation.
+- [X] T133 (commit 17) Expand `src/dotnet_ai_kit/cli.py:2286-2297` `questionary.checkbox` choices from `[Claude Code]` to all 4 hosts with `checked` reflecting current `config.enabled_hosts` (or legacy `config.ai_tools` until B-2 migration lands). Remove the "v1.0: Claude only" comment. T132 PASSES. **Acceptance**: interactive `dotnet-ai configure` shows all 4 hosts as selectable checkboxes.
 
 ### Commit 18 — Skip `copy_profile()` + `copy_hook()` for plugin-native hosts (B-1, ~3-4h)
 
