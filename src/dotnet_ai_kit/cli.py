@@ -1091,6 +1091,11 @@ def init(
     _init_profile_path = None
     if _init_project_type:
         for tool_name in ai_tools:
+            # Feature 019 / commit 18 / B-1: plugin-native hosts get the
+            # architecture profile from the plugin install path (rules/conventions/
+            # + rules/domain/) — not via per-solution `.claude/rules/`.
+            if tool_name in PLUGIN_NATIVE_HOSTS:
+                continue
             try:
                 profile_path = copy_profile(
                     target,
@@ -1108,7 +1113,10 @@ def init(
             except (FileNotFoundError, ValueError):
                 pass  # Profile not available — skip silently
 
-        if _init_profile_path and "claude" in ai_tools:
+        # Feature 019 / commit 18 / B-1: belt-and-braces — the hook block is
+        # served by the plugin install path for plugin-native Claude, so even
+        # if a stale profile exists on disk (pre-019 layout), don't re-embed.
+        if _init_profile_path and "claude" in ai_tools and "claude" not in PLUGIN_NATIVE_HOSTS:
             try:
                 if copy_hook(target, _init_profile_path, _get_package_dir()):
                     if not json_output:
@@ -1860,6 +1868,10 @@ def upgrade(
                 _project_type = _proj_obj.project_type or "generic"
                 _confidence = _proj_obj.confidence or "low"
                 for tool_name in config.ai_tools:
+                    # Feature 019 / commit 18 / B-1: skip legacy profile copy
+                    # for plugin-native hosts (served from plugin install path).
+                    if tool_name in PLUGIN_NATIVE_HOSTS:
+                        continue
                     try:
                         _p = copy_profile(
                             target,
@@ -1878,7 +1890,13 @@ def upgrade(
                     "Run 'dotnet-ai configure' to retry.[/yellow]"
                 )
 
-        if _upgrade_profile_path and "claude" in config.ai_tools:
+        # Feature 019 / commit 18 / B-1: belt-and-braces — never embed a stale
+        # PreToolUse `type: prompt` hook for plugin-native Claude.
+        if (
+            _upgrade_profile_path
+            and "claude" in config.ai_tools
+            and "claude" not in PLUGIN_NATIVE_HOSTS
+        ):
             try:
                 copy_hook(target, _upgrade_profile_path, _get_package_dir())
             except Exception as exc:
@@ -2460,6 +2478,10 @@ def configure(
 
     _deployed_profile_path = None
     for tool_name in config.ai_tools:
+        # Feature 019 / commit 18 / B-1: skip legacy profile copy for
+        # plugin-native hosts (served from plugin install path).
+        if tool_name in PLUGIN_NATIVE_HOSTS:
+            continue
         try:
             profile_path = copy_profile(
                 target,
@@ -2475,8 +2497,13 @@ def configure(
         except (FileNotFoundError, ValueError):
             pass  # Profile not available yet — skip silently
 
-    # Deploy Claude Code prompt hook if profile was deployed
-    if _deployed_profile_path and "claude" in config.ai_tools:
+    # Deploy Claude Code prompt hook if profile was deployed.
+    # Feature 019 / commit 18 / B-1: belt-and-braces — skip for plugin-native.
+    if (
+        _deployed_profile_path
+        and "claude" in config.ai_tools
+        and "claude" not in PLUGIN_NATIVE_HOSTS
+    ):
         try:
             if copy_hook(target, _deployed_profile_path, _get_package_dir()):
                 if not json_output:

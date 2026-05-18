@@ -487,5 +487,12 @@ class TestDeployToLinkedRepos:
 
         assert len(results) == 1
         assert results[0]["status"] in ("deployed", "upgraded")
-        # Verify the .claude/ dir was populated (secondary ai_tool = claude)
-        assert (secondary / ".claude" / "rules" / "architecture-profile.md").is_file()
+        # T137 (commit 18, B-1): plugin-native Claude — `.claude/rules/architecture-profile.md`
+        # MUST NOT exist in linked secondaries either. The architecture profile is
+        # served from the plugin install path (rules/conventions/ + rules/domain/),
+        # not via per-solution bulk-copy.
+        assert not (secondary / ".claude" / "rules" / "architecture-profile.md").is_file(), (
+            "B-1 violation: linked-secondary Claude deploy created stale "
+            "`.claude/rules/architecture-profile.md` — per feature 019 FR-004 the "
+            "architecture profile lives in the plugin install path."
+        )

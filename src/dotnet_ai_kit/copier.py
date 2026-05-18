@@ -22,6 +22,12 @@ from dotnet_ai_kit.version_check import check_claude_code_version
 
 logger = logging.getLogger(__name__)
 
+# Feature 019 / commit 18 / B-1: hosts whose commands/skills/agents/rules are
+# served from the plugin install path — not bulk-copied per-solution. Keep in
+# sync with cli.py::PLUGIN_NATIVE_HOSTS (single source of truth would be a
+# circular import; both definitions intentionally identical).
+PLUGIN_NATIVE_HOSTS: frozenset[str] = frozenset({"claude", "codex", "cursor"})
+
 # Maps project_type → profile source path (relative to package root).
 # Only ONE profile is deployed per project.
 PROFILE_MAP: dict[str, str] = {
@@ -1073,18 +1079,10 @@ def deploy_to_linked_repos(
                     # Cursor's legacy `.cursor/rules/*.mdc` rendering is handled
                     # by `dotnet-ai migrate` for old-layout solutions only.
 
-                    # Deploy profile (still relevant — feature 018 architecture
-                    # profiles are per-solution metadata, not bulk plugin content)
-                    try:
-                        copy_profile(
-                            repo_path,
-                            tool_name,
-                            sec_project_type,
-                            package_dir,
-                            confidence=sec_confidence,
-                        )
-                    except Exception:
-                        pass
+                    # Feature 019 / commit 18 / B-1: do NOT call copy_profile for
+                    # plugin-native hosts. The architecture profile lives in the
+                    # plugin install path (rules/conventions/ + rules/domain/),
+                    # not in per-solution `.claude/rules/architecture-profile.md`.
                 else:
                     # Render-only / future hosts: legacy bulk copy path.
                     if commands_dir.is_dir():
@@ -1120,9 +1118,13 @@ def deploy_to_linked_repos(
                             tool_name=tool_name,
                         )
 
-                # Deploy hook (Claude only) — irrespective of plugin-native mode,
-                # the arch-profile hook is per-solution metadata.
-                if tool_name == "claude":
+                # Deploy hook (Claude only). Feature 019 / commit 18 / B-1:
+                # stale-profile gate — even if a prior pre-019 run left a
+                # `.claude/rules/architecture-profile.md` behind on a linked
+                # secondary, plugin-native Claude MUST NOT embed it into
+                # `.claude/settings.json`. The PreToolUse hook is served by
+                # the plugin install path.
+                if tool_name == "claude" and tool_name not in PLUGIN_NATIVE_HOSTS:
                     rules_dir = tool_config.get("rules_dir", ".claude/rules")
                     profile_deployed = repo_path / rules_dir / "architecture-profile.md"
                     if profile_deployed.is_file():

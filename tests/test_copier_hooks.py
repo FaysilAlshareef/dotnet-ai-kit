@@ -1,4 +1,16 @@
-"""Tests for copy_hook(): constraint extraction, prompt embedding, file scope, settings.json."""
+"""Tests for copy_hook(): constraint extraction, prompt embedding, file scope, settings.json.
+
+T135 (commit 18, B-1) note: these tests exercise `copy_hook()` as a pure
+function. The B-1 fix gates `copy_hook()`'s **call sites** (cli.py init /
+upgrade / configure + copier.py linked-secondary deploy) by
+`PLUGIN_NATIVE_HOSTS`, so `copy_hook()` itself is now only invoked from the
+legacy / migrate path for pre-019 solutions. The references to
+`.claude/rules/architecture-profile.md` below are intentional — they verify
+the function's pure-IO contract for the migrate path. Negative-path
+assertions (plugin-native MUST NOT call copy_hook) live in
+`tests/unit/test_init_claude_native.py` (T134) and
+`tests/test_multi_repo_deploy.py:486-491` (T137) instead.
+"""
 
 from __future__ import annotations
 

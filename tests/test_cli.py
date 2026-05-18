@@ -1182,8 +1182,14 @@ def test_upgrade_force_refreshes_when_version_matches(tmp_path: Path, monkeypatc
     assert version_file.is_file()
 
 
-def test_upgrade_force_redeploys_profile(tmp_path: Path, monkeypatch) -> None:
-    """upgrade --force should call copy_profile and copy_hook even when version matches."""
+def test_upgrade_force_does_not_redeploy_profile_for_plugin_native(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """T136 (commit 18, B-1): upgrade --force MUST NOT call copy_profile or copy_hook
+    for plugin-native Claude. The architecture profile lives in the plugin install
+    path (rules/conventions/ + rules/domain/), not in per-solution
+    `.claude/rules/architecture-profile.md`.
+    """
 
     _create_dotnet_project(tmp_path)
     _create_claude_dir(tmp_path)
@@ -1203,8 +1209,14 @@ def test_upgrade_force_redeploys_profile(tmp_path: Path, monkeypatch) -> None:
         result = runner.invoke(app, ["upgrade", "--force"], catch_exceptions=False)
 
     assert result.exit_code == 0, result.output
-    assert mock_profile.called, "copy_profile should be called with --force"
-    assert mock_hook.called, "copy_hook should be called with --force"
+    assert not mock_profile.called, (
+        "B-1 violation: upgrade --force called copy_profile for plugin-native Claude. "
+        "Per FR-004 the profile is served from the plugin install path."
+    )
+    assert not mock_hook.called, (
+        "B-1 violation: upgrade --force called copy_hook for plugin-native Claude. "
+        "Per FR-004 the PreToolUse hook is served from the plugin install path."
+    )
 
 
 def test_configure_fails_loudly_on_permission_error(tmp_path: Path, monkeypatch) -> None:
@@ -1395,8 +1407,11 @@ def test_configure_recopy_on_style_change(tmp_path: Path, monkeypatch) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_init_deploys_profile_when_type_provided(tmp_path: Path) -> None:
-    """init --type command should deploy architecture-profile.md."""
+def test_init_does_not_deploy_profile_for_plugin_native_claude(tmp_path: Path) -> None:
+    """T136 (commit 18, B-1): init --type command MUST NOT deploy per-solution
+    architecture-profile.md for plugin-native Claude. The profile lives in the
+    plugin install path (rules/conventions/ + rules/domain/) per FR-004.
+    """
     _create_dotnet_project(tmp_path)
     _create_claude_dir(tmp_path)
 
@@ -1407,11 +1422,17 @@ def test_init_deploys_profile_when_type_provided(tmp_path: Path) -> None:
 
     assert result.exit_code == 0
     profile = tmp_path / ".claude" / "rules" / "architecture-profile.md"
-    assert profile.is_file()
+    assert not profile.is_file(), (
+        "B-1 violation: plugin-native Claude init wrote "
+        f"{profile.relative_to(tmp_path)}. Per FR-004 it lives in the plugin install path."
+    )
 
 
-def test_init_deploys_hook_when_type_provided(tmp_path: Path) -> None:
-    """init --type command should deploy enforcement hook for Claude."""
+def test_init_does_not_deploy_hook_for_plugin_native_claude(tmp_path: Path) -> None:
+    """T136 (commit 18, B-1): init MUST NOT deploy a PreToolUse `dotnet-ai-kit-arch`
+    hook entry into per-solution `.claude/settings.json` for plugin-native Claude.
+    The hook is served from the plugin install path.
+    """
     _create_dotnet_project(tmp_path)
     _create_claude_dir(tmp_path)
 
@@ -1426,7 +1447,10 @@ def test_init_deploys_hook_when_type_provided(tmp_path: Path) -> None:
         settings = json.loads(settings_path.read_text(encoding="utf-8"))
         hooks = settings.get("hooks", {}).get("PreToolUse", [])
         arch_hooks = [h for h in hooks if h.get("_source") == "dotnet-ai-kit-arch"]
-        assert len(arch_hooks) >= 1
+        assert not arch_hooks, (
+            "B-1 violation: plugin-native Claude init embedded a "
+            f"`dotnet-ai-kit-arch` PreToolUse hook in settings.json: {arch_hooks!r}"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -1625,8 +1649,13 @@ def test_check_verbose_shows_profile_detail(tmp_path: Path, monkeypatch) -> None
     result = runner.invoke(app, ["status", "--verbose"], catch_exceptions=False)
 
     assert result.exit_code == 0, result.output
-    # When profile is deployed, verbose output includes profile path info
-    assert "architecture-profile.md" in result.output
+    # T136 (commit 18, B-1): plugin-native Claude — `architecture-profile.md`
+    # MUST NOT appear in status output because the profile is served from the
+    # plugin install path, not from `.claude/rules/`.
+    assert "architecture-profile.md" not in result.output, (
+        "B-1 violation: plugin-native Claude status reports stale "
+        "`architecture-profile.md` from per-solution path."
+    )
 
 
 def test_check_table_includes_profile_hook_columns(tmp_path: Path, monkeypatch) -> None:

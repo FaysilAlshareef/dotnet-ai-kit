@@ -113,3 +113,59 @@ def test_init_claude_does_not_bulk_copy_commands_skills(tmp_path: Path, forbidde
             f"feature 019 violation: per-solution `{forbidden_dir}/` contains "
             f"bulk-copied files: {[p.name for p in contents]}"
         )
+
+
+def test_init_claude_no_rules_directory(tmp_path: Path) -> None:
+    """T134 (commit 18, B-1): Claude plugin-native init MUST NOT create `.claude/rules/`.
+
+    Per FR-004 / FR-005, the architecture profile lives in the plugin install
+    path (rules/conventions/ + rules/domain/), not in the per-solution
+    `.claude/rules/architecture-profile.md`. The legacy `copy_profile()` call
+    site must be gated by `tool_name in PLUGIN_NATIVE_HOSTS`.
+    """
+    _create_dotnet_project(tmp_path)
+
+    runner.invoke(
+        app,
+        ["init", str(tmp_path), "--ai", "claude", "--type", "generic"],
+        catch_exceptions=False,
+    )
+
+    rules_dir = tmp_path / ".claude" / "rules"
+    assert not rules_dir.exists(), (
+        f"B-1 violation: plugin-native Claude init created `.claude/rules/` "
+        f"with contents {[p.name for p in rules_dir.iterdir()] if rules_dir.is_dir() else 'N/A'}. "
+        f"Per FR-004 the architecture profile lives in the plugin install path."
+    )
+
+
+def test_init_claude_no_prompt_hook_in_settings(tmp_path: Path) -> None:
+    """T134 (commit 18, B-1): plugin-native Claude init MUST NOT embed a
+    PreToolUse `type: prompt` hook in `.claude/settings.json`.
+
+    The hook is a legacy bulk-copy artifact replaced by the plugin-native
+    PreToolUse hook served from the plugin install path.
+    """
+    import json as _json
+
+    _create_dotnet_project(tmp_path)
+
+    runner.invoke(
+        app,
+        ["init", str(tmp_path), "--ai", "claude", "--type", "generic"],
+        catch_exceptions=False,
+    )
+
+    settings_path = tmp_path / ".claude" / "settings.json"
+    if not settings_path.is_file():
+        return  # No settings written — acceptable for plugin-native.
+
+    settings = _json.loads(settings_path.read_text(encoding="utf-8"))
+    hooks_section = settings.get("hooks") or {}
+    pretool = hooks_section.get("PreToolUse") or []
+    for matcher in pretool:
+        for hook in matcher.get("hooks", []) or []:
+            assert hook.get("type") != "prompt", (
+                f"B-1 violation: plugin-native Claude init embedded a stale "
+                f"`type: prompt` hook in {settings_path}: {hook!r}"
+            )
