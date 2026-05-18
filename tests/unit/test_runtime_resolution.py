@@ -13,7 +13,6 @@ edit MUST be observed by the next AI interaction without restart.
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 import pytest
@@ -105,6 +104,4 @@ def test_session_start_bootstrap_reads_at_fire_time() -> None:
     if not hook.is_file():
         pytest.skip("session-start-bootstrap.sh not present in this checkout")
     body = hook.read_text(encoding="utf-8")
-    assert "project.yml" in body, (
-        "session-start-bootstrap.sh MUST reference project.yml per FR-009"
-    )
+    assert "project.yml" in body, "session-start-bootstrap.sh MUST reference project.yml per FR-009"

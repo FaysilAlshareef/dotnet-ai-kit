@@ -97,15 +97,11 @@ _FEATURE_019_BUNDLED_DIRS = [
     _FEATURE_019_BUNDLED_FILES,
     ids=[entry[1] for entry in _FEATURE_019_BUNDLED_FILES],
 )
-def test_wheel_bundles_feature_019_files(
-    built_wheel: Path, suffix: str, description: str
-) -> None:
+def test_wheel_bundles_feature_019_files(built_wheel: Path, suffix: str, description: str) -> None:
     """T006: each per-host plugin manifest must be in the wheel."""
     with zipfile.ZipFile(built_wheel) as z:
         names = z.namelist()
-    assert any(n.endswith(suffix) for n in names), (
-        f"{description} ({suffix}) not bundled in wheel"
-    )
+    assert any(n.endswith(suffix) for n in names), f"{description} ({suffix}) not bundled in wheel"
 
 
 @pytest.mark.parametrize(
@@ -113,9 +109,7 @@ def test_wheel_bundles_feature_019_files(
     _FEATURE_019_BUNDLED_DIRS,
     ids=[entry[1] for entry in _FEATURE_019_BUNDLED_DIRS],
 )
-def test_wheel_bundles_feature_019_dirs(
-    built_wheel: Path, prefix: str, description: str
-) -> None:
+def test_wheel_bundles_feature_019_dirs(built_wheel: Path, prefix: str, description: str) -> None:
     """T006: each feature-019 directory must be present in the wheel.
 
     Asserts at least one entry exists under the directory prefix. Empty stub
@@ -124,6 +118,4 @@ def test_wheel_bundles_feature_019_dirs(
     """
     with zipfile.ZipFile(built_wheel) as z:
         names = z.namelist()
-    assert any(prefix in n for n in names), (
-        f"{description} ({prefix}) not bundled in wheel"
-    )
+    assert any(prefix in n for n in names), f"{description} ({prefix}) not bundled in wheel"

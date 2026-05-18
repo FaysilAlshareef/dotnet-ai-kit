@@ -15,10 +15,8 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
 from dotnet_ai_kit.hosts import get_host
-from dotnet_ai_kit.hosts.copilot import CopilotHost, CopilotRenderResult
+from dotnet_ai_kit.hosts.copilot import CopilotHost
 
 
 def test_copilot_host_registered() -> None:

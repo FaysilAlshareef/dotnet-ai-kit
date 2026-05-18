@@ -23,9 +23,7 @@ runner = CliRunner()
 
 
 def _create_dotnet_project(tmp_path: Path) -> None:
-    (tmp_path / "MyApp.sln").write_text(
-        "Microsoft Visual Studio Solution File\n", encoding="utf-8"
-    )
+    (tmp_path / "MyApp.sln").write_text("Microsoft Visual Studio Solution File\n", encoding="utf-8")
     (tmp_path / "src").mkdir()
     (tmp_path / "src" / "MyApp.csproj").write_text(
         '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup>'
@@ -39,9 +37,7 @@ def test_no_per_solution_command_duplicates(tmp_path: Path) -> None:
     """SC-005: post-init `.claude/commands/` MUST be empty/absent (commands
     served by plugin install, not duplicated per-solution)."""
     _create_dotnet_project(tmp_path)
-    result = runner.invoke(
-        app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False
-    )
+    result = runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
     assert result.exit_code == 0
     commands_dir = tmp_path / ".claude" / "commands"
     if commands_dir.is_dir():
@@ -60,8 +56,7 @@ def test_no_per_solution_skill_duplicates(tmp_path: Path) -> None:
     if skills_dir.is_dir():
         skills = list(skills_dir.rglob("SKILL.md"))
         assert not skills, (
-            f"SC-005 violation: per-solution `.claude/skills/` has "
-            f"{len(skills)} duplicate skill(s)"
+            f"SC-005 violation: per-solution `.claude/skills/` has {len(skills)} duplicate skill(s)"
         )
 
 

@@ -105,9 +105,7 @@ class DeployedFile(BaseModel):
         if v is None:
             return v
         if v not in _HOST_OWNER_VALUES:
-            raise ValueError(
-                f"host_owner must be one of {_HOST_OWNER_VALUES} or null, got {v!r}"
-            )
+            raise ValueError(f"host_owner must be one of {_HOST_OWNER_VALUES} or null, got {v!r}")
         return v
 
 
@@ -295,7 +293,10 @@ def integrity_check(project_root: Path) -> IntegrityReport:
                 path=str(p),
                 issue_class="manifest_unreadable",
                 observed_state=f"parse error: {exc}",
-                remediation=f"validate manifest.json against schemas/manifest-json.schema.json or run `dotnet-ai init --force {project_root}`",
+                remediation=(
+                    "validate manifest.json against schemas/manifest-json.schema.json"
+                    f" or run `dotnet-ai init --force {project_root}`"
+                ),
             )
         )
         return report

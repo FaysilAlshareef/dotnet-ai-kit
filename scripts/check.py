@@ -76,9 +76,7 @@ def _check_claude_plugin_paths_exist(root: Path) -> list[str]:
             if not target.is_file():
                 missing.append(entry)
     if missing:
-        errors.append(
-            f".claude-plugin/plugin.json references non-existent paths: {missing[:5]}"
-        )
+        errors.append(f".claude-plugin/plugin.json references non-existent paths: {missing[:5]}")
     return errors
 
 

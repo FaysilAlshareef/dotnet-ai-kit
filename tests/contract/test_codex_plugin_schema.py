@@ -34,9 +34,7 @@ def schema() -> dict:
     return json.loads(PLUGIN_SCHEMA.read_text(encoding="utf-8"))
 
 
-def test_codex_plugin_manifest_validates_against_schema(
-    manifest: dict, schema: dict
-) -> None:
+def test_codex_plugin_manifest_validates_against_schema(manifest: dict, schema: dict) -> None:
     """`.codex-plugin/plugin.json` MUST validate against the schema contract."""
     jsonschema.validate(instance=manifest, schema=schema)
 

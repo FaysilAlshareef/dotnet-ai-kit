@@ -81,9 +81,7 @@ def test_macos_wheel_bundles_per_host_manifests(built_wheel_macos: Path, suffix:
     """T007: per-host manifest files MUST be in the macOS wheel."""
     with zipfile.ZipFile(built_wheel_macos) as z:
         names = z.namelist()
-    assert any(n.endswith(suffix) for n in names), (
-        f"{suffix} not bundled in macOS wheel"
-    )
+    assert any(n.endswith(suffix) for n in names), f"{suffix} not bundled in macOS wheel"
 
 
 @pytest.mark.parametrize("prefix", _FEATURE_019_BUNDLED_DIRS)
@@ -91,6 +89,4 @@ def test_macos_wheel_bundles_feature_019_dirs(built_wheel_macos: Path, prefix: s
     """T007: feature-019 directories MUST be present in macOS wheel."""
     with zipfile.ZipFile(built_wheel_macos) as z:
         names = z.namelist()
-    assert any(prefix in n for n in names), (
-        f"{prefix} not bundled in macOS wheel"
-    )
+    assert any(prefix in n for n in names), f"{prefix} not bundled in macOS wheel"

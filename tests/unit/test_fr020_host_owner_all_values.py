@@ -16,7 +16,6 @@ import pytest
 from dotnet_ai_kit.manifest import (
     DeployedFile,
     Manifest,
-    infer_host_owner,
     read_manifest,
     utc_now_iso,
     write_manifest,

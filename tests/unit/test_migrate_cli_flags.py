@@ -10,7 +10,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
 from typer.testing import CliRunner
 
 from dotnet_ai_kit.cli import app
@@ -92,9 +91,7 @@ def test_migrate_dry_run_with_host_scoping(tmp_path: Path) -> None:
     """`--dry-run --host claude` previews only claude's actions, mutates nothing."""
     project = _build_multi_host_project(tmp_path)
 
-    result = runner.invoke(
-        app, ["migrate", str(project), "--dry-run", "--host", "claude"]
-    )
+    result = runner.invoke(app, ["migrate", str(project), "--dry-run", "--host", "claude"])
     assert result.exit_code == 0
     # Both files still in place after dry-run
     assert (project / ".cursor" / "rules" / "x.mdc").exists()

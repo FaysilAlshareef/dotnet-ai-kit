@@ -16,7 +16,10 @@ from dotnet_ai_kit.models import LinkedRepo, ProjectMetadata, derive_architectur
 def test_linked_repos_accepts_valid_entry() -> None:
     """A linked_repos entry with name/path/hosts MUST be accepted."""
     pm = ProjectMetadata(
-        company="Acme", domain="Sales", side="server", project_type="gateway",
+        company="Acme",
+        domain="Sales",
+        side="server",
+        project_type="gateway",
         architecture_branch="microservice",
         detected_paths={"k": "v"},
         dotnet_version="8.0",
@@ -50,7 +53,10 @@ def test_detected_paths_values_must_be_non_empty() -> None:
     """detected_paths values must be non-empty strings."""
     with pytest.raises(Exception):
         ProjectMetadata(
-            company="Acme", domain="Sales", side="server", project_type="generic",
+            company="Acme",
+            domain="Sales",
+            side="server",
+            project_type="generic",
             architecture_branch="generic",
             detected_paths={"controllers": ""},  # empty value
             dotnet_version="8.0",
@@ -82,7 +88,12 @@ def test_derivation_table_complete(project_type: str, expected: str) -> None:
 def test_linked_repos_default_empty() -> None:
     """When linked_repos is omitted, the default MUST be an empty list."""
     pm = ProjectMetadata(
-        company="Acme", domain="Sales", side="server", project_type="generic",
-        architecture_branch="generic", detected_paths={"k": "v"}, dotnet_version="8.0",
+        company="Acme",
+        domain="Sales",
+        side="server",
+        project_type="generic",
+        architecture_branch="generic",
+        detected_paths={"k": "v"},
+        dotnet_version="8.0",
     )
     assert pm.linked_repos == []

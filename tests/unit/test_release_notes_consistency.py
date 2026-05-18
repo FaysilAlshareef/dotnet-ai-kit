@@ -20,7 +20,14 @@ from pathlib import Path
 import pytest
 
 REPO = Path(__file__).resolve().parent.parent.parent
-OUTCOME_JSON = REPO / "specs" / "019-plugin-native-arch" / "discussion" / "tasks-phase" / "cursor-subagent-outcome.json"
+OUTCOME_JSON = (
+    REPO
+    / "specs"
+    / "019-plugin-native-arch"
+    / "discussion"
+    / "tasks-phase"
+    / "cursor-subagent-outcome.json"
+)
 RELEASE_NOTES = REPO / "docs" / "release-notes-v1.0.md"
 CURSOR_MANIFEST = REPO / ".cursor-plugin" / "plugin.json"
 
@@ -72,7 +79,5 @@ def test_cursor_manifest_agents_field_matches_outcome_state() -> None:
             "per cursor-fixture-decision.contract.md:39"
         )
     elif state == "passed":
-        assert has_agents, (
-            "PASS branch: .cursor-plugin/plugin.json `agents` field MUST be present"
-        )
+        assert has_agents, "PASS branch: .cursor-plugin/plugin.json `agents` field MUST be present"
     # pending: either is acceptable

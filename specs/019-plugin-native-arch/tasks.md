@@ -350,7 +350,7 @@ Maps to **commit 14b** (NEW commit inserted during tasks-phase round 1 per Codex
 
 ### Commit 16 — Lint cleanup (B-8, ~1h)
 
-- [ ] T131 (commit 16) Run `python -m ruff check --fix src/ tests/ scripts/` then `python -m ruff format src/ tests/ scripts/`. 40 of 48 errors are auto-fixable; manually resolve the remaining ~8 (f-string placeholders at `cli.py:990-991`, line length at `manifest.py:298`, unused imports at `render.py:15`, import ordering at `agent_generators.py:24`). Verify `python -m ruff check src/ tests/ scripts/` exits 0 and `python -m ruff format --check src/ tests/ scripts/` exits 0. **Acceptance**: CI `static-unit` job green.
+- [X] T131 (commit 16) Run `python -m ruff check --fix src/ tests/ scripts/` then `python -m ruff format src/ tests/ scripts/`. 40 of 48 errors are auto-fixable; manually resolve the remaining ~8 (f-string placeholders at `cli.py:990-991`, line length at `manifest.py:298`, unused imports at `render.py:15`, import ordering at `agent_generators.py:24`). Verify `python -m ruff check src/ tests/ scripts/` exits 0 and `python -m ruff format --check src/ tests/ scripts/` exits 0. **Acceptance**: CI `static-unit` job green.
 
 ### Commit 17 — Configure interactive picker shows all 4 hosts (B-6, ~30m)
 

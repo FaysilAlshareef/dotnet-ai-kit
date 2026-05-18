@@ -26,7 +26,6 @@ if str(REPO / "src") not in sys.path:
 
 from dotnet_ai_kit.agent_generators import generate_cursor_agent  # noqa: E402
 
-
 # Single Cursor sub-agent fixture per A-005 spike (CHK003).
 # Expanded to all 13 once the spike outcome lands "passed" via T060.
 _FIXTURE_NAMES = ("dotnet-ai-architect",)

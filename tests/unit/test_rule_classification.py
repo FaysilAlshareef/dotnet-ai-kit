@@ -77,6 +77,4 @@ def test_total_16_rules_unchanged() -> None:
     """The 5+11 split MUST sum to 16 (the constitutional total)."""
     conv = len(list((RULES_DIR / "conventions").glob("*.md")))
     domain = len(list((RULES_DIR / "domain").glob("*.md")))
-    assert conv + domain == 16, (
-        f"Total rule count is {conv + domain}, expected 16 per constitution"
-    )
+    assert conv + domain == 16, f"Total rule count is {conv + domain}, expected 16 per constitution"

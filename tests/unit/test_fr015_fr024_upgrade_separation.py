@@ -59,9 +59,7 @@ def test_upgrade_without_copilot_flag_does_not_re_render_copilot(
     )
 
 
-def test_upgrade_copilot_does_not_touch_claude_files(
-    tmp_path: Path, monkeypatch
-) -> None:
+def test_upgrade_copilot_does_not_touch_claude_files(tmp_path: Path, monkeypatch) -> None:
     """FR-015 / T067: `upgrade --copilot` MUST NOT bulk-copy to .claude/."""
     _setup_project_with_copilot(tmp_path)
     # Pre-create a marker in .claude/ that would be overwritten if bulk-copy fired

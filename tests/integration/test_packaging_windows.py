@@ -75,24 +75,16 @@ def test_windows_wheel_uses_posix_separators(built_wheel_windows: Path) -> None:
 
 
 @pytest.mark.parametrize("suffix", _FEATURE_019_BUNDLED_FILES)
-def test_windows_wheel_bundles_per_host_manifests(
-    built_wheel_windows: Path, suffix: str
-) -> None:
+def test_windows_wheel_bundles_per_host_manifests(built_wheel_windows: Path, suffix: str) -> None:
     """T008: per-host manifest files MUST be in the Windows wheel."""
     with zipfile.ZipFile(built_wheel_windows) as z:
         names = z.namelist()
-    assert any(n.endswith(suffix) for n in names), (
-        f"{suffix} not bundled in Windows wheel"
-    )
+    assert any(n.endswith(suffix) for n in names), f"{suffix} not bundled in Windows wheel"
 
 
 @pytest.mark.parametrize("prefix", _FEATURE_019_BUNDLED_DIRS)
-def test_windows_wheel_bundles_feature_019_dirs(
-    built_wheel_windows: Path, prefix: str
-) -> None:
+def test_windows_wheel_bundles_feature_019_dirs(built_wheel_windows: Path, prefix: str) -> None:
     """T008: feature-019 directories MUST be present in Windows wheel."""
     with zipfile.ZipFile(built_wheel_windows) as z:
         names = z.namelist()
-    assert any(prefix in n for n in names), (
-        f"{prefix} not bundled in Windows wheel"
-    )
+    assert any(prefix in n for n in names), f"{prefix} not bundled in Windows wheel"

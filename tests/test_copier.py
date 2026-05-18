@@ -411,6 +411,7 @@ def test_copy_commands_codex_removed_per_t049() -> None:
     exclusively; root `AGENTS.md` is now an unmanaged path per A-008.
     """
     from dotnet_ai_kit import copier as _copier
+
     assert not hasattr(_copier, "copy_commands_codex"), (
         "copy_commands_codex still present in copier.py — T049 incomplete"
     )

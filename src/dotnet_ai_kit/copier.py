@@ -530,9 +530,7 @@ def copy_agents(
     if tool_name == "copilot":
         # Copilot rendering is implemented in commit 7 (T070 / hosts/copilot.py)
         # via a different path. Here we just no-op.
-        logger.debug(
-            "copy_agents() no-op for Copilot — render path landed in commit 7."
-        )
+        logger.debug("copy_agents() no-op for Copilot — render path landed in commit 7.")
         return 0
 
     logger.warning(
@@ -1055,9 +1053,7 @@ def deploy_to_linked_repos(
                         try:
                             CopilotHost().render(repo_path, plugin_root=package_dir)
                         except Exception as _exc:
-                            logger.debug(
-                                "Linked-secondary Copilot render skipped: %s", _exc
-                            )
+                            logger.debug("Linked-secondary Copilot render skipped: %s", _exc)
                     continue  # do NOT also bulk-copy
 
                 if tool_name in _PLUGIN_NATIVE:
@@ -1069,14 +1065,10 @@ def deploy_to_linked_repos(
                         try:
                             ClaudeHost().write_per_solution_files(
                                 repo_path,
-                                permission_profile=getattr(
-                                    config, "permissions_level", None
-                                ),
+                                permission_profile=getattr(config, "permissions_level", None),
                             )
                         except Exception as _exc:
-                            logger.debug(
-                                "Linked-secondary Claude adapter skipped: %s", _exc
-                            )
+                            logger.debug("Linked-secondary Claude adapter skipped: %s", _exc)
                     # Codex/Cursor: no per-solution files in plugin-native mode.
                     # Cursor's legacy `.cursor/rules/*.mdc` rendering is handled
                     # by `dotnet-ai migrate` for old-layout solutions only.

@@ -19,7 +19,9 @@ from dotnet_ai_kit.models import ProjectMetadata, derive_architecture_branch
 
 REPO = Path(__file__).resolve().parent.parent.parent
 PUBLISHED_SCHEMA = REPO / "schemas" / "project-yml.schema.json"
-CONTRACT_SCHEMA = REPO / "specs" / "019-plugin-native-arch" / "contracts" / "project-yml.schema.json"
+CONTRACT_SCHEMA = (
+    REPO / "specs" / "019-plugin-native-arch" / "contracts" / "project-yml.schema.json"
+)
 
 
 _VALID_PROJECT_TYPES = (
@@ -111,15 +113,25 @@ def test_architecture_branch_must_match_derivation() -> None:
 def test_dotnet_version_pattern() -> None:
     """dotnet_version MUST match pattern ^\\d+\\.\\d+$."""
     pm = ProjectMetadata(
-        company="Acme", domain="Sales", side="server", project_type="generic",
-        architecture_branch="generic", detected_paths={"k": "v"}, dotnet_version="10.0",
+        company="Acme",
+        domain="Sales",
+        side="server",
+        project_type="generic",
+        architecture_branch="generic",
+        detected_paths={"k": "v"},
+        dotnet_version="10.0",
     )
     assert pm.dotnet_version == "10.0"
 
     with pytest.raises(Exception):
         ProjectMetadata(
-            company="Acme", domain="Sales", side="server", project_type="generic",
-            architecture_branch="generic", detected_paths={"k": "v"}, dotnet_version="not-a-version",
+            company="Acme",
+            domain="Sales",
+            side="server",
+            project_type="generic",
+            architecture_branch="generic",
+            detected_paths={"k": "v"},
+            dotnet_version="not-a-version",
         )
 
 

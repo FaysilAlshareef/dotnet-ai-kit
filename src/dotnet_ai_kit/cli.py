@@ -574,6 +574,7 @@ def _collect_deployed_files(project_root: Path) -> list[DeployedFile]:
             seen.add(rel_path)
             # Feature 019 / commit 10: infer host_owner from path per R16.
             from dotnet_ai_kit.manifest import infer_host_owner
+
             deployed.append(
                 DeployedFile(
                     path=rel_path,
@@ -861,13 +862,9 @@ def init(
             ai_tools = detected_ai or ["claude"]
             if not json_output:
                 if detected_ai:
-                    console.print(
-                        f"\n[dim]Auto-detected AI tools: {', '.join(detected_ai)}.[/dim]"
-                    )
+                    console.print(f"\n[dim]Auto-detected AI tools: {', '.join(detected_ai)}.[/dim]")
                 else:
-                    console.print(
-                        "\n[dim]No AI tool detected. Defaulting to Claude Code.[/dim]"
-                    )
+                    console.print("\n[dim]No AI tool detected. Defaulting to Claude Code.[/dim]")
         else:
             # Interactive prompt per FR-014.
             ai_tools = _prompt_for_hosts(detected_ai or ["claude"])
@@ -977,9 +974,7 @@ def init(
             # plugin install path is unavailable; preserve legacy behavior
             # for backwards compat). For Claude/Codex: zero bulk writes.
             if tool_name == "cursor" and not is_plugin:
-                cmd_count = copy_commands_cursor(
-                    commands_source, target, tool_config, rules_source
-                )
+                cmd_count = copy_commands_cursor(commands_source, target, tool_config, rules_source)
         elif tool_name in RENDER_ONLY_HOSTS:
             # Render-only hosts (copilot) — per FR-007, the host's render
             # adapter writes ONLY into the contract paths. NO bulk-copy.
@@ -987,8 +982,8 @@ def init(
             # section (see "Feature 019 / T070 / T072c: Copilot render path.").
             if not json_output:
                 console.print(
-                    f"  [dim]Render-only host: writes via render contract paths only "
-                    f"(no bulk command/skill/agent copies).[/dim]"
+                    "  [dim]Render-only host: writes via render contract paths only "
+                    "(no bulk command/skill/agent copies).[/dim]"
                 )
         else:
             # Fallback: keep legacy bulk copy for any future host registered
@@ -1049,9 +1044,7 @@ def init(
                 )
                 for p in _written:
                     if not json_output:
-                        console.print(
-                            f"  Host adapter: wrote {p.relative_to(target)}"
-                        )
+                        console.print(f"  Host adapter: wrote {p.relative_to(target)}")
             except Exception as _exc:
                 _verbose_log(verbose, f"Claude host adapter skipped: {_exc}")
 
@@ -1069,9 +1062,7 @@ def init(
                 )
                 for p in _co_result.written:
                     if not json_output:
-                        console.print(
-                            f"  Copilot rendered: {p.relative_to(target)}"
-                        )
+                        console.print(f"  Copilot rendered: {p.relative_to(target)}")
                 for p in _co_result.force_rendered:
                     if not json_output:
                         console.print(
@@ -1578,8 +1569,7 @@ def upgrade(
         config_dir = get_config_dir(target)
         if not config_dir.is_dir():
             err_console.print(
-                "[yellow]dotnet-ai-kit is not initialized. "
-                "Run 'dotnet-ai init' first.[/yellow]"
+                "[yellow]dotnet-ai-kit is not initialized. Run 'dotnet-ai init' first.[/yellow]"
             )
             raise typer.Exit(code=1)
 
@@ -1605,9 +1595,7 @@ def upgrade(
                         "written": [str(p) for p in result.written],
                         "force_rendered": [str(p) for p in result.force_rendered],
                         "preserved": [str(p) for p in result.preserved],
-                        "pending_user_consent": [
-                            str(p) for p in result.pending_user_consent
-                        ],
+                        "pending_user_consent": [str(p) for p in result.pending_user_consent],
                     }
                 )
             )
@@ -2596,9 +2584,7 @@ def render(
     plugin_root = _get_package_dir()
 
     if kind not in ("skill", "rule"):
-        err_console.print(
-            f"[red]<kind> must be 'skill' or 'rule', got {kind!r}[/red]"
-        )
+        err_console.print(f"[red]<kind> must be 'skill' or 'rule', got {kind!r}[/red]")
         raise typer.Exit(code=2)
 
     try:
@@ -2622,6 +2608,7 @@ def render(
     # Use plain sys.stdout to bypass Rich color codes — keeps output
     # consumable by downstream pipes.
     import sys as _sys
+
     _sys.stdout.write(output)
     _sys.stdout.flush()
 
@@ -2702,8 +2689,8 @@ def migrate(
 
     # Build classification per file
     actions: dict[str, list] = {
-        "move": [],     # (DeployedFile, target_in_backup)
-        "preserve": [], # DeployedFile
+        "move": [],  # (DeployedFile, target_in_backup)
+        "preserve": [],  # DeployedFile
         "remove_modified": [],  # DeployedFile (only when --include-modified)
         "drop_from_manifest": [],  # DeployedFile (file already missing on disk)
     }
@@ -2730,29 +2717,19 @@ def migrate(
     backup_folder = target / ".dotnet-ai-kit" / "backups" / "migrate" / timestamp
 
     # --- Print classification report ---
-    console.print(
-        f"\n[bold]dotnet-ai migrate{' (dry-run)' if dry_run else ''}[/bold]"
-    )
+    console.print(f"\n[bold]dotnet-ai migrate{' (dry-run)' if dry_run else ''}[/bold]")
     console.print("=" * 32)
-    console.print(
-        f"Manifest: {manifest_p} (schema_version={manifest.schema_version})"
-    )
+    console.print(f"Manifest: {manifest_p} (schema_version={manifest.schema_version})")
 
     if actions["move"]:
-        console.print(
-            f"\n  {len(actions['move'])} files MOVE to {backup_folder}/"
-        )
+        console.print(f"\n  {len(actions['move'])} files MOVE to {backup_folder}/")
         for entry in actions["move"][:10]:
-            console.print(
-                f"    {entry.path}    [clean, host_owner={entry.host_owner or '-'}]"
-            )
+            console.print(f"    {entry.path}    [clean, host_owner={entry.host_owner or '-'}]")
         if len(actions["move"]) > 10:
             console.print(f"    ... ({len(actions['move']) - 10} more)")
 
     if actions["preserve"]:
-        console.print(
-            f"\n  {len(actions['preserve'])} files PRESERVE in place (user-modified):"
-        )
+        console.print(f"\n  {len(actions['preserve'])} files PRESERVE in place (user-modified):")
         for entry in actions["preserve"][:5]:
             console.print(
                 f"    {entry.path}    [host_owner={entry.host_owner or '-'}, hash mismatch]"
@@ -2820,9 +2797,7 @@ def migrate(
     )
     write_manifest(target, new_manifest)
 
-    console.print(
-        f"\n[green]Migration complete. Backup at {backup_folder}.[/green]"
-    )
+    console.print(f"\n[green]Migration complete. Backup at {backup_folder}.[/green]")
     if actions["preserve"]:
         console.print(
             f"[yellow]{len(actions['preserve'])} user-modified files preserved in place.[/yellow]"
@@ -2862,7 +2837,10 @@ def migrate(
                             sec_moved = []
                             sec_preserved = []
                             for sec_entry in sec_manifest.files:
-                                if host_filter and (sec_entry.host_owner or "").lower() != host_filter:
+                                if (
+                                    host_filter
+                                    and (sec_entry.host_owner or "").lower() != host_filter
+                                ):
                                     continue
                                 klass = classify_file(sec, sec_entry)
                                 if klass == "clean":
@@ -2986,6 +2964,7 @@ def check(
         if cfg_file.is_file():
             try:
                 from dotnet_ai_kit.config import load_user_config as _load_user_cfg
+
                 user_cfg = _load_user_cfg(cfg_file)
                 host_names = user_cfg.enabled_hosts or available_hosts()
             except Exception:
@@ -3145,6 +3124,7 @@ def check(
         }
         # Use plain print to avoid Rich color codes corrupting JSON output.
         import sys as _sys
+
         _sys.stdout.write(_json.dumps(payload, indent=2, ensure_ascii=False) + "\n")
         _sys.stdout.flush()
     else:
@@ -3153,9 +3133,7 @@ def check(
         if verbose or exit_code != 0:
             for entry in checks:
                 marker = _markers.get(entry["status"], "[?]")
-                console.print(
-                    f"{marker} {entry['name']}: {entry['details'] or entry['status']}"
-                )
+                console.print(f"{marker} {entry['name']}: {entry['details'] or entry['status']}")
         else:
             for entry in checks:
                 if entry["status"] == "pass":

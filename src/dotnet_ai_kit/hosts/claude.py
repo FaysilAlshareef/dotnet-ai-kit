@@ -59,9 +59,7 @@ class ClaudeHost(Host):
                 plugin_dir = marketplace_dir / "dotnet-ai-kit"
                 if plugin_dir.is_dir():
                     marketplace_present = True
-                    marketplace_versions.extend(
-                        p for p in plugin_dir.iterdir() if p.is_dir()
-                    )
+                    marketplace_versions.extend(p for p in plugin_dir.iterdir() if p.is_dir())
 
         # Developer-local install: ~/.claude/plugins/local/dotnet-ai-kit/
         local_present = local_path.is_dir()
@@ -69,9 +67,7 @@ class ClaudeHost(Host):
         installed = marketplace_present or local_present
         notes_parts = []
         if marketplace_present:
-            notes_parts.append(
-                f"marketplace cache: {len(marketplace_versions)} version(s) found"
-            )
+            notes_parts.append(f"marketplace cache: {len(marketplace_versions)} version(s) found")
         if local_present:
             notes_parts.append(f"local dev install at {local_path}")
         if not installed:
@@ -84,9 +80,9 @@ class ClaudeHost(Host):
             host_name=self.name,
             installed=installed,
             expected_paths=[marketplace_cache, local_path],
-            missing_paths=[
-                p for p in (marketplace_cache, local_path) if not p.exists()
-            ] if not installed else [],
+            missing_paths=[p for p in (marketplace_cache, local_path) if not p.exists()]
+            if not installed
+            else [],
             notes="; ".join(notes_parts),
         )
 

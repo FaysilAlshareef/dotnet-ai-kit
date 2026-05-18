@@ -50,8 +50,7 @@ def test_plugin_hosts_have_smoke_test() -> None:
     for host in plugin_supporting_hosts:
         smoke = smoke_dir / f"test_smoke_{host}.py"
         assert smoke.is_file(), (
-            f"FR-035 violation: plugin-supporting host '{host}' missing gated "
-            f"smoke test at {smoke}"
+            f"FR-035 violation: plugin-supporting host '{host}' missing gated smoke test at {smoke}"
         )
 
 

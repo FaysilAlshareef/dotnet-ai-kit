@@ -33,7 +33,7 @@ def _create_dotnet_project(tmp_path: Path) -> None:
     (tmp_path / "MyApp.sln").write_text("Microsoft Visual Studio Solution File\n", encoding="utf-8")
     (tmp_path / "src").mkdir()
     (tmp_path / "src" / "MyApp.csproj").write_text(
-        "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup>"
+        '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup>'
         "<TargetFramework>net8.0</TargetFramework>"
         "</PropertyGroup></Project>",
         encoding="utf-8",
@@ -53,8 +53,7 @@ def test_init_claude_writes_per_solution_files(tmp_path: Path) -> None:
     # init may exit 0 or print specific output; not asserting exit code strictly,
     # asserting the per-solution files exist.
     assert (tmp_path / ".dotnet-ai-kit").is_dir(), (
-        f"init must create .dotnet-ai-kit/ — exit_code={result.exit_code}, "
-        f"output={result.output!r}"
+        f"init must create .dotnet-ai-kit/ — exit_code={result.exit_code}, output={result.output!r}"
     )
 
 
@@ -92,9 +91,7 @@ def test_init_claude_does_not_bulk_copy_agents(tmp_path: Path) -> None:
     "forbidden_dir",
     [".claude/commands", ".claude/skills"],
 )
-def test_init_claude_does_not_bulk_copy_commands_skills(
-    tmp_path: Path, forbidden_dir: str
-) -> None:
+def test_init_claude_does_not_bulk_copy_commands_skills(tmp_path: Path, forbidden_dir: str) -> None:
     """T042/T043 — Claude plugin-native init MUST NOT bulk-copy commands/skills.
 
     Per FR-005/FR-006: these directories are served from the plugin install path,

@@ -52,12 +52,10 @@ _WRITE_COMMANDS = [
 
 
 def _create_dotnet_project(tmp_path: Path) -> None:
-    (tmp_path / "MyApp.sln").write_text(
-        "Microsoft Visual Studio Solution File\n", encoding="utf-8"
-    )
+    (tmp_path / "MyApp.sln").write_text("Microsoft Visual Studio Solution File\n", encoding="utf-8")
     (tmp_path / "src").mkdir()
     (tmp_path / "src" / "MyApp.csproj").write_text(
-        "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup>"
+        '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup>'
         "<TargetFramework>net8.0</TargetFramework>"
         "</PropertyGroup></Project>",
         encoding="utf-8",
@@ -65,9 +63,7 @@ def _create_dotnet_project(tmp_path: Path) -> None:
 
 
 @pytest.mark.parametrize("unmanaged_path", _A008_UNMANAGED_PATHS, ids=lambda p: p)
-def test_init_does_not_create_unmanaged_path(
-    tmp_path: Path, unmanaged_path: str
-) -> None:
+def test_init_does_not_create_unmanaged_path(tmp_path: Path, unmanaged_path: str) -> None:
     """A-008: init MUST NOT create any unmanaged path that doesn't already exist."""
     _create_dotnet_project(tmp_path)
 
@@ -78,9 +74,7 @@ def test_init_does_not_create_unmanaged_path(
         else None
     )
 
-    runner.invoke(
-        app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False
-    )
+    runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
 
     p = tmp_path / unmanaged_path
 

@@ -208,9 +208,7 @@ class CopilotHost(Host):
                 result.pending_user_consent.append(inst_file)
                 continue
             instructions_dir.mkdir(parents=True, exist_ok=True)
-            body = self._render_path_instructions(
-                plugin_root, area_key, glob_pattern, project_root
-            )
+            body = self._render_path_instructions(plugin_root, area_key, glob_pattern, project_root)
             if body is None:
                 continue
             inst_file.write_text(body, encoding="utf-8")
@@ -297,9 +295,7 @@ class CopilotHost(Host):
 
             # Use the matching domain rule body when available
             rule_path = plugin_root / "rules" / "domain" / f"{area_key}.md"
-            domain_rule_body = (
-                rule_path.read_text(encoding="utf-8") if rule_path.is_file() else ""
-            )
+            domain_rule_body = rule_path.read_text(encoding="utf-8") if rule_path.is_file() else ""
             return tmpl.render(
                 apply_to_globs=[glob_pattern],
                 area_title=area_key.replace("-", " ").title(),
@@ -339,9 +335,7 @@ class CopilotHost(Host):
                 target=frontmatter.get("target", None),
                 tools=frontmatter.get("tools", []),
                 model=frontmatter.get("model", None),
-                disable_model_invocation=frontmatter.get(
-                    "disable_model_invocation", None
-                ),
+                disable_model_invocation=frontmatter.get("disable_model_invocation", None),
                 user_invocable=frontmatter.get("user_invocable", None),
                 mcp_servers=frontmatter.get("mcp_servers", []),
                 body=body.strip(),
@@ -430,6 +424,7 @@ class CopilotHost(Host):
         agents_source = plugin_root / "agents-source"
         if agents_source.is_dir():
             import re as _re  # noqa: PLC0415
+
             import yaml as _yaml  # noqa: PLC0415
 
             for agent_file in sorted(agents_source.glob("*.md")):
@@ -478,8 +473,7 @@ class CopilotHost(Host):
             parts.append(f"### {name}\n\n{body}\n")
         parts.append("## Architecture profile\n")
         parts.append(
-            architecture_profile_body
-            or "_(no architecture profile present for this project type)_"
+            architecture_profile_body or "_(no architecture profile present for this project type)_"
         )
         parts.append("\n## Path-scoped guidance\n")
         for area, globs in path_scopes.items():

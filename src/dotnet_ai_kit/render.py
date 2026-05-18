@@ -12,7 +12,6 @@ project metadata.
 from __future__ import annotations
 
 from pathlib import Path
-from typing import Literal
 
 
 class RenderError(Exception):
@@ -88,9 +87,7 @@ def find_skill(plugin_root: Path, name: str) -> Path:
         f", ... ({len(available)} total)" if len(available) > 5 else ""
     )
     raise SkillOrRuleNotFound(
-        f"Skill '{name}' not found.\n\n"
-        f"Searched in: {skills_root}\n"
-        f"Available skills: {sample}"
+        f"Skill '{name}' not found.\n\nSearched in: {skills_root}\nAvailable skills: {sample}"
     )
 
 
@@ -133,22 +130,18 @@ def load_project_metadata(project_root: Path) -> dict:
     pym = project_root / ".dotnet-ai-kit" / "project.yml"
     if not pym.is_file():
         raise ProjectMetadataMissing(
-            f"Project metadata not found at {pym}.\n"
-            f"Run `dotnet-ai init {project_root}` first."
+            f"Project metadata not found at {pym}.\nRun `dotnet-ai init {project_root}` first."
         )
     try:
         data = _yaml.safe_load(pym.read_text(encoding="utf-8")) or {}
     except _yaml.YAMLError as exc:
         raise ProjectMetadataMissing(
-            f"project.yml is corrupt: {exc}\n"
-            f"Run `dotnet-ai check` for details."
+            f"project.yml is corrupt: {exc}\nRun `dotnet-ai check` for details."
         ) from exc
     if isinstance(data, dict) and "detected" in data:
         data = data["detected"]
     if not isinstance(data, dict):
-        raise ProjectMetadataMissing(
-            f"project.yml expected a mapping, got {type(data).__name__}"
-        )
+        raise ProjectMetadataMissing(f"project.yml expected a mapping, got {type(data).__name__}")
     return data
 
 

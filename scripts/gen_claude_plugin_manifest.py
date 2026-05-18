@@ -20,20 +20,16 @@ def main() -> None:
 
     # Discover skill SKILL.md files (124 expected at feature 019 commit 3).
     skill_paths = sorted(
-        str(p.relative_to(repo)).replace("\\", "/")
-        for p in (repo / "skills").rglob("SKILL.md")
+        str(p.relative_to(repo)).replace("\\", "/") for p in (repo / "skills").rglob("SKILL.md")
     )
 
     # Discover command files (27 expected).
     command_paths = sorted(
-        str(p.relative_to(repo)).replace("\\", "/")
-        for p in (repo / "commands").glob("*.md")
+        str(p.relative_to(repo)).replace("\\", "/") for p in (repo / "commands").glob("*.md")
     )
 
     # Agent source files (13 expected — commit-6 T054 will rename to agents-source/).
-    agent_source_paths = sorted(
-        p.stem for p in (repo / "agents").glob("*.md") if p.stem
-    )
+    agent_source_paths = sorted(p.stem for p in (repo / "agents").glob("*.md") if p.stem)
 
     # Forward-declare agents-claude/<name>.md paths (commit 4 T041 generates files).
     agents_claude = [f"agents-claude/{stem}.md" for stem in agent_source_paths]
@@ -69,8 +65,10 @@ def main() -> None:
         json.dumps(manifest, indent=2, ensure_ascii=False) + "\n",
         encoding="utf-8",
     )
-    print(f"wrote {target} ({len(skill_paths)} skills, {len(command_paths)} commands, "
-          f"{len(agents_claude)} agents)")
+    print(
+        f"wrote {target} ({len(skill_paths)} skills, {len(command_paths)} commands, "
+        f"{len(agents_claude)} agents)"
+    )
 
 
 if __name__ == "__main__":

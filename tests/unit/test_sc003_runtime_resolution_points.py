@@ -13,13 +13,7 @@ through all three resolution layers in a single test scenario.
 
 from __future__ import annotations
 
-import os
-import shutil
-import subprocess
-import sys
 from pathlib import Path
-
-import pytest
 
 from dotnet_ai_kit.render import render_rule, render_skill
 
@@ -78,10 +72,10 @@ def test_yml_rename_propagates_to_all_three_resolution_points(tmp_path: Path) ->
     assert "AcmeBefore" in stdout_before
 
     # (c) Skill render shows the initial value when token present
-    skill_body = (
-        REPO / "skills" / "core" / "async-patterns" / "SKILL.md"
-    ).read_text(encoding="utf-8")
-    out_before = render_skill("async-patterns", plugin_root, project)
+    skill_body = (REPO / "skills" / "core" / "async-patterns" / "SKILL.md").read_text(
+        encoding="utf-8"
+    )
+    render_skill("async-patterns", plugin_root, project)
 
     # Edit the yml — the FR-010 contract: next AI interaction observes change.
     _write_project_yml(project, "AcmeAfter")
@@ -122,9 +116,9 @@ def test_rule_render_picks_up_yml_edit_between_calls(tmp_path: Path) -> None:
     _write_project_yml(project, "SecondCompany")
     out2 = render_rule("async-concurrency", plugin_root, project)
 
-    rule_body = (
-        REPO / "rules" / "conventions" / "async-concurrency.md"
-    ).read_text(encoding="utf-8")
+    rule_body = (REPO / "rules" / "conventions" / "async-concurrency.md").read_text(
+        encoding="utf-8"
+    )
     if "${Company}" in rule_body:
         assert "FirstCompany" in out1 and "SecondCompany" in out2
         assert "FirstCompany" not in out2

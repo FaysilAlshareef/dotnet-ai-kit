@@ -39,9 +39,7 @@ def _build_project_with_metadata(tmp_path: Path, **overrides) -> Path:
         },
     }
     metadata.update(overrides)
-    (config / "project.yml").write_text(
-        yaml.dump({"detected": metadata}), encoding="utf-8"
-    )
+    (config / "project.yml").write_text(yaml.dump({"detected": metadata}), encoding="utf-8")
     return project
 
 
@@ -125,9 +123,7 @@ def test_render_project_yml_corrupt_exits_22(tmp_path: Path) -> None:
     project = tmp_path / "proj"
     config = project / ".dotnet-ai-kit"
     config.mkdir(parents=True)
-    (config / "project.yml").write_text(
-        "this is not: valid yaml: at all: [", encoding="utf-8"
-    )
+    (config / "project.yml").write_text("this is not: valid yaml: at all: [", encoding="utf-8")
     result = runner.invoke(
         app,
         ["render", "rule", "async-concurrency", "--project", str(project)],

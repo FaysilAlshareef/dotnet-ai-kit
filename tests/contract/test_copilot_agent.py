@@ -71,5 +71,5 @@ def test_per_agent_files_carry_body_from_source(tmp_path: Path) -> None:
                 body_sample = m.group(1).strip()[:40]
                 if body_sample:
                     assert body_sample in body, (
-                        f"Rendered agent file MUST carry body from agents-source/"
+                        "Rendered agent file MUST carry body from agents-source/"
                     )

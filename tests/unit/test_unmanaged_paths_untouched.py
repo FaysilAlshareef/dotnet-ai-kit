@@ -16,7 +16,6 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
 from typer.testing import CliRunner
 
 from dotnet_ai_kit.cli import app
@@ -25,12 +24,10 @@ runner = CliRunner()
 
 
 def _create_dotnet_project(tmp_path: Path) -> None:
-    (tmp_path / "MyApp.sln").write_text(
-        "Microsoft Visual Studio Solution File\n", encoding="utf-8"
-    )
+    (tmp_path / "MyApp.sln").write_text("Microsoft Visual Studio Solution File\n", encoding="utf-8")
     (tmp_path / "src").mkdir()
     (tmp_path / "src" / "MyApp.csproj").write_text(
-        "<Project Sdk=\"Microsoft.NET.Sdk\"><PropertyGroup>"
+        '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup>'
         "<TargetFramework>net8.0</TargetFramework>"
         "</PropertyGroup></Project>",
         encoding="utf-8",
@@ -41,9 +38,7 @@ def test_init_does_not_create_root_agents_md(tmp_path: Path) -> None:
     """`dotnet-ai init` MUST NOT write `AGENTS.md` at the project root."""
     _create_dotnet_project(tmp_path)
 
-    runner.invoke(
-        app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False
-    )
+    runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
 
     agents_md = tmp_path / "AGENTS.md"
     assert not agents_md.exists(), (
@@ -61,9 +56,7 @@ def test_init_codex_does_not_create_root_agents_md(tmp_path: Path) -> None:
     pre_existing.write_text("# User-authored AGENTS.md\n", encoding="utf-8")
     original_content = pre_existing.read_text(encoding="utf-8")
 
-    runner.invoke(
-        app, ["init", str(tmp_path), "--ai", "codex"], catch_exceptions=False
-    )
+    runner.invoke(app, ["init", str(tmp_path), "--ai", "codex"], catch_exceptions=False)
 
     # The pre-existing file MUST be preserved verbatim
     assert pre_existing.read_text(encoding="utf-8") == original_content, (
@@ -75,9 +68,7 @@ def test_init_codex_does_not_create_root_agents_md(tmp_path: Path) -> None:
 def test_upgrade_does_not_create_root_agents_md(tmp_path: Path) -> None:
     """`dotnet-ai upgrade` MUST NOT write root AGENTS.md."""
     _create_dotnet_project(tmp_path)
-    runner.invoke(
-        app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False
-    )
+    runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
 
     # Ensure no AGENTS.md after init
     agents_md = tmp_path / "AGENTS.md"
@@ -90,6 +81,7 @@ def test_upgrade_does_not_create_root_agents_md(tmp_path: Path) -> None:
 def test_copy_commands_codex_function_removed() -> None:
     """T049: `copy_commands_codex` MUST be removed from copier.py."""
     from dotnet_ai_kit import copier
+
     assert not hasattr(copier, "copy_commands_codex"), (
         "copy_commands_codex still present in copier — T049 incomplete"
     )
@@ -98,6 +90,7 @@ def test_copy_commands_codex_function_removed() -> None:
 def test_agent_config_codex_has_no_agents_file_mapping() -> None:
     """T048: `AGENT_CONFIG['codex']['agents_file'] = 'AGENTS.md'` MUST be removed."""
     from dotnet_ai_kit.agents import AGENT_CONFIG
+
     codex_cfg = AGENT_CONFIG.get("codex", {})
     assert "agents_file" not in codex_cfg, (
         f"AGENT_CONFIG['codex'] still has `agents_file`: {codex_cfg.get('agents_file')!r} "

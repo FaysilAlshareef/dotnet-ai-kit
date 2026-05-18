@@ -13,12 +13,10 @@ import pytest
 
 from dotnet_ai_kit.manifest import (
     DeployedFile,
-    Manifest,
     classify_file,
     infer_host_owner,
     sha256_file,
     utc_now_iso,
-    write_manifest,
 )
 
 
@@ -118,9 +116,7 @@ def test_legacy_v1_manifest_read_with_inferred_host_owner(tmp_path: Path) -> Non
             },
         ],
     }
-    (config_dir / "manifest.json").write_text(
-        json.dumps(legacy_payload), encoding="utf-8"
-    )
+    (config_dir / "manifest.json").write_text(json.dumps(legacy_payload), encoding="utf-8")
 
     from dotnet_ai_kit.manifest import read_manifest
 

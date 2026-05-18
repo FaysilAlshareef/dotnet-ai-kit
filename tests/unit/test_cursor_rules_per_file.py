@@ -51,9 +51,7 @@ def test_cursor_host_install_paths_under_home() -> None:
         assert str(p).startswith(str(home)), (
             f"Cursor install path '{p}' is not under home dir '{home}'"
         )
-        assert ".cursor" in p.parts, (
-            f"Cursor install path '{p}' does not contain `.cursor`"
-        )
+        assert ".cursor" in p.parts, f"Cursor install path '{p}' does not contain `.cursor`"
 
 
 def test_cursor_per_solution_writes_is_noop(tmp_path: Path) -> None:
@@ -68,6 +66,5 @@ def test_cursor_rules_dir_exists_in_source() -> None:
     """`rules/cursor/` directory MUST exist in source (per .gitkeep)."""
     cursor_rules = REPO / "rules" / "cursor"
     assert cursor_rules.is_dir(), (
-        "rules/cursor/ directory missing — required by Cursor manifest "
-        "`./rules/cursor/` field"
+        "rules/cursor/ directory missing — required by Cursor manifest `./rules/cursor/` field"
     )

@@ -16,11 +16,11 @@ import pytest
 # Modules that are categorically forbidden in src/dotnet_ai_kit/.
 # Adding a network/analytics dependency requires explicit deviation from A-011.
 _FORBIDDEN_TOP_LEVEL = {
-    "requests",   # HTTP client
-    "httpx",      # async HTTP client
-    "aiohttp",    # async HTTP client/server
-    "urllib3",    # low-level HTTP
-    "grpc",       # gRPC client
+    "requests",  # HTTP client
+    "httpx",  # async HTTP client
+    "aiohttp",  # async HTTP client/server
+    "urllib3",  # low-level HTTP
+    "grpc",  # gRPC client
     # Analytics SDKs:
     "segment",
     "mixpanel",
@@ -32,8 +32,8 @@ _FORBIDDEN_TOP_LEVEL = {
 # Submodule imports that are forbidden even though the top-level module
 # (e.g., `urllib`) has legitimate uses for path/URL parsing.
 _FORBIDDEN_SUBMODULES = {
-    ("urllib", "request"),       # urllib.request.urlopen / Request
-    ("http", "client"),          # http.client.HTTPConnection
+    ("urllib", "request"),  # urllib.request.urlopen / Request
+    ("http", "client"),  # http.client.HTTPConnection
 }
 
 # socket may be used for non-network purposes (host detection, port-in-use
@@ -79,7 +79,7 @@ def test_no_forbidden_network_imports(path: Path) -> None:
         # Submodule paths like "urllib.request"
         parts = tuple(module.split("."))
         for forbidden in _FORBIDDEN_SUBMODULES:
-            if parts[:len(forbidden)] == forbidden:
+            if parts[: len(forbidden)] == forbidden:
                 pytest.fail(
                     f"A-011 violation: {path.relative_to(SRC)}:{lineno} imports "
                     f"forbidden submodule '{module}'."
@@ -97,6 +97,4 @@ def test_no_socket_create_connection_calls() -> None:
         text = path.read_text(encoding="utf-8")
         if "socket.create_connection" in text:
             offenders.append(str(path.relative_to(SRC)))
-    assert not offenders, (
-        f"A-011 violation: socket.create_connection called in: {offenders}"
-    )
+    assert not offenders, f"A-011 violation: socket.create_connection called in: {offenders}"

@@ -8,7 +8,6 @@ move-to-backup, user-modified → preserve in place per FR-022).
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 from typer.testing import CliRunner
@@ -26,9 +25,7 @@ def _setup_with_manifest(repo: Path, name: str, file_body: str = "BODY\n") -> Pa
     config_dir = repo / ".dotnet-ai-kit"
     config_dir.mkdir(exist_ok=True)
     (config_dir / "version.txt").write_text("1.0.0", encoding="utf-8")
-    (config_dir / "config.yml").write_text(
-        "ai_tools: [claude]\nrepos: {}\n", encoding="utf-8"
-    )
+    (config_dir / "config.yml").write_text("ai_tools: [claude]\nrepos: {}\n", encoding="utf-8")
     # Create a managed file with known hash
     managed_dir = repo / ".claude" / "commands"
     managed_dir.mkdir(parents=True, exist_ok=True)
@@ -146,6 +143,4 @@ def test_migrate_without_include_linked_does_not_touch_secondaries(tmp_path: Pat
     assert result.exit_code == 0
 
     # Secondary file MUST still be present — not touched without opt-in
-    assert sec_file.is_file(), (
-        "migrate without --include-linked MUST NOT touch linked secondaries"
-    )
+    assert sec_file.is_file(), "migrate without --include-linked MUST NOT touch linked secondaries"

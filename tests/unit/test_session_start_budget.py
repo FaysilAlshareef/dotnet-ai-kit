@@ -7,12 +7,9 @@ ceiling per research R8 / contracts/session-start-bootstrap.contract.md.
 
 from __future__ import annotations
 
-import os
 import subprocess
 import sys
 from pathlib import Path
-
-import pytest
 
 REPO = Path(__file__).resolve().parent.parent.parent
 HOOK = REPO / "hooks" / "session-start-bootstrap.sh"
@@ -63,6 +60,7 @@ def _run_hook(cwd: Path) -> str:
     pym = cwd / ".dotnet-ai-kit" / "project.yml"
     if pym.is_file():
         import re as _re
+
         text = pym.read_text(encoding="utf-8")
         m = _re.search(r"^\s*architecture_profile_name:\s*(\S+)", text, _re.MULTILINE)
         if not m:

@@ -40,9 +40,7 @@ def test_init_copilot_preserves_existing_copilot_instructions(tmp_path: Path) ->
     existing = github_dir / "copilot-instructions.md"
     existing.write_text("USER WROTE THIS\n", encoding="utf-8")
 
-    result = runner.invoke(
-        app, ["init", str(tmp_path), "--ai", "copilot"], catch_exceptions=False
-    )
+    result = runner.invoke(app, ["init", str(tmp_path), "--ai", "copilot"], catch_exceptions=False)
 
     # init exits non-zero per FR-008 when unresolved conflicts exist
     assert result.exit_code != 0
@@ -87,9 +85,7 @@ def test_render_preserves_agent_files(tmp_path: Path) -> None:
     host = CopilotHost()
     result = host.render(tmp_path)
 
-    assert any(
-        p.name == "dotnet-ai-architect.agent.md" for p in result.pending_user_consent
-    )
+    assert any(p.name == "dotnet-ai-architect.agent.md" for p in result.pending_user_consent)
     assert existing.read_text(encoding="utf-8") == "USER AGENT BODY\n"
 
 

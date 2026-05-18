@@ -19,9 +19,7 @@ runner = CliRunner()
 
 
 def _create_dotnet_project(tmp_path: Path) -> None:
-    (tmp_path / "MyApp.sln").write_text(
-        "Microsoft Visual Studio Solution File\n", encoding="utf-8"
-    )
+    (tmp_path / "MyApp.sln").write_text("Microsoft Visual Studio Solution File\n", encoding="utf-8")
     (tmp_path / "src").mkdir()
     (tmp_path / "src" / "MyApp.csproj").write_text(
         '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup>'
@@ -103,9 +101,7 @@ def test_init_without_ai_in_non_tty_skips_prompt(tmp_path: Path) -> None:
         patch("dotnet_ai_kit.cli._stdin_is_tty", return_value=False),
         patch("dotnet_ai_kit.cli._prompt_for_hosts") as mock_prompt,
     ):
-        result = runner.invoke(
-            app, ["init", str(tmp_path)], catch_exceptions=False
-        )
+        result = runner.invoke(app, ["init", str(tmp_path)], catch_exceptions=False)
 
     mock_prompt.assert_not_called()
     assert result.exit_code == 0
@@ -117,13 +113,9 @@ def test_init_without_ai_in_tty_fires_prompt(tmp_path: Path) -> None:
 
     with (
         patch("dotnet_ai_kit.cli._stdin_is_tty", return_value=True),
-        patch(
-            "dotnet_ai_kit.cli._prompt_for_hosts", return_value=["claude"]
-        ) as mock_prompt,
+        patch("dotnet_ai_kit.cli._prompt_for_hosts", return_value=["claude"]) as mock_prompt,
     ):
-        result = runner.invoke(
-            app, ["init", str(tmp_path)], catch_exceptions=False
-        )
+        result = runner.invoke(app, ["init", str(tmp_path)], catch_exceptions=False)
 
     mock_prompt.assert_called_once()
     assert result.exit_code == 0

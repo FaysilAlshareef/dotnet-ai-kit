@@ -10,7 +10,6 @@ import statistics
 import time
 from pathlib import Path
 
-import pytest
 from typer.testing import CliRunner
 
 from dotnet_ai_kit.cli import app

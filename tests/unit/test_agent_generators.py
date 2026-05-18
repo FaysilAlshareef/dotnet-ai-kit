@@ -21,8 +21,8 @@ import pytest
 import yaml
 
 from dotnet_ai_kit.agent_generators import (
-    AgentSource,
     _CLAUDE_ALLOW_LIST,
+    AgentSource,
     generate_claude_agent,
     generate_codex_agent,
     generate_copilot_agent,
@@ -84,9 +84,7 @@ def test_agent_source_rejects_missing_description(tmp_path: Path) -> None:
 
 def test_generate_claude_agent_minimal(tmp_path: Path) -> None:
     """Source with only required fields produces a minimal Claude file."""
-    path = _write_agent(
-        tmp_path, "minimal", {"name": "minimal", "description": "Minimal"}
-    )
+    path = _write_agent(tmp_path, "minimal", {"name": "minimal", "description": "Minimal"})
     output = generate_claude_agent(path)
     assert output.startswith("---\n")
     assert "name: minimal" in output
@@ -153,7 +151,7 @@ def test_generate_claude_agent_never_emits_skills_field(tmp_path: Path) -> None:
     # Parse the frontmatter from the output and verify no `skills:` key
     head, sep, _body = output.partition("---\n")
     assert sep == "---\n"
-    fm_block, sep, _ = output[len(head) + len(sep):].partition("---\n")
+    fm_block, sep, _ = output[len(head) + len(sep) :].partition("---\n")
     fm = yaml.safe_load(fm_block)
     assert "skills" not in fm, (
         "FR-027 regression: Claude generator emitted forbidden `skills` frontmatter"

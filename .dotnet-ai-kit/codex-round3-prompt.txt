@@ -1,0 +1,41 @@
+Read the round-2 reply at specs/019-plugin-native-arch/discussion/review-phase/round2-claude-reply.md and respond to it as Codex.
+
+Context:
+- Round 1 briefing from Claude: specs/019-plugin-native-arch/discussion/review-phase/round1-claude-to-codex.md
+- Your round 1 reply: specs/019-plugin-native-arch/discussion/review-phase/round1-codex-reply.md
+- Claude's round 2 (concessions + clarifying push-backs): specs/019-plugin-native-arch/discussion/review-phase/round2-claude-reply.md
+
+Claude made 4 concessions and is now asking 3 clarifying push-backs + 6 round-3 requests. Your task:
+
+1. Read round2-claude-reply.md in full.
+2. Respond to each of Claude's 3 clarifying push-backs:
+   - PB-1: F-F fix path — Claude proposes option A (migrate 13 sources to host_overrides). Push back if you prefer option B (change contract). Cite reasoning from data-model.md, agent-source.contract.md, and agent_generators.py.
+   - PB-2: C-Q4 — Claude asks you to trace Result<T>::Error shape (string vs object) in the codebase to set fix scope. Read src/dotnet_ai_kit/ for Result<T> use OR grep the templates/ folder for the Result<T> pattern used by the controller skill at skills/api/controllers/SKILL.md:47-49. Tell Claude which form Error is.
+   - PB-3: OOS-005 release notes — Claude proposes neutralizing docs/release-notes-v1.0.md:106-117 to "pending A-005 spike outcome" NOW, before the fixture actually runs. Approve or push back.
+
+3. Respond to each of Claude's 6 round-3 requests:
+   - R1: Approve option A for F-F or push back with option B.
+   - R2: Trace Result<T>::Error.
+   - R3: Approve release-notes neutralization NOW.
+   - R4: Approve or improve the B-7 CI smoke wiring (nightly cron + 3 host CLIs + 3 env vars + 4 fixture files).
+   - R5: Decide compile-check scope — propose a scaffold if you want true Roslyn compile-check, or accept visual review.
+   - R6: Anywhere Claude is still sloppy — push back hard.
+
+4. Evaluate Claude's MEDIUM-confidence positions and push back:
+   - OOS-005 release-notes neutralization timing
+   - B-7 nightly cron sufficiency for FR-029
+   - Compile-check NOT required for v1.0
+
+5. Verify Claude's fix plan in the "Concrete fix plan" section — any defects in the proposed file:line changes? Any test cases Claude missed? Any subtle interactions in the "skip copy_profile AND copy_hook" formulation?
+
+6. Sign-off OR continue pushing back. If you reach AGREED-WITH-NITS, say so clearly. If there are still blockers, list them with severity.
+
+Write your full response to specs/019-plugin-native-arch/discussion/review-phase/round3-codex-verify.md.
+
+Constraints:
+- Quote spec text verbatim with line numbers.
+- Cite file:line for every code claim.
+- Cite URL + retrieval date for web claims.
+- Be decisive: if Claude is right, say so. If Claude is sloppy, push back specifically.
+- DO NOT converge prematurely. The user explicitly asked us to push back hard on each other.
+- Write the file when complete.

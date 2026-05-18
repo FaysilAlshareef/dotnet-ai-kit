@@ -11,14 +11,10 @@ Asserts that `manifest.integrity_check(project_root)`:
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
-
-import pytest
 
 from dotnet_ai_kit.manifest import (
     DeployedFile,
-    IntegrityReport,
     Manifest,
     integrity_check,
     sha256_file,
@@ -105,7 +101,7 @@ def test_integrity_check_reports_hash_mismatch(tmp_path: Path) -> None:
     project_root = tmp_path / "project"
     project_root.mkdir()
 
-    f = _create_managed_file(project_root, ".claude/settings.json", "{}")
+    _create_managed_file(project_root, ".claude/settings.json", "{}")
     manifest = Manifest(
         plugin_version="1.0.0",
         created_at=utc_now_iso(),

@@ -72,6 +72,5 @@ def test_claude_csharp_lsp_diagnostics_at_edit_time(tmp_path) -> None:
         f"CHK011 binding: this is the gate for commit 12's .mcp.json removal."
     )
     assert "error" in result.stdout.lower() or "diagnostic" in result.stdout.lower(), (
-        f"LSP did not produce diagnostics for the intentional error.\n"
-        f"stdout={result.stdout!r}"
+        f"LSP did not produce diagnostics for the intentional error.\nstdout={result.stdout!r}"
     )

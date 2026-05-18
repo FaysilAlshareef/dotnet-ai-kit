@@ -12,7 +12,6 @@ Asserts:
 
 from __future__ import annotations
 
-import json
 from pathlib import Path
 
 from typer.testing import CliRunner
@@ -49,7 +48,7 @@ def test_force_render_overwrites_named_path_only(tmp_path: Path) -> None:
     other = agents / "dotnet-ai-architect.agent.md"
     other.write_text("USER AGENT BODY\n", encoding="utf-8")
 
-    result = runner.invoke(
+    runner.invoke(
         app,
         [
             "init",
@@ -113,9 +112,7 @@ def test_force_render_records_explicit_consent_in_manifest(tmp_path: Path) -> No
     assert manifest is not None
     # Find the entry with host_owner="copilot" matching our path
     copilot_entries = [f for f in manifest.files if f.host_owner == "copilot"]
-    assert any(
-        f.path.endswith("copilot-instructions.md") for f in copilot_entries
-    ), (
+    assert any(f.path.endswith("copilot-instructions.md") for f in copilot_entries), (
         f"T072b violation: manifest MUST record host_owner='copilot' for "
         f"force-rendered file; got entries: {copilot_entries}"
     )
@@ -125,9 +122,7 @@ def test_upgrade_copilot_force_render_works(tmp_path: Path, monkeypatch) -> None
     """(d): `dotnet-ai upgrade --copilot --force-render <path>` works."""
     _create_project(tmp_path)
     # Initial init writes copilot-instructions.md (since no pre-existing)
-    runner.invoke(
-        app, ["init", str(tmp_path), "--ai", "copilot"], catch_exceptions=False
-    )
+    runner.invoke(app, ["init", str(tmp_path), "--ai", "copilot"], catch_exceptions=False)
     monkeypatch.chdir(tmp_path)
 
     # Now SIMULATE the user editing the file (it becomes user-modified)
@@ -135,9 +130,7 @@ def test_upgrade_copilot_force_render_works(tmp_path: Path, monkeypatch) -> None
     target_file.write_text("USER EDIT\n", encoding="utf-8")
 
     # Without --force-render, upgrade --copilot preserves the user edit
-    result = runner.invoke(
-        app, ["upgrade", "--copilot"], catch_exceptions=False
-    )
+    result = runner.invoke(app, ["upgrade", "--copilot"], catch_exceptions=False)
     assert target_file.read_text(encoding="utf-8") == "USER EDIT\n"
 
     # With --force-render, upgrade --copilot overwrites

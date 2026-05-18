@@ -25,9 +25,7 @@ UNIVERSAL_RULES = {
 
 def _all_rules() -> list[Path]:
     """All 16 rules under rules/{conventions,domain}/."""
-    return sorted((RULES / "conventions").glob("*.md")) + sorted(
-        (RULES / "domain").glob("*.md")
-    )
+    return sorted((RULES / "conventions").glob("*.md")) + sorted((RULES / "domain").glob("*.md"))
 
 
 def _frontmatter(path: Path) -> dict:
@@ -56,8 +54,7 @@ def test_non_universal_rules_have_paths() -> None:
     for rule in (RULES / "domain").glob("*.md"):
         fm = _frontmatter(rule)
         assert "paths" in fm, (
-            f"{rule}: path-scoped (domain) rule must have top-level paths: "
-            f"(stem={rule.stem!r})"
+            f"{rule}: path-scoped (domain) rule must have top-level paths: (stem={rule.stem!r})"
         )
 
 

@@ -30,7 +30,6 @@ from typing import Optional
 
 import yaml
 
-
 # ---------------------------------------------------------------------------
 # Frontmatter parsing helpers
 # ---------------------------------------------------------------------------
@@ -100,9 +99,7 @@ _CLAUDE_ALLOW_LIST: frozenset[str] = frozenset(
     {"name", "description", "role", "expertise", "complexity", "max_iterations"}
 )
 
-_CURSOR_ALLOW_LIST: frozenset[str] = frozenset(
-    {"name", "description", "model", "readonly"}
-)
+_CURSOR_ALLOW_LIST: frozenset[str] = frozenset({"name", "description", "model", "readonly"})
 
 _COPILOT_ALLOW_LIST: frozenset[str] = frozenset(
     {
@@ -125,9 +122,7 @@ def _render_frontmatter(fields: dict) -> str:
     return f"---\n{body}---\n\n"
 
 
-def _build_host_frontmatter(
-    src: AgentSource, host: str, allow_list: frozenset[str]
-) -> dict:
+def _build_host_frontmatter(src: AgentSource, host: str, allow_list: frozenset[str]) -> dict:
     """Compose the host's frontmatter from the source's name/description plus
     its `host_overrides.<host>` fields.
 
@@ -162,9 +157,7 @@ def _build_host_frontmatter(
     # FR-027 regression guard: Claude has no `skills:` agent field; lifting
     # `expertise` (a Claude-allow-listed field) into `skills` is forbidden.
     if host == "claude":
-        assert "skills" not in fm, (
-            "FR-027 regression: Claude agent must not emit `skills:` field"
-        )
+        assert "skills" not in fm, "FR-027 regression: Claude agent must not emit `skills:` field"
 
     return fm
 

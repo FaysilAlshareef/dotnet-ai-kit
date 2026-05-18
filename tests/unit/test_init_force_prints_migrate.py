@@ -21,9 +21,7 @@ runner = CliRunner()
 
 def _create_dotnet_project_with_legacy(tmp_path: Path) -> None:
     """Create a project that already has pre-019 layout artifacts."""
-    (tmp_path / "MyApp.sln").write_text(
-        "Microsoft Visual Studio Solution File\n", encoding="utf-8"
-    )
+    (tmp_path / "MyApp.sln").write_text("Microsoft Visual Studio Solution File\n", encoding="utf-8")
     (tmp_path / "src").mkdir()
     (tmp_path / "src" / "MyApp.csproj").write_text(
         '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup>'
@@ -34,9 +32,7 @@ def _create_dotnet_project_with_legacy(tmp_path: Path) -> None:
     # Existing legacy commands dir (simulating feature-018-era init output)
     legacy_cmds = tmp_path / ".claude" / "commands"
     legacy_cmds.mkdir(parents=True)
-    (legacy_cmds / "dotnet-ai.foo.md").write_text(
-        "# Legacy command body\n", encoding="utf-8"
-    )
+    (legacy_cmds / "dotnet-ai.foo.md").write_text("# Legacy command body\n", encoding="utf-8")
     # Also a pre-existing .dotnet-ai-kit/ so --force is required
     (tmp_path / ".dotnet-ai-kit").mkdir()
     (tmp_path / ".dotnet-ai-kit" / "config.yml").write_text(
@@ -48,9 +44,9 @@ def test_detect_shadowed_legacy_paths_finds_existing_dirs(tmp_path: Path) -> Non
     """Unit test of the helper: it returns the legacy paths that exist."""
     _create_dotnet_project_with_legacy(tmp_path)
     found = _detect_shadowed_legacy_paths(tmp_path)
-    assert any(
-        ".claude/commands" in str(p).replace("\\", "/") for p in found
-    ), f"helper missed `.claude/commands` in legacy layout: {found}"
+    assert any(".claude/commands" in str(p).replace("\\", "/") for p in found), (
+        f"helper missed `.claude/commands` in legacy layout: {found}"
+    )
 
 
 def test_detect_shadowed_legacy_paths_clean_solution(tmp_path: Path) -> None:
@@ -68,13 +64,10 @@ def test_init_force_refuses_and_prints_migrate(tmp_path: Path) -> None:
         ["init", str(tmp_path), "--ai", "claude", "--force"],
         catch_exceptions=False,
     )
-    assert result.exit_code != 0, (
-        "init --force on old-layout MUST exit non-zero per FR-025"
-    )
+    assert result.exit_code != 0, "init --force on old-layout MUST exit non-zero per FR-025"
     # The exact migrate invocation MUST appear in output
     assert "dotnet-ai migrate" in result.output, (
-        f"init --force MUST print the migrate invocation per FR-025; "
-        f"got output: {result.output!r}"
+        f"init --force MUST print the migrate invocation per FR-025; got output: {result.output!r}"
     )
 
 

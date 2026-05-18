@@ -7,14 +7,11 @@ to a passing test that demonstrates the fix.
 
 from __future__ import annotations
 
-import json
-import yaml
 from pathlib import Path
 
 from typer.testing import CliRunner
 
 from dotnet_ai_kit.cli import app
-from dotnet_ai_kit.hosts.copilot import CopilotHost
 from dotnet_ai_kit.manifest import read_manifest
 
 runner = CliRunner()
@@ -34,12 +31,11 @@ def _create_project(tmp_path: Path) -> None:
 # Blocker 1: init --ai codex MUST NOT write .claude/settings.json
 # ----------------------------------------------------------------------
 
+
 def test_blocker1_init_codex_does_not_write_claude_settings(tmp_path: Path) -> None:
     """Per spec.md:171: init writes files only for selected hosts."""
     _create_project(tmp_path)
-    result = runner.invoke(
-        app, ["init", str(tmp_path), "--ai", "codex"], catch_exceptions=False
-    )
+    result = runner.invoke(app, ["init", str(tmp_path), "--ai", "codex"], catch_exceptions=False)
     assert result.exit_code == 0
     assert not (tmp_path / ".claude" / "settings.json").exists(), (
         "Blocker-1 regression: `init --ai codex` MUST NOT create .claude/settings.json"
@@ -50,12 +46,11 @@ def test_blocker1_init_codex_does_not_write_claude_settings(tmp_path: Path) -> N
 # Blocker 2: Copilot init MUST NOT bulk-copy legacy command-agent files
 # ----------------------------------------------------------------------
 
+
 def test_blocker2_copilot_init_does_not_bulk_copy_command_agents(tmp_path: Path) -> None:
     """Per FR-007 (spec.md:155): Copilot init renders 3 file classes only."""
     _create_project(tmp_path)
-    result = runner.invoke(
-        app, ["init", str(tmp_path), "--ai", "copilot"], catch_exceptions=False
-    )
+    result = runner.invoke(app, ["init", str(tmp_path), "--ai", "copilot"], catch_exceptions=False)
     assert result.exit_code == 0
     # The legacy AGENT_CONFIG['copilot']['commands_dir'] is .github/agents/commands
     # which MUST NOT be created under feature 019.
@@ -67,6 +62,7 @@ def test_blocker2_copilot_init_does_not_bulk_copy_command_agents(tmp_path: Path)
 # ----------------------------------------------------------------------
 # Blocker 3: Copilot repo-wide render inlines convention rule bodies
 # ----------------------------------------------------------------------
+
 
 def test_blocker3_copilot_instructions_inlines_convention_rules(tmp_path: Path) -> None:
     """Per copilot-instructions.contract.md:13-17: convention rule BODIES inlined."""
@@ -82,9 +78,7 @@ def test_blocker3_copilot_instructions_inlines_convention_rules(tmp_path: Path) 
         "security",
         "tool-calls",
     ):
-        assert rule in body, (
-            f"Blocker-3 regression: copilot-instructions.md missing rule '{rule}'"
-        )
+        assert rule in body, f"Blocker-3 regression: copilot-instructions.md missing rule '{rule}'"
     # Placeholder phrase MUST NOT appear
     assert "Convention rule bodies will be inlined here in the full render" not in body, (
         "Blocker-3 regression: copilot-instructions.md still has placeholder text"
@@ -94,6 +88,7 @@ def test_blocker3_copilot_instructions_inlines_convention_rules(tmp_path: Path) 
 # ----------------------------------------------------------------------
 # Blocker 4: upgrade --copilot refreshes managed renders without --force-render
 # ----------------------------------------------------------------------
+
 
 def test_blocker4_upgrade_copilot_refreshes_managed_renders(tmp_path: Path, monkeypatch) -> None:
     """Per FR-015 (spec.md:172): `upgrade --copilot` re-renders using current
@@ -130,6 +125,7 @@ def test_blocker4_upgrade_copilot_refreshes_managed_renders(tmp_path: Path, monk
 # Blocker 5: manifest tracks .github/instructions/ and .github/agents/
 # ----------------------------------------------------------------------
 
+
 def test_blocker5_manifest_includes_copilot_path_scoped_and_agents(tmp_path: Path) -> None:
     """Per SC-006 + copilot-instructions.contract.md:21-27: all Copilot
     renders MUST be recorded in manifest.json with host_owner='copilot'."""
@@ -143,9 +139,7 @@ def test_blocker5_manifest_includes_copilot_path_scoped_and_agents(tmp_path: Pat
         encoding="utf-8",
     )
 
-    rc = runner.invoke(
-        app, ["init", str(tmp_path), "--ai", "copilot", "--force"]
-    ).exit_code
+    rc = runner.invoke(app, ["init", str(tmp_path), "--ai", "copilot", "--force"]).exit_code
     # init may exit 1 if .dotnet-ai-kit exists without --force; we created it
     assert rc == 0, f"init failed: rc={rc}"
 
@@ -159,8 +153,7 @@ def test_blocker5_manifest_includes_copilot_path_scoped_and_agents(tmp_path: Pat
 
     # Repo-wide instructions MUST be tracked
     assert ".github/copilot-instructions.md" in copilot_paths, (
-        f"Blocker-5 regression: copilot-instructions.md missing from manifest. "
-        f"Got: {copilot_paths}"
+        f"Blocker-5 regression: copilot-instructions.md missing from manifest. Got: {copilot_paths}"
     )
 
     # Path-scoped instructions for `testing` MUST be tracked
@@ -209,9 +202,8 @@ def test_blocker5_check_detects_stale_copilot_renders(tmp_path: Path) -> None:
     # - manifest_integrity fail (stale file shows up in hash mismatch listing), OR
     # - copilot_freshness fail (direct staleness reporting)
     body = result.output
-    assert (
-        "copilot-instructions.md" in body
-        and ("fail" in body.lower() or '"exit_code": 14' in body or '"exit_code": 15' in body)
+    assert "copilot-instructions.md" in body and (
+        "fail" in body.lower() or '"exit_code": 14' in body or '"exit_code": 15' in body
     ), (
         f"Blocker-5 regression: stale file not surfaced in check output. "
         f"output={result.output[:500]}"
@@ -221,6 +213,7 @@ def test_blocker5_check_detects_stale_copilot_renders(tmp_path: Path) -> None:
 # ----------------------------------------------------------------------
 # Sibling Blocker 1' (Codex round 2): plain `upgrade` for Copilot
 # ----------------------------------------------------------------------
+
 
 def test_sibling_blocker_upgrade_copilot_only_does_not_bulk_copy(
     tmp_path: Path, monkeypatch
@@ -256,6 +249,7 @@ def test_sibling_blocker_upgrade_copilot_only_does_not_bulk_copy(
 # Sibling Blocker 2' (Codex round 2): `configure --tools copilot`
 # ----------------------------------------------------------------------
 
+
 def test_sibling_blocker_configure_copilot_only_does_not_bulk_copy(
     tmp_path: Path, monkeypatch
 ) -> None:
@@ -289,14 +283,14 @@ def test_sibling_blocker_configure_copilot_only_does_not_bulk_copy(
         ".github/agents/commands/"
     )
     assert not (tmp_path / ".claude" / "settings.json").exists(), (
-        "Sibling Blocker 2' regression: configure --tools copilot wrote "
-        ".claude/settings.json"
+        "Sibling Blocker 2' regression: configure --tools copilot wrote .claude/settings.json"
     )
 
 
 # ----------------------------------------------------------------------
 # Blocker 6: linked-secondary Copilot deploy calls CopilotHost.render()
 # ----------------------------------------------------------------------
+
 
 def test_blocker6_linked_secondary_copilot_uses_render(tmp_path: Path) -> None:
     """Per FR-033 (spec.md:205): linked-secondary deploy follows the same

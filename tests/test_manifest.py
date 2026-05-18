@@ -92,9 +92,7 @@ def test_json_schema_validation() -> None:
     contracts/manifest-json.schema.json) which has v1/v2 dual-read via oneOf.
     """
     jsonschema = pytest.importorskip("jsonschema")
-    new_schema_path = (
-        REPO / "schemas" / "manifest-json.schema.json"
-    )
+    new_schema_path = REPO / "schemas" / "manifest-json.schema.json"
     schema = json.loads(new_schema_path.read_text(encoding="utf-8"))
     m = Manifest(
         plugin_version="1.0.0",

@@ -48,9 +48,7 @@ class CursorHost(Host):
                 plugin_dir = marketplace_dir / "dotnet-ai-kit"
                 if plugin_dir.is_dir():
                     marketplace_present = True
-                    marketplace_versions.extend(
-                        p for p in plugin_dir.iterdir() if p.is_dir()
-                    )
+                    marketplace_versions.extend(p for p in plugin_dir.iterdir() if p.is_dir())
 
         local_present = local_path.is_dir()
         installed = marketplace_present or local_present
@@ -72,9 +70,9 @@ class CursorHost(Host):
             host_name=self.name,
             installed=installed,
             expected_paths=[marketplace_cache, local_path],
-            missing_paths=[
-                p for p in (marketplace_cache, local_path) if not p.exists()
-            ] if not installed else [],
+            missing_paths=[p for p in (marketplace_cache, local_path) if not p.exists()]
+            if not installed
+            else [],
             notes="; ".join(notes_parts),
         )
 

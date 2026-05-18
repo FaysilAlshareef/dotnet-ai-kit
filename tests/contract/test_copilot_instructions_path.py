@@ -46,9 +46,9 @@ def test_path_scoped_instructions_carry_apply_to_frontmatter(tmp_path: Path) -> 
     _setup_project(tmp_path, {"testing": "tests/**"})
     host = CopilotHost()
     host.render(tmp_path)
-    body = (
-        tmp_path / ".github" / "instructions" / "testing.instructions.md"
-    ).read_text(encoding="utf-8")
+    body = (tmp_path / ".github" / "instructions" / "testing.instructions.md").read_text(
+        encoding="utf-8"
+    )
     assert body.startswith("---"), "frontmatter MUST start at line 0"
     assert "applyTo:" in body
     assert "tests/**" in body
@@ -70,7 +70,7 @@ def test_path_scoped_instructions_pointer_back_to_top_level(tmp_path: Path) -> N
     _setup_project(tmp_path, {"testing": "tests/**"})
     host = CopilotHost()
     host.render(tmp_path)
-    body = (
-        tmp_path / ".github" / "instructions" / "testing.instructions.md"
-    ).read_text(encoding="utf-8")
+    body = (tmp_path / ".github" / "instructions" / "testing.instructions.md").read_text(
+        encoding="utf-8"
+    )
     assert "copilot-instructions.md" in body

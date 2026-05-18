@@ -9,10 +9,8 @@ Asserts that:
 
 from __future__ import annotations
 
-import os
 from pathlib import Path
 
-import pytest
 from typer.testing import CliRunner
 
 from dotnet_ai_kit.cli import app
@@ -36,9 +34,7 @@ def test_check_does_not_mutate_files(tmp_path: Path) -> None:
     runner.invoke(app, ["check", str(tmp_path)])
 
     post_files = set(tmp_path.rglob("*"))
-    assert pre_files == post_files, (
-        f"check command created files: {post_files - pre_files}"
-    )
+    assert pre_files == post_files, f"check command created files: {post_files - pre_files}"
 
 
 def test_check_does_not_shell_out_for_plugin_install(monkeypatch, tmp_path: Path) -> None:
@@ -63,9 +59,7 @@ def test_check_does_not_shell_out_for_plugin_install(monkeypatch, tmp_path: Path
     monkeypatch.setattr(_sp, "run", patched_run)
     runner.invoke(app, ["check", str(tmp_path)])
 
-    assert host_cli_calls == [], (
-        f"check command shelled out to host CLI(s): {host_cli_calls}"
-    )
+    assert host_cli_calls == [], f"check command shelled out to host CLI(s): {host_cli_calls}"
 
 
 def test_check_uses_shutil_which_for_binary_detection() -> None:

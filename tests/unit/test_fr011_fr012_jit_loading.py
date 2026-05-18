@@ -32,9 +32,7 @@ def test_domain_rules_each_have_paths_frontmatter() -> None:
         m = fm_re.match(text)
         assert m, f"{rule.name}: missing YAML frontmatter"
         fm = _yaml.safe_load(m.group(1)) or {}
-        assert "paths" in fm, (
-            f"{rule.name}: domain rule must declare `paths:` for JIT activation"
-        )
+        assert "paths" in fm, f"{rule.name}: domain rule must declare `paths:` for JIT activation"
 
 
 def test_skills_do_not_inline_domain_rule_bodies() -> None:

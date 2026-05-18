@@ -10,7 +10,6 @@ Asserts:
 from __future__ import annotations
 
 import importlib.util
-import pytest
 
 
 def test_tiktoken_or_char_fallback_path() -> None:
@@ -20,6 +19,7 @@ def test_tiktoken_or_char_fallback_path() -> None:
     # Both paths are valid per R8; this test just documents which one applies
     if has_tiktoken:
         import tiktoken
+
         enc = tiktoken.encoding_for_model("gpt-4")
         # Sanity: encoding API present
         assert hasattr(enc, "encode")

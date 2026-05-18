@@ -22,9 +22,7 @@ BASELINE_FEATURE_018_APPROX = 180  # pre-019 layout file count
 
 
 def _create_dotnet_project(tmp_path: Path) -> None:
-    (tmp_path / "MyApp.sln").write_text(
-        "Microsoft Visual Studio Solution File\n", encoding="utf-8"
-    )
+    (tmp_path / "MyApp.sln").write_text("Microsoft Visual Studio Solution File\n", encoding="utf-8")
     (tmp_path / "src").mkdir()
     (tmp_path / "src" / "MyApp.csproj").write_text(
         '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup>'
@@ -68,10 +66,12 @@ def test_init_claude_writes_at_most_18_files(tmp_path: Path) -> None:
     n = _count_dotnet_ai_managed_files(tmp_path)
     assert n <= MAX_POST_INIT_FILES, (
         f"SC-001 violation: init wrote {n} managed files, target ≤{MAX_POST_INIT_FILES}. "
-        f"Listing:\n" + "\n".join(
+        f"Listing:\n"
+        + "\n".join(
             f"  {p.relative_to(tmp_path)}"
             for root in (".dotnet-ai-kit", ".claude")
-            for p in (tmp_path / root).rglob("*") if (tmp_path / root).is_dir() and p.is_file()
+            for p in (tmp_path / root).rglob("*")
+            if (tmp_path / root).is_dir() and p.is_file()
         )
     )
 

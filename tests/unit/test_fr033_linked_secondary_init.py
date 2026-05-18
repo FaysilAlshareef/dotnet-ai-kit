@@ -23,7 +23,6 @@ from dotnet_ai_kit import copier
 from dotnet_ai_kit.copier import deploy_to_linked_repos
 from dotnet_ai_kit.models import DotnetAiConfig
 
-
 REPO = Path(__file__).resolve().parent.parent.parent
 
 
@@ -91,7 +90,4 @@ def test_linked_secondary_does_not_call_bulk_copies_for_claude(tmp_path: Path) -
         "copy_commands": 0,
         "copy_skills": 0,
         "copy_agents": 0,
-    }, (
-        f"FR-033 violation: bulk-copy primitives fired for plugin-native host: "
-        f"{bulk_called}"
-    )
+    }, f"FR-033 violation: bulk-copy primitives fired for plugin-native host: {bulk_called}"

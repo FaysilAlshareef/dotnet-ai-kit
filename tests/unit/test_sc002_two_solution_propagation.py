@@ -26,9 +26,7 @@ runner = CliRunner()
 def _create_dotnet_project(tmp_path: Path, name: str = "MyApp") -> Path:
     sol = tmp_path / name
     sol.mkdir()
-    (sol / f"{name}.sln").write_text(
-        "Microsoft Visual Studio Solution File\n", encoding="utf-8"
-    )
+    (sol / f"{name}.sln").write_text("Microsoft Visual Studio Solution File\n", encoding="utf-8")
     (sol / "src").mkdir()
     (sol / "src" / f"{name}.csproj").write_text(
         '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup>'

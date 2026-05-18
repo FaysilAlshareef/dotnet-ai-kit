@@ -52,6 +52,4 @@ def test_no_orphaned_smoke_fixtures_without_manifests() -> None:
         manifest = REPO / f".{name}-plugin" / "plugin.json"
         if not manifest.is_file():
             orphans.append(name)
-    assert not orphans, (
-        f"A-009 violation: smoke fixtures without plugin manifest: {orphans}"
-    )
+    assert not orphans, f"A-009 violation: smoke fixtures without plugin manifest: {orphans}"

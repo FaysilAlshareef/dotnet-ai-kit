@@ -40,9 +40,7 @@ def test_render_creates_minimal_content(tmp_path: Path) -> None:
 
     CopilotHost().render(project_root)
 
-    content = (project_root / ".github" / "copilot-instructions.md").read_text(
-        encoding="utf-8"
-    )
+    content = (project_root / ".github" / "copilot-instructions.md").read_text(encoding="utf-8")
 
     # Required sections per the contract
     assert "Project identity" in content
@@ -79,9 +77,7 @@ def test_render_substitutes_project_metadata(tmp_path: Path) -> None:
 
     CopilotHost().render(project_root)
 
-    content = (project_root / ".github" / "copilot-instructions.md").read_text(
-        encoding="utf-8"
-    )
+    content = (project_root / ".github" / "copilot-instructions.md").read_text(encoding="utf-8")
     assert "ContosoCorp" in content
     assert "Sales" in content
 
