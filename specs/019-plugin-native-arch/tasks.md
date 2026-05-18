@@ -443,15 +443,15 @@ Maps to **commit 14b** (NEW commit inserted during tasks-phase round 1 per Codex
 
 ### Commit 28 — Content polish (F-A through F-L, ~1.5-2h)
 
-- [ ] T184 [P] (commit 28) F-A: add `when_to_use:` frontmatter field to the 9 `skills/core/*` skills that currently lack it (async-patterns, coding-conventions, csharp-idioms, dependency-injection, design-patterns, error-handling, functional-csharp, modern-csharp, solid-principles). Extract value from existing `description:` ("Use when ...").
-- [ ] T185 [P] (commit 28) F-B: document in `data-model.md` § 6 (or wherever skill frontmatter is described) that `metadata.agent` is optional and intentionally omitted for cross-cutting workflow/detection skills (the 6 skills currently without it).
-- [ ] T186 [P] (commit 28) F-C: remove `paths:` from `rules/conventions/async-concurrency.md:3` (universal rules don't need path scoping; loaded by folder classification).
-- [ ] T187 [P] (commit 28) F-D: add `## Related Skills` section to 5 rules: `rules/conventions/existing-projects.md`, `rules/conventions/tool-calls.md`, `rules/domain/localization.md`, `rules/domain/multi-repo.md`, `rules/domain/naming.md`. Link to logically relevant skill paths.
-- [ ] T188 [P] (commit 28) F-E: fill or remove the 3 truly empty section headers: `skills/workflow/plan-templates/SKILL.md:70 "## Summary"`, `skills/workflow/plan-templates/SKILL.md:73 "## Research Findings"`, `commands/review.md:144 "## Dry-Run / Errors"`.
-- [ ] T189 [P] (commit 28) F-H: add `## Related Knowledge` link to `knowledge/grpc-patterns.md` from the 4 gRPC skills (`skills/api/grpc-design/SKILL.md`, `skills/microservice/grpc/interceptors/SKILL.md`, `skills/microservice/grpc/service-definition/SKILL.md`, `skills/microservice/grpc/validation/SKILL.md`).
-- [ ] T190 [P] (commit 28) F-I: promote lowercase `must` to `MUST` at `rules/domain/configuration.md:18, 21` to align with RFC 2119 conventions used in the same `## MUST` section.
-- [ ] T191 [P] (commit 28) Update `scripts/doc_lint.py::SCAN_GLOBS` (per content-quality review O1) to include `AGENTS.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, `commands/**/*.md`, `rules/**/*.md`. Add stale-phrase patterns: `Copied: \{N\}`, `9 always-loaded`, `15 always-loaded`, `5 safety hooks`, `csharp-ls for C# intelligence`, `re-copies commands`.
-- [ ] T192 (commit 28) Verify with the extended doc-lint: `python scripts/doc_lint.py` exits clean across the expanded scope. **Acceptance**: doc-lint scans 30+ files and reports no broken links or stale phrases.
+- [X] T184 [P] (commit 28) F-A: add `when_to_use:` frontmatter field to the 9 `skills/core/*` skills that currently lack it (async-patterns, coding-conventions, csharp-idioms, dependency-injection, design-patterns, error-handling, functional-csharp, modern-csharp, solid-principles). Extract value from existing `description:` ("Use when ...").
+- [X] T185 [P] (commit 28) F-B: document in `data-model.md` § 6 (or wherever skill frontmatter is described) that `metadata.agent` is optional and intentionally omitted for cross-cutting workflow/detection skills (the 6 skills currently without it).
+- [X] T186 [P] (commit 28) F-C: remove `paths:` from `rules/conventions/async-concurrency.md:3` (universal rules don't need path scoping; loaded by folder classification).
+- [X] T187 [P] (commit 28) F-D: add `## Related Skills` section to 5 rules: `rules/conventions/existing-projects.md`, `rules/conventions/tool-calls.md`, `rules/domain/localization.md`, `rules/domain/multi-repo.md`, `rules/domain/naming.md`. Link to logically relevant skill paths.
+- [X] T188 [P] (commit 28) F-E: fill or remove the 3 truly empty section headers: `skills/workflow/plan-templates/SKILL.md:70 "## Summary"`, `skills/workflow/plan-templates/SKILL.md:73 "## Research Findings"`, `commands/review.md:144 "## Dry-Run / Errors"`.
+- [X] T189 [P] (commit 28) F-H: add `## Related Knowledge` link to `knowledge/grpc-patterns.md` from the 4 gRPC skills (`skills/api/grpc-design/SKILL.md`, `skills/microservice/grpc/interceptors/SKILL.md`, `skills/microservice/grpc/service-definition/SKILL.md`, `skills/microservice/grpc/validation/SKILL.md`).
+- [X] T190 [P] (commit 28) F-I: promote lowercase `must` to `MUST` at `rules/domain/configuration.md:18, 21` to align with RFC 2119 conventions used in the same `## MUST` section.
+- [X] T191 [P] (commit 28) Update `scripts/doc_lint.py::SCAN_GLOBS` (per content-quality review O1) to include `AGENTS.md`, `CONTRIBUTING.md`, `CHANGELOG.md`, `commands/**/*.md`, `rules/**/*.md`. Add stale-phrase patterns: `Copied: \{N\}`, `9 always-loaded`, `15 always-loaded`, `5 safety hooks`, `csharp-ls for C# intelligence`, `re-copies commands`.
+- [X] T192 (commit 28) Verify with the extended doc-lint: `python scripts/doc_lint.py` exits clean across the expanded scope. **Acceptance**: doc-lint scans 30+ files and reports no broken links or stale phrases.
 
 ### Commit 29 — Tool surface fixes (F1-F6, ~1.5h)
 

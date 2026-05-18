@@ -48,3 +48,9 @@ MUST NOT deploy ControlPanel before Gateway. MUST NOT deploy Query before Comman
 - Each repo's brief MUST declare its `role`, `required_changes`, `events_produces`, and `events_consumes`.
 - `blocked_by` MUST list upstream repos that must complete first (following deploy order above).
 - Secondary repo briefs MUST be kept in sync with the primary spec when the spec changes.
+
+## Related Skills
+
+- `skills/microservice/command/event-store/` — events crossing repo boundaries
+- `skills/microservice/processor/event-routing/` — propagating event contracts to subscribers
+- `skills/workflow/pull-request/` — coordinating PRs across linked repos

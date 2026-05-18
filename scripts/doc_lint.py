@@ -28,16 +28,34 @@ from pathlib import Path
 REPO = Path(__file__).resolve().parent.parent
 
 # Stale references that were valid in v1.0.7 but obsolete in v1.0.8
+# Feature 019 / commit 28 / T191: scope extended per content-quality review O1.
 STALE_PHRASES = (
     "4 universal rules",
     "4 universal (always loaded",
+    # Feature 019: pre-019 / plugin-native architecture stale phrases.
+    "9 always-loaded",
+    "15 always-loaded",
+    "5 safety hooks",
+    "csharp-ls for C# intelligence",
+    "re-copies commands",
+    # Common pre-019 placeholder strings from output templates.
+    "Copied: {N}",
 )
+
+# Stale phrases evaluated as regex (anchored partial-match) — flag if matched.
+STALE_REGEX = (re.compile(r"Copied:\s*\{N\}"),)
 
 SCAN_GLOBS = (
     "README.md",
     "CLAUDE.md",
+    # Feature 019 / T191 / O1: scope expansion.
+    "AGENTS.md",
+    "CONTRIBUTING.md",
+    "CHANGELOG.md",
     "docs/**/*.md",
     "planning/**/*.md",
+    "commands/**/*.md",
+    "rules/**/*.md",
 )
 
 # Match markdown links like [text](url) where url is a relative path
@@ -83,6 +101,13 @@ def _check_stale_phrases(file_path: Path) -> list[str]:
             errors.append(
                 f"{file_path.relative_to(REPO)}: stale phrase '{phrase}' "
                 f"(v1.0.7 wording; v1.0.8 has 5 universal rules)"
+            )
+    for pat in STALE_REGEX:
+        if pat.search(text):
+            errors.append(
+                f"{file_path.relative_to(REPO)}: stale pattern '{pat.pattern}' "
+                f"(pre-019 placeholder — replace with the per-solution file list "
+                f"or 'served by plugin' wording per T165/T166)"
             )
     return errors
 

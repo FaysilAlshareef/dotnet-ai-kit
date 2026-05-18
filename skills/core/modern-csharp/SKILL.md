@@ -1,6 +1,7 @@
 ---
 name: modern-csharp
 description: Use when adopting C# 12/13/14 features — primary constructors, collection expressions, or field keyword.
+when_to_use: Use when adopting C# 12/13/14 features — primary constructors, collection expressions, or field keyword.
 metadata:
   category: core
   agent: dotnet-architect

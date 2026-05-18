@@ -310,3 +310,22 @@ schemas/*.schema.json        ── 7 contract files (commits 3, 8)
   ├── backups/upgrade/<...>/ ── existing (feature 018)
   └── backups/migrate/<...>/ ── new (commit 10; FR-021)
 ```
+
+## 8. Skill frontmatter (F-B / F-A)
+
+Each `skills/**/SKILL.md` file declares its routing metadata in YAML
+frontmatter. The supported keys are:
+
+| Field | Type | Required | Notes |
+|--|--|--|--|
+| `name` | string | yes | Stable skill identifier; matches directory name. |
+| `description` | string | yes | Single-sentence "Use when …" summary (used as fallback by `when_to_use`). |
+| `when_to_use` | string | F-A: yes for every skill that has a "Use when …" description | Restated for the routing UI (Claude / Cursor / Copilot). |
+| `metadata.category` | enum | yes | One of `core`, `api`, `microservice`, `workflow`, `data`, `testing`. |
+| `metadata.agent` | string | **optional** (F-B) | Bind the skill to a specialist agent (e.g. `dotnet-architect`). Intentionally omitted for cross-cutting workflow / detection skills that any specialist may use; the absence is by design, not a defect. |
+| `applies_to` | list / glob | optional | Path scopes; if absent, the skill is universally applicable. |
+
+The 6 skills that currently omit `metadata.agent` are workflow- or
+detection-shaped — they apply across specialists rather than to a single
+one. Per F-B (Codex round-3 nit), this is documented as intentional rather
+than auto-filled.

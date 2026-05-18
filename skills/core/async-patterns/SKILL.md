@@ -1,6 +1,7 @@
 ---
 name: async-patterns
 description: Use when writing async code, propagating CancellationTokens, or fixing async/await pitfalls.
+when_to_use: Use when writing async code, propagating CancellationTokens, or fixing async/await pitfalls.
 metadata:
   category: core
   agent: dotnet-architect

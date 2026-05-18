@@ -1,6 +1,7 @@
 ---
 name: solid-principles
 description: Use when evaluating code against SOLID principles or deciding when to apply or skip them.
+when_to_use: Use when evaluating code against SOLID principles or deciding when to apply or skip them.
 metadata:
   category: core
   agent: dotnet-architect

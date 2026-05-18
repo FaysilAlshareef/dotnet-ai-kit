@@ -47,3 +47,7 @@ Before generating any code, scan the project for:
 - Use latest stable .NET version -- currently .NET 10 (or as configured)
 - Follow the architecture recommended by the plan
 - Apply full conventions from all other rules
+
+## Related Skills
+
+- `skills/workflow/spec-driven-flow/`, `skills/workflow/specify/`, `skills/core/coding-conventions/`

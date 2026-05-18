@@ -1,6 +1,7 @@
 ---
 name: design-patterns
 description: Use when selecting or implementing design patterns in C# — factory, builder, strategy, decorator, or mediator.
+when_to_use: Use when selecting or implementing design patterns in C# — factory, builder, strategy, decorator, or mediator.
 metadata:
   category: core
   agent: dotnet-architect

@@ -195,3 +195,7 @@ grep -r "MapGrpcService" --include="*.cs" src/
 3. **Add mapping extensions** in `Grpc/Extensions/` directory
 4. **Register new service** with `MapGrpcService<T>()` in Program.cs
 5. **Update `.csproj`** with proto file reference (`GrpcServices="Server"` or `"Both"`)
+
+## Related Knowledge
+
+- [knowledge/grpc-patterns.md](../../../knowledge/grpc-patterns.md) — cross-cutting gRPC patterns (streaming, deadlines, error mapping)

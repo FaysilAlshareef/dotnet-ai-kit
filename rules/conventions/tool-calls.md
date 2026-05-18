@@ -55,3 +55,7 @@ If a tool is not available, inform the user and suggest installation:
 - Read the full error output before retrying a command
 - Do not retry the same command without changing something
 - Report clear error messages to the user with suggested fixes
+
+## Related Skills
+
+- `skills/workflow/parallel-tool-execution/`, `skills/workflow/systematic-debugging/`

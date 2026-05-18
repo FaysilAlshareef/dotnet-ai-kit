@@ -60,3 +60,9 @@ Before creating any new file:
 2. If existing patterns differ from these conventions, use the existing patterns
 3. Only apply these conventions when no existing pattern is detected
 4. Check that the `{Company}` and `{Domain}` values match the config
+
+## Related Skills
+
+- `skills/core/csharp-idioms/` — naming conventions for records, primary constructors
+- `skills/core/coding-conventions/` — namespace + class naming
+- `skills/microservice/command/aggregate-root/` — aggregate naming patterns

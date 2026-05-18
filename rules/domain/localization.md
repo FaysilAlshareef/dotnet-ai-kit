@@ -45,3 +45,8 @@ After editing a `.resx` file:
 2. Use the `ResourceManager.GetString("KeyName", resourceCulture)` pattern
 3. Match the existing access modifier (`public` or `internal`)
 4. Verify with `dotnet build` that the Designer file compiles
+
+## Related Skills
+
+- `skills/controlpanel/blazor-pages/` — Blazor pages that consume localized resources
+- `skills/workflow/specify/` — describe localization scope in the spec phase

@@ -15,10 +15,10 @@ Use strongly-typed Options classes for ALL configuration. Fail fast on invalid c
 
 - Inject `IOptions<T>`, `IOptionsSnapshot<T>`, or `IOptionsMonitor<T>` — NEVER inject `IConfiguration` directly into services
 - All options classes MUST call `ValidateDataAnnotations()` and `ValidateOnStart()`
-- Options classes must declare `public const string SectionName` for the config section key
+- Options classes MUST declare `public const string SectionName` for the config section key
 - Bind via `services.AddOptions<T>().BindConfiguration(T.SectionName)`
 - Connection strings: wrap in an options class with `IOptions<T>` — do NOT use `GetConnectionString()` directly
-- Default values must be set in the options class properties, not in appsettings.json
+- Default values MUST be set in the options class properties, not in appsettings.json
 
 ## MUST NOT
 

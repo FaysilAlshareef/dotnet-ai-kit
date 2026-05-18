@@ -1,6 +1,7 @@
 ---
 name: error-handling
 description: Use when implementing error handling with domain exceptions, ProblemDetails, or RpcException mapping.
+when_to_use: Use when implementing error handling with domain exceptions, ProblemDetails, or RpcException mapping.
 metadata:
   category: core
   agent: dotnet-architect
