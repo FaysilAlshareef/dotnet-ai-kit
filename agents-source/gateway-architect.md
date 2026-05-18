@@ -1,15 +1,17 @@
 ---
 name: gateway-architect
 description: Designs API gateway routing, aggregation, and BFF patterns
-role: advisory
-expertise:
-  - gateway-endpoint
-  - endpoint-registration
-  - gateway-security
-  - scalar-docs
-  - versioning
-complexity: high
-max_iterations: 20
+host_overrides:
+  claude:
+    role: advisory
+    expertise:
+    - gateway-endpoint
+    - endpoint-registration
+    - gateway-security
+    - scalar-docs
+    - versioning
+    complexity: high
+    max_iterations: 20
 ---
 
 # Gateway Specialist

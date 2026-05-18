@@ -1,15 +1,17 @@
 ---
 name: ef-specialist
 description: Manages Entity Framework Core models, migrations, and queries
-role: advisory
-expertise:
-  - ef-core-basics
-  - repository-patterns
-  - specification-pattern
-  - audit-trail
-  - ef-migrations
-complexity: medium
-max_iterations: 15
+host_overrides:
+  claude:
+    role: advisory
+    expertise:
+    - ef-core-basics
+    - repository-patterns
+    - specification-pattern
+    - audit-trail
+    - ef-migrations
+    complexity: medium
+    max_iterations: 15
 ---
 
 # Data Access Specialist
