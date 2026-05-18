@@ -123,7 +123,7 @@ Save configuration to `.dotnet-ai-kit/config.yml`, then apply permissions and co
 dotnet-ai configure --no-input --company {company} --permissions {level} --style {style}
 ```
 
-This updates `.claude/settings.json` with the selected permission level and re-copies commands with the selected style.
+This updates `.claude/settings.json` permissions and records `command_style` in `.dotnet-ai-kit/config.yml`; plugin-native hosts serve commands from the plugin install path (feature 019 / FR-004 / FR-005). Copilot-only re-renders run via `dotnet-ai upgrade --copilot` separately.
 
 **Do NOT skip this step.** Writing to config.yml alone does NOT update settings.json or command files. The CLI call is required.
 

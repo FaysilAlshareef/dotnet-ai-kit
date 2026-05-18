@@ -408,8 +408,8 @@ Maps to **commit 14b** (NEW commit inserted during tasks-phase round 1 per Codex
 
 ### Commit 24 — Slash-command body rewrites (F-J P1, ~1h)
 
-- [ ] T165 (commit 24) Rewrite `commands/init.md` to describe the plugin-native flow. Remove the 9 stale references at lines 34, 44, 60, 76, 77, 106, 107, 127, 128. Replace "Copied: {N} commands / rules" output with "(No commands/rules/skills/agents copied — served by plugin)". Replace ".claude/commands/" / ".claude/rules/" verification entries with the per-solution-only file list (config.yml, version.txt, manifest.json, settings.json).
-- [ ] T166 (commit 24) Edit `commands/configure.md:126` to remove "re-copies commands with the selected style." Replace with "updates `.claude/settings.json` permissions and records `command_style` in `.dotnet-ai-kit/config.yml`; plugin-native hosts serve commands from the plugin install path." **Acceptance**: `grep -nE "Copied: \{N\}|copies commands|\.claude/commands/" commands/*.md` returns no matches.
+- [X] T165 (commit 24) Rewrite `commands/init.md` to describe the plugin-native flow. Remove the 9 stale references at lines 34, 44, 60, 76, 77, 106, 107, 127, 128. Replace "Copied: {N} commands / rules" output with "(No commands/rules/skills/agents copied — served by plugin)". Replace ".claude/commands/" / ".claude/rules/" verification entries with the per-solution-only file list (config.yml, version.txt, manifest.json, settings.json).
+- [X] T166 (commit 24) Edit `commands/configure.md:126` to remove "re-copies commands with the selected style." Replace with "updates `.claude/settings.json` permissions and records `command_style` in `.dotnet-ai-kit/config.yml`; plugin-native hosts serve commands from the plugin install path." **Acceptance**: `grep -nE "Copied: \{N\}|copies commands|\.claude/commands/" commands/*.md` returns no matches.
 
 ### Commit 25 — OOS-005 release-notes neutralization + conditional include (PB-3, ~2-3h)
 
