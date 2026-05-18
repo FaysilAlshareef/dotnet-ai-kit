@@ -53,7 +53,10 @@ def test_plugin_manifest_paths_resolve(manifest_path: Path) -> None:
             (REPO / rel[2:]).resolve() if rel.startswith("./") else (REPO / rel).resolve(),
         ]
         if not any(c.exists() for c in candidates):
-            missing.append(f"{field}={rel} (tried: {[str(c.relative_to(REPO) if c.is_relative_to(REPO) else c) for c in candidates]})")
+            tried = [
+                str(c.relative_to(REPO)) if c.is_relative_to(REPO) else str(c) for c in candidates
+            ]
+            missing.append(f"{field}={rel} (tried: {tried})")
 
     for field in ARRAY_PATH_FIELDS:
         canonical = field.replace("_array", "")
