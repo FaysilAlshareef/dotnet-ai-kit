@@ -1,0 +1,9 @@
+Wrote the verdict to [round2-codex-verify.md](C:/Users/libya/source/repos/AI/dotnet-ai-kit/specs/019-plugin-native-arch/discussion/implement-phase/round2-codex-verify.md:1): `BLOCK-WITH-CONCERNS`.
+
+Direct round-2 fixes pass, but I found two sibling command-path blockers: plain `upgrade` and `configure --tools copilot` still create legacy `.github/agents/commands/` files and `.claude/settings.json`.
+
+Verification run:
+- `pytest -q tests/unit/test_codex_blockers_resolved.py` -> 7 passed
+- `pytest --tb=no -q` -> 727 passed, 25 skipped
+- `python scripts/measure_always_on.py` -> 2880 tokens / 68.0%
+- `python scripts/doc_lint.py` -> clean

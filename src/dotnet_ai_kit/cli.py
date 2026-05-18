@@ -1826,8 +1826,18 @@ def upgrade(
                     total_cmds += copy_commands_cursor(
                         commands_source, target, tool_config, rules_source
                     )
+            elif tool_name in RENDER_ONLY_HOSTS:
+                # Codex round-2 sibling Blocker 1': render-only hosts (copilot)
+                # must NOT bulk-copy on plain `upgrade`. Per FR-015, plain
+                # `upgrade` is a no-op for Copilot; `upgrade --copilot` is the
+                # explicit refresh entry point. Skip silently here.
+                _verbose_log(
+                    verbose,
+                    f"Plain upgrade skips {tool_name} (render-only). "
+                    "Use `dotnet-ai upgrade --copilot` to refresh Copilot files.",
+                )
             else:
-                # Render-only or unknown future host: keep legacy bulk-copy path.
+                # Unknown future host: keep legacy bulk-copy path.
                 total_cmds += copy_commands(
                     commands_source,
                     target,
@@ -1914,8 +1924,11 @@ def upgrade(
         # Update version file
         version_path.write_text(__version__, encoding="utf-8")
 
-        # Always re-apply permissions to ensure settings.json matches config.yml
-        if config.permissions_level:
+        # Always re-apply permissions to ensure settings.json matches config.yml.
+        # Codex round-2 sibling Blocker 1': gate on `claude in config.ai_tools`
+        # so `upgrade` on a Copilot-only / Codex-only solution does NOT create
+        # `.claude/settings.json` (FR-016 / spec.md:171).
+        if config.permissions_level and "claude" in config.ai_tools:
             try:
                 perm_result = copy_permissions(target, config, _get_package_dir())
                 save_config(config, config_path)
@@ -2318,31 +2331,34 @@ def configure(
     config_dir.mkdir(parents=True, exist_ok=True)
     save_config(config, config_path)
 
-    # Apply permissions to .claude/settings.json
-    try:
-        if config.permissions_level == "full" and not json_output:
-            console.print(
-                "\n[yellow bold]Warning:[/yellow bold] Full permission mode enables "
-                "bypassPermissions -- the AI assistant will execute all operations"
-                "without prompting. Only use in trusted environments."
+    # Apply permissions to .claude/settings.json.
+    # Codex round-2 sibling Blocker 2': gate on `claude in config.ai_tools`
+    # per FR-016 / spec.md:171 (configure writes files only for selected hosts).
+    if "claude" in config.ai_tools:
+        try:
+            if config.permissions_level == "full" and not json_output:
+                console.print(
+                    "\n[yellow bold]Warning:[/yellow bold] Full permission mode enables "
+                    "bypassPermissions -- the AI assistant will execute all operations"
+                    "without prompting. Only use in trusted environments."
+                )
+            perm_result = copy_permissions(
+                target, config, _get_package_dir(), global_install=global_install
             )
-        perm_result = copy_permissions(
-            target, config, _get_package_dir(), global_install=global_install
-        )
-        save_config(config, config_path)
-        if not json_output and perm_result["changed"]:
-            scope = "global" if global_install else "project"
-            console.print(
-                f"\n  Permissions ({scope}): {perm_result['entries_count']} rules applied "
-                f"(mode: {perm_result['mode']}) -> {perm_result['settings_path']}"
+            save_config(config, config_path)
+            if not json_output and perm_result["changed"]:
+                scope = "global" if global_install else "project"
+                console.print(
+                    f"\n  Permissions ({scope}): {perm_result['entries_count']} rules applied "
+                    f"(mode: {perm_result['mode']}) -> {perm_result['settings_path']}"
+                )
+        except CopyError as exc:
+            err_console.print(
+                f"[red bold]Error:[/red bold] Failed to apply permissions: {exc}\n"
+                "Config was saved but permissions were NOT applied to settings.json.\n"
+                "Run 'dotnet-ai upgrade --force' to retry."
             )
-    except CopyError as exc:
-        err_console.print(
-            f"[red bold]Error:[/red bold] Failed to apply permissions: {exc}\n"
-            "Config was saved but permissions were NOT applied to settings.json.\n"
-            "Run 'dotnet-ai upgrade --force' to retry."
-        )
-        raise typer.Exit(code=1) from exc
+            raise typer.Exit(code=1) from exc
 
     # Re-copy commands so style changes take effect immediately
     commands_source = _find_commands_source()
@@ -2356,24 +2372,28 @@ def configure(
         except ValueError:
             continue
 
-        if tool_name == "cursor":
-            total_cmds += copy_commands_cursor(
-                commands_source,
-                target,
-                tool_config,
-                rules_source,
-            )
-        elif tool_name == "codex":
-            # T049: copy_commands_codex deleted — Codex no per-solution writes
-            pass
-        else:
-            total_cmds += copy_commands(
-                commands_source,
-                target,
-                tool_config,
-                config,
-                is_plugin=is_plugin,
-            )
+        # Codex round-2 sibling Blocker 2': route plugin-native + render-only
+        # hosts away from the legacy bulk-copy branch per FR-016 + FR-007.
+        if tool_name in PLUGIN_NATIVE_HOSTS or tool_name in RENDER_ONLY_HOSTS:
+            if tool_name == "cursor" and not is_plugin:
+                # Cursor's per-rule .mdc fallback for non-plugin solutions
+                total_cmds += copy_commands_cursor(
+                    commands_source,
+                    target,
+                    tool_config,
+                    rules_source,
+                )
+            # All other plugin-native / render-only paths: NO bulk-copy here.
+            continue
+
+        # Legacy bulk-copy path (kept for hypothetical future non-native hosts)
+        total_cmds += copy_commands(
+            commands_source,
+            target,
+            tool_config,
+            config,
+            is_plugin=is_plugin,
+        )
 
     if not json_output and total_cmds:
         console.print(f"  Commands: {total_cmds} files updated (style: {config.command_style})")
@@ -2398,8 +2418,12 @@ def configure(
         except ValueError:
             continue
 
-        if tool_name not in ("cursor", "codex"):
-            copy_rules(rules_source, target, tool_config)
+        # Codex round-2 sibling Blocker 2': skip rules/skills/agents bulk-copy
+        # for plugin-native AND render-only hosts (per FR-016 + FR-007).
+        if tool_name in PLUGIN_NATIVE_HOSTS or tool_name in RENDER_ONLY_HOSTS:
+            continue
+
+        copy_rules(rules_source, target, tool_config)
 
         if skills_source.is_dir():
             copy_skills(

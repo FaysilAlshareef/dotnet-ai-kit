@@ -197,10 +197,12 @@ def test_blocker5_check_detects_stale_copilot_renders(tmp_path: Path) -> None:
         ["check", str(tmp_path), "--host", "copilot", "--json"],
         catch_exceptions=False,
     )
-    # Exit code 14 (manifest integrity) or 15 (copilot freshness) both
-    # indicate the staleness was detected.
-    assert result.exit_code in (14, 15), (
-        f"Blocker-5 regression: check did NOT detect stale render. "
+    # Per check-cli.contract.md:31-36, multiple failures use the LOWEST exit
+    # code — manifest_integrity (14) precedes copilot_freshness (15), so a
+    # stale render that's also recorded in manifest must surface as 14.
+    assert result.exit_code == 14, (
+        f"Blocker-5 regression: check did NOT detect stale render with the "
+        f"contract-mandated lowest exit code (14). "
         f"exit_code={result.exit_code}, output={result.output[:500]}"
     )
     # And the response payload MUST include either:
@@ -213,6 +215,82 @@ def test_blocker5_check_detects_stale_copilot_renders(tmp_path: Path) -> None:
     ), (
         f"Blocker-5 regression: stale file not surfaced in check output. "
         f"output={result.output[:500]}"
+    )
+
+
+# ----------------------------------------------------------------------
+# Sibling Blocker 1' (Codex round 2): plain `upgrade` for Copilot
+# ----------------------------------------------------------------------
+
+def test_sibling_blocker_upgrade_copilot_only_does_not_bulk_copy(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """Per FR-015 (spec.md:172): plain `upgrade` is no-op for plugin-native
+    AND render-only hosts. `dotnet-ai upgrade` on a `ai_tools: [copilot]`
+    solution MUST NOT bulk-copy legacy `.github/agents/commands/` or write
+    `.claude/settings.json`."""
+    _create_project(tmp_path)
+    cfg = tmp_path / ".dotnet-ai-kit"
+    cfg.mkdir(exist_ok=True)
+    (cfg / "config.yml").write_text(
+        "ai_tools: [copilot]\npermissions_level: minimal\n",
+        encoding="utf-8",
+    )
+    (cfg / "version.txt").write_text("0.0.1", encoding="utf-8")
+
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(app, ["upgrade", "--json"], catch_exceptions=False)
+    assert result.exit_code == 0, result.output
+
+    assert not (tmp_path / ".github" / "agents" / "commands").exists(), (
+        "Sibling Blocker 1' regression: plain upgrade wrote legacy "
+        ".github/agents/commands/ for Copilot-only solution"
+    )
+    assert not (tmp_path / ".claude" / "settings.json").exists(), (
+        "Sibling Blocker 1' regression: plain upgrade wrote .claude/settings.json "
+        "on a Copilot-only solution (Claude not in ai_tools)"
+    )
+
+
+# ----------------------------------------------------------------------
+# Sibling Blocker 2' (Codex round 2): `configure --tools copilot`
+# ----------------------------------------------------------------------
+
+def test_sibling_blocker_configure_copilot_only_does_not_bulk_copy(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """Per FR-016 (spec.md:171): configure writes files only for selected hosts."""
+    _create_project(tmp_path)
+    cfg = tmp_path / ".dotnet-ai-kit"
+    cfg.mkdir(exist_ok=True)
+    # Pre-init the .dotnet-ai-kit/ so configure has something to read
+    (cfg / "config.yml").write_text("ai_tools: [copilot]\n", encoding="utf-8")
+
+    monkeypatch.chdir(tmp_path)
+    result = runner.invoke(
+        app,
+        [
+            "configure",
+            "--no-input",
+            "--company",
+            "Acme",
+            "--tools",
+            "copilot",
+            "--permissions",
+            "minimal",
+            "--json",
+        ],
+        catch_exceptions=False,
+    )
+    assert result.exit_code == 0, result.output
+
+    assert not (tmp_path / ".github" / "agents" / "commands").exists(), (
+        "Sibling Blocker 2' regression: configure --tools copilot wrote legacy "
+        ".github/agents/commands/"
+    )
+    assert not (tmp_path / ".claude" / "settings.json").exists(), (
+        "Sibling Blocker 2' regression: configure --tools copilot wrote "
+        ".claude/settings.json"
     )
 
 

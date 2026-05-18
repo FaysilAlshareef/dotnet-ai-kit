@@ -1349,39 +1349,45 @@ def test_configure_repos_flag_ssh_url(tmp_path: Path, monkeypatch) -> None:
 
 
 def test_configure_recopy_on_style_change(tmp_path: Path, monkeypatch) -> None:
-    """Configure --style must re-copy commands so style changes take effect immediately."""
+    """Configure --style updates config.yml and is a no-op for plugin-native hosts.
+
+    Feature 019 / Codex round-2 sibling Blocker 2': for plugin-native hosts
+    (claude/codex/cursor) the plugin install serves commands; configure does
+    NOT bulk-copy per-solution. The style preference still updates `config.yml`
+    so the plugin host can read it at runtime.
+    """
     _setup_config_dir(tmp_path)
     monkeypatch.chdir(tmp_path)
 
-    # Force standalone mode so full-prefix files are written
-    with patch("dotnet_ai_kit.cli._detect_plugin_mode", return_value=False):
-        # First configure with 'both' to create both command sets
-        result = runner.invoke(
-            app,
-            ["configure", "--no-input", "--company", "TestCo", "--style", "both"],
-            catch_exceptions=False,
+    # First configure with 'both' style
+    result = runner.invoke(
+        app,
+        ["configure", "--no-input", "--company", "TestCo", "--style", "both"],
+        catch_exceptions=False,
+    )
+    assert result.exit_code == 0, result.output
+
+    # Config file MUST record the style
+    config_yml = (tmp_path / ".dotnet-ai-kit" / "config.yml").read_text(encoding="utf-8")
+    assert "command_style: both" in config_yml
+
+    # Now change to 'short'
+    result = runner.invoke(
+        app,
+        ["configure", "--no-input", "--company", "TestCo", "--style", "short"],
+        catch_exceptions=False,
+    )
+    assert result.exit_code == 0, result.output
+    config_yml = (tmp_path / ".dotnet-ai-kit" / "config.yml").read_text(encoding="utf-8")
+    assert "command_style: short" in config_yml
+
+    # Per FR-005/FR-006: NO per-solution commands written for plugin-native Claude
+    cmds = tmp_path / ".claude" / "commands"
+    if cmds.is_dir():
+        contents = [p.name for p in cmds.iterdir() if p.is_file()]
+        assert not contents, (
+            f"Plugin-native Claude configure MUST NOT write per-solution commands: {contents}"
         )
-        assert result.exit_code == 0, result.output
-
-        cmds = tmp_path / ".claude" / "commands"
-        assert cmds.is_dir(), "Commands directory should exist"
-        full_before = list(cmds.glob("dotnet-ai.*.md"))
-        short_before = list(cmds.glob("dai.*.md"))
-        assert len(full_before) > 0, "Expected dotnet-ai.*.md files after both style"
-        assert len(short_before) > 0, "Expected dai.*.md files after both style"
-
-        # Now change to 'short' — should clean up dotnet-ai.*.md
-        result = runner.invoke(
-            app,
-            ["configure", "--no-input", "--company", "TestCo", "--style", "short"],
-            catch_exceptions=False,
-        )
-        assert result.exit_code == 0, result.output
-
-        full_after = list(cmds.glob("dotnet-ai.*.md"))
-        short_after = list(cmds.glob("dai.*.md"))
-        assert len(full_after) == 0, f"Stale dotnet-ai.*.md files remain: {full_after}"
-        assert len(short_after) > 0, "Expected dai.*.md files after short style"
 
 
 # ---------------------------------------------------------------------------
