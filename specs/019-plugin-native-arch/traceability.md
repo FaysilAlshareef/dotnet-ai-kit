@@ -115,6 +115,40 @@ These tests are owned by the plan-mandated TDD discipline / per-commit acceptanc
 | `tests/unit/test_release_notes_consistency.py` | T125a | commit 15 | A-005 / SC-008 / OOS-005 real-artifact consistency assertion (per Codex tasks-phase P0-4); separate from T053's fixture-only meta-test |
 | `tests/unit/test_skill_body_references.py` | T087 | commit 14 | CHK036 — every always-on convention rule referenced from skills that depend on it via `${CLAUDE_PLUGIN_ROOT}/rules/conventions/<name>.md` |
 
+## Additional tests added during Phase 10 (post-review corrections)
+
+These **21 Phase-10 test/gate rows** (mix of pytest files, workflow
+rewrites, and CI-only gates — see the "Owner" column for the exact
+artifact) close the **8 BLOCKERS (B-1 → B-8: 4 P0 + 4 P1)** + 8
+round-3 plan corrections identified in the cross-AI review-phase
+debate. See `discussion/review-phase/claude/final-consolidated-review.md`
+(canonical fix plan) + `discussion/review-phase/round4-codex-reply.md`
+(round-4 verification refinements).
+
+| Phase-10 test | Owner | Commit | Why added |
+|--|--|--|--|
+| `tests/unit/test_init_claude_native.py` (strengthened) | T134 | 18 | B-1 — assert NO `.claude/rules/` post-init for Claude |
+| `tests/test_copier_hooks.py` (rewrites) | T135 | 18 | B-1 — flip 8 refs from "exists" to "not exists" for plugin-native |
+| `tests/test_cli.py` rewrites (T136) | T136 | 18 | B-1 — flip `test_init_force_profile`/`test_upgrade_force_calls_profile` |
+| `tests/test_multi_repo_deploy.py:486-491` rewrite | T137 | 18 | B-1 — flip linked-secondary profile-exists assertion |
+| `tests/unit/test_b1_linked_secondary_stale_profile.py` | T138 | 18 | B-1 — stale-profile trap regression (Codex round-3 trap) |
+| `tests/contract/test_config_yml_emit.py` | T140 | 19 | B-2 — emit-side schema validation; replaces T005's contract-only check |
+| `tests/unit/test_user_config_round_trip.py` | T141 | 19 | B-2 — UserConfig from_legacy_dict ↔ save_user_config round trip |
+| `tests/contract/test_project_yml_emit.py` | T146 | 20 | B-3 — emit-side schema validation for `project.yml` |
+| `tests/unit/test_init_required_field_strategy.py` | T147 | 20 | B-3 — `company`/`domain`/`side`/`dotnet_version` derivation at init |
+| `tests/unit/test_check_raw_schema_validation.py` | T148 | 20 | B-4 — `check` raw-validates against schema, not legacy load_project |
+| `tests/unit/test_b5_copilot_metadata_staleness.py` | T154 | 21 | B-5 — rename company → check reports stale |
+| `tests/unit/test_b5_copilot_source_staleness.py` | T155 | 21 | B-5 — template change → check reports stale |
+| `tests/unit/test_configure_multi_host_picker.py` | T132 | 17 | B-6 — interactive `configure` shows all 4 hosts |
+| `.github/workflows/ci.yml::smoke` rewrite | T157-T160 | 22 | B-7 — 3-OS matrix + 4 binaries + preflight + 4 fixture files |
+| (ruff cleanup is not a test — verified by `ruff check` exit 0) | T131 | 16 | B-8 |
+| `tests/contract/test_agent_source_shape.py` | T161 | 23 | F-F — no host-allow-list fields at top level outside `host_overrides` |
+| `tests/content/test_csharp_skill_snippets_compile.py` | T178 | 26 | Compile-check scaffold for C-Q1/C-Q2/C-Q4 fixes (per Codex r3 R5) |
+| `tests/content/test_bin_wrappers.py` | T182 | 27 | OOS-003 — `bin/dotnet-ai --version` works on 3 OSes |
+| `tests/fixtures/cursor_fixture_pending/` + test extension | T169 | 25 | OOS-005 pending-branch fixture (release-note neutralization) |
+| `tests/unit/test_release_notes_consistency.py` rewrite | T168 | 25 | OOS-005 — assert pending state requires neutral language |
+| `tests/contract/test_plugin_manifest_paths.py` | T196 | 29 | F6 — every manifest path resolves on disk |
+
 ## How to use this file
 
 - When adding a new test, update the corresponding row to include it

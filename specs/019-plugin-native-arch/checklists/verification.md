@@ -7,6 +7,29 @@
 
 This checklist enumerates every gate the release MUST pass before the single PR is merged. Items are derived from the converged design and the spec-phase debate; nothing here is new policy.
 
+> **Phase 10 status (2026-05-18)**: All CHK boxes intentionally remain
+> unchecked. Per Codex review-phase round 3 (P1-4 finding, see also
+> round-4 verification refinements at
+> `../discussion/review-phase/round4-codex-reply.md`) + T199 in
+> `tasks.md` Phase 10, each box may be ticked ONLY after the
+> referenced test/gate has actually passed in CI. The pytest suite
+> being green is **not sufficient** because pre-019 tests inherited
+> assertions that asserted the bug (see B-1 evidence in
+> `discussion/review-phase/codex/review.md`). The Phase 10
+> implementation (commits 16-30) closes the gap; T199 in commit 30
+> ticks each CHK only after the corresponding fix has landed and the
+> CI gate has reported pass on `workflow_dispatch`.
+>
+> **Specifically affected by Phase 10**:
+> - CHK016 (Copilot freshness) — blocked by B-5; closed by commit 21
+> - CHK037 (configure multi-host) — blocked by B-6; closed by commit 17
+> - CHK046-048 (PreToolUse arch-profile / FR-034) — blocked by B-1; closed by commit 18
+> - CHK001-CHK004 (host smoke fixtures) — blocked by B-7; closed by commit 22
+> - CHK013-CHK015 (project metadata schema validation) — blocked by B-3/B-4; closed by commit 20
+> - CHK042 (manifest integrity actionable output) — re-verify after B-1 fix
+>
+> Canonical fix plan: [`../discussion/review-phase/claude/final-consolidated-review.md`](../discussion/review-phase/claude/final-consolidated-review.md).
+
 FR/SC references match the revised spec (US3 removed, US6/US7 split → US5/US6, FR-034-FR-037 renumbered to FR-032-FR-035 inside spec while keeping their original conceptual identities, SC-013/SC-014 added). **FR-030 (packaging test) IS present in the current spec at `spec.md:198-199`** — earlier preamble drafts incorrectly stated FR-030 was removed; the canonical post-spec-phase numbering retains FR-030 as the packaging-test requirement (CHK005-CHK008 below map to FR-030 per spec). The mapping below corresponds to the spec at `../spec.md` after spec-phase round-2 edits.
 
 ## Host smoke fixtures (spec FR-029, SC-008)

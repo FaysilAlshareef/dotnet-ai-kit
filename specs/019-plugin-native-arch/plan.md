@@ -9,7 +9,7 @@
 
 Deliver the converged plugin-native architecture refactor agreed in `issues/plugin-native-architecture/FINAL-REPORT.md`. Three AI hosts with first-class plugin models (Claude Code, Codex CLI, Cursor) consume `dotnet-ai-kit` through native plugin manifests; GitHub Copilot consumes rendered repository-native instruction files at `.github/`. Per-solution footprint drops from ~180 files to a small fixed set (project metadata + user configuration + permissions merge, plus Copilot renders when enabled). Customization values resolve at runtime against current project metadata, not frozen at init time. The migration command uses the existing manifest hash tracking and 3-keep backup rotation to safely move legacy per-solution copies into a project-local backup folder. Validation centralizes plugin install + binary prerequisites + project schema + manifest integrity + Copilot freshness into a single `dotnet-ai check` invocation.
 
-**Delivery**: single feature branch, **16 sequenced commits** (ordering originally frozen at 15 in `issues/plugin-native-architecture/FINAL-REPORT.md` lines 87-106; commit 14b inserted during tasks-phase round-1 Codex review to close the orphan render-command gap per `discussion/tasks-phase/round1-codex-reply.md` BLOCKER (c)). The 16-commit order is: 1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, **14b**, 15. No multi-PR split; per-commit reviewability is the mitigation for review burden. Pre-v1.0.0 status removes backward-compatibility tax.
+**Delivery**: single feature branch, **31 sequenced commits** total (Phase 1-9 commits 1-15 originally frozen at 15 in `issues/plugin-native-architecture/FINAL-REPORT.md` lines 87-106; commit 14b inserted during tasks-phase round-1 Codex review per `discussion/tasks-phase/round1-codex-reply.md` BLOCKER (c); Phase 10 commits 16-30 added during review-phase rounds 1-4 to close 8 BLOCKERS). Phase 1-9 order: `1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 14b, 15`. Phase 10 order: `16, 17, 18, 19, 20, 21, 22, 23, 24, 25, 26, 27, 28, 29, 30`. No multi-PR split; per-commit reviewability is the mitigation for review burden. Pre-v1.0.0 status removes backward-compatibility tax. See "Review-Phase Outcome" section below for Phase 10 details.
 
 ## Technical Context
 
@@ -516,6 +516,59 @@ All 16 commits in the sequence `1, 2, 3, 4, 5, 6, 7, 8, 9, 10, 11, 12, 13, 14, 1
 ## Phase 2: Tasks (not in this command)
 
 `/speckit.tasks` decomposes the 16 commits (`1..14, 14b, 15`) into per-commit task lists and per-test traceability rows. See `tasks.md` for the round-2-converged 137-task decomposition.
+
+## Review-Phase Outcome (2026-05-18) — Phase 10 added
+
+After commits 1-15 landed, a 4-round cross-AI review at
+`discussion/review-phase/` found **8 release-gating defects** (B-1
+through B-8: 4 P0 + 4 P1) the pytest suite couldn't catch (because
+pre-019 tests inherited assertions that asserted the bug) plus
+**8 round-3 plan corrections**. Round 4 (`round4-codex-reply.md`)
+verified the artifact updates and surfaced 2 atomicity splits
+(T170 → T170a/b/c, T195 → T195a/b) plus 2 acceptance-gate
+broadenings (commits 25 + 29) — all incorporated below.
+
+**Canonical fix plan**: [`discussion/review-phase/claude/final-consolidated-review.md`](./discussion/review-phase/claude/final-consolidated-review.md).
+
+**Debate trail** (rounds 1-3):
+1. `discussion/review-phase/codex/review.md` — Codex initial BLOCKED
+2. `discussion/review-phase/claude/{review,tool-surface-review,content-quality-and-oos-review,consolidated-review}.md` — 4 Claude reviews
+3. `discussion/review-phase/round1-claude-to-codex.md` — Claude push-back briefing
+4. `discussion/review-phase/round1-codex-reply.md` — Codex r1
+5. `discussion/review-phase/round2-claude-reply.md` — Claude concessions
+6. `discussion/review-phase/round3-codex-verify.md` — Codex AGREED-WITH-NITS
+
+**Defects**:
+
+| ID | Severity | Description |
+|---|---|---|
+| B-1 | P0 | `copy_profile()` + `copy_hook()` still write `.claude/rules/architecture-profile.md` + embed frozen prompt for plugin-native hosts (FR-005/006/034 violation). Confirmed at `cli.py:1102, 1874, 2459` + `copier.py:1063, 1131`. |
+| B-2 | P0 | `init`/`configure` writer emits legacy `ai_tools:` instead of `enabled_hosts:` (`schemas/config-yml.schema.json` violation; data-model.md:78-80 mandates canonical writer). |
+| B-3 | P0 | `save_project()` emits legacy `detected:` nested shape instead of top-level `company:/domain:/...` per `schemas/project-yml.schema.json`. |
+| B-4 | P0 | `dotnet-ai check` reports schema-invalid `project.yml` as `pass` (validates via legacy `load_project()`, not raw `jsonschema.validate`). |
+| B-5 | P1 | Copilot freshness only hash-compares; misses metadata/source staleness. |
+| B-6 | P1 | `configure` interactive picker hard-coded to "Claude Code" only (`cli.py:2286-2297`; FR-016 violation). |
+| B-7 | P1 | CI smoke job runs `tests/smoke/` not the feature-019 fixtures at `tests/integration/test_smoke_*.py`; FR-029/SC-008/A-010 release gate effectively absent. |
+| B-8 | P1 | 48 ruff errors + 55 format issues. CI `static-unit` job fails today. |
+
+**Plan corrections from Codex round 3** (numbered to match `round3-codex-verify.md:240-248`):
+1. **F-F**: option A, but no placeholder cursor/copilot blocks unless meaningful; test "no top-level forbidden fields", not mandatory `host_overrides` for all future files.
+2. **B-2**: expand from "writer swap" to full command-path compatibility for canonical `enabled_hosts` (8 read sites consume `config.ai_tools`).
+3. **B-3**: define required-field derivation for init, and test actual init output against `schemas/project-yml.schema.json`.
+4. **B-4**: raw JSON Schema validate first, then parse with the runtime metadata model used by later checks.
+5. **B-7**: 3-OS matrix, `workflow_dispatch`, three smoke env vars, four binaries including `csharp-ls`, preflight that fails on missing binaries, and the four `tests/integration/test_smoke_*.py` files.
+6. **B-8**: include `scripts/` in ruff check/format commands.
+7. **OOS-005**: neutralize release notes now and update pending-state tests.
+8. **B-1**: gate both profile and hook call sites, especially linked-secondary stale-profile hook rendering at `copier.py:1131-1137`.
+
+**Separate technical-accuracy reclassification** (out of the "plan corrections" 1-8 above; surfaced by round-1 Codex content audit but reclassified in round 2 push-back):
+- **C-Q4**: `Result<T>::Error` is `string?` in the generic templates the controller skill uses → compiles but produces incomplete ProblemDetails. Fix is semantic (named-parameter `Problem(detail:, statusCode:)`), NOT a compile-error fix.
+
+**Phase 10 (commits 16-30)** in `tasks.md` is the execution plan for
+all of the above. Effort estimate: ~35-44 hours (a focused
+maintainer-week). All Phase 10 tasks are atomic, file:line-targeted,
+and have explicit acceptance gates. v1.0.0 tag is gated on commit 30
+(`workflow_dispatch` smoke green on 3 OSes).
 
 ## Open items requiring Codex plan-phase verification
 

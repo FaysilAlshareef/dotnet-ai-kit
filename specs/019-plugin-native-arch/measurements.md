@@ -80,6 +80,38 @@ CI workflow at `.github/workflows/measure.yml` (NEW in commit 15):
    - SC-013: assert ≤500 tokens
 5. If any assertion fails, the CI step fails and the build is not green
 
+## Post-Phase-10 re-capture required
+
+The values captured above were taken at the end of Phase 9 (commits
+1-15). The cross-AI review-phase debate at `discussion/review-phase/`
+(rounds 1-4) found **8 release-gating defects (B-1 through B-8: 4 P0
++ 4 P1)** that the pytest suite couldn't catch because pre-019 tests
+inherited assertions that asserted the bug. Canonical fix plan:
+[`discussion/review-phase/claude/final-consolidated-review.md`](./discussion/review-phase/claude/final-consolidated-review.md);
+round-4 verification refinements at
+[`discussion/review-phase/round4-codex-reply.md`](./discussion/review-phase/round4-codex-reply.md).
+Once Phase 10 (commits 16-30, tasks T131-T200) lands, **every
+measurement above must be re-captured** by task T198 to confirm the
+fixes did not regress any SC threshold.
+
+Specifically, B-1 (skip `copy_profile()`/`copy_hook()` for plugin-
+native) is expected to **reduce** the SC-001 file count further
+(from 3 to 2 for Claude-only init, since `.claude/rules/architecture-
+profile.md` is no longer written). B-2/B-3 (config + project schema
+migration) does not affect file count but changes file contents.
+
+| SC | Phase-9 value | Phase-10 expected value | Phase-10 captured value |
+|--|--|--|--|
+| SC-001 (Claude-only) | 3 files | 2 files (no `.claude/rules/architecture-profile.md`) | _to be captured by T198_ |
+| SC-001 (+Copilot) | 18 files | 17 files (same delta) | _to be captured by T198_ |
+| SC-004 (always-on context) | 2880 tokens | unchanged (rule classification didn't change) | _to be captured by T198_ |
+| SC-010 (check runtime) | <1s | unchanged (validation logic added but should stay <1s) | _to be captured by T198_ |
+| SC-012 (render runtime) | <1s | unchanged | _to be captured by T198_ |
+| SC-013 (SessionStart tokens) | 295 | unchanged | _to be captured by T198_ |
+
+If any of these regresses past its threshold, the fix must be
+revised before v1.0.0 tag.
+
 ## SC verification status
 
 | SC | Status before commit 1 | Status after commit 15 (predicted) |

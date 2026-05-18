@@ -2,7 +2,7 @@
 
 **Feature Branch**: `019-plugin-native-arch`
 **Created**: 2026-05-17
-**Status**: Draft (revised after spec-phase cross-AI debate; Codex sign-off pending checklist updates per round2-codex-verify.md)
+**Status**: v1.0.0 — Phase 10 (post-review corrections) IN PROGRESS. Phases 1-9 landed; cross-AI review-phase debate (rounds 1-4 at `discussion/review-phase/`) found **8 release-gating defects (B-1 through B-8: 4 P0 + 4 P1)** + 8 round-3 plan corrections + 12 content findings; tasks T131-T200 in `tasks.md` Phase 10 close them. Spec language unchanged — defects are implementation gaps against existing FRs. Canonical fix plan: [`discussion/review-phase/claude/final-consolidated-review.md`](./discussion/review-phase/claude/final-consolidated-review.md); round-4 verification refinements: [`discussion/review-phase/round4-codex-reply.md`](./discussion/review-phase/round4-codex-reply.md).
 **Input**: User description: "now read @plugin-native-architecture issue very well and read the final reports, make your researches and write spec.md and checklist files that needed for this feature"
 
 ## Background
@@ -259,7 +259,7 @@ A developer can run an inspection command — `render <skill|rule>` — to print
 
 - **OOS-001**: Per-project GitHub Copilot plugin support. Copilot has no plugin host; render-time delivery via `.github/` is the only viable path and is the chosen approach.
 - **OOS-002**: Extensions subsystem changes. The extensions subsystem stays exactly as-is in this release.
-- **OOS-003**: A `bin/` launcher for the tool. Research was completed and recorded; the launcher is deferred to v1.1 pending a cross-platform packaging spike.
+- **OOS-003**: A standalone-executable launcher (shiv / PyInstaller). Source-tree `bin/` wrappers (`bin/dotnet-ai` POSIX + `bin/dotnet-ai.cmd` Windows) that delegate to `python -m dotnet_ai_kit.cli` ship in v1.0 via Phase 10 commit 27 (tasks.md T180-T182) per `discussion/review-phase/claude/final-consolidated-review.md` line 674 + 720. A true standalone executable (no Python on PATH, cross-platform binary) remains deferred to v1.1 pending a cross-platform packaging spike.
 - **OOS-004**: Native Codex CLI plugin agent support. Deferred to v1.1, contingent on Codex documentation or a passing smoke test for that capability.
 - **OOS-005**: Full Cursor sub-agent generation if the in-release fixture does not pass. The release ships one mandatory Cursor sub-agent fixture; the full set is in scope only if that fixture passes. If the fixture fails, full generation is removed from this release's scope and deferred to v1.1 (see A-005 and SC-008 for the binding contract).
 - **OOS-006**: A multi-repository activity monitor. Justified as future work but not bundled in this release. Plugin-served-artifact drift across sibling repositories is solved by FR-033 (linked-secondary-repository footprint) plus US1 (single-host-action update propagation); sibling-repository activity surveillance beyond that is deferred.
