@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <code>124 skills</code> · <code>13 agents</code> · <code>27 commands</code> · <code>16 rules</code> · <code>12 profiles</code> · <code>16 knowledge docs</code> · <code>5 safety hooks</code> · <code>8 CLI commands</code>
+  <code>124 skills</code> · <code>13 agents</code> · <code>27 commands</code> · <code>16 rules</code> · <code>12 profiles</code> · <code>16 knowledge docs</code> · <code>7 Claude Code hooks</code> · <code>8 CLI commands</code>
 </p>
 
 ---
@@ -81,7 +81,7 @@ dotnet-ai init . --ai claude --dry-run
 /plugin install dotnet-ai-kit
 ```
 
-All 27 commands, 124 skills, 13 agents, 16 rules, and 5 safety hooks are available immediately.
+All 27 commands, 124 skills, 13 agents, 16 rules, and 7 Claude Code hooks are available immediately.
 
 <details>
 <summary><b>See plugin install demo</b></summary>

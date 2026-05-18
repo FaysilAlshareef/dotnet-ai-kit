@@ -79,10 +79,10 @@ Each step is also available as an independent command for manual control.
 src/dotnet_ai_kit/       # Python CLI package
 skills/                   # 124 skills organized by category
 commands/                 # 27 slash command templates
-rules/                    # 15 always-loaded convention rules
+rules/                    # 16 rules (5 universal + 11 path-scoped, feature 019 v1.0.8)
 agents/                   # 13 specialist agent definitions
-hooks/                    # 5 safety hooks (bash scripts)
-templates/                # 13 project scaffolding templates
+hooks/                    # 7 hooks (bash scripts + session-start + pretooluse-arch-profile)
+templates/                # 12 architecture profiles
 knowledge/                # 16 reference documents
 config/                   # Permission JSON configs
 tests/                    # pytest test suite

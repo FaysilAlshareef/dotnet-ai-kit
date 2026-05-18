@@ -28,7 +28,7 @@ src/dotnet_ai_kit/       # Python package
   extensions.py           # Extension install/remove/list
 
 .claude-plugin/           # Claude Code plugin manifest (plugin.json)
-.mcp.json                 # MCP server config (csharp-ls for C# intelligence)
+.mcp.json                 # MCP server config (codebase-memory-mcp for memory + retrieval)
 hooks/                    # Claude Code hooks (bash-guard, edit-format, scaffold-restore, commit-lint)
 commands/                 # Slash command templates (max 200 lines each)
 rules/                    # Always-loaded convention rules (max 100 lines each)

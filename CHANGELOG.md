@@ -4,6 +4,90 @@ All notable changes to dotnet-ai-kit will be documented in this file.
 
 Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 
+## [1.0.0] — 2026-05-18 — Plugin-Native Architecture (feature 019)
+
+Single-PR release that pivots the kit to a plugin-native architecture
+for Claude Code / Codex CLI / Cursor (Copilot stays render-only). Closes
+35 functional requirements (FR-001 — FR-035), 14 success criteria
+(SC-001 — SC-014), and 8 release-gating BLOCKERS (B-1 through B-8: 4 P0
++ 4 P1) plus 12 content findings (F-A through F-L) and 5 C# accuracy
+issues (C-Q1 — C-Q5) found in the cross-AI review-phase debate. Full
+detail per fix lives in `docs/release-notes-v1.0.md`.
+
+### Added
+- Per-host plugin manifests under `.claude-plugin/`, `.codex-plugin/`,
+  `.cursor-plugin/`. Each declares scalar relative paths to skills /
+  rules / hooks / agents (where supported).
+- `dotnet-ai render` (FR-019) — read-only CLI surface for rendering
+  individual skill / rule bodies with current project metadata
+  substituted. Exit codes 0/20/21/22/23 per `contracts/render-cli.contract.md`.
+- `dotnet-ai migrate` (FR-020) — relocates pre-019 layout artifacts
+  with 3-keep backup rotation; `--include-linked` recurses into
+  linked secondaries (FR-033).
+- ProjectMetadata schema (`schemas/project-yml.schema.json`); `dotnet-ai
+  check` raw-validates project.yml via jsonschema before pydantic load,
+  mapping violations to FR-031 exit class 12.
+- UserConfig schema (`schemas/config-yml.schema.json`); init emits
+  canonical `enabled_hosts:` and `permission_profile:` (legacy
+  `ai_tools` / `permissions_level` accepted via pydantic AliasChoices).
+- Copilot render orchestrator: `.github/copilot-instructions.md`,
+  `.github/instructions/<area>.instructions.md`, `.github/agents/*.agent.md`,
+  with two-tier freshness check (hash + fresh re-render) per B-5 fix.
+- SessionStart compact + PreToolUse arch-profile hooks (commit 13);
+  rules reclassified into `rules/conventions/` (5 universal, always-loaded)
+  + `rules/domain/` (11 path-scoped). Constitution v1.0.8 codifies it.
+- `bin/dotnet-ai` + `bin/dotnet-ai.cmd` — source-tree wrappers for
+  contributors. End-user installs via pip / uv / pipx use
+  `[project.scripts]`. Standalone-executable packaging deferred to v1.1
+  per OOS-003.
+- CI smoke job rewritten as a 3-OS matrix (ubuntu/macos/windows) with
+  preflight gate for the 4 binaries (claude/codex/cursor/csharp-ls) per
+  B-7 + Codex r2 finding.
+- 16+ new tests covering FR-029, FR-031, FR-032, FR-033, host symmetry,
+  manifest integrity, manifest-path resolution, Copilot freshness,
+  config-yml + project-yml schema, agent-source shape, bin/ wrappers,
+  C# skill snippet compile scaffold, and the OOS-005 fail-branch path.
+
+### Changed
+- Plugin-native hosts (Claude/Codex/Cursor): init writes only the
+  per-solution files (`.dotnet-ai-kit/*` + `.claude/settings.json` for
+  Claude). NO bulk copy of commands / skills / agents / rules. The
+  prior `copy_profile()` / `copy_hook()` call sites are gated by
+  `tool_name in PLUGIN_NATIVE_HOSTS` (B-1 fix).
+- `dotnet-ai upgrade` is a no-op for plugin-native hosts (FR-015);
+  `dotnet-ai upgrade --copilot` re-renders Copilot files only.
+- `dotnet-ai configure` interactive picker shows all 4 hosts
+  (claude/codex/cursor/copilot) per FR-016 / CHK037 (B-6 fix).
+- `.mcp.json` description swapped over to "codebase-memory-mcp for
+  memory + retrieval" (csharp-ls MCP integration removed in commit 12;
+  F5 fix). The legacy MCP description has been deleted everywhere it
+  surfaced.
+- 13 of 14 `agents-source/*.md` migrated to nest Claude-allow-list
+  fields under `host_overrides.claude:` (F-F fix). `agents-claude/*.md`
+  regenerated so the allow-list metadata now reaches Claude.
+- Skill / rule frontmatter cleanups (F-A through F-I): 9 core skills
+  gain `when_to_use`; 5 rules gain `## Related Skills`; 4 gRPC skills
+  gain `## Related Knowledge`; 3 empty section headers filled; RFC 2119
+  language normalised.
+- C# skill bodies fixed (C-Q1-Q5): CancellationToken propagation in
+  gRPC service + minimal-api filter; `Problem(detail:, statusCode:)` in
+  controllers; minor-unit integers replacing `double` for money in
+  proto files; primary-constructor description corrected.
+- AGENTS.md + CONTRIBUTING.md project-structure counts updated
+  (rules 15 → 16, hooks 5 → 7, templates 13 → 12; F4/F5 fix).
+
+### Notes
+- **OOS-005 fail-safe default**: the Cursor sub-agent A-005 spike fixture
+  has never executed in CI; the outcome JSON remains `pending`. v1.0
+  ships with `.cursor-plugin/plugin.json::agents` ABSENT,
+  `generate_cursor_agent()` raises NotImplementedError, release notes
+  use neutral 'pending' language. First post-tag `workflow_dispatch`
+  smoke run flips the outcome; T171 (PASS branch) restores generation
+  if the spike succeeds.
+- **T200 release gate**: ALL 3-OS CI lanes (static-unit × 3 Python ×
+  3 OS = 9, plus smoke × 3 OS = 3) must be green on `workflow_dispatch`
+  before tagging v1.0.0. Maintainer triggers the workflow.
+
 ## [Unreleased] — Fix Token Burn (feature 018)
 
 7-PR feature branch tackling 18 token-burn issues from `issues/token-burn-optimization/FINAL-REPORT.md`.
@@ -28,7 +112,7 @@ Format based on [Keep a Changelog](https://keepachangelog.com/en/1.1.0/).
 - `cli.py::upgrade` is atomic via the `_atomic_upgrade()` context manager: snapshots every managed path into `.dotnet-ai-kit/backups/upgrade/<iso>-<uuid>/`, restores byte-for-byte on any exception, rotates to last 3 runs on success. Closes SC-013 + FR-031 through the actual CLI surface, not just the orchestrator in isolation. Manifest pre-check additionally refuses to clobber user-modified files without `--force`. The standalone `upgrade.run_upgrade()` orchestrator stays as the reference implementation for callers that want per-file backup granularity.
 
 ### Changed — lazy loading (PR3)
-- 12 non-universal rules now carry top-level `paths:`; 4 universal rules combined ≤300 lines.
+- 11 non-universal rules now carry top-level `paths:`; 5 universal rules combined ≤300 lines (feature 019 v1.0.8 reclassification, see CHANGELOG v1.0.0 above).
 - 12 profiles carry `paths:`.
 - 16 commands replaced "Load all skills listed" with bounded-selection wording (FR-012).
 - `agents.py` no longer lifts `expertise` → `skills` (FR-013).

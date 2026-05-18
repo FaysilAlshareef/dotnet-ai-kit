@@ -5,15 +5,15 @@
 ```
 dotnet-ai-kit/
 ├── .claude-plugin/    # Claude Code plugin manifest (plugin.json)
-├── .mcp.json          # MCP server config (csharp-ls for C# intelligence)
+├── .mcp.json          # MCP server config (codebase-memory-mcp for memory + retrieval)
 ├── src/               # CLI tool (Python 3.10+, typer + pydantic + jinja2 + rich)
-├── hooks/             # 4 Claude Code hooks (bash-guard, edit-format, scaffold-restore, commit-lint)
-├── rules/             # 9 always-loaded convention files (≤100 lines each)
+├── hooks/             # 7 Claude Code hooks (bash-guard, edit-format, scaffold-restore, commit-lint, session-start, pretooluse-arch-profile, plus internal helpers)
+├── rules/             # 16 rules (5 universal always-loaded + 11 path-scoped, feature 019 v1.0.8)
 ├── agents/            # 13 specialist agents (with full skill path references)
 ├── skills/            # 124 skills by domain (≤400 lines each, Agent Skills spec compliant)
 ├── commands/          # 27 command templates (≤200 lines each, each loads appropriate agent)
 ├── knowledge/         # 16 reference documents
-├── templates/         # 13 project scaffolds (9 microservice + 4 generic)
+├── templates/         # 12 architecture profiles (feature 018: 7 microservice + 5 generic — replaces v1.0.7's 13 project scaffolds)
 ├── config/            # 4 permission config templates
 ├── tests/             # pytest test suite (115 test functions, 90% coverage)
 └── planning/          # 18 planning documents (design specs, not shipped)

@@ -82,7 +82,7 @@ For each repo, generate a PR body:
 ## Related PRs
 
 {Microservice mode — cross-links to PRs in other repos}
-- [{other-repo}#{pr-number}]({pr-url}) — {brief description}
+- `{other-repo}#{pr-number}` at `{pr-url}` — {brief description}
 {Or "Will be linked after all PRs are created" if creating simultaneously}
 {For secondary repos: include merge-order dependencies from feature-brief.md "Dependencies" section — which repo PRs must merge first}
 
