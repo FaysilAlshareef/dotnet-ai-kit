@@ -124,6 +124,11 @@ class CopilotHost(Host):
     ) -> CopilotRenderResult:
         """Render the three Copilot file classes per FR-007.
 
+        Per Codex implement-phase round-1 blocker 4: distinguish between
+        MANAGED files (sha matches manifest — safe to re-render) and
+        USER-MODIFIED files (sha differs — needs --force-render). Only the
+        user-modified files get the pending_user_consent treatment.
+
         Args:
             project_root: Project root containing `.dotnet-ai-kit/project.yml`.
             force_render_paths: Optional list of paths the user explicitly
@@ -137,26 +142,57 @@ class CopilotHost(Host):
             pending_user_consent partitions.
         """
         force_render_paths = force_render_paths or []
-        # Normalize paths for comparison
         force_set = {p.resolve() for p in force_render_paths}
         result = CopilotRenderResult()
 
         # Resolve plugin_root for template discovery
         if plugin_root is None:
-            # Late import to avoid circular dependency
             from dotnet_ai_kit.cli import _get_package_dir  # noqa: PLC0415
 
             plugin_root = _get_package_dir()
 
+        # Load manifest entries (host_owner='copilot') so we can distinguish
+        # MANAGED files (hash matches → safe to re-render),
+        # USER-MODIFIED managed files (hash drifted → preserve, needs --force),
+        # and USER-AUTHORED files (not in manifest → preserve, needs --force).
+        managed_hashes = self._load_managed_copilot_hashes(project_root)
+
         github_dir = project_root / ".github"
+
+        def _should_skip(target: Path) -> bool:
+            """Return True if existing file is user-modified/authored and not opted in."""
+            if not target.is_file():
+                return False
+            tr = target.resolve()
+            if tr in force_set:
+                return False  # explicit opt-in always wins
+            try:
+                rel = target.relative_to(project_root).as_posix()
+            except ValueError:
+                return True
+            recorded_hash = managed_hashes.get(rel)
+            if recorded_hash is None:
+                # Not in manifest — user-authored, preserve per FR-008 / A-008
+                return True
+            # In manifest — check if user has modified
+            try:
+                from dotnet_ai_kit.manifest import sha256_file  # noqa: PLC0415
+
+                actual = sha256_file(target)
+            except Exception:  # noqa: BLE001
+                return True  # safer to preserve on read failure
+            if actual != recorded_hash:
+                # User-modified managed file: preserve per FR-022, needs --force
+                return True
+            return False  # tool-managed, hash matches — safe to re-render
 
         # ---- 1. Repository-wide instructions ----
         instructions_path = github_dir / "copilot-instructions.md"
-        if instructions_path.is_file() and instructions_path.resolve() not in force_set:
+        if _should_skip(instructions_path):
             result.pending_user_consent.append(instructions_path)
         else:
             github_dir.mkdir(parents=True, exist_ok=True)
-            content = self._render_copilot_instructions_minimal(project_root)
+            content = self._render_copilot_instructions_minimal(project_root, plugin_root)
             instructions_path.write_text(content, encoding="utf-8")
             if instructions_path.resolve() in force_set:
                 result.force_rendered.append(instructions_path)
@@ -168,7 +204,7 @@ class CopilotHost(Host):
         instructions_dir = github_dir / "instructions"
         for area_key, glob_pattern in detected_paths.items():
             inst_file = instructions_dir / f"{area_key}.instructions.md"
-            if inst_file.is_file() and inst_file.resolve() not in force_set:
+            if _should_skip(inst_file):
                 result.pending_user_consent.append(inst_file)
                 continue
             instructions_dir.mkdir(parents=True, exist_ok=True)
@@ -176,7 +212,7 @@ class CopilotHost(Host):
                 plugin_root, area_key, glob_pattern, project_root
             )
             if body is None:
-                continue  # template missing — skip silently
+                continue
             inst_file.write_text(body, encoding="utf-8")
             if inst_file.resolve() in force_set:
                 result.force_rendered.append(inst_file)
@@ -190,7 +226,7 @@ class CopilotHost(Host):
             for agent_src in sorted(agents_source.glob("*.md")):
                 agent_name = agent_src.stem
                 agent_file = agents_dir / f"{agent_name}.agent.md"
-                if agent_file.is_file() and agent_file.resolve() not in force_set:
+                if _should_skip(agent_file):
                     result.pending_user_consent.append(agent_file)
                     continue
                 body = self._render_agent_file(plugin_root, agent_src)
@@ -204,6 +240,24 @@ class CopilotHost(Host):
                     result.written.append(agent_file)
 
         return result
+
+    @staticmethod
+    def _load_managed_copilot_hashes(project_root: Path) -> dict[str, str]:
+        """Return {posix_relpath: sha256} for manifest entries with
+        host_owner='copilot'. Empty dict if no manifest."""
+        try:
+            from dotnet_ai_kit.manifest import read_manifest  # noqa: PLC0415
+
+            manifest = read_manifest(project_root)
+            if manifest is None:
+                return {}
+            return {
+                f.path.replace("\\", "/"): f.sha256
+                for f in manifest.files
+                if (f.host_owner or "").lower() == "copilot"
+            }
+        except Exception:  # noqa: BLE001
+            return {}
 
     @staticmethod
     def _load_detected_paths(project_root: Path) -> dict[str, str]:
@@ -296,47 +350,143 @@ class CopilotHost(Host):
             return None
 
     @staticmethod
-    def _render_copilot_instructions_minimal(project_root: Path) -> str:
-        """Render a minimal placeholder copilot-instructions.md.
+    def _render_copilot_instructions_minimal(
+        project_root: Path, plugin_root: Optional[Path] = None
+    ) -> str:
+        """Render the full repository-wide copilot-instructions.md per the
+        contract at copilot-instructions.contract.md:13-17.
 
-        Full jinja2-templated render (with conventions inlined + path
-        pointers + agent quick-ref) is follow-up work in commit-7 stage 2.
-        This minimal placeholder is enough to satisfy the contract
-        assertions (file exists, has identity block + pointer block).
+        Sections:
+        - Project identity (from project.yml)
+        - Always-on conventions (5 universal rules inlined verbatim)
+        - Architecture profile (rules/conventions/profile-<type>.md if present)
+        - Path-scoped guidance (pointers to .github/instructions/*)
+        - Per-agent quick reference (from agents-source/)
+
+        Per Codex implement-phase round-1 blocker 3 (formerly placeholder).
         """
-        from dotnet_ai_kit.config import get_config_dir
+        from dotnet_ai_kit.config import get_config_dir  # noqa: PLC0415
 
+        if plugin_root is None:
+            from dotnet_ai_kit.cli import _get_package_dir  # noqa: PLC0415
+
+            plugin_root = _get_package_dir()
+
+        # --- Project identity ---
+        meta = {
+            "company": "_unknown_",
+            "domain": "_unknown_",
+            "side": "_unknown_",
+            "project_type": "_unknown_",
+            "architecture_branch": "_unknown_",
+            "dotnet_version": "_unknown_",
+        }
         config_dir = get_config_dir(project_root)
         project_yml = config_dir / "project.yml"
-
-        identity = "## Project identity\n\n_Project metadata not detected._\n"
         if project_yml.is_file():
             try:
-                import yaml as _yaml
+                import yaml as _yaml  # noqa: PLC0415
 
-                data = _yaml.safe_load(project_yml.read_text(encoding="utf-8"))
+                data = _yaml.safe_load(project_yml.read_text(encoding="utf-8")) or {}
                 if isinstance(data, dict) and "detected" in data:
                     data = data["detected"]
                 if isinstance(data, dict):
-                    identity = (
-                        "## Project identity\n\n"
-                        f"- company: {data.get('company', '_unknown_')}\n"
-                        f"- domain: {data.get('domain', '_unknown_')}\n"
-                        f"- side: {data.get('side', '_unknown_')}\n"
-                        f"- project_type: {data.get('project_type', '_unknown_')}\n"
-                    )
-            except Exception:
-                pass
+                    for key in meta:
+                        if data.get(key):
+                            meta[key] = str(data[key])
+                    detected_paths = data.get("detected_paths") or {}
+            except Exception:  # noqa: BLE001
+                detected_paths = {}
+        else:
+            detected_paths = {}
 
-        return (
-            "# Repository-wide Copilot Instructions\n\n"
-            + identity
-            + "\n"
-            + "## Always-on conventions\n\n"
-            "_Convention rule bodies will be inlined here in the full render._\n\n"
-            "## Path-scoped guidance\n\n"
-            "See `.github/instructions/*.instructions.md` (generated per "
-            "project layer) for path-scoped Copilot guidance.\n\n"
-            "## Per-agent quick reference\n\n"
-            "See `.github/agents/*.agent.md` for routing to specialist agents.\n"
+        # --- Convention rules (universal whitelist, inlined verbatim) ---
+        convention_rules: dict[str, str] = {}
+        conventions_dir = plugin_root / "rules" / "conventions"
+        if conventions_dir.is_dir():
+            for rule_file in sorted(conventions_dir.glob("*.md")):
+                convention_rules[rule_file.stem] = rule_file.read_text(encoding="utf-8")
+
+        # --- Architecture profile (optional) ---
+        arch_branch = meta.get("architecture_branch", "")
+        architecture_profile_body = ""
+        profile_candidates = [
+            plugin_root / "rules" / "domain" / f"architecture-{arch_branch}.md",
+            plugin_root / "rules" / "domain" / "architecture.md",
+        ]
+        for cand in profile_candidates:
+            if cand.is_file():
+                architecture_profile_body = cand.read_text(encoding="utf-8")
+                break
+
+        # --- Path scopes from detected_paths ---
+        path_scopes: dict[str, list[str]] = {}
+        for area, glob in (detected_paths or {}).items():
+            if isinstance(glob, str) and glob:
+                path_scopes[str(area)] = [glob]
+
+        # --- Per-agent quick reference ---
+        agents: dict[str, str] = {}
+        agents_source = plugin_root / "agents-source"
+        if agents_source.is_dir():
+            import re as _re  # noqa: PLC0415
+            import yaml as _yaml  # noqa: PLC0415
+
+            for agent_file in sorted(agents_source.glob("*.md")):
+                text = agent_file.read_text(encoding="utf-8")
+                m = _re.match(r"^---\n(.*?)\n---\n", text, _re.DOTALL)
+                fm: dict = {}
+                if m:
+                    try:
+                        fm = _yaml.safe_load(m.group(1)) or {}
+                    except Exception:  # noqa: BLE001
+                        fm = {}
+                name = fm.get("name") or agent_file.stem
+                description = fm.get("description") or "(no description)"
+                agents[str(name)] = str(description)
+
+        # --- Render via jinja2 template if present, else fall back to inline ---
+        template_path = plugin_root / "agents-copilot-templates" / "copilot-instructions.md.j2"
+        if template_path.is_file():
+            try:
+                from jinja2 import Template  # noqa: PLC0415
+
+                tmpl = Template(template_path.read_text(encoding="utf-8"))
+                return tmpl.render(
+                    company=meta["company"],
+                    domain=meta["domain"],
+                    side=meta["side"],
+                    project_type=meta["project_type"],
+                    architecture_branch=meta["architecture_branch"],
+                    dotnet_version=meta["dotnet_version"],
+                    convention_rules=convention_rules,
+                    architecture_profile_body=architecture_profile_body
+                    or "_(no architecture profile present for this project type)_",
+                    path_scopes=path_scopes,
+                    agents=agents,
+                )
+            except Exception:  # noqa: BLE001
+                pass  # fall through to inline render
+
+        # Inline fallback (no jinja2 / no template) — same content shape
+        parts: list[str] = ["# Repository-wide Copilot Instructions\n"]
+        parts.append("## Project identity\n")
+        for key, val in meta.items():
+            parts.append(f"- **{key}**: {val}")
+        parts.append("\n## Always-on conventions\n")
+        for name, body in convention_rules.items():
+            parts.append(f"### {name}\n\n{body}\n")
+        parts.append("## Architecture profile\n")
+        parts.append(
+            architecture_profile_body
+            or "_(no architecture profile present for this project type)_"
         )
+        parts.append("\n## Path-scoped guidance\n")
+        for area, globs in path_scopes.items():
+            parts.append(
+                f"- `.github/instructions/{area}.instructions.md` — applies to: {', '.join(globs)}"
+            )
+        parts.append("\n## Per-agent quick reference\n")
+        for name, desc in agents.items():
+            parts.append(f"- **{name}**: {desc}")
+        return "\n".join(parts) + "\n"

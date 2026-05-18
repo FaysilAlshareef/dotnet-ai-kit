@@ -149,6 +149,11 @@ def _detect_plugin_mode() -> bool:
 # `dotnet-ai init` MUST NOT bulk-copy into the solution per FR-005 / FR-006.
 PLUGIN_NATIVE_HOSTS: frozenset[str] = frozenset({"claude", "codex", "cursor"})
 
+# Feature 019 / Blocker-2 (per Codex implement-phase round 1): render-only
+# hosts must SKIP the legacy bulk-copy branch. Their per-solution writes go
+# through their respective host adapter (CopilotHost.render()).
+RENDER_ONLY_HOSTS: frozenset[str] = frozenset({"copilot"})
+
 # Feature 019 / T100 / FR-025: legacy managed-path patterns from feature 018.
 # When `dotnet-ai init --force` detects any of these on a target solution,
 # it MUST refuse auto-deletion and print the migrate invocation instead.
@@ -530,6 +535,12 @@ _MANIFEST_SCAN_DIRS: tuple[str, ...] = (
     ".mcp.json",
     ".cursor",
     ".github/copilot-instructions.md",
+    # Feature 019 / Blocker-5 (per Codex implement-phase round 1):
+    # path-scoped Copilot files and per-agent files must be in the manifest
+    # so freshness detection in `dotnet-ai check` and migrate's classification
+    # can pick them up with host_owner='copilot'.
+    ".github/instructions",
+    ".github/agents",
     ".codex",
 )
 
@@ -969,10 +980,19 @@ def init(
                 cmd_count = copy_commands_cursor(
                     commands_source, target, tool_config, rules_source
                 )
+        elif tool_name in RENDER_ONLY_HOSTS:
+            # Render-only hosts (copilot) — per FR-007, the host's render
+            # adapter writes ONLY into the contract paths. NO bulk-copy.
+            # The actual render call fires below in the per-tool host-adapter
+            # section (see "Feature 019 / T070 / T072c: Copilot render path.").
+            if not json_output:
+                console.print(
+                    f"  [dim]Render-only host: writes via render contract paths only "
+                    f"(no bulk command/skill/agent copies).[/dim]"
+                )
         else:
-            # Render-only path (copilot — handled by hosts/copilot.py later
-            # in the init flow, NOT here). Fallback: keep legacy bulk copy
-            # for any non-plugin-native host registered in future versions.
+            # Fallback: keep legacy bulk copy for any future host registered
+            # outside both PLUGIN_NATIVE_HOSTS and RENDER_ONLY_HOSTS.
             cmd_count = copy_commands(
                 commands_source,
                 target,
@@ -982,7 +1002,6 @@ def init(
             )
             rule_count = copy_rules(rules_source, target, tool_config)
 
-            # Copy skills and agents for non-plugin-native hosts only
             if skills_source.is_dir():
                 skill_count = copy_skills(
                     skills_source,
@@ -1107,26 +1126,33 @@ def init(
                 _verbose_log(verbose, f"Skipping hook deployment: {exc}")
 
     # Step 8: Apply permissions to .claude/settings.json
-    try:
-        if config.permissions_level == "full" and not json_output:
-            console.print(
-                "\n[yellow bold]Warning:[/yellow bold] Full permission mode enables "
-                "bypassPermissions -- the AI assistant will execute all operations"
-                "without prompting. Only use in trusted environments.\n"
+    # Feature 019 / Blocker-1: gate on `claude in ai_tools` per spec.md:171
+    # (init must write files only for selected hosts). Without this guard,
+    # `dotnet-ai init --ai codex` would still create `.claude/settings.json`.
+    if "claude" in ai_tools:
+        try:
+            if config.permissions_level == "full" and not json_output:
+                console.print(
+                    "\n[yellow bold]Warning:[/yellow bold] Full permission mode enables "
+                    "bypassPermissions -- the AI assistant will execute all operations"
+                    "without prompting. Only use in trusted environments.\n"
+                )
+            perm_result = copy_permissions(target, config, _get_package_dir())
+            save_config(config, config_dir / "config.yml")
+            if not json_output and perm_result["changed"]:
+                console.print(
+                    f"  Permissions: {perm_result['entries_count']} rules applied "
+                    f"(mode: {perm_result['mode']}) -> {perm_result['settings_path']}"
+                )
+        except CopyError as exc:
+            err_console.print(
+                f"[red bold]Error:[/red bold] Failed to apply permissions: {exc}\n"
+                "Run 'dotnet-ai configure' to set permissions after init."
             )
-        perm_result = copy_permissions(target, config, _get_package_dir())
+            raise typer.Exit(code=1) from exc
+    else:
+        # Still save config (without permissions side-effect) so config.yml is current.
         save_config(config, config_dir / "config.yml")
-        if not json_output and perm_result["changed"]:
-            console.print(
-                f"  Permissions: {perm_result['entries_count']} rules applied "
-                f"(mode: {perm_result['mode']}) -> {perm_result['settings_path']}"
-            )
-    except CopyError as exc:
-        err_console.print(
-            f"[red bold]Error:[/red bold] Failed to apply permissions: {exc}\n"
-            "Run 'dotnet-ai configure' to set permissions after init."
-        )
-        raise typer.Exit(code=1) from exc
 
     # Step 9: Validate development tools
     if not json_output:
@@ -3041,16 +3067,44 @@ def check(
         _fail("manifest_integrity", integrity.fail_message(), 14)
 
     # 6. Copilot render freshness (exit 15 on stale)
-    # v1 minimal: just report copilot install status; full freshness check
-    # comes when commit 10 manifest-v2 work lands the source_template tracking.
+    # Feature 019 / Blocker-5 (per Codex implement-phase round 1): compare
+    # current hash of each .github/* rendered file against manifest entry.
+    # Stale = hash mismatch OR file missing for a manifest entry.
     if "copilot" in host_names:
         copilot_dir = target / ".github"
         if copilot_dir.is_dir():
-            _add(
-                "copilot_freshness",
-                "pass",
-                f"{copilot_dir} present (full freshness check pending commit 10)",
-            )
+            try:
+                from dotnet_ai_kit.manifest import (  # noqa: PLC0415
+                    read_manifest,
+                    sha256_file,
+                )
+
+                manifest = read_manifest(target)
+                stale: list[str] = []
+                if manifest is not None:
+                    for entry in manifest.files:
+                        if (entry.host_owner or "").lower() != "copilot":
+                            continue
+                        on_disk = target / entry.path
+                        if not on_disk.is_file():
+                            stale.append(f"{entry.path} (missing)")
+                            continue
+                        if sha256_file(on_disk) != entry.sha256:
+                            stale.append(f"{entry.path} (hash drift)")
+                if stale:
+                    _fail(
+                        "copilot_freshness",
+                        f"{len(stale)} stale Copilot render(s): {', '.join(stale[:3])}",
+                        15,
+                    )
+                else:
+                    _add(
+                        "copilot_freshness",
+                        "pass",
+                        f"{copilot_dir} renders match manifest",
+                    )
+            except Exception as exc:
+                _add("copilot_freshness", "skip", f"could not verify: {exc}")
         else:
             _add("copilot_freshness", "skip", ".github/ not present")
     else:

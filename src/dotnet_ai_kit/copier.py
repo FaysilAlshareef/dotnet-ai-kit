@@ -1035,15 +1035,30 @@ def deploy_to_linked_repos(
             sec_ai_tools: list[str] = _sec_raw.get("ai_tools") or config.ai_tools
 
             # Feature 019 / T043 / FR-033: route plugin-native hosts through
-            # hosts/ adapter (per-solution files only); render-only hosts via
-            # the legacy copy_* path.
+            # hosts/ adapter (per-solution files only); render-only hosts
+            # (copilot) call the CopilotHost.render() adapter; legacy/future
+            # hosts use the bulk-copy path.
             _PLUGIN_NATIVE = frozenset({"claude", "codex", "cursor"})
+            _RENDER_ONLY = frozenset({"copilot"})
 
             for tool_name in sec_ai_tools:
                 try:
                     tool_config = get_agent_config(tool_name)
                 except ValueError:
                     continue
+
+                if tool_name in _RENDER_ONLY:
+                    # Blocker-6 fix: linked Copilot deploy uses render contract.
+                    if tool_name == "copilot":
+                        from .hosts.copilot import CopilotHost  # noqa: PLC0415
+
+                        try:
+                            CopilotHost().render(repo_path, plugin_root=package_dir)
+                        except Exception as _exc:
+                            logger.debug(
+                                "Linked-secondary Copilot render skipped: %s", _exc
+                            )
+                    continue  # do NOT also bulk-copy
 
                 if tool_name in _PLUGIN_NATIVE:
                     # Plugin-native: NO bulk copies. Per-solution writes go
