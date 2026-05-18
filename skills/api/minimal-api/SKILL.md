@@ -138,7 +138,10 @@ public sealed class ValidationFilter<TRequest>(
         if (request is null)
             return TypedResults.BadRequest("Request body is required");
 
-        var result = await validator.ValidateAsync(request);
+        // C-Q2 fix: forward the request's cancellation token to FluentValidation
+        // so client-cancelled requests stop validating mid-flight.
+        var result = await validator.ValidateAsync(
+            request, context.HttpContext.RequestAborted);
         if (!result.IsValid)
         {
             return TypedResults.ValidationProblem(

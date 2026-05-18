@@ -44,9 +44,13 @@ public sealed class OrdersController : BaseController
     {
         var query = new GetOrdersQuery(page, pageSize, search);
         var result = await Mediator.Send(query, ct);
+        // C-Q4 fix: Problem(string? detail, ...) overload prefers explicit
+        // named arguments so the status code is unambiguous (otherwise the
+        // detail is interpreted as a path/URI). Status 400 is the canonical
+        // mapping for a failed Result<T> in this skill.
         return result.IsSuccess
             ? Ok(result.Value)
-            : Problem(result.Error);
+            : Problem(detail: result.Error, statusCode: StatusCodes.Status400BadRequest);
     }
 
     /// <summary>Get order by ID.</summary>

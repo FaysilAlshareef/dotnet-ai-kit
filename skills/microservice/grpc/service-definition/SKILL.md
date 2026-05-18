@@ -48,7 +48,11 @@ service OrderQueries {
 // Messages
 message CreateOrderRequest {
   string customer_name = 1;
-  double total = 2;
+  // C-Q3 fix: use minor-unit integers (cents) for money — `double` loses
+  // precision and is the canonical money anti-pattern. See the anti-pattern
+  // table below for the recommended choices (int64 cents, string-decimal,
+  // or google.type.Money / DecimalValue wrapper).
+  int64 total_cents = 2;
   repeated OrderItemMessage items = 3;
 }
 
@@ -74,14 +78,14 @@ message GetOrdersResponse {
 message OrderSummary {
   string id = 1;
   string customer_name = 2;
-  double total = 3;
+  int64 total_cents = 3;  // C-Q3: minor-unit integer (cents)
   string status = 4;
 }
 
 message OrderItemMessage {
   string product_id = 1;
   int32 quantity = 2;
-  double unit_price = 3;
+  int64 unit_price_cents = 3;  // C-Q3: minor-unit integer (cents)
 }
 ```
 
@@ -97,7 +101,9 @@ public sealed class OrderCommandsService(IMediator mediator)
         CreateOrderRequest request, ServerCallContext context)
     {
         var command = request.ToCommand();
-        var output = await mediator.Send(command);
+        // C-Q1 fix: forward the RPC's cancellation token so MediatR
+        // honors client-cancelled / deadline-exceeded RPCs.
+        var output = await mediator.Send(command, context.CancellationToken);
         return output.ToCreateResponse();
     }
 
@@ -105,7 +111,8 @@ public sealed class OrderCommandsService(IMediator mediator)
         UpdateOrderRequest request, ServerCallContext context)
     {
         var command = request.ToCommand();
-        var output = await mediator.Send(command);
+        // C-Q1 fix: forward the RPC's cancellation token (see CreateOrder).
+        var output = await mediator.Send(command, context.CancellationToken);
         return output.ToUpdateResponse();
     }
 }
@@ -162,7 +169,7 @@ app.MapGrpcService<OrderQueriesService>();
 | Using `string` for nullable fields | Use `google.protobuf.StringValue` |
 | Business logic in gRPC service | Delegate to MediatR handlers |
 | Missing mapping extensions | Always have explicit ToCommand/ToResponse |
-| Using `float` for money | Use `double` in proto, cast to `decimal` in C# |
+| Using `float` or `double` for money | C-Q3: use minor-unit integers (`int64` cents), `string` for fixed-point decimals, or a `DecimalValue`/`google.type.Money` wrapper. Never `double`. |
 | Hardcoded strings in service | Use resource strings for error messages |
 
 ## Detect Existing Patterns
