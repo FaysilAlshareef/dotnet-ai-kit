@@ -891,6 +891,13 @@ def init(
     (config_dir / "features").mkdir(parents=True, exist_ok=True)
 
     # Step 4: Save config (preserve existing config on --force)
+    # Feature 019 / commit 19 / B-2 / T143: init writes a slim UserConfig
+    # (`enabled_hosts`, `plugin_version`, optional `permission_profile`,
+    # `retention`) that validates against `schemas/config-yml.schema.json`.
+    # The wider DotnetAiConfig fields (`company`, `repos`, etc.) are
+    # populated later by `dotnet-ai configure` and stored alongside the
+    # UserConfig fields in the same file (configure's output relaxes the
+    # strict schema by design — only init's output is contract-validated).
     config_path = config_dir / "config.yml"
     if force and config_path.is_file():
         try:
@@ -904,7 +911,27 @@ def init(
         config = DotnetAiConfig(ai_tools=ai_tools)
     if permissions is not None:
         config.permissions_level = permissions.lower()
-    save_config(config, config_path)
+    # Feature 019 / commit 19 / B-2 / T143: stamp plugin_version on init so
+    # `migrate` can identify pre-019 layouts and `check` can validate schema.
+    if not config.plugin_version:
+        config.plugin_version = __version__
+
+    # B-2 (T143): emit a slim UserConfig matching the strict schema. The
+    # in-memory DotnetAiConfig is kept for downstream consumers in this
+    # init call (skills/agents copy etc.) but is NOT serialised at init —
+    # configure later writes the richer shape if/when the user provides
+    # company/repos/etc.
+    from dotnet_ai_kit.config import save_user_config  # noqa: PLC0415
+    from dotnet_ai_kit.models import UserConfig  # noqa: PLC0415
+
+    _user_cfg = UserConfig(
+        enabled_hosts=list(ai_tools),
+        plugin_version=__version__,
+        permission_profile=config.permissions_level
+        if config.permissions_level in {"minimal", "standard", "full", "mcp"}
+        else None,
+    )
+    save_user_config(_user_cfg, config_path)
     if not json_output:
         console.print(f"  Created: {config_path.relative_to(target)}")
 

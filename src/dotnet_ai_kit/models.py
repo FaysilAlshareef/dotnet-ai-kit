@@ -427,6 +427,15 @@ _KNOWN_CONFIG_KEYS: frozenset[str] = frozenset(
         "repos",
         "permissions_level",
         "ai_tools",
+        # Feature 019 / commit 19 / B-2 / T145: `enabled_hosts` is the canonical
+        # v1 alias for `ai_tools`. Reader accepts either name; writer emits
+        # `enabled_hosts` per `schemas/config-yml.schema.json`.
+        "enabled_hosts",
+        # T143: init writes plugin_version into config.yml so migrate can
+        # identify pre-019 layouts.
+        "plugin_version",
+        "permission_profile",
+        "retention",
         "command_style",
         "linked_from",
         "managed_permissions",
@@ -437,10 +446,12 @@ _KNOWN_CONFIG_KEYS: frozenset[str] = frozenset(
 class DotnetAiConfig(BaseModel):
     """Main configuration model for dotnet-ai-kit.
 
-    Stored in .dotnet-ai-kit/config.yml.
+    Stored in .dotnet-ai-kit/config.yml. Feature 019 / B-2: the `ai_tools`
+    field is written as `enabled_hosts` per `schemas/config-yml.schema.json`;
+    reader accepts both names via `AliasChoices`.
     """
 
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
     @model_validator(mode="before")
     @classmethod
@@ -474,7 +485,13 @@ class DotnetAiConfig(BaseModel):
     )
     permissions_level: str = Field(
         default="standard",
-        description="Permission level: minimal, standard, or full.",
+        validation_alias=AliasChoices("permissions_level", "permission_profile"),
+        serialization_alias="permission_profile",
+        description=(
+            "Permission level: minimal, standard, full, mcp. v1 emits "
+            "`permission_profile:` on write; reader accepts both `permissions_level:` "
+            "(pre-019) and `permission_profile:` (v1) per UserConfig schema."
+        ),
     )
     managed_permissions: list[str] = Field(
         default_factory=list,
@@ -482,7 +499,25 @@ class DotnetAiConfig(BaseModel):
     )
     ai_tools: list[str] = Field(
         default_factory=list,
-        description="List of configured AI tools (claude).",
+        validation_alias=AliasChoices("ai_tools", "enabled_hosts"),
+        serialization_alias="enabled_hosts",
+        description=(
+            "List of configured AI hosts. v1 emits `enabled_hosts:` on write; "
+            "reader accepts both `ai_tools:` (pre-019) and `enabled_hosts:` "
+            "(v1) per data-model.md § 3."
+        ),
+    )
+    plugin_version: str = Field(
+        default="",
+        description=(
+            "Semver of the installed plugin at last init/upgrade. "
+            "Feature 019 T143 — `migrate` uses this to identify pre-019 layouts."
+        ),
+    )
+    retention: int = Field(
+        default=3,
+        ge=1,
+        description="Backup rotation depth — matches feature 018's 3-keep retention.",
     )
     command_style: str = Field(
         default="both",

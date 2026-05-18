@@ -61,15 +61,58 @@ def load_config(path: Path) -> DotnetAiConfig:
         raise ValueError(f"Expected a YAML mapping in {path}, got {type(data).__name__}")
 
     try:
-        return DotnetAiConfig(**data)
+        config = DotnetAiConfig(**data)
     except ValidationError as exc:
         raise ValueError(f"Invalid configuration in {path}: {exc}") from exc
+
+    # Feature 019 / commit 19 / B-2: reattach runtime/diff-tracking state from
+    # the sidecar file (kept out of config.yml so the strict v1 UserConfig
+    # schema validates). Missing sidecar is fine — those fields stay at their
+    # pydantic defaults.
+    sidecar = _state_path_for(path)
+    if sidecar.is_file():
+        try:
+            state = yaml.safe_load(sidecar.read_text(encoding="utf-8")) or {}
+            if isinstance(state, dict):
+                if "managed_permissions" in state and isinstance(
+                    state["managed_permissions"], list
+                ):
+                    config.managed_permissions = [str(x) for x in state["managed_permissions"]]
+        except yaml.YAMLError:
+            # Tolerate a corrupt sidecar — runtime state will be regenerated
+            # on the next copy_permissions call.
+            pass
+
+    return config
+
+
+_STATE_SIDECAR = ".state.yml"
+
+# Feature 019 / commit 19 / B-2: fields that belong in DotnetAiConfig as
+# runtime/diff-tracking state, NOT in the strict v1 UserConfig YAML. These
+# are stripped from `config.yml` on save and persisted to a hidden sidecar
+# at `.dotnet-ai-kit/.state.yml` to keep `config.yml` valid per
+# `schemas/config-yml.schema.json` (additionalProperties: false).
+_STATE_ONLY_FIELDS: frozenset[str] = frozenset({"managed_permissions"})
+
+
+def _state_path_for(config_path: Path) -> Path:
+    """Sidecar state file path next to a config.yml."""
+    return config_path.parent / _STATE_SIDECAR
 
 
 def save_config(config: DotnetAiConfig, path: Path) -> None:
     """Save a DotnetAiConfig to a YAML file.
 
-    Creates parent directories if they do not exist.
+    Feature 019 / B-2 / T143: writer emits `enabled_hosts:` (the canonical
+    v1 alias) instead of `ai_tools:` via `by_alias=True`. Empty default fields
+    (e.g., `company.name = ""`, `repos` all None) are excluded via
+    `exclude_defaults=True` so an init that never invoked `configure` emits a
+    slim file that validates against `schemas/config-yml.schema.json`.
+
+    Runtime/diff-tracking fields (`managed_permissions`) are NOT emitted to
+    config.yml — they are persisted to a sibling `.state.yml` sidecar to keep
+    config.yml strict-schema-compliant. Loading reattaches the sidecar state.
 
     Args:
         config: The configuration to save.
@@ -77,7 +120,30 @@ def save_config(config: DotnetAiConfig, path: Path) -> None:
     """
     path.parent.mkdir(parents=True, exist_ok=True)
 
-    data = config.model_dump(mode="json", exclude_none=False)
+    data = config.model_dump(
+        mode="json",
+        exclude_defaults=True,
+        by_alias=True,
+    )
+
+    # Always emit the v1 UserConfig fields if they have any meaningful value
+    # (even when equal to their pydantic default). Pydantic's exclude_defaults
+    # would otherwise drop them and break the strict v1 schema's required
+    # set (`enabled_hosts`, `plugin_version`).
+    if "enabled_hosts" not in data and config.ai_tools:
+        data["enabled_hosts"] = list(config.ai_tools)
+    if "plugin_version" not in data and config.plugin_version:
+        data["plugin_version"] = config.plugin_version
+    # `permission_profile` (the serialization alias for `permissions_level`):
+    # emit explicitly whenever set, regardless of default-match.
+    if "permission_profile" not in data and config.permissions_level:
+        data["permission_profile"] = config.permissions_level
+
+    # Split: state-only fields go to the sidecar; UserConfig fields stay here.
+    state_data = {f: data.pop(f) for f in list(_STATE_ONLY_FIELDS) if f in data}
+    # Also persist managed_permissions from in-memory config even if empty (==default)
+    if "managed_permissions" not in state_data and config.managed_permissions:
+        state_data["managed_permissions"] = list(config.managed_permissions)
 
     text = yaml.dump(
         data,
@@ -89,6 +155,21 @@ def save_config(config: DotnetAiConfig, path: Path) -> None:
     tmp = path.with_suffix(".tmp")
     tmp.write_text(text, encoding="utf-8")
     tmp.replace(path)
+
+    # Sidecar
+    sidecar = _state_path_for(path)
+    if state_data:
+        sidecar.write_text(
+            yaml.dump(state_data, default_flow_style=False, sort_keys=False),
+            encoding="utf-8",
+        )
+    elif sidecar.is_file():
+        # No state to persist — remove stale sidecar so check/upgrade don't
+        # re-load yesterday's managed_permissions.
+        try:
+            sidecar.unlink()
+        except OSError:
+            pass
 
 
 def load_project(path: Path) -> DetectedProject:

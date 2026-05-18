@@ -106,7 +106,12 @@ def test_init_creates_project_yml_with_type_flag(tmp_path: Path) -> None:
 
 
 def test_init_with_permissions_flag_applies_level(tmp_path: Path) -> None:
-    """init --permissions should set the permissions_level in config and write settings.json."""
+    """T144 (commit 19, B-2): init --permissions writes the v1 `permission_profile:` key.
+
+    Per `schemas/config-yml.schema.json`, the canonical v1 field is
+    `permission_profile`. Reader still accepts the legacy `permissions_level`
+    name via `AliasChoices` so pre-019 config files continue to load.
+    """
     _create_dotnet_project(tmp_path)
     _create_claude_dir(tmp_path)
 
@@ -120,7 +125,14 @@ def test_init_with_permissions_flag_applies_level(tmp_path: Path) -> None:
     config_path = tmp_path / ".dotnet-ai-kit" / "config.yml"
     assert config_path.is_file()
     data = yaml.safe_load(config_path.read_text(encoding="utf-8"))
-    assert data["permissions_level"] == "standard"
+    # `permission_profile` is the v1 canonical name; legacy `permissions_level`
+    # MUST NOT appear in the emitted file.
+    assert data.get("permission_profile") == "standard", (
+        f"Expected permission_profile=='standard'; got {data!r}"
+    )
+    assert "permissions_level" not in data, (
+        f"B-2 violation: writer emitted legacy `permissions_level:` key. Data: {data!r}"
+    )
     # settings.json should have been written
     settings_path = tmp_path / ".claude" / "settings.json"
     assert settings_path.is_file()
@@ -269,7 +281,7 @@ def test_configure_permission_level_single_select(tmp_path: Path, monkeypatch) -
     assert result.exit_code == 0, result.output
 
     saved = yaml.safe_load(config_path.read_text(encoding="utf-8"))
-    assert saved["permissions_level"] == "standard"
+    assert saved["permission_profile"] == "standard"
 
 
 def test_configure_ai_tools_multi_select(tmp_path: Path, monkeypatch) -> None:
@@ -298,8 +310,8 @@ def test_configure_ai_tools_multi_select(tmp_path: Path, monkeypatch) -> None:
     assert result.exit_code == 0, result.output
 
     saved = yaml.safe_load(config_path.read_text(encoding="utf-8"))
-    assert "claude" in saved["ai_tools"]
-    assert "cursor" in saved["ai_tools"]
+    assert "claude" in saved["enabled_hosts"]
+    assert "cursor" in saved["enabled_hosts"]
 
 
 def test_configure_minimal_bypasses_interactive(tmp_path: Path, monkeypatch) -> None:
@@ -321,7 +333,7 @@ def test_configure_minimal_bypasses_interactive(tmp_path: Path, monkeypatch) -> 
     saved = yaml.safe_load(config_path.read_text(encoding="utf-8"))
     assert saved["company"]["name"] == "MinimalCo"
     # Other settings should remain at their existing/default values
-    assert saved["permissions_level"] == "minimal"  # kept from existing config
+    assert saved["permission_profile"] == "minimal"  # kept from existing config
 
 
 def test_configure_summary_table_displayed(tmp_path: Path, monkeypatch) -> None:
@@ -375,8 +387,8 @@ def test_configure_no_input_mode(tmp_path: Path, monkeypatch) -> None:
     assert saved["company"]["name"] == "CiCo"
     assert saved["company"]["github_org"] == "ci-org"
     assert saved["company"]["default_branch"] == "develop"
-    assert saved["permissions_level"] == "full"
-    assert saved["ai_tools"] == ["claude", "cursor"]
+    assert saved["permission_profile"] == "full"
+    assert saved["enabled_hosts"] == ["claude", "cursor"]
     assert saved["command_style"] == "short"
 
 
@@ -622,9 +634,10 @@ def test_check_json_produces_valid_json(tmp_path: Path, monkeypatch) -> None:
 
     data = json.loads(json_lines[0])
     assert "version" in data
-    assert "ai_tools" in data
-    assert "claude" in data["ai_tools"]
-    assert "permissions_level" in data
+    # status --json: emits both legacy `ai_tools` and v1 `enabled_hosts` keys.
+    hosts = data.get("enabled_hosts") or data.get("ai_tools") or []
+    assert "claude" in hosts, f"status JSON missing claude in hosts: {data!r}"
+    assert "permissions_level" in data or "permission_profile" in data
     assert "company" in data
 
 
@@ -669,7 +682,9 @@ def test_init_json_output(tmp_path: Path) -> None:
 
     data = json.loads(json_lines[0])
     assert data["version"]
-    assert "claude" in data["ai_tools"]
+    # init --json may emit `ai_tools` (legacy) or `enabled_hosts` (v1).
+    hosts = data.get("enabled_hosts") or data.get("ai_tools") or []
+    assert "claude" in hosts, f"init JSON missing claude in hosts: {data!r}"
     assert "config_dir" in data
 
 
@@ -1097,7 +1112,7 @@ def test_init_force_preserves_existing_config(tmp_path: Path) -> None:
     saved = yaml.safe_load(config_path.read_text(encoding="utf-8"))
     assert saved["company"]["name"] == "Acme"
     assert saved["company"]["github_org"] == "acme-org"
-    assert saved["permissions_level"] == "full"
+    assert saved["permission_profile"] == "full"
 
 
 def test_init_force_applies_full_permissions(tmp_path: Path) -> None:
@@ -1301,7 +1316,7 @@ def test_configure_respects_existing_permission_default(tmp_path: Path, monkeypa
 
     saved = yaml.safe_load(config_path.read_text(encoding="utf-8"))
     # Pressing Enter should keep full (default="3" mapped from existing "full")
-    assert saved["permissions_level"] == "full"
+    assert saved["permission_profile"] == "full"
     # Pressing Enter should keep short (default="2" mapped from existing "short")
     assert saved["command_style"] == "short"
 
@@ -1371,17 +1386,17 @@ def test_configure_recopy_on_style_change(tmp_path: Path, monkeypatch) -> None:
     _setup_config_dir(tmp_path)
     monkeypatch.chdir(tmp_path)
 
-    # First configure with 'both' style
+    # First configure with 'full' style (non-default so it's persisted)
     result = runner.invoke(
         app,
-        ["configure", "--no-input", "--company", "TestCo", "--style", "both"],
+        ["configure", "--no-input", "--company", "TestCo", "--style", "full"],
         catch_exceptions=False,
     )
     assert result.exit_code == 0, result.output
 
-    # Config file MUST record the style
+    # Config file MUST record the non-default style
     config_yml = (tmp_path / ".dotnet-ai-kit" / "config.yml").read_text(encoding="utf-8")
-    assert "command_style: both" in config_yml
+    assert "command_style: full" in config_yml
 
     # Now change to 'short'
     result = runner.invoke(
