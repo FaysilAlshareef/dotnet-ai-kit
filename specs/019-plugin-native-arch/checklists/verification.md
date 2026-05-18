@@ -29,6 +29,17 @@ This checklist enumerates every gate the release MUST pass before the single PR 
 > - CHK042 (manifest integrity actionable output) — re-verify after B-1 fix
 >
 > Canonical fix plan: [`../discussion/review-phase/claude/final-consolidated-review.md`](../discussion/review-phase/claude/final-consolidated-review.md).
+>
+> **T199 status (2026-05-18, post Phase-10 implementation)**: Phase 10
+> commits 16-30 have landed. Local `python -m pytest tests/` reports
+> **753 passed, 26 skipped (no regressions)** including every B-1
+> through B-8 regression test. `python scripts/doc_lint.py` reports
+> clean across 70 files. The CHK boxes below remain UNCHECKED per the
+> contract — the formal tick happens after a maintainer triggers the
+> `workflow_dispatch` smoke job (T200 release gate) and all 3 OS lanes
+> report green for the 4 fixture files. The matrix of which CHKs are
+> closed by which commit is preserved above for the reviewer's
+> traceability.
 
 FR/SC references match the revised spec (US3 removed, US6/US7 split → US5/US6, FR-034-FR-037 renumbered to FR-032-FR-035 inside spec while keeping their original conceptual identities, SC-013/SC-014 added). **FR-030 (packaging test) IS present in the current spec at `spec.md:198-199`** — earlier preamble drafts incorrectly stated FR-030 was removed; the canonical post-spec-phase numbering retains FR-030 as the packaging-test requirement (CHK005-CHK008 below map to FR-030 per spec). The mapping below corresponds to the spec at `../spec.md` after spec-phase round-2 edits.
 

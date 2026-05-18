@@ -63,5 +63,6 @@ If the project uses a different pattern than expected, follow what exists.
 5. Apply the rules matching the detected architecture -- never impose a different one
 
 ## Related Skills
+
 - `skills/core/solid-principles/SKILL.md` — DIP for layer boundaries, ISP for focused interfaces
 - `skills/core/design-patterns/SKILL.md` — mediator, strategy, decorator patterns in architecture
