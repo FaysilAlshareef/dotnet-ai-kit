@@ -388,9 +388,9 @@ Maps to **commit 14b** (NEW commit inserted during tasks-phase round 1 per Codex
 
 ### Commit 21 — Copilot freshness re-renders + compares (B-5, ~3h)
 
-- [ ] T154 [P] (commit 21) Add `tests/unit/test_b5_copilot_metadata_staleness.py` asserting: (a) init with `--ai copilot --company Acme`; (b) edit `config.yml::company.name` to `Globex`; (c) do NOT run `upgrade --copilot`; (d) `dotnet-ai check . --host copilot --json` reports `copilot_freshness: fail` with appropriate exit class. Test FAILS first against current hash-only check at `cli.py:3093-3117`.
-- [ ] T155 [P] (commit 21) Add `tests/unit/test_b5_copilot_source_staleness.py` asserting: when plugin source for a Copilot template changes (e.g., a managed instructions template body is updated), `check` reports the render as stale even if metadata is unchanged.
-- [ ] T156 (commit 21) Rewrite `copilot_freshness` check at `src/dotnet_ai_kit/cli.py:3093-3117` to: (a) re-render each `host_owner="copilot"` manifest entry from current plugin source + current `project.yml`; (b) compare `sha256(re-rendered)` to `sha256(on-disk)`; (c) report stale on mismatch. Keep the existing hash-only check as a faster first-pass. T154 + T155 PASS. **Acceptance**: rename company → check reports stale; revert + re-render → check reports pass.
+- [X] T154 [P] (commit 21) Add `tests/unit/test_b5_copilot_metadata_staleness.py` asserting: (a) init with `--ai copilot --company Acme`; (b) edit `config.yml::company.name` to `Globex`; (c) do NOT run `upgrade --copilot`; (d) `dotnet-ai check . --host copilot --json` reports `copilot_freshness: fail` with appropriate exit class. Test FAILS first against current hash-only check at `cli.py:3093-3117`.
+- [X] T155 [P] (commit 21) Add `tests/unit/test_b5_copilot_source_staleness.py` asserting: when plugin source for a Copilot template changes (e.g., a managed instructions template body is updated), `check` reports the render as stale even if metadata is unchanged.
+- [X] T156 (commit 21) Rewrite `copilot_freshness` check at `src/dotnet_ai_kit/cli.py:3093-3117` to: (a) re-render each `host_owner="copilot"` manifest entry from current plugin source + current `project.yml`; (b) compare `sha256(re-rendered)` to `sha256(on-disk)`; (c) report stale on mismatch. Keep the existing hash-only check as a faster first-pass. T154 + T155 PASS. **Acceptance**: rename company → check reports stale; revert + re-render → check reports pass.
 
 ### Commit 22 — CI smoke gate: 3-OS matrix + 4 binaries + preflight (B-7, ~3-4h)
 

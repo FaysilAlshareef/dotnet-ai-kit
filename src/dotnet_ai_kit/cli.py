@@ -3249,13 +3249,21 @@ def check(
         _fail("manifest_integrity", integrity.fail_message(), 14)
 
     # 6. Copilot render freshness (exit 15 on stale)
-    # Feature 019 / Blocker-5 (per Codex implement-phase round 1): compare
-    # current hash of each .github/* rendered file against manifest entry.
-    # Stale = hash mismatch OR file missing for a manifest entry.
+    # Feature 019 / Blocker-5 (T156): two-tier check.
+    #  Tier 1 — fast hash-only: on-disk SHA vs manifest SHA. Catches user
+    #    modifications / missing files.
+    #  Tier 2 — fresh re-render: re-execute the Copilot renderer against the
+    #    CURRENT plugin source + CURRENT project.yml. Compare SHA of the
+    #    re-render to the on-disk SHA. Catches metadata drift (e.g., company
+    #    renamed in config.yml) AND plugin-source updates that the on-disk
+    #    file hasn't yet absorbed.
     if "copilot" in host_names:
         copilot_dir = target / ".github"
         if copilot_dir.is_dir():
             try:
+                import hashlib as _hashlib  # noqa: PLC0415
+
+                from dotnet_ai_kit.hosts.copilot import CopilotHost  # noqa: PLC0415
                 from dotnet_ai_kit.manifest import (  # noqa: PLC0415
                     read_manifest,
                     sha256_file,
@@ -3271,8 +3279,27 @@ def check(
                         if not on_disk.is_file():
                             stale.append(f"{entry.path} (missing)")
                             continue
-                        if sha256_file(on_disk) != entry.sha256:
-                            stale.append(f"{entry.path} (hash drift)")
+
+                        # Tier 1 — fast hash-only vs manifest record
+                        on_disk_sha = sha256_file(on_disk)
+                        if on_disk_sha != entry.sha256:
+                            stale.append(f"{entry.path} (hash drift vs manifest)")
+                            continue
+
+                        # Tier 2 — re-render and compare. B-5 metadata-staleness
+                        # detection: if the user edited project.yml but didn't
+                        # re-run `upgrade --copilot`, the re-rendered content
+                        # differs from on-disk even though hashes match the
+                        # manifest entry (because the manifest also has the
+                        # stale hash).
+                        rendered = CopilotHost.re_render_for_freshness(target, entry.path)
+                        if rendered is None:
+                            # Template unavailable — skip Tier 2 for this entry
+                            continue
+                        rendered_sha = _hashlib.sha256(rendered.encode("utf-8")).hexdigest()
+                        if rendered_sha != on_disk_sha:
+                            stale.append(f"{entry.path} (re-render drift)")
+
                 if stale:
                     _fail(
                         "copilot_freshness",
@@ -3283,7 +3310,7 @@ def check(
                     _add(
                         "copilot_freshness",
                         "pass",
-                        f"{copilot_dir} renders match manifest",
+                        f"{copilot_dir} renders match current sources",
                     )
             except Exception as exc:
                 _add("copilot_freshness", "skip", f"could not verify: {exc}")

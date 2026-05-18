@@ -239,6 +239,65 @@ class CopilotHost(Host):
 
         return result
 
+    @classmethod
+    def re_render_for_freshness(
+        cls,
+        project_root: Path,
+        rel_path: str,
+        plugin_root: Optional[Path] = None,
+    ) -> Optional[str]:
+        """Re-render the expected content for a managed Copilot file.
+
+        Feature 019 / commit 21 / B-5 (T156): the `check copilot_freshness`
+        gate compares this re-rendered content's hash to the on-disk hash so
+        config/template drift (e.g., `config.yml::company.name` rename) is
+        caught even when the on-disk hash still matches the manifest entry.
+
+        Args:
+            project_root: solution root containing `.dotnet-ai-kit/`.
+            rel_path: posix path relative to project_root, e.g.
+              `.github/copilot-instructions.md` or
+              `.github/instructions/<area>.instructions.md` or
+              `.github/agents/<name>.agent.md`.
+            plugin_root: optional plugin-source root override (mostly for tests).
+
+        Returns:
+            Re-rendered content, or `None` if the template / source isn't
+            available (caller treats as 'unable to verify — skip').
+        """
+        if plugin_root is None:
+            from dotnet_ai_kit.cli import _get_package_dir  # noqa: PLC0415
+
+            plugin_root = _get_package_dir()
+
+        rel = rel_path.replace("\\", "/")
+
+        # (1) Repo-wide instructions
+        if rel == ".github/copilot-instructions.md":
+            try:
+                return cls._render_copilot_instructions_minimal(project_root, plugin_root)
+            except Exception:  # noqa: BLE001
+                return None
+
+        # (2) Path-scoped instructions: .github/instructions/<area>.instructions.md
+        if rel.startswith(".github/instructions/") and rel.endswith(".instructions.md"):
+            area_key = rel[len(".github/instructions/") : -len(".instructions.md")]
+            detected_paths = cls._load_detected_paths(project_root)
+            glob_pattern = detected_paths.get(area_key)
+            if not glob_pattern:
+                return None
+            return cls._render_path_instructions(plugin_root, area_key, glob_pattern, project_root)
+
+        # (3) Per-agent files: .github/agents/<name>.agent.md
+        if rel.startswith(".github/agents/") and rel.endswith(".agent.md"):
+            agent_name = rel[len(".github/agents/") : -len(".agent.md")]
+            agent_src = plugin_root / "agents-source" / f"{agent_name}.md"
+            if not agent_src.is_file():
+                return None
+            return cls._render_agent_file(plugin_root, agent_src)
+
+        return None
+
     @staticmethod
     def _load_managed_copilot_hashes(project_root: Path) -> dict[str, str]:
         """Return {posix_relpath: sha256} for manifest entries with
