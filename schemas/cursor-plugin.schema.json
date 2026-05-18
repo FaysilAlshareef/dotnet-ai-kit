@@ -4,7 +4,7 @@
   "title": "Cursor Plugin Manifest (dotnet-ai-kit)",
   "description": "Schema for .cursor-plugin/plugin.json modeled on the verified working example at https://raw.githubusercontent.com/cursor/plugins/main/agent-compatibility/.cursor-plugin/plugin.json. Manifest field is `agents` (NOT `subagents`); field value is a scalar relative path `./agents/` (NOT array). Verified agent frontmatter (per cursor/plugins/agent-compatibility/agents/startup-review.md): `name`, `description`, `model`, `readonly`. The `agents` field is conditional in this v1 release per spec A-005: if the spike fixture under `./agents/` passes (CHK003), full Cursor agent generation lands; if the fixture fails, the `agents` field MUST be removed from the manifest and spec/checklist/release notes updated in the same PR per the cursor-fixture-decision.contract.md binding rule.",
   "type": "object",
-  "required": ["name", "version", "description", "skills", "rules", "mcpServers", "hooks"],
+  "required": ["name", "version", "description", "skills", "mcpServers", "hooks"],
   "additionalProperties": false,
   "properties": {
     "name": { "type": "string", "const": "dotnet-ai-kit" },

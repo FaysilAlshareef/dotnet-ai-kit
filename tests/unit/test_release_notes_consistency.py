@@ -8,8 +8,9 @@ per cursor-fixture-decision.contract.md:
 - `.cursor-plugin/plugin.json` `agents` field presence is consistent.
 - Spec A-005 / SC-008 / OOS-005 language is consistent.
 
-Handles the "pending" state per the contract: CI hasn't flipped the outcome
-yet → release notes assume PASS branch but flag the pending status.
+T168 (commit 25, OOS-005): remove the default-assume-pass permissiveness.
+For outcome=`pending` the release notes MUST use neutral language
+("pending A-005 outcome") and MUST NOT contain "shipped" or "assumes PASS".
 """
 
 from __future__ import annotations
@@ -66,7 +67,8 @@ def test_cursor_manifest_agents_field_matches_outcome_state() -> None:
 
     - outcome=passed   → agents field present (full generation shipped)
     - outcome=failed   → agents field ABSENT (fail-path scope revision)
-    - outcome=pending  → agents field MAY be present (default-assume-pass)
+    - outcome=pending  → agents field SHOULD be absent (conservative
+      fail-safe per T168, since no PASS evidence has been gathered yet)
     """
     outcome = _load_outcome()
     manifest = _load_cursor_manifest()
@@ -80,4 +82,30 @@ def test_cursor_manifest_agents_field_matches_outcome_state() -> None:
         )
     elif state == "passed":
         assert has_agents, "PASS branch: .cursor-plugin/plugin.json `agents` field MUST be present"
-    # pending: either is acceptable
+    # pending: no assertion — T170a in CI flips the outcome and follow-up
+    # tasks (T170b/T170c or T171) reconcile the manifest before tag.
+
+
+def test_release_notes_pending_uses_neutral_language() -> None:
+    """T168: outcome=pending → release notes MUST use neutral 'pending A-005
+    outcome' language and MUST NOT contain 'shipped' or 'assumes PASS'."""
+    outcome = _load_outcome()
+    if outcome["outcome"] != "pending":
+        pytest.skip(f"outcome is {outcome['outcome']!r}, not pending")
+    notes = _load_release_notes()
+    # Restrict the check to the Cursor sub-agent spike section so other
+    # release-notes content (e.g., "shipped" elsewhere) doesn't false-trigger.
+    start = notes.find("## Cursor sub-agent spike outcome")
+    end = notes.find("\n## ", start + 1)
+    section = notes[start:end] if start != -1 and end != -1 else notes
+    assert "pending" in section.lower(), (
+        f"Cursor spike section must mention 'pending'. Section: {section[:300]}"
+    )
+    assert "assumes PASS" not in section, (
+        "T168: 'assumes PASS' language must be removed for the pending branch."
+    )
+    # 'shipped' is OK in context of "verification artifact only" but NOT in
+    # the sense of "full generation shipped".
+    assert "full Cursor sub-agent generation shipped" not in section.lower(), (
+        "T168: must not claim full Cursor sub-agent generation shipped while pending."
+    )

@@ -49,7 +49,15 @@ def test_cursor_plugin_skills_is_scalar_path(manifest: dict) -> None:
 
 
 def test_cursor_plugin_rules_is_scalar_path_to_cursor_dir(manifest: dict) -> None:
-    """`rules` MUST be `"./rules/cursor/"` — the generated `.mdc` directory."""
+    """If `rules` is present, it MUST be `"./rules/cursor/"` — the generated `.mdc` directory.
+
+    T195a (commit 25, OOS-005 fail-safe default): the `rules` field is OPTIONAL.
+    When the A-005 spike fixture is `pending` or `failed`, `rules/cursor/` is
+    empty and the manifest omits the declaration. T195b (PASS branch) re-adds
+    it once Cursor's loader is verified.
+    """
+    if "rules" not in manifest:
+        return  # T195a fail-safe: rules omitted while A-005 spike pending/failed
     assert isinstance(manifest["rules"], str)
     assert manifest["rules"] == "./rules/cursor/"
 

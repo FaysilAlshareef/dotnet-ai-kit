@@ -194,19 +194,28 @@ def generate_codex_agent(source_path: Path) -> None:
 
 
 def generate_cursor_agent(source_path: Path) -> str:
-    """Render a Cursor-shape agent file (commit 6 T058 scope).
+    """Render a Cursor-shape agent file (commit 6 T058 scope, T170c).
 
     Per data-model.md § 7 / cursor-fixture-decision.contract.md, the Cursor
     frontmatter allow-list is exactly {name, description, model, readonly}.
-    The body is copied verbatim from the source.
 
-    NOTE: Commit 6's T061 fail-path will re-implement this to raise
-    NotImplementedError if the A-005 spike fixture fails. Until then, the
-    generator emits the documented shape.
+    **Feature 019 / commit 25 / T170c — OOS-005 fail-safe default:** until the
+    A-005 spike fixture has demonstrably passed the Cursor CLI smoke test in
+    CI (outcome JSON at `specs/019-plugin-native-arch/discussion/tasks-phase/
+    cursor-subagent-outcome.json::outcome == "passed"`), this generator
+    raises NotImplementedError. Once a CI run flips the JSON to `passed`,
+    T171 unblocks the generation step (re-enable by restoring the
+    pre-T170c implementation OR conditioning on the JSON outcome at call
+    time). See `contracts/cursor-fixture-decision.contract.md` for the
+    canonical decision rule.
     """
-    src = AgentSource.from_file(source_path)
-    fm = _build_host_frontmatter(src, "cursor", _CURSOR_ALLOW_LIST)
-    return _render_frontmatter(fm) + src.body.lstrip("\n")
+    raise NotImplementedError(
+        "Cursor sub-agent generation is gated on the A-005 spike fixture "
+        "outcome (cursor-subagent-outcome.json::outcome must be 'passed'). "
+        f"Received {source_path}; ship the fail-safe default. See "
+        "specs/019-plugin-native-arch/contracts/cursor-fixture-decision.contract.md "
+        "for the gating rule and the v1.1 plan."
+    )
 
 
 def generate_copilot_agent(

@@ -1,0 +1,8 @@
+{
+  "name": "dotnet-ai-kit",
+  "version": "1.0.0",
+  "description": "PENDING-branch fixture for cursor-fixture-decision contract (T169 / OOS-005).",
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "hooks": "./hooks/hooks.json"
+}

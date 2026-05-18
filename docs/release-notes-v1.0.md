@@ -102,21 +102,23 @@ Recorded so reviewers know these are intentional v1.1+ items:
 ## Cursor sub-agent spike outcome (A-005)
 
 <!--
-T125 — branched by `specs/019-plugin-native-arch/discussion/tasks-phase/cursor-subagent-outcome.json`.
-Current state: pending (CI flips when test_smoke_cursor.py runs).
-Default behavior assumes PASS branch; FAIL branch handler in T061 swaps
-this section + removes `agents` from .cursor-plugin/plugin.json + revises
-spec A-005 / SC-008 / OOS-005 + disables generate_cursor_agent.
+T167 (commit 25, OOS-005) — neutralized release notes wording. The single
+fixture at `agents/dotnet-ai-architect.md` is shipped as the A-005
+verification artifact only. The outcome JSON at
+`specs/019-plugin-native-arch/discussion/tasks-phase/cursor-subagent-outcome.json`
+is updated by T170a in CI; T170b/T170c apply the fail-branch revisions; T171
+ships the 12 specialists on a PASS outcome.
 -->
 
-**Cursor sub-agent generation: pending CI outcome.** The single spike
-fixture (`agents/dotnet-ai-architect.md`) ships with the release. When the
-gated smoke test (`CURSOR_SMOKE=1` + `cursor` CLI) runs in nightly CI, the
-outcome JSON at `specs/019-plugin-native-arch/discussion/tasks-phase/cursor-subagent-outcome.json`
-flips to `"passed"` or `"failed"`. Until that runs, this release assumes
-the PASS branch (full Cursor sub-agent generation shipped). If the spike
-fails, follow the FAIL-branch revision per
-`contracts/cursor-fixture-decision.contract.md:37-50`.
+**Cursor sub-agent generation: pending the A-005 spike fixture outcome.** The
+single fixture at `agents/dotnet-ai-architect.md` is shipped as the A-005
+verification artifact only. Full per-specialist Cursor sub-agent generation
+lands only after the smoke fixture passes in CI. The outcome JSON at
+`specs/019-plugin-native-arch/discussion/tasks-phase/cursor-subagent-outcome.json`
+records pass/fail; until a CI run flips it, this release ships in the
+fail-safe / conservative mode (fixture only, no specialist generation).
+See `contracts/cursor-fixture-decision.contract.md:37-50` for the
+fail-branch revision details.
 
 ## Privacy + telemetry posture (A-011)
 

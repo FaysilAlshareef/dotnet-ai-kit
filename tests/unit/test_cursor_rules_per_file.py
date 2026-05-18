@@ -23,8 +23,15 @@ CURSOR_MANIFEST = REPO / ".cursor-plugin" / "plugin.json"
 
 
 def test_cursor_plugin_rules_points_to_per_rule_dir() -> None:
-    """`.cursor-plugin/plugin.json rules` field MUST point to `./rules/cursor/`."""
+    """If `rules` is present, it MUST point to `./rules/cursor/`.
+
+    T195a (commit 25/29, OOS-005 fail-safe default): `rules` is optional —
+    omitted while the A-005 spike fixture is `pending` or `failed`. T195b
+    (PASS branch) re-adds it once Cursor's loader is verified.
+    """
     manifest = json.loads(CURSOR_MANIFEST.read_text(encoding="utf-8"))
+    if "rules" not in manifest:
+        return  # fail-safe / pending — rules omitted intentionally
     assert manifest["rules"] == "./rules/cursor/", (
         f"Cursor manifest must declare `rules: ./rules/cursor/` for per-rule "
         f".mdc files (research R12). Got: {manifest['rules']!r}"

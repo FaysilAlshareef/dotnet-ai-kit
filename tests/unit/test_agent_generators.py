@@ -215,8 +215,14 @@ def test_generate_codex_agent_raises_not_implemented(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_generate_cursor_agent_emits_cursor_allow_list(tmp_path: Path) -> None:
-    """Cursor allow-list: name, description, model, readonly (per data-model § 7)."""
+def test_generate_cursor_agent_raises_until_a005_passes(tmp_path: Path) -> None:
+    """T170c (commit 25, OOS-005 fail-safe default): generate_cursor_agent()
+    MUST raise NotImplementedError until the A-005 spike fixture outcome JSON
+    flips to `passed`. The previous shape-emitting behavior is restored by
+    T171 (PASS branch) once Cursor's loader is verified in CI.
+    """
+    import pytest  # noqa: PLC0415
+
     path = _write_agent(
         tmp_path,
         "cur",
@@ -225,14 +231,12 @@ def test_generate_cursor_agent_emits_cursor_allow_list(tmp_path: Path) -> None:
             "description": "Cursor agent",
             "host_overrides": {
                 "cursor": {"model": "claude-sonnet-4", "readonly": False},
-                "claude": {"role": "advisory"},  # MUST NOT leak into Cursor output
+                "claude": {"role": "advisory"},
             },
         },
     )
-    output = generate_cursor_agent(path)
-    assert "model: claude-sonnet-4" in output
-    assert "readonly: false" in output
-    assert "role:" not in output  # no claude leak
+    with pytest.raises(NotImplementedError, match="A-005"):
+        generate_cursor_agent(path)
 
 
 def test_generate_copilot_agent_emits_copilot_allow_list(tmp_path: Path) -> None:

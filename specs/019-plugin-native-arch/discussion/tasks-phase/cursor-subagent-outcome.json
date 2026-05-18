@@ -3,5 +3,5 @@
   "timestamp": null,
   "failure_log_path": null,
   "ci_run_url": null,
-  "_note": "T060 (commit 6) writes this file on both PASS and FAIL paths once the smoke test runs in CI. Default 'pending' state means the spike has not yet been exercised. Commit 15's T125 reads this file and emits the branch-appropriate release-notes statement; T125a asserts cross-artifact consistency. Per cursor-fixture-decision.contract.md."
+  "_note": "T170a (commit 25, OOS-005): outcome remains `pending` because the Cursor CLI smoke fixture has never executed in CI. Per the canonical fix plan and `cursor-fixture-decision.contract.md:34-50`, v1.0 ships in the conservative fail-safe posture: `.cursor-plugin/plugin.json::agents` is ABSENT, `generate_cursor_agent()` raises NotImplementedError, release notes use neutral 'pending' language. The first post-tag `workflow_dispatch` smoke run will flip this JSON to either `passed` (triggering T171 — generate 12 specialists) or `failed` (no scope change needed since we are already in the fail-safe shape). This is the documented v1.0 decision."
 }

@@ -83,7 +83,11 @@ _FEATURE_019_BUNDLED_FILES = [
 _FEATURE_019_BUNDLED_DIRS = [
     ("bundled/agents-source/", "Source-of-truth agent definitions"),
     ("bundled/agents-claude/", "Generated Claude-shape agent files"),
-    ("bundled/agents/", "Cursor sub-agent build output"),
+    # T170c (commit 25, OOS-005 fail-safe default): `bundled/agents/` is
+    # intentionally EXCLUDED from the v1.0 wheel until the A-005 spike
+    # fixture flips the outcome JSON to `passed`. The Cursor build-output
+    # directory is restored by T171 (PASS branch) only after CI evidence.
+    # ("bundled/agents/", "Cursor sub-agent build output"),
     ("bundled/agents-copilot-templates/", "Copilot agent jinja2 templates"),
     ("bundled/rules/conventions/", "Always-on convention rules (5 per FR-011)"),
     ("bundled/rules/domain/", "Just-in-time domain rules (11 per FR-011)"),

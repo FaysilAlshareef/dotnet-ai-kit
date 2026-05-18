@@ -27,7 +27,7 @@ def _read_text(path: Path) -> str:
 
 @pytest.mark.parametrize(
     "branch",
-    ["pass", "fail"],
+    ["pass", "fail", "pending"],
 )
 def test_cursor_fixture_consistency(branch: str) -> None:
     """Per branch fixture: manifest `agents` presence ↔ spec ↔ release notes."""
@@ -74,4 +74,21 @@ def test_cursor_fixture_consistency(branch: str) -> None:
         )
         assert "shipped" not in release_text.lower(), (
             "FAIL branch: release notes must NOT mention shipping"
+        )
+
+    elif branch == "pending":
+        # T169 (commit 25, OOS-005): pending fixture set.
+        # Manifest MUST NOT declare `agents` (conservative default); spec
+        # mentions "pending"; release notes use neutral 'pending' language.
+        assert not has_agents, (
+            f"PENDING branch: manifest must NOT declare `agents` field "
+            f"(conservative fail-safe per T168/T170a). Got: {manifest}"
+        )
+        assert "pending" in spec_text.lower(), "PENDING branch: spec A-005 must mention 'pending'"
+        assert "pending" in release_text.lower(), (
+            "PENDING branch: release notes must mention 'pending'"
+        )
+        # Must not claim shipping / deferred prematurely.
+        assert "full Cursor sub-agent generation shipped" not in release_text, (
+            "PENDING branch: release notes must NOT claim full shipping"
         )
