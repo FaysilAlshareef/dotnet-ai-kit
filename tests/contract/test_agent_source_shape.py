@@ -58,6 +58,6 @@ def test_no_agent_source_has_forbidden_top_level_field() -> None:
 
     assert not violations, (
         "F-F violation: agents-source contains host-allow-list fields at "
-        f"top level. These must nest under `host_overrides.<host>:`.\n"
+        "top level. These must nest under `host_overrides.<host>:`.\n"
         + "\n".join(f"  - {v}" for v in violations)
     )
