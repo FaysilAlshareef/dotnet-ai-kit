@@ -436,10 +436,10 @@ Maps to **commit 14b** (NEW commit inserted during tasks-phase round 1 per Codex
 
 ### Commit 27 — OOS-003 bin/ wrappers + OOS-004 forward-compat scaffolding (~1.5h)
 
-- [ ] T180 [P] (commit 27) Add `bin/dotnet-ai` POSIX wrapper script: `#!/usr/bin/env bash` + `exec python -m dotnet_ai_kit.cli "$@"`. `chmod +x`. Add `bin/dotnet-ai.cmd` Windows wrapper: `@python -m dotnet_ai_kit.cli %*`.
-- [ ] T181 [P] (commit 27) Add `bin/README.md` documenting: the wrappers are for **source-tree contributors**; end users should use `[project.scripts]` via `pip install dotnet-ai-kit` or `uv tool install dotnet-ai-kit`; standalone-executable (shiv/PyInstaller) is v1.1 scope per OOS-003.
-- [ ] T182 [P] (commit 27) Add `tests/content/test_bin_wrappers.py` asserting `bin/dotnet-ai --version` and `bin/dotnet-ai.cmd --version` exit 0 and emit the same version string as `dotnet-ai --version` (3-OS gated; skip on platforms where the wrapper is not applicable).
-- [ ] T183 (commit 27) For OOS-004 forward-compat: reserve `host_overrides.codex:` block convention in `data-model.md` § 7 footnote (cite developers.openai.com/codex/plugins retrieved 2026-05-18 as the deferral reason — no `agents` primitive in Codex plugin manifest as of v0.117.0). Update `agent_generators.py:190-200` NotImplementedError message to reference the URL. **Acceptance**: `bin/dotnet-ai --version` works on 3 OSes; v1.1 issue filed for OOS-004 with the dev-docs URL.
+- [X] T180 [P] (commit 27) Add `bin/dotnet-ai` POSIX wrapper script: `#!/usr/bin/env bash` + `exec python -m dotnet_ai_kit.cli "$@"`. `chmod +x`. Add `bin/dotnet-ai.cmd` Windows wrapper: `@python -m dotnet_ai_kit.cli %*`.
+- [X] T181 [P] (commit 27) Add `bin/README.md` documenting: the wrappers are for **source-tree contributors**; end users should use `[project.scripts]` via `pip install dotnet-ai-kit` or `uv tool install dotnet-ai-kit`; standalone-executable (shiv/PyInstaller) is v1.1 scope per OOS-003.
+- [X] T182 [P] (commit 27) Add `tests/content/test_bin_wrappers.py` asserting `bin/dotnet-ai --version` and `bin/dotnet-ai.cmd --version` exit 0 and emit the same version string as `dotnet-ai --version` (3-OS gated; skip on platforms where the wrapper is not applicable).
+- [X] T183 (commit 27) For OOS-004 forward-compat: reserve `host_overrides.codex:` block convention in `data-model.md` § 7 footnote (cite developers.openai.com/codex/plugins retrieved 2026-05-18 as the deferral reason — no `agents` primitive in Codex plugin manifest as of v0.117.0). Update `agent_generators.py:190-200` NotImplementedError message to reference the URL. **Acceptance**: `bin/dotnet-ai --version` works on 3 OSes; v1.1 issue filed for OOS-004 with the dev-docs URL.
 
 ### Commit 28 — Content polish (F-A through F-L, ~1.5-2h)
 

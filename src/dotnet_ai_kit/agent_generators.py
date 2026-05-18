@@ -186,9 +186,23 @@ def generate_codex_agent(source_path: Path) -> None:
     Raises NotImplementedError explicitly to make the deferral observable in
     the type system. Commit 5 (T050) re-declares this raise to keep the
     admission gate visible.
+
+    Feature 019 / commit 27 / T183 — forward-compat hook for v1.1: when
+    Codex CLI exposes a sub-agent primitive in its plugin manifest, the
+    v1.1 release will:
+    1. Reserve the `host_overrides.codex:` block convention in
+       `data-model.md` § 7 (already documented as a forward-compat note).
+    2. Materialise this generator analogously to `generate_claude_agent`,
+       reading the Codex allow-list from `host_overrides.codex.*` of each
+       agents-source/*.md file.
+    See `https://developers.openai.com/codex/plugins` (retrieved 2026-05-18)
+    for the latest Codex plugin documentation — no `agents` primitive in
+    Codex plugin manifest as of v0.117.0.
     """
     raise NotImplementedError(
         "Codex native plugin agents are deferred to v1.1 per OOS-004 — "
+        "no `agents` primitive in the Codex plugin manifest as of v0.117.0 "
+        "(see https://developers.openai.com/codex/plugins, retrieved 2026-05-18). "
         f"received {source_path}, no Codex agent file generated."
     )
 
