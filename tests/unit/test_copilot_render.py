@@ -101,31 +101,35 @@ def test_copilot_templates_exist_in_source(template_path: str) -> None:
     assert target.is_file(), f"Copilot template missing: {target}"
 
 
-@pytest.mark.xfail(
-    reason=(
-        "Commit 7 minimal scope: only copilot-instructions.md rendered. "
-        "Path-scoped + per-agent file renders are staged for follow-up."
-    ),
-    strict=False,
-)
 def test_render_emits_path_scoped_instructions(tmp_path: Path) -> None:
-    """Per FR-007: `.github/instructions/*.instructions.md` files for detected paths."""
+    """Per FR-007 / T070: `.github/instructions/*.instructions.md` files for
+    each detected_paths entry in project.yml."""
+    import yaml
+
     project_root = tmp_path / "project"
-    project_root.mkdir()
+    config_dir = project_root / ".dotnet-ai-kit"
+    config_dir.mkdir(parents=True)
+    (config_dir / "project.yml").write_text(
+        yaml.dump(
+            {
+                "company": "A",
+                "domain": "B",
+                "side": "C",
+                "project_type": "api",
+                "dotnet_version": "9.0",
+                "detected_paths": {"testing": "tests/**"},
+            }
+        ),
+        encoding="utf-8",
+    )
     CopilotHost().render(project_root)
     instructions_dir = project_root / ".github" / "instructions"
     assert instructions_dir.is_dir() and any(instructions_dir.iterdir())
 
 
-@pytest.mark.xfail(
-    reason=(
-        "Commit 7 minimal scope: only copilot-instructions.md rendered. "
-        "Per-agent .github/agents/*.agent.md renders are staged for follow-up."
-    ),
-    strict=False,
-)
 def test_render_emits_per_agent_files(tmp_path: Path) -> None:
-    """Per FR-007: `.github/agents/*.agent.md` files for each specialist."""
+    """Per FR-007 / T070: `.github/agents/*.agent.md` files for each agent
+    in `agents-source/`."""
     project_root = tmp_path / "project"
     project_root.mkdir()
     CopilotHost().render(project_root)

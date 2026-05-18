@@ -379,8 +379,9 @@ def test_copy_rules_no_rules_dir(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_copy_commands_cursor_creates_mdc(tmp_path: Path) -> None:
-    """Cursor mode should create a single .mdc file combining commands and rules."""
+def test_copy_commands_cursor_creates_per_rule_mdc(tmp_path: Path) -> None:
+    """T056 — Cursor mode emits per-rule `.cursor/rules/<name>.mdc` files
+    (one per rule), NOT the legacy one-blob `dotnet-ai-kit.mdc`."""
     source = tmp_path / "commands_src"
     _create_command_files(source, ["specify", "plan"])
     rules = tmp_path / "rules_src"
@@ -392,13 +393,15 @@ def test_copy_commands_cursor_creates_mdc(tmp_path: Path) -> None:
 
     count = copy_commands_cursor(source, target, agent_config, rules)
 
-    assert count == 1
-    mdc_path = target / ".cursor" / "rules" / "dotnet-ai-kit.mdc"
-    assert mdc_path.is_file()
-    content = mdc_path.read_text(encoding="utf-8")
-    assert "Rule: naming" in content
-    assert "Command: dotnet-ai.specify" in content
-    assert "Command: dotnet-ai.plan" in content
+    # T056: per-rule files, not one blob
+    assert count >= 1, "MUST write at least one per-rule .mdc"
+    per_rule = target / ".cursor" / "rules" / "naming.mdc"
+    assert per_rule.is_file(), "T056: per-rule `<name>.mdc` MUST be written"
+    # T056 forbids the legacy one-blob output
+    legacy = target / ".cursor" / "rules" / "dotnet-ai-kit.mdc"
+    assert not legacy.is_file(), (
+        "T056 violation: legacy one-blob `dotnet-ai-kit.mdc` MUST NOT be emitted"
+    )
 
 
 def test_copy_commands_codex_removed_per_t049() -> None:

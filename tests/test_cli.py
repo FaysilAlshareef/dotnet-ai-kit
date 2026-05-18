@@ -1157,30 +1157,29 @@ def test_upgrade_reapplies_permissions_when_level_changes(tmp_path: Path, monkey
 
 
 def test_upgrade_force_refreshes_when_version_matches(tmp_path: Path, monkeypatch) -> None:
-    """upgrade --force should refresh files even when version is up to date."""
+    """upgrade --force should run successfully even when version is up to date.
+
+    Feature 019 / T042: plugin-native mode no longer copies rules to
+    `.claude/rules/`. upgrade --force still re-runs the upgrade flow
+    (which refreshes the version stamp and host-adapter writes for
+    plugin-native hosts).
+    """
     _create_dotnet_project(tmp_path)
     _create_claude_dir(tmp_path)
 
     runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
     monkeypatch.chdir(tmp_path)
 
-    # Delete a rule file to prove --force re-copies it
-    rules_dir = tmp_path / ".claude" / "rules"
-    rule_files_before = list(rules_dir.glob("*.md"))
-    assert len(rule_files_before) > 0
-    rule_files_before[0].unlink()
-    rules_after_delete = list(rules_dir.glob("*.md"))
-    assert len(rules_after_delete) == len(rule_files_before) - 1
-
-    # Without --force, upgrade does nothing
+    # Without --force, upgrade reports up-to-date
     result = runner.invoke(app, ["upgrade"], catch_exceptions=False)
     assert "up to date" in result.output.lower()
-    assert len(list(rules_dir.glob("*.md"))) == len(rule_files_before) - 1
 
-    # With --force, upgrade refreshes
+    # With --force, upgrade re-runs and returns 0
     result = runner.invoke(app, ["upgrade", "--force"], catch_exceptions=False)
     assert result.exit_code == 0
-    assert len(list(rules_dir.glob("*.md"))) == len(rule_files_before)
+    # version.txt should still be present (per-solution metadata is refreshed)
+    version_file = tmp_path / ".dotnet-ai-kit" / "version.txt"
+    assert version_file.is_file()
 
 
 def test_upgrade_force_redeploys_profile(tmp_path: Path, monkeypatch) -> None:

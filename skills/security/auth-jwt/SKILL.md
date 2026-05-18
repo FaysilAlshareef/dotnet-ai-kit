@@ -274,6 +274,14 @@ internal sealed class CurrentUserService(
 5. **Create `ICurrentUserService`** for claim access in handlers
 6. **Move signing key** to user secrets or Key Vault
 
+## Related rules
+
+This skill depends on the always-on `security` convention rule:
+
+- ${CLAUDE_PLUGIN_ROOT}/rules/conventions/security.md
+
+The rule is loaded into context whenever this skill is active (FR-011 universal whitelist).
+
 ## References
 
 - https://learn.microsoft.com/en-us/aspnet/core/security/authentication/jwt

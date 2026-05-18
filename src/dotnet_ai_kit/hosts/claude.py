@@ -122,12 +122,23 @@ class ClaudeHost(Host):
         # Late import to avoid circular imports (cli.py imports hosts/).
         from dotnet_ai_kit.cli import _get_package_dir  # noqa: PLC0415
 
-        # Resolve the permission preset JSON under bundled `config/`
+        # Resolve the permission preset JSON under bundled `config/`.
+        # Filename convention: `permissions-<level>.json` (matches existing
+        # feature-018 layout). Fall back to bare `<level>.json` for tests.
         pkg_root = _get_package_dir()
-        preset_path = pkg_root / "config" / f"{permission_profile}.json"
-        if not preset_path.is_file():
+        candidates = (
+            pkg_root / "config" / f"permissions-{permission_profile}.json",
+            pkg_root / "config" / f"{permission_profile}.json",
+        )
+        preset_path: Path | None = None
+        for c in candidates:
+            if c.is_file():
+                preset_path = c
+                break
+        if preset_path is None:
             raise FileNotFoundError(
-                f"Permission preset '{permission_profile}' not found at {preset_path}"
+                f"Permission preset '{permission_profile}' not found "
+                f"(tried: {', '.join(str(c) for c in candidates)})"
             )
 
         preset = json.loads(preset_path.read_text(encoding="utf-8"))

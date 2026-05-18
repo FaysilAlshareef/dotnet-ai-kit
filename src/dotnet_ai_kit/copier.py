@@ -243,18 +243,23 @@ def copy_commands_cursor(
     agent_config: dict[str, Any],
     rules_dir: Optional[Path] = None,
 ) -> int:
-    """Combine all commands and rules into a single .mdc file for Cursor.
+    """Emit per-rule `.cursor/rules/<name>.mdc` files for Cursor.
 
-    Cursor uses a single rules file rather than separate command files.
+    Feature 019 / T056: drop the legacy one-blob `.cursor/rules/dotnet-ai-kit.mdc`
+    output in favor of per-rule files. The plugin install path serves
+    commands/skills via `.cursor-plugin/plugin.json`; the legacy one-blob
+    file is left behind on existing solutions to be cleaned by
+    `dotnet-ai migrate` (R12 governance pattern).
 
     Args:
-        source_dir: Directory containing command template .md files.
+        source_dir: Directory containing command template .md files (unused
+            in per-rule mode; kept for API compat).
         target_dir: Root of the user's project.
         agent_config: Configuration dict for Cursor.
-        rules_dir: Optional directory containing rule files to include.
+        rules_dir: Directory containing rule files to render.
 
     Returns:
-        1 if the combined file was created, 0 otherwise.
+        Count of per-rule `.mdc` files written.
     """
     cursor_rules_rel = agent_config.get("rules_dir")
     if not cursor_rules_rel:
@@ -263,23 +268,26 @@ def copy_commands_cursor(
     cursor_rules_dir = target_dir / cursor_rules_rel
     cursor_rules_dir.mkdir(parents=True, exist_ok=True)
 
-    sections: list[str] = []
-
-    # Include rules
+    written = 0
+    # Render each rule into its own .mdc file
     if rules_dir and rules_dir.is_dir():
+        # Walk rules/conventions and rules/domain to find each rule
+        for sub in ("conventions", "domain"):
+            sub_dir = rules_dir / sub
+            if not sub_dir.is_dir():
+                continue
+            for rule_file in sorted(sub_dir.glob("*.md")):
+                content = rule_file.read_text(encoding="utf-8")
+                out_path = cursor_rules_dir / f"{rule_file.stem}.mdc"
+                out_path.write_text(content, encoding="utf-8")
+                written += 1
+        # Top-level rules/*.md fallback (legacy layout)
         for rule_file in sorted(rules_dir.glob("*.md")):
             content = rule_file.read_text(encoding="utf-8")
-            sections.append(f"## Rule: {rule_file.stem}\n\n{content}")
-
-    # Include commands
-    for cmd_file in sorted(source_dir.glob("*.md")):
-        content = cmd_file.read_text(encoding="utf-8")
-        sections.append(f"## Command: dotnet-ai.{cmd_file.stem}\n\n{content}")
-
-    combined = "\n\n---\n\n".join(sections)
-    out_path = cursor_rules_dir / "dotnet-ai-kit.mdc"
-    out_path.write_text(combined, encoding="utf-8")
-    return 1
+            out_path = cursor_rules_dir / f"{rule_file.stem}.mdc"
+            out_path.write_text(content, encoding="utf-8")
+            written += 1
+    return written
 
 
 # Feature 019 / T049: `copy_commands_codex` (the root-AGENTS.md emitter)
@@ -1026,55 +1034,87 @@ def deploy_to_linked_repos(
             sec_style = _sec_raw.get("command_style", "both")
             sec_ai_tools: list[str] = _sec_raw.get("ai_tools") or config.ai_tools
 
+            # Feature 019 / T043 / FR-033: route plugin-native hosts through
+            # hosts/ adapter (per-solution files only); render-only hosts via
+            # the legacy copy_* path.
+            _PLUGIN_NATIVE = frozenset({"claude", "codex", "cursor"})
+
             for tool_name in sec_ai_tools:
                 try:
                     tool_config = get_agent_config(tool_name)
                 except ValueError:
                     continue
 
-                # Deploy commands — use secondary repo's own command_style
-                if commands_dir.is_dir():
-                    sec_config = config.model_copy()
-                    sec_config.command_style = sec_style
-                    copy_commands(
-                        commands_dir,
+                if tool_name in _PLUGIN_NATIVE:
+                    # Plugin-native: NO bulk copies. Per-solution writes go
+                    # through the host adapter (or are a no-op for codex).
+                    if tool_name == "claude":
+                        from .hosts.claude import ClaudeHost  # noqa: PLC0415
+
+                        try:
+                            ClaudeHost().write_per_solution_files(
+                                repo_path,
+                                permission_profile=getattr(
+                                    config, "permissions_level", None
+                                ),
+                            )
+                        except Exception as _exc:
+                            logger.debug(
+                                "Linked-secondary Claude adapter skipped: %s", _exc
+                            )
+                    # Codex/Cursor: no per-solution files in plugin-native mode.
+                    # Cursor's legacy `.cursor/rules/*.mdc` rendering is handled
+                    # by `dotnet-ai migrate` for old-layout solutions only.
+
+                    # Deploy profile (still relevant — feature 018 architecture
+                    # profiles are per-solution metadata, not bulk plugin content)
+                    try:
+                        copy_profile(
+                            repo_path,
+                            tool_name,
+                            sec_project_type,
+                            package_dir,
+                            confidence=sec_confidence,
+                        )
+                    except Exception:
+                        pass
+                else:
+                    # Render-only / future hosts: legacy bulk copy path.
+                    if commands_dir.is_dir():
+                        sec_config = config.model_copy()
+                        sec_config.command_style = sec_style
+                        copy_commands(
+                            commands_dir,
+                            repo_path,
+                            tool_config,
+                            sec_config,
+                        )
+                    if rules_dir_src.is_dir():
+                        copy_rules(rules_dir_src, repo_path, tool_config)
+                    copy_profile(
                         repo_path,
-                        tool_config,
-                        sec_config,
+                        tool_name,
+                        sec_project_type,
+                        package_dir,
+                        confidence=sec_confidence,
                     )
+                    if skills_dir_src.is_dir():
+                        copy_skills(
+                            skills_dir_src,
+                            repo_path,
+                            tool_config,
+                            detected_paths=sec_detected_paths,
+                        )
+                    if agents_dir_src.is_dir():
+                        copy_agents(
+                            agents_dir_src,
+                            repo_path,
+                            tool_config,
+                            tool_name=tool_name,
+                        )
 
-                # Deploy rules
-                if rules_dir_src.is_dir():
-                    copy_rules(rules_dir_src, repo_path, tool_config)
-
-                # Deploy profile
-                copy_profile(
-                    repo_path,
-                    tool_name,
-                    sec_project_type,
-                    package_dir,
-                    confidence=sec_confidence,
-                )
-
-                # Deploy skills
-                if skills_dir_src.is_dir():
-                    copy_skills(
-                        skills_dir_src,
-                        repo_path,
-                        tool_config,
-                        detected_paths=sec_detected_paths,
-                    )
-
-                # Deploy agents
-                if agents_dir_src.is_dir():
-                    copy_agents(
-                        agents_dir_src,
-                        repo_path,
-                        tool_config,
-                        tool_name=tool_name,
-                    )
-
-                # Deploy hook (Claude only)
+                # Deploy hook (Claude only) — irrespective of plugin-native mode,
+                # the arch-profile hook is per-solution metadata.
                 if tool_name == "claude":
                     rules_dir = tool_config.get("rules_dir", ".claude/rules")
                     profile_deployed = repo_path / rules_dir / "architecture-profile.md"

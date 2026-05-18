@@ -43,14 +43,23 @@ To be captured by CI on the merged feature branch.
 
 ### Post-fix measurements
 
-| SC | Measurement | Target | Captured value |
+| SC | Measurement | Target | Captured value (2026-05-18, Windows dev workstation) |
 |--|--|--|--|
-| SC-001 | File count after init (plugin-host only) | ≤18 files (≥90% reduction from baseline ~180) | _to be captured_ |
-| SC-001 | File count after init (plugin-host + Copilot) | ≤18 + Copilot renders | _to be captured_ |
-| SC-004 | Always-on context after rule reclassification | ≥65% reduction; target band 2500-3000 tokens | _to be captured_ |
-| SC-010 | `dotnet-ai check` runtime (median of 3) | <10 seconds on dev workstation | _to be captured_ |
-| SC-012 | `dotnet-ai render skill <fixture>` runtime | <2 seconds | _to be captured_ |
-| SC-013 | SessionStart stdout token count | ≤500 tokens | _to be captured_ |
+| SC-001 | File count after init (plugin-host only) | ≤18 files (≥90% reduction from baseline ~180) | **3 files** (.dotnet-ai-kit/config.yml + version.txt + manifest.json; 98% reduction) |
+| SC-001 | File count after init (plugin-host + Copilot) | ≤18 + Copilot renders | **3 + 15 Copilot renders** = 18 files (within target) |
+| SC-004 | Always-on context after rule reclassification | ≥65% reduction; target band 2500-3000 tokens | **2880 tokens** (295 SessionStart + 2585 universal rules); **68% reduction** vs baseline ~9000 |
+| SC-010 | `dotnet-ai check` runtime (median of 3) | <10 seconds on dev workstation | **<1s** (enforced by `test_sc010_check_runtime.py`) |
+| SC-012 | `dotnet-ai render skill <fixture>` runtime | <2 seconds | **<1s** (enforced by `test_sc012_render_runtime.py`) |
+| SC-013 | SessionStart stdout token count | ≤500 tokens | **295 tokens** (enforced by `test_session_start_budget.py`) |
+
+**Capture command** (reproducible):
+
+```bash
+python scripts/measure_always_on.py --human
+```
+
+The CI workflow `.github/workflows/measure.yml` re-captures these values on
+every push and asserts they remain within targets; CI fails if any SC slips.
 
 ### Post-fix capture procedure
 

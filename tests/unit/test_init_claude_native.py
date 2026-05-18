@@ -88,15 +88,6 @@ def test_init_claude_does_not_bulk_copy_agents(tmp_path: Path) -> None:
         )
 
 
-@pytest.mark.xfail(
-    reason=(
-        "Commit 4 lands agent-side of bulk-copy removal via copy_agents() no-op. "
-        "Commands+skills+rules bulk-copy removal is deferred to T042 full "
-        "cli.py init refactor (later step). Flip to passing once cli.py "
-        "init short-circuits for Claude plugin-native mode."
-    ),
-    strict=False,
-)
 @pytest.mark.parametrize(
     "forbidden_dir",
     [".claude/commands", ".claude/skills"],
@@ -104,7 +95,12 @@ def test_init_claude_does_not_bulk_copy_agents(tmp_path: Path) -> None:
 def test_init_claude_does_not_bulk_copy_commands_skills(
     tmp_path: Path, forbidden_dir: str
 ) -> None:
-    """Deferred from commit 4 — see xfail reason."""
+    """T042/T043 — Claude plugin-native init MUST NOT bulk-copy commands/skills.
+
+    Per FR-005/FR-006: these directories are served from the plugin install path,
+    NOT per-solution. The cli.py init flow short-circuits the copy for hosts in
+    `PLUGIN_NATIVE_HOSTS`.
+    """
     _create_dotnet_project(tmp_path)
 
     runner.invoke(

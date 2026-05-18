@@ -244,3 +244,11 @@ sibling_repos:
 - Look at the MAJORITY of handlers, not edge cases.
 - For generic mode types, focus on STRUCTURAL patterns (directory layout, project references) over code patterns.
 - When confidence is low, explain what additional files would help clarify the classification.
+
+## Related rules
+
+This skill depends on the always-on `existing-projects` convention rule:
+
+- ${CLAUDE_PLUGIN_ROOT}/rules/conventions/existing-projects.md
+
+The rule is loaded into context whenever this skill is active (FR-011 universal whitelist).

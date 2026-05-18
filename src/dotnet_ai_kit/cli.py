@@ -144,6 +144,144 @@ def _detect_plugin_mode() -> bool:
     return (_get_package_dir() / ".claude-plugin" / "plugin.json").is_file()
 
 
+# Feature 019 / T042 / T043: hosts that serve commands/skills/agents from
+# their plugin install path instead of per-solution copies. For these hosts,
+# `dotnet-ai init` MUST NOT bulk-copy into the solution per FR-005 / FR-006.
+PLUGIN_NATIVE_HOSTS: frozenset[str] = frozenset({"claude", "codex", "cursor"})
+
+# Feature 019 / T100 / FR-025: legacy managed-path patterns from feature 018.
+# When `dotnet-ai init --force` detects any of these on a target solution,
+# it MUST refuse auto-deletion and print the migrate invocation instead.
+LEGACY_MANAGED_PATHS: tuple[str, ...] = (
+    ".claude/commands",
+    ".claude/rules",
+    ".claude/skills",
+    ".claude/agents",
+    ".cursor/rules",
+    ".github/agents/commands",
+)
+
+
+def _prompt_for_hosts(default_hosts: list[str]) -> list[str]:
+    """Per FR-014 / clarify Q4: launch interactive host-selection when
+    `dotnet-ai init` is invoked without `--ai`. Returns the user-selected
+    subset of SUPPORTED_AI_TOOLS.
+
+    The prompt shows all 4 hosts (claude/codex/cursor/copilot) with the
+    auto-detected hosts pre-checked. Selecting nothing = pick all 4.
+    """
+    try:
+        import questionary as _qy  # noqa: PLC0415
+    except ImportError:
+        # questionary missing — fall back to default hosts.
+        return default_hosts or list(sorted(SUPPORTED_AI_TOOLS))
+
+    choices = []
+    for host in sorted(SUPPORTED_AI_TOOLS):
+        choices.append(
+            _qy.Choice(
+                title=host,
+                value=host,
+                checked=(host in default_hosts),
+            )
+        )
+    selected = _qy.checkbox(
+        "Which AI hosts should this solution be initialized for?",
+        choices=choices,
+    ).ask()
+    if not selected:
+        # User cancelled / picked none — return the auto-detected default.
+        return default_hosts or ["claude"]
+    return [h.lower() for h in selected]
+
+
+def _stdin_is_tty() -> bool:
+    """Return True if stdin is a terminal (interactive shell).
+
+    Used by `init` to decide whether to launch the questionary prompt
+    when `--ai` is absent. Returns False in CI / piped contexts so
+    non-interactive runs use auto-detected defaults.
+    """
+    import sys as _sys  # noqa: PLC0415
+
+    try:
+        return _sys.stdin.isatty()
+    except (AttributeError, ValueError):
+        return False
+
+
+def _record_copilot_renders_in_manifest(target: Path, written: list[Path]) -> None:
+    """Per T070 / FR-024: record Copilot-rendered files in manifest with
+    `host_owner="copilot"` and explicit-consent flag for force-rendered paths.
+    """
+    if not written:
+        return
+    import hashlib  # noqa: PLC0415
+
+    from dotnet_ai_kit.manifest import (  # noqa: PLC0415
+        DeployedFile,
+        manifest_path,
+        read_manifest,
+        utc_now_iso,
+        write_manifest,
+    )
+
+    mp = manifest_path(target)
+    if not mp.is_file():
+        # No manifest yet — skip silently (init creates it via _finalize_manifest)
+        return
+    manifest = read_manifest(target)
+    if manifest is None:
+        return
+
+    by_path = {f.path: f for f in manifest.files}
+    now = utc_now_iso()
+    for p in written:
+        rel = str(p.relative_to(target)).replace("\\", "/")
+        sha = hashlib.sha256(p.read_bytes()).hexdigest() if p.is_file() else ""
+        entry = DeployedFile(
+            path=rel,
+            sha256=sha,
+            host_owner="copilot",
+            plugin_version=manifest.plugin_version,
+            deployed_at=now,
+        )
+        by_path[rel] = entry
+
+    new_manifest = manifest.model_copy(
+        update={
+            "files": list(by_path.values()),
+            "last_upgrade_at": now,
+        }
+    )
+    write_manifest(target, new_manifest)
+
+
+def _detect_shadowed_legacy_paths(target: Path) -> list[Path]:
+    """Return any LEGACY_MANAGED_PATHS that contain ACTUAL FILES on disk.
+
+    Used by `init --force` (T100 / FR-025) to detect pre-019-layout artifacts
+    that would shadow plugin-served files. The init flow MUST NOT auto-delete
+    these — it prints the migrate invocation and exits non-zero.
+
+    Empty marker directories (e.g., tests creating `.claude/commands/` to
+    signal AI-tool presence) are NOT flagged — only directories that actually
+    contain files are considered shadowed legacy artifacts.
+    """
+    found: list[Path] = []
+    for relpath in LEGACY_MANAGED_PATHS:
+        candidate = target / relpath
+        if not candidate.exists():
+            continue
+        if candidate.is_file():
+            found.append(candidate)
+        elif candidate.is_dir():
+            # Only flag if the dir actually contains FILES
+            if any(p.is_file() for p in candidate.rglob("*")):
+                found.append(candidate)
+    return found
+
+
 def _find_commands_source() -> Path:
     """Find the commands source directory in the package."""
     pkg = _get_package_dir()
@@ -599,6 +737,15 @@ def init(
         "--permissions",
         help="Permission level (minimal/standard/full).",
     ),
+    force_render: Optional[list[str]] = typer.Option(
+        None,
+        "--force-render",
+        help=(
+            "Per T072c: explicit opt-in to overwrite a pre-existing Copilot file. "
+            "Repeatable. Each value is a path relative to the project root. "
+            "(See contracts/copilot-instructions.contract.md:39-41.)"
+        ),
+    ),
 ) -> None:
     """Initialize dotnet-ai-kit in a .NET project directory."""
     target = path.resolve()
@@ -643,6 +790,27 @@ def init(
         )
         raise typer.Exit(code=1)
 
+    # Feature 019 / T100 / FR-025: when --force lands on an old-layout solution
+    # (pre-019 paths present), refuse auto-deletion and print the migrate
+    # invocation. The user must opt in explicitly via `dotnet-ai migrate`.
+    if force:
+        shadowed = _detect_shadowed_legacy_paths(target)
+        if shadowed:
+            err_console.print(
+                "[red bold]Refusing to reinitialize:[/red bold] this solution has "
+                "legacy dotnet-ai-kit artifacts from the pre-019 layout."
+            )
+            for p in shadowed:
+                err_console.print(f"  - {p.relative_to(target)}")
+            err_console.print(
+                "\nRun the migrate command to convert legacy paths to the new "
+                "plugin-native layout (with backup):\n"
+                f"  [bold]dotnet-ai migrate {target}[/bold]\n"
+                "\nOr inspect what migrate would do without making changes:\n"
+                f"  [bold]dotnet-ai migrate --dry-run {target}[/bold]\n"
+            )
+            raise typer.Exit(code=1)
+
     # Step 1: Project type (AI detection is done via /dotnet-ai.detect command)
     detected = None
     if project_type:
@@ -670,14 +838,28 @@ def init(
         )
 
     # Step 2: Detect or configure AI tools
+    # Feature 019 / T031-T032 / FR-014 / clarify Q4: when `--ai` is absent,
+    # launch an interactive host-selection prompt. JSON mode skips the prompt
+    # (non-interactive) and uses the auto-detect default.
     if ai:
         ai_tools = [t.lower() for t in ai]
     else:
-        ai_tools = detect_ai_tools(target)
-        if not ai_tools:
-            ai_tools = ["claude"]
+        detected_ai = detect_ai_tools(target)
+        if json_output or not _stdin_is_tty():
+            # Non-interactive: pick auto-detect, fall back to Claude.
+            ai_tools = detected_ai or ["claude"]
             if not json_output:
-                console.print("\n[dim]No AI tool detected. Defaulting to Claude Code.[/dim]")
+                if detected_ai:
+                    console.print(
+                        f"\n[dim]Auto-detected AI tools: {', '.join(detected_ai)}.[/dim]"
+                    )
+                else:
+                    console.print(
+                        "\n[dim]No AI tool detected. Defaulting to Claude Code.[/dim]"
+                    )
+        else:
+            # Interactive prompt per FR-014.
+            ai_tools = _prompt_for_hosts(detected_ai or ["claude"])
 
     _verbose_log(verbose, f"AI tools: {', '.join(ai_tools)}")
 
@@ -768,14 +950,29 @@ def init(
         skill_count = 0
         agent_count = 0
 
-        if tool_name == "cursor":
-            cmd_count = copy_commands_cursor(commands_source, target, tool_config, rules_source)
-        elif tool_name == "codex":
-            # T049: copy_commands_codex deleted — Codex plugin-native mode uses
-            # the plugin install path's `.codex-plugin/plugin.json` exclusively.
-            # No per-solution writes for Codex under feature 019.
-            cmd_count = 0
+        # Feature 019 / T042 / T043 / FR-005 / FR-006: plugin-native hosts
+        # (claude, codex, cursor) get their commands/skills/agents from the
+        # plugin install path — NOT bulk-copied into the solution.
+        # The per-solution writes (`.dotnet-ai-kit/*`, `.claude/settings.json`)
+        # land via the host adapter (see below) + the config write in step 4.
+        if tool_name in PLUGIN_NATIVE_HOSTS:
+            if not json_output:
+                console.print(
+                    f"  [dim]Plugin-native host: commands/skills/agents served from "
+                    f"the {tool_display} plugin install (no per-solution copies).[/dim]"
+                )
+            # Cursor still emits per-rule `.cursor/rules/<name>.mdc` files
+            # (T056 — already serves per-rule via copy_commands_cursor when
+            # plugin install path is unavailable; preserve legacy behavior
+            # for backwards compat). For Claude/Codex: zero bulk writes.
+            if tool_name == "cursor" and not is_plugin:
+                cmd_count = copy_commands_cursor(
+                    commands_source, target, tool_config, rules_source
+                )
         else:
+            # Render-only path (copilot — handled by hosts/copilot.py later
+            # in the init flow, NOT here). Fallback: keep legacy bulk copy
+            # for any non-plugin-native host registered in future versions.
             cmd_count = copy_commands(
                 commands_source,
                 target,
@@ -785,21 +982,21 @@ def init(
             )
             rule_count = copy_rules(rules_source, target, tool_config)
 
-        # Copy skills and agents for all tools
-        if skills_source.is_dir():
-            skill_count = copy_skills(
-                skills_source,
-                target,
-                tool_config,
-                detected_paths=_init_detected_paths,
-            )
-        if agents_source.is_dir():
-            agent_count = copy_agents(
-                agents_source,
-                target,
-                tool_config,
-                tool_name=tool_name,
-            )
+            # Copy skills and agents for non-plugin-native hosts only
+            if skills_source.is_dir():
+                skill_count = copy_skills(
+                    skills_source,
+                    target,
+                    tool_config,
+                    detected_paths=_init_detected_paths,
+                )
+            if agents_source.is_dir():
+                agent_count = copy_agents(
+                    agents_source,
+                    target,
+                    tool_config,
+                    tool_name=tool_name,
+                )
 
         total_cmds += cmd_count
         total_rules += rule_count
@@ -818,6 +1015,62 @@ def init(
                 console.print(f"  Copied: {skill_count} skills -> {tool_config['skills_dir']}")
             if agent_count and tool_config.get("agents_dir"):
                 console.print(f"  Copied: {agent_count} agents -> {tool_config['agents_dir']}")
+
+        # Feature 019 / T042: plugin-native hosts route through hosts/ adapter
+        # for per-solution writes (currently `.claude/settings.json` for Claude
+        # when permissions present). Codex / Cursor have no per-solution files.
+        if tool_name == "claude":
+            try:
+                from dotnet_ai_kit.hosts.claude import ClaudeHost  # noqa: PLC0415
+
+                _ch = ClaudeHost()
+                _written = _ch.write_per_solution_files(
+                    target,
+                    permission_profile=config.permissions_level,
+                )
+                for p in _written:
+                    if not json_output:
+                        console.print(
+                            f"  Host adapter: wrote {p.relative_to(target)}"
+                        )
+            except Exception as _exc:
+                _verbose_log(verbose, f"Claude host adapter skipped: {_exc}")
+
+        # Feature 019 / T070 / T072c: Copilot render path.
+        if tool_name == "copilot":
+            try:
+                from dotnet_ai_kit.hosts.copilot import CopilotHost  # noqa: PLC0415
+
+                force_paths = [target / p for p in (force_render or [])]
+                _coh = CopilotHost()
+                _co_result = _coh.render(
+                    target,
+                    force_render_paths=force_paths,
+                    plugin_root=_get_package_dir(),
+                )
+                for p in _co_result.written:
+                    if not json_output:
+                        console.print(
+                            f"  Copilot rendered: {p.relative_to(target)}"
+                        )
+                for p in _co_result.force_rendered:
+                    if not json_output:
+                        console.print(
+                            f"  Copilot force-rendered: {p.relative_to(target)} (--force-render)"
+                        )
+                for p in _co_result.pending_user_consent:
+                    err_console.print(
+                        f"  [red]Copilot preserved (pre-existing):[/red] {p.relative_to(target)}\n"
+                        f"    To overwrite, re-run with: --force-render {p.relative_to(target)}"
+                    )
+                # If unresolved conflicts AND user didn't pass any force-render,
+                # exit non-zero per FR-008.
+                if _co_result.has_conflicts and not force_render:
+                    raise typer.Exit(code=1)
+            except typer.Exit:
+                raise
+            except Exception as _exc:
+                _verbose_log(verbose, f"Copilot render skipped: {_exc}")
 
     # Step 7b: Deploy architecture profile and hook (if project type known)
     _init_project_type = project_type
@@ -1269,9 +1522,86 @@ def upgrade(
         "-n",
         help="Preview without making changes.",
     ),
+    copilot: bool = typer.Option(
+        False,
+        "--copilot",
+        help="Re-render only Copilot files (no-op for plugin-native hosts) per FR-015 / T072.",
+    ),
+    force_render: Optional[list[str]] = typer.Option(
+        None,
+        "--force-render",
+        help=(
+            "Explicit opt-in to overwrite a pre-existing Copilot file. "
+            "Repeatable. Each value is a path relative to the project root. "
+            "Per FR-008 / contract copilot-instructions:39-41 (T072c)."
+        ),
+    ),
 ) -> None:
-    """Upgrade command and rule files to the latest CLI version."""
+    """Upgrade command and rule files to the latest CLI version.
+
+    --copilot variant (FR-015 / T072): re-renders ONLY the .github/* files
+    Copilot consumes, updating manifest entries with host_owner="copilot".
+    Plugin-native hosts (claude/codex/cursor) are not touched.
+    """
     target = Path(".").resolve()
+
+    # Feature 019 / T072: --copilot variant short-circuits to a render-only path.
+    if copilot:
+        from dotnet_ai_kit.hosts.copilot import CopilotHost  # noqa: PLC0415
+
+        config_dir = get_config_dir(target)
+        if not config_dir.is_dir():
+            err_console.print(
+                "[yellow]dotnet-ai-kit is not initialized. "
+                "Run 'dotnet-ai init' first.[/yellow]"
+            )
+            raise typer.Exit(code=1)
+
+        force_render_paths = [target / p for p in (force_render or [])]
+        copilot_host = CopilotHost()
+        result = copilot_host.render(
+            target,
+            force_render_paths=force_render_paths,
+            plugin_root=_get_package_dir(),
+        )
+
+        # T070: persist Copilot writes through manifest with host_owner="copilot"
+        try:
+            _record_copilot_renders_in_manifest(target, result.written + result.force_rendered)
+        except Exception as exc:
+            _verbose_log(verbose, f"manifest update skipped: {exc}")
+
+        if json_output:
+            print(
+                json.dumps(
+                    {
+                        "command": "upgrade --copilot",
+                        "written": [str(p) for p in result.written],
+                        "force_rendered": [str(p) for p in result.force_rendered],
+                        "preserved": [str(p) for p in result.preserved],
+                        "pending_user_consent": [
+                            str(p) for p in result.pending_user_consent
+                        ],
+                    }
+                )
+            )
+        else:
+            for p in result.written:
+                console.print(f"  [green]Rendered:[/green] {p.relative_to(target)}")
+            for p in result.force_rendered:
+                console.print(
+                    f"  [yellow]Force-rendered:[/yellow] {p.relative_to(target)} (--force-render)"
+                )
+            for p in result.pending_user_consent:
+                err_console.print(
+                    f"  [red]Preserved (pending consent):[/red] {p.relative_to(target)}\n"
+                    f"    To overwrite, re-run with: "
+                    f"--force-render {p.relative_to(target)}"
+                )
+        # Exit non-zero when there are pending conflicts (per FR-008)
+        if result.has_conflicts and not force_render:
+            raise typer.Exit(code=1)
+        return
 
     if not json_output:
         if dry_run:
@@ -1449,15 +1779,29 @@ def upgrade(
             cmd_dir_rel = tool_config.get("commands_dir")
             rules_dir_rel = tool_config.get("rules_dir")
 
-            # Re-copy commands and rules
-            if tool_name == "cursor":
-                total_cmds += copy_commands_cursor(
-                    commands_source, target, tool_config, rules_source
-                )
-            elif tool_name == "codex":
-                # T049: copy_commands_codex deleted — Codex no per-solution writes
-                pass
+            # Feature 019 / T042 / FR-015: upgrade is a NO-OP for plugin-native
+            # hosts (claude, codex, cursor in plugin mode) — the plugin install
+            # path serves commands/skills/agents, not per-solution copies. The
+            # only per-solution refresh is `.claude/settings.json` via the host
+            # adapter. Exceptions propagate so `_atomic_upgrade` can rollback.
+            if tool_name in PLUGIN_NATIVE_HOSTS:
+                if tool_name == "claude":
+                    from dotnet_ai_kit.hosts.claude import ClaudeHost  # noqa: PLC0415
+
+                    ClaudeHost().write_per_solution_files(
+                        target,
+                        permission_profile=config.permissions_level,
+                    )
+                # Cursor's legacy `.cursor/rules/*.mdc` per-rule files are
+                # refreshed by copy_commands_cursor only when not in plugin mode
+                # (kept for backwards compat with old solutions; plugin mode
+                # serves them via the cursor plugin install).
+                if tool_name == "cursor" and not is_plugin:
+                    total_cmds += copy_commands_cursor(
+                        commands_source, target, tool_config, rules_source
+                    )
             else:
+                # Render-only or unknown future host: keep legacy bulk-copy path.
                 total_cmds += copy_commands(
                     commands_source,
                     target,
@@ -1467,21 +1811,21 @@ def upgrade(
                 )
                 total_rules += copy_rules(rules_source, target, tool_config)
 
-            # Re-copy skills and agents for all tools
-            if skills_source.is_dir():
-                total_skills += copy_skills(
-                    skills_source,
-                    target,
-                    tool_config,
-                    detected_paths=_upg_detected_paths,
-                )
-            if agents_source.is_dir():
-                total_agents += copy_agents(
-                    agents_source,
-                    target,
-                    tool_config,
-                    tool_name=tool_name,
-                )
+                # Re-copy skills and agents for non-plugin-native hosts only
+                if skills_source.is_dir():
+                    total_skills += copy_skills(
+                        skills_source,
+                        target,
+                        tool_config,
+                        detected_paths=_upg_detected_paths,
+                    )
+                if agents_source.is_dir():
+                    total_agents += copy_agents(
+                        agents_source,
+                        target,
+                        tool_config,
+                        tool_name=tool_name,
+                    )
 
         # Deploy architecture profile and hook
         _upgrade_profile_path = None
@@ -2258,6 +2602,11 @@ def migrate(
         "--host",
         help="Scope migration to files with host_owner == <host>. Default: all hosts.",
     ),
+    include_linked: bool = typer.Option(
+        False,
+        "--include-linked",
+        help="Also migrate legacy copies in linked secondary repos (FR-033 / T096).",
+    ),
 ) -> None:
     """Migrate legacy per-solution copies to the plugin-native architecture.
 
@@ -2271,6 +2620,11 @@ def migrate(
     Backups use 3-keep rotation per FR-023. Does NOT re-render Copilot
     files (FR-024 — that's `upgrade --copilot`'s job). Does NOT delete
     files outright (FR-021 — always moves to backup).
+
+    Per FR-033 / SC-014 / T096: when `--include-linked` is set, also
+    iterates the primary's `config.repos.*` linked secondaries and runs
+    migrate against each (subject to the same user-modified preservation
+    rules per FR-022).
     """
     import shutil as _shutil
     from datetime import datetime, timezone
@@ -2423,6 +2777,80 @@ def migrate(
         console.print(
             f"[yellow]{len(actions['preserve'])} user-modified files preserved in place.[/yellow]"
         )
+
+    # Feature 019 / T096 / FR-033 / SC-014: linked-secondary migration.
+    if include_linked:
+        try:
+            from dotnet_ai_kit.config import load_config  # noqa: PLC0415
+
+            cfg_path = target / ".dotnet-ai-kit" / "config.yml"
+            if cfg_path.is_file():
+                cfg = load_config(cfg_path)
+                linked: list[Path] = []
+                for role in ("command", "query", "processor", "gateway", "controlpanel"):
+                    repo_str = getattr(cfg.repos, role, None)
+                    if not repo_str or repo_str.startswith("github:"):
+                        continue
+                    p = Path(repo_str)
+                    if p.is_dir() and (p / ".dotnet-ai-kit" / "manifest.json").is_file():
+                        linked.append(p)
+                if linked:
+                    console.print(
+                        f"\n[bold]Linked secondaries — applying migrate ({len(linked)}):[/bold]"
+                    )
+                    for sec in linked:
+                        console.print(f"  -> {sec}")
+                        # Recursive in-process: call migrate's core logic again.
+                        # Use a fresh manifest scope, no nested --include-linked
+                        # to prevent loops.
+                        try:
+                            sec_manifest = read_manifest(sec)
+                            if sec_manifest is None:
+                                continue
+                            sec_backup = sec / ".dotnet-ai-kit" / "backups" / "migrate" / timestamp
+                            sec_backup.mkdir(parents=True, exist_ok=True)
+                            sec_moved = []
+                            sec_preserved = []
+                            for sec_entry in sec_manifest.files:
+                                if host_filter and (sec_entry.host_owner or "").lower() != host_filter:
+                                    continue
+                                klass = classify_file(sec, sec_entry)
+                                if klass == "clean":
+                                    src = sec / sec_entry.path
+                                    dst = sec_backup / sec_entry.path
+                                    dst.parent.mkdir(parents=True, exist_ok=True)
+                                    if src.is_file():
+                                        _shutil.move(str(src), str(dst))
+                                        sec_moved.append(sec_entry.path)
+                                elif klass == "user-modified":
+                                    if include_modified:
+                                        src = sec / sec_entry.path
+                                        dst = sec_backup / sec_entry.path
+                                        dst.parent.mkdir(parents=True, exist_ok=True)
+                                        if src.is_file():
+                                            _shutil.move(str(src), str(dst))
+                                            sec_moved.append(sec_entry.path)
+                                    else:
+                                        sec_preserved.append(sec_entry.path)
+                            console.print(
+                                f"     moved {len(sec_moved)}, preserved {len(sec_preserved)}"
+                            )
+                            # Update secondary manifest
+                            sec_remaining = [
+                                f for f in sec_manifest.files if f.path not in set(sec_moved)
+                            ]
+                            sec_new = sec_manifest.model_copy(
+                                update={
+                                    "schema_version": "2",
+                                    "files": sec_remaining,
+                                    "last_migrate_at": utc_now_iso(),
+                                }
+                            )
+                            write_manifest(sec, sec_new)
+                        except Exception as exc:
+                            console.print(f"     [yellow]skipped: {exc}[/yellow]")
+        except Exception as exc:
+            console.print(f"\n[yellow]linked-secondary migration skipped: {exc}[/yellow]")
 
 
 # ---------------------------------------------------------------------------

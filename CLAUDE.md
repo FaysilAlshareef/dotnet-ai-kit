@@ -76,6 +76,23 @@ pip install -e ".[dev]"
 9. **Models**: Use pydantic v2 BaseModel with field_validator decorators
 10. **Type hints**: Use `from __future__ import annotations` for modern syntax in Python 3.10+
 
+## Feature 019 architecture (v1.0+)
+
+**Plugin-native architecture** (Claude/Codex/Cursor plugin-native; Copilot render-only):
+
+- `dotnet-ai init` writes ≤18 per-solution files (`.dotnet-ai-kit/{config,project,manifest,version}.yml|json|txt` + `.claude/settings.json`). Commands, skills, agents come from the **plugin install path**.
+- `dotnet-ai upgrade` is a no-op for plugin-native hosts (per FR-015). `dotnet-ai upgrade --copilot` re-renders Copilot files only.
+- `dotnet-ai migrate` cleans up legacy pre-019 layout artifacts (3-keep backup rotation). Use `--include-linked` to recurse into linked secondaries (FR-033).
+- `dotnet-ai check` validates the install (6 check classes, 8 exit codes).
+- `dotnet-ai render skill|rule <name>` renders a skill or rule body with current project metadata substituted (FR-019 / SC-012).
+
+**Rule classification** (constitution v1.0.8):
+
+- `rules/conventions/` — **5 universal rules** (always loaded): `async-concurrency`, `coding-style`, `existing-projects`, `security`, `tool-calls`
+- `rules/domain/` — **11 path-scoped rules** (loaded only when a matching file is touched): `api-design`, `architecture`, `configuration`, `data-access`, `error-handling`, `localization`, `multi-repo`, `naming`, `observability`, `performance`, `testing`
+
+**No-network invariant** (A-011): `dotnet-ai init/check/migrate/render` MUST NOT make network calls. Verified by `tests/unit/test_no_network_invariant.py`.
+
 ## Commands (27 total)
 
 | Full Name | Short Alias | Category |

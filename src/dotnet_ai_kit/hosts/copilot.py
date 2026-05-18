@@ -120,6 +120,7 @@ class CopilotHost(Host):
         project_root: Path,
         *,
         force_render_paths: Optional[list[Path]] = None,
+        plugin_root: Optional[Path] = None,
     ) -> CopilotRenderResult:
         """Render the three Copilot file classes per FR-007.
 
@@ -127,39 +128,172 @@ class CopilotHost(Host):
             project_root: Project root containing `.dotnet-ai-kit/project.yml`.
             force_render_paths: Optional list of paths the user explicitly
                 opted in to overwrite (per FR-008 path-specific opt-in).
+            plugin_root: Plugin source root (containing
+                `agents-copilot-templates/`, `rules/`, `agents-source/`).
+                Defaults to the auto-detected package dir.
 
         Returns:
             CopilotRenderResult with written/preserved/force_rendered/
             pending_user_consent partitions.
-
-        v1 minimal: renders a placeholder copilot-instructions.md based on
-        the template under `agents-copilot-templates/`. Full implementation
-        (path-scoped + per-agent files) is staged in follow-up work.
         """
         force_render_paths = force_render_paths or []
+        # Normalize paths for comparison
+        force_set = {p.resolve() for p in force_render_paths}
         result = CopilotRenderResult()
 
-        # Target: .github/copilot-instructions.md
+        # Resolve plugin_root for template discovery
+        if plugin_root is None:
+            # Late import to avoid circular dependency
+            from dotnet_ai_kit.cli import _get_package_dir  # noqa: PLC0415
+
+            plugin_root = _get_package_dir()
+
         github_dir = project_root / ".github"
+
+        # ---- 1. Repository-wide instructions ----
         instructions_path = github_dir / "copilot-instructions.md"
-
-        if instructions_path.is_file() and instructions_path not in force_render_paths:
-            # Pre-existing user file — preserve per FR-008 / A-008
+        if instructions_path.is_file() and instructions_path.resolve() not in force_set:
             result.pending_user_consent.append(instructions_path)
-            return result
-
-        github_dir.mkdir(parents=True, exist_ok=True)
-
-        # v1 minimal placeholder — full template render in follow-up work
-        content = self._render_copilot_instructions_minimal(project_root)
-        instructions_path.write_text(content, encoding="utf-8")
-
-        if instructions_path in force_render_paths:
-            result.force_rendered.append(instructions_path)
         else:
-            result.written.append(instructions_path)
+            github_dir.mkdir(parents=True, exist_ok=True)
+            content = self._render_copilot_instructions_minimal(project_root)
+            instructions_path.write_text(content, encoding="utf-8")
+            if instructions_path.resolve() in force_set:
+                result.force_rendered.append(instructions_path)
+            else:
+                result.written.append(instructions_path)
+
+        # ---- 2. Path-scoped instructions per detected_paths ----
+        detected_paths = self._load_detected_paths(project_root)
+        instructions_dir = github_dir / "instructions"
+        for area_key, glob_pattern in detected_paths.items():
+            inst_file = instructions_dir / f"{area_key}.instructions.md"
+            if inst_file.is_file() and inst_file.resolve() not in force_set:
+                result.pending_user_consent.append(inst_file)
+                continue
+            instructions_dir.mkdir(parents=True, exist_ok=True)
+            body = self._render_path_instructions(
+                plugin_root, area_key, glob_pattern, project_root
+            )
+            if body is None:
+                continue  # template missing — skip silently
+            inst_file.write_text(body, encoding="utf-8")
+            if inst_file.resolve() in force_set:
+                result.force_rendered.append(inst_file)
+            else:
+                result.written.append(inst_file)
+
+        # ---- 3. Per-agent files from agents-source/ ----
+        agents_source = plugin_root / "agents-source"
+        agents_dir = github_dir / "agents"
+        if agents_source.is_dir():
+            for agent_src in sorted(agents_source.glob("*.md")):
+                agent_name = agent_src.stem
+                agent_file = agents_dir / f"{agent_name}.agent.md"
+                if agent_file.is_file() and agent_file.resolve() not in force_set:
+                    result.pending_user_consent.append(agent_file)
+                    continue
+                body = self._render_agent_file(plugin_root, agent_src)
+                if body is None:
+                    continue
+                agents_dir.mkdir(parents=True, exist_ok=True)
+                agent_file.write_text(body, encoding="utf-8")
+                if agent_file.resolve() in force_set:
+                    result.force_rendered.append(agent_file)
+                else:
+                    result.written.append(agent_file)
 
         return result
+
+    @staticmethod
+    def _load_detected_paths(project_root: Path) -> dict[str, str]:
+        """Read project.yml.detected_paths."""
+        try:
+            import yaml as _yaml  # noqa: PLC0415
+
+            pym = project_root / ".dotnet-ai-kit" / "project.yml"
+            if not pym.is_file():
+                return {}
+            data = _yaml.safe_load(pym.read_text(encoding="utf-8")) or {}
+            if isinstance(data, dict) and "detected" in data:
+                data = data["detected"]
+            paths = data.get("detected_paths") if isinstance(data, dict) else None
+            if isinstance(paths, dict):
+                return {str(k): str(v) for k, v in paths.items()}
+        except Exception:  # noqa: BLE001
+            pass
+        return {}
+
+    @staticmethod
+    def _render_path_instructions(
+        plugin_root: Path,
+        area_key: str,
+        glob_pattern: str,
+        project_root: Path,
+    ) -> Optional[str]:
+        """Render `.github/instructions/<area>.instructions.md` per
+        contracts/copilot-instructions-path.contract.md."""
+        try:
+            from jinja2 import Template  # noqa: PLC0415
+
+            template_path = plugin_root / "agents-copilot-templates" / "instructions-path.md.j2"
+            if not template_path.is_file():
+                return None
+            tmpl = Template(template_path.read_text(encoding="utf-8"))
+
+            # Use the matching domain rule body when available
+            rule_path = plugin_root / "rules" / "domain" / f"{area_key}.md"
+            domain_rule_body = (
+                rule_path.read_text(encoding="utf-8") if rule_path.is_file() else ""
+            )
+            return tmpl.render(
+                apply_to_globs=[glob_pattern],
+                area_title=area_key.replace("-", " ").title(),
+                domain_rule_body=domain_rule_body,
+                metadata_overrides={},
+            )
+        except Exception:  # noqa: BLE001
+            return None
+
+    @staticmethod
+    def _render_agent_file(plugin_root: Path, agent_src: Path) -> Optional[str]:
+        """Render `.github/agents/<name>.agent.md` per
+        contracts/copilot-agent.contract.md."""
+        try:
+            from jinja2 import Template  # noqa: PLC0415
+
+            template_path = plugin_root / "agents-copilot-templates" / "agent.md.j2"
+            if not template_path.is_file():
+                return None
+            tmpl = Template(template_path.read_text(encoding="utf-8"))
+
+            # Parse the agent source for frontmatter + body
+            text = agent_src.read_text(encoding="utf-8")
+            import re as _re  # noqa: PLC0415
+
+            m = _re.match(r"^---\n(.*?)\n---\n?(.*)$", text, _re.DOTALL)
+            frontmatter: dict = {}
+            body = text
+            if m:
+                import yaml as _yaml  # noqa: PLC0415
+
+                frontmatter = _yaml.safe_load(m.group(1)) or {}
+                body = m.group(2)
+            return tmpl.render(
+                name=frontmatter.get("name", agent_src.stem),
+                description=frontmatter.get("description", ""),
+                target=frontmatter.get("target", None),
+                tools=frontmatter.get("tools", []),
+                model=frontmatter.get("model", None),
+                disable_model_invocation=frontmatter.get(
+                    "disable_model_invocation", None
+                ),
+                user_invocable=frontmatter.get("user_invocable", None),
+                mcp_servers=frontmatter.get("mcp_servers", []),
+                body=body.strip(),
+            )
+        except Exception:  # noqa: BLE001
+            return None
 
     @staticmethod
     def _render_copilot_instructions_minimal(project_root: Path) -> str:

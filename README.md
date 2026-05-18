@@ -774,13 +774,19 @@ your-project/
 │   │       ├── spec.md
 │   │       ├── plan.md
 │   │       └── tasks.md
+│   ├── manifest.json           # Managed-file registry (feature 019)
 │   └── extensions/             # Installed extensions registry
 └── .claude/
-    ├── commands/               # Deployed slash commands (full or short aliases)
-    ├── rules/                  # 16 rules + architecture-profile.md
-    ├── skills/                 # 124 skills
-    └── agents/                 # 13 specialist agents
+    └── settings.json           # Permission preset (feature 019: per-solution-only)
 ```
+
+> **Feature 019 (v1.0.0) plugin-native architecture**: `dotnet-ai-kit init`
+> now writes **≤18 files** per solution (down from ~180 pre-019), a 90%+
+> reduction. All 27 commands, 124 skills, 13 agents, 16 rules
+> (5 universal + 11 path-scoped) are served from the **plugin install path**
+> (Claude/Codex/Cursor plugin systems), NOT bulk-copied per solution.
+> Copilot uses an explicit render path (`.github/copilot-instructions.md`,
+> `.github/instructions/*.instructions.md`, `.github/agents/*.agent.md`).
 
 ### Constitution & Persistent Knowledge
 
