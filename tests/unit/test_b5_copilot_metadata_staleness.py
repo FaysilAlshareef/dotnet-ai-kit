@@ -97,8 +97,8 @@ def test_copilot_freshness_detects_company_rename(tmp_path: Path, monkeypatch) -
     checks = data.get("checks") or []
     copilot_check = next((c for c in checks if c.get("name") == "copilot_freshness"), None)
     assert copilot_check is not None, f"copilot_freshness check missing: {data!r}"
-    # Acceptable states: 'fail' (re-render caught drift) or 'skip' (no manifest entries to re-render).
-    # 'pass' is the bug.
+    # Acceptable states: 'fail' (re-render caught drift) or 'skip' (no manifest
+    # entries to re-render). 'pass' is the bug.
     assert copilot_check["status"] in ("fail", "skip"), (
         f"B-5 violation: copilot_freshness reported 'pass' despite "
         f"company rename. Check details: {copilot_check!r}"
