@@ -28,7 +28,6 @@ from dotnet_ai_kit.config import (
     load_config,
     load_project,
     save_config,
-    save_project,
 )
 from dotnet_ai_kit.copier import (
     CopyError,
@@ -968,7 +967,10 @@ def init(
         # T147 derivation table: gather required ProjectMetadata fields from
         # CLI flags first, falling back to config / detection / defaults.
         from dotnet_ai_kit.config import save_project_metadata  # noqa: PLC0415
-        from dotnet_ai_kit.models import ProjectMetadata, derive_architecture_branch  # noqa: PLC0415
+        from dotnet_ai_kit.models import (  # noqa: PLC0415
+            ProjectMetadata,
+            derive_architecture_branch,
+        )
 
         pm_company = company or getattr(getattr(config, "company", None), "name", "") or ""
         pm_domain = domain or "Sales"  # placeholder when no flag/detection
