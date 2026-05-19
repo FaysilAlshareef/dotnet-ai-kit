@@ -217,3 +217,156 @@ def render_rule(name: str, plugin_root: Path, project_root: Path, host: str = "c
     metadata = load_project_metadata(project_root)
     body = rule_path.read_text(encoding="utf-8")
     return substitute_metadata(body, metadata)
+
+
+# ---------------------------------------------------------------------------
+# T195b — Cursor `.mdc` rule renderer (PASS branch of OOS-005)
+# ---------------------------------------------------------------------------
+#
+# Cursor's documented rule format (`https://cursor.com/docs/context/rules`,
+# research R12) packages each rule as a `.mdc` file under the plugin's
+# `rules/cursor/` directory. The frontmatter shape:
+#
+#   description: <string>
+#   globs: <comma-separated list>     # absent when alwaysApply: true
+#   alwaysApply: <true | false>
+#
+# Mapping for feature 019:
+#   rules/conventions/*.md  →  alwaysApply: true   (universal, no globs)
+#   rules/domain/*.md       →  alwaysApply: false  + globs: from `paths:`
+
+
+import re as _re_for_mdc  # noqa: E402
+
+import yaml as _yaml_for_mdc  # noqa: E402
+
+_RULE_FRONTMATTER_RE = _re_for_mdc.compile(r"\A---\s*\n(.*?\n)---\s*\n?(.*)\Z", _re_for_mdc.DOTALL)
+
+
+def _parse_rule_frontmatter(rule_path: Path) -> tuple[dict, str]:
+    """Parse a `rules/conventions/*.md` or `rules/domain/*.md` source rule.
+
+    Returns ``(frontmatter_dict, body_with_no_leading_separator)``. Raises
+    ValueError if the file lacks the `---`-delimited YAML frontmatter.
+    """
+    text = rule_path.read_text(encoding="utf-8")
+    match = _RULE_FRONTMATTER_RE.match(text)
+    if not match:
+        raise ValueError(
+            f"Rule file {rule_path} has no YAML frontmatter "
+            f"(expected '---' delimiters at file start)."
+        )
+    fm = _yaml_for_mdc.safe_load(match.group(1)) or {}
+    if not isinstance(fm, dict):
+        raise ValueError(f"Rule file {rule_path} frontmatter must be a YAML mapping")
+    body = match.group(2)
+    return fm, body
+
+
+def render_cursor_rule_mdc(rule_path: Path) -> str:
+    """Render a Cursor `.mdc` file from a `rules/{conventions,domain}/*.md` source.
+
+    Feature 019 / commit 29 / T195b — OOS-005 PASS branch. The source rule
+    file lives under `rules/conventions/` (universal) or `rules/domain/`
+    (path-scoped) and uses Claude-shaped frontmatter (`description:` and
+    optional `paths:` list). This renderer converts it to Cursor's `.mdc`
+    frontmatter (`description:`, `globs:`, `alwaysApply:`) per research
+    R12 (`https://cursor.com/docs/context/rules`).
+
+    Mapping:
+      * ``rules/conventions/<name>.md``  → ``alwaysApply: true``  (no globs)
+      * ``rules/domain/<name>.md``       → ``alwaysApply: false`` + ``globs``
+        (comma-separated, from the source's ``paths:`` list)
+
+    The body is copied verbatim — no project-metadata substitution at render
+    time (these .mdc files ship in the plugin package and are loaded by
+    Cursor's runtime; substitution is the consumer's responsibility).
+
+    Args:
+        rule_path: ``Path`` to the source rule file under ``rules/conventions/``
+            or ``rules/domain/``.
+
+    Returns:
+        The full ``.mdc`` file content (frontmatter + body) ready to be
+        written to ``rules/cursor/<rule_stem>.mdc``.
+
+    Raises:
+        ValueError: if the source has no YAML frontmatter, or if a
+            ``rules/domain/*.md`` source has no ``paths:`` list.
+    """
+    fm, body = _parse_rule_frontmatter(rule_path)
+
+    # Classification: conventions ⇒ alwaysApply; domain ⇒ globs.
+    parts = rule_path.parts
+    is_convention = "conventions" in parts
+    is_domain = "domain" in parts
+
+    cursor_fm: dict = {}
+    description = fm.get("description")
+    if description:
+        cursor_fm["description"] = description
+
+    if is_convention:
+        # Universal rule: no globs, always-on.
+        cursor_fm["alwaysApply"] = True
+    elif is_domain:
+        # Path-scoped: glob patterns drive activation.
+        paths = fm.get("paths") or []
+        if not paths:
+            raise ValueError(
+                f"Domain rule {rule_path} has no `paths:` list — "
+                f"required for Cursor `globs:` activation. Add `paths:` "
+                f"under the source frontmatter or move the rule to "
+                f"rules/conventions/."
+            )
+        if not isinstance(paths, list):
+            raise ValueError(
+                f"Domain rule {rule_path}: `paths:` must be a list of glob "
+                f"strings, got {type(paths).__name__}."
+            )
+        # Cursor's `globs` frontmatter is a comma-separated string per
+        # cursor.com/docs/context/rules.
+        cursor_fm["globs"] = ",".join(str(p) for p in paths)
+        cursor_fm["alwaysApply"] = False
+    else:
+        # Defensive: source not under conventions/ or domain/ — treat as
+        # always-apply universal to preserve coverage.
+        cursor_fm["alwaysApply"] = True
+
+    # Render with stable key order: description, globs, alwaysApply.
+    ordered: dict = {}
+    if "description" in cursor_fm:
+        ordered["description"] = cursor_fm["description"]
+    if "globs" in cursor_fm:
+        ordered["globs"] = cursor_fm["globs"]
+    ordered["alwaysApply"] = cursor_fm["alwaysApply"]
+
+    fm_yaml = _yaml_for_mdc.dump(
+        ordered, default_flow_style=False, sort_keys=False, allow_unicode=True
+    )
+    return f"---\n{fm_yaml}---\n\n{body.lstrip(chr(10))}"
+
+
+def write_cursor_rules_for_plugin(plugin_root: Path) -> list[Path]:
+    """Regenerate `rules/cursor/*.mdc` from `rules/conventions/` + `rules/domain/`.
+
+    Feature 019 / commit 29 / T195b. Used at plugin-build time to populate
+    the directory referenced by `.cursor-plugin/plugin.json::rules`.
+
+    Returns the list of `.mdc` file paths written. Sorted for determinism.
+    """
+    rules_root = plugin_root / "rules"
+    out_dir = rules_root / "cursor"
+    out_dir.mkdir(parents=True, exist_ok=True)
+
+    written: list[Path] = []
+    for sub in ("conventions", "domain"):
+        sub_dir = rules_root / sub
+        if not sub_dir.is_dir():
+            continue
+        for src in sorted(sub_dir.glob("*.md")):
+            mdc_content = render_cursor_rule_mdc(src)
+            out_path = out_dir / f"{src.stem}.mdc"
+            out_path.write_text(mdc_content, encoding="utf-8")
+            written.append(out_path)
+    return sorted(written)

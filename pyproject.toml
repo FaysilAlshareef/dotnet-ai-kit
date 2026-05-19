@@ -52,15 +52,13 @@ packages = ["src/dotnet_ai_kit"]
 [tool.hatch.build.targets.wheel.force-include]
 "commands" = "dotnet_ai_kit/bundled/commands"
 "rules" = "dotnet_ai_kit/bundled/rules"
-# Feature 019 / commit 25 / T170c (OOS-005 fail-safe default): the `agents/`
-# Cursor build-output directory is INTENTIONALLY excluded from the v1.0
-# wheel until the A-005 spike fixture flips the outcome JSON to `passed`.
-# Per `contracts/cursor-fixture-decision.contract.md:48`, the fail-path
-# drops this directory from packaging. The source-of-truth markdown bodies
-# still ship via `agents-source` below; only the Cursor build output is
-# withheld until the spike passes. Restore this line in T171 after a PASS
-# outcome.
-# "agents" = "dotnet_ai_kit/bundled/agents"
+# Feature 019 / commit 25 / T171 (OOS-005 PASS branch): the `agents/` Cursor
+# build-output directory is RESTORED to packaging after the A-005 spike
+# fixture outcome JSON flipped to `passed`. Per
+# `contracts/cursor-fixture-decision.contract.md:27-31`, the PASS-branch
+# ships full 13-specialist Cursor sub-agent generation; the directory is
+# the manifest target of `.cursor-plugin/plugin.json::agents`.
+"agents" = "dotnet_ai_kit/bundled/agents"
 "skills" = "dotnet_ai_kit/bundled/skills"
 "knowledge" = "dotnet_ai_kit/bundled/knowledge"
 "templates" = "dotnet_ai_kit/bundled/templates"

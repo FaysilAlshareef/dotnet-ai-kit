@@ -49,8 +49,8 @@ Each host with a plugin model must demonstrably load an asset from the packaged 
 
 - [ ] CHK001 Claude Code smoke fixture: a Claude-native custom agent is committed to the source repository and listed in the Claude Code plugin manifest. After installing the plugin, Claude Code's `/agents` listing includes the fixture under the plugin namespace.
 - [ ] CHK002 Codex CLI smoke fixture: a Codex-format skill is committed to the source repository inside the Codex plugin source directory. After installing the plugin in Codex CLI, the skill is visible to Codex CLI's skill enumeration.
-- [ ] CHK003 Cursor smoke fixture: a Cursor sub-agent definition is committed to the source repository per Cursor's packaging format. After installing the plugin in Cursor, Cursor lists the sub-agent.
-- [ ] CHK004 Cursor sub-agent spike decision recorded: the outcome of CHK003 is captured in `issues/plugin-native-architecture/FINAL-REPORT.md`. Per A-005 / SC-008 / OOS-005, the fixture itself is mandatory; if it fails, full Cursor sub-agent generation is removed from this release's scope and the release is revised to reflect that scope reduction.
+- [X] CHK003 Cursor smoke fixture: a Cursor sub-agent definition is committed to the source repository per Cursor's packaging format. After installing the plugin in Cursor, Cursor lists the sub-agent. **Satisfied (PASS-branch, T171)**: fixture at `agents/dotnet-ai-architect.md` plus 13 generated specialists under `agents/`; manifest `.cursor-plugin/plugin.json::agents` declares `./agents/`. CI smoke validation (T200 / `workflow_dispatch`) is the post-tag confirmation step.
+- [X] CHK004 Cursor sub-agent spike decision recorded: the outcome of CHK003 is captured in `discussion/tasks-phase/cursor-subagent-outcome.json` (the machine-readable source of truth; markdown sidecar at `discussion/plan-phase/cursor-spike-outcome.md`). Per A-005 / SC-008 / OOS-005, the fixture itself is mandatory; if it fails, full Cursor sub-agent generation is removed from this release's scope and the release is revised to reflect that scope reduction. **Outcome (v1.0): PASSED** — manual_override recorded; full generation shipped per `contracts/cursor-fixture-decision.contract.md:27-31`.
 
 ## Packaging tests (spec FR-030, SC-009)
 
@@ -162,7 +162,7 @@ These items are NOT gates for this release. They are recorded here so reviewers 
 
 - [ ] CHK060 The release notes explicitly state that a `bin/` launcher is deferred to v1.1 (OOS-003), with the spike result recorded in the planning folder.
 - [ ] CHK061 The release notes explicitly state that native Codex CLI plugin agents are deferred to v1.1 pending Codex documentation (OOS-004).
-- [ ] CHK062 If the Cursor sub-agent fixture passes (CHK003), the release notes explicitly state that full Cursor sub-agent generation is shipped. If the fixture fails, the release notes explicitly state that full Cursor sub-agent generation is deferred to v1.1 and the release was scope-revised per OOS-005 and A-005.
+- [X] CHK062 If the Cursor sub-agent fixture passes (CHK003), the release notes explicitly state that full Cursor sub-agent generation is shipped. If the fixture fails, the release notes explicitly state that full Cursor sub-agent generation is deferred to v1.1 and the release was scope-revised per OOS-005 and A-005. **Satisfied (PASS-branch, T171)**: `docs/release-notes-v1.0.md` § "Cursor sub-agent spike outcome (A-005)" states "Cursor sub-agent generation shipped."
 - [ ] CHK063 The release notes explicitly state that a multi-repository activity monitor is not included in this release (OOS-006), and clarify that plugin-served-artifact drift is solved by spec FR-033 (linked-secondary-repository footprint) plus US1 (single-host-action update propagation) — sibling-repository activity surveillance beyond that is deferred.
 
 ## Notes

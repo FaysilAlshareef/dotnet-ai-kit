@@ -29,9 +29,9 @@ _FEATURE_019_BUNDLED_FILES = [
 _FEATURE_019_BUNDLED_DIRS = [
     "bundled/agents-source/",
     "bundled/agents-claude/",
-    # T170c (commit 25, OOS-005 fail-safe): `bundled/agents/` excluded
-    # from the v1.0 wheel until the A-005 spike outcome flips to `passed`.
-    # "bundled/agents/",
+    # T171 (commit 25, OOS-005 PASS branch): `bundled/agents/` restored to
+    # the v1.0 wheel after the A-005 spike outcome flipped to `passed`.
+    "bundled/agents/",
     "bundled/agents-copilot-templates/",
     "bundled/rules/conventions/",
     "bundled/rules/domain/",

@@ -208,28 +208,25 @@ def generate_codex_agent(source_path: Path) -> None:
 
 
 def generate_cursor_agent(source_path: Path) -> str:
-    """Render a Cursor-shape agent file (commit 6 T058 scope, T170c).
+    """Render a Cursor-shape agent file (commit 6 T058 scope; T171 PASS branch).
 
     Per data-model.md § 7 / cursor-fixture-decision.contract.md, the Cursor
     frontmatter allow-list is exactly {name, description, model, readonly}.
 
-    **Feature 019 / commit 25 / T170c — OOS-005 fail-safe default:** until the
-    A-005 spike fixture has demonstrably passed the Cursor CLI smoke test in
-    CI (outcome JSON at `specs/019-plugin-native-arch/discussion/tasks-phase/
-    cursor-subagent-outcome.json::outcome == "passed"`), this generator
-    raises NotImplementedError. Once a CI run flips the JSON to `passed`,
-    T171 unblocks the generation step (re-enable by restoring the
-    pre-T170c implementation OR conditioning on the JSON outcome at call
-    time). See `contracts/cursor-fixture-decision.contract.md` for the
-    canonical decision rule.
+    **Feature 019 / commit 25 / T171 — OOS-005 PASS branch (reinstated):**
+    the A-005 spike fixture outcome has flipped to `passed` in
+    `specs/019-plugin-native-arch/discussion/tasks-phase/cursor-subagent-outcome.json`.
+    Per `contracts/cursor-fixture-decision.contract.md:27-31`, full Cursor
+    sub-agent generation is in scope: this generator lifts the source's
+    `host_overrides.cursor.*` fields into the output and writes the body
+    verbatim. Sources without a `host_overrides.cursor` block emit only
+    `{name, description}` — Cursor's `model` and `readonly` are optional
+    per the verified `cursor/plugins/agent-compatibility/agents/startup-review.md`
+    shape.
     """
-    raise NotImplementedError(
-        "Cursor sub-agent generation is gated on the A-005 spike fixture "
-        "outcome (cursor-subagent-outcome.json::outcome must be 'passed'). "
-        f"Received {source_path}; ship the fail-safe default. See "
-        "specs/019-plugin-native-arch/contracts/cursor-fixture-decision.contract.md "
-        "for the gating rule and the v1.1 plan."
-    )
+    src = AgentSource.from_file(source_path)
+    fm = _build_host_frontmatter(src, "cursor", _CURSOR_ALLOW_LIST)
+    return _render_frontmatter(fm) + src.body.lstrip("\n")
 
 
 def generate_copilot_agent(

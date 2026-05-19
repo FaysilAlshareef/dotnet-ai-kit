@@ -215,14 +215,15 @@ def test_generate_codex_agent_raises_not_implemented(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_generate_cursor_agent_raises_until_a005_passes(tmp_path: Path) -> None:
-    """T170c (commit 25, OOS-005 fail-safe default): generate_cursor_agent()
-    MUST raise NotImplementedError until the A-005 spike fixture outcome JSON
-    flips to `passed`. The previous shape-emitting behavior is restored by
-    T171 (PASS branch) once Cursor's loader is verified in CI.
-    """
-    import pytest  # noqa: PLC0415
+def test_generate_cursor_agent_emits_cursor_allow_list(tmp_path: Path) -> None:
+    """T171 (commit 25, OOS-005 PASS branch): generate_cursor_agent() lifts
+    `host_overrides.cursor.*` fields into top-level frontmatter, copies the
+    body verbatim, and does NOT leak Claude/Copilot fields.
 
+    Per `cursor-fixture-decision.contract.md:27-31`, this is the post-PASS
+    shape — the previous NotImplementedError gate is removed once the spike
+    fixture outcome JSON flipped to `passed`.
+    """
     path = _write_agent(
         tmp_path,
         "cur",
@@ -231,11 +232,53 @@ def test_generate_cursor_agent_raises_until_a005_passes(tmp_path: Path) -> None:
             "description": "Cursor agent",
             "host_overrides": {
                 "cursor": {"model": "claude-sonnet-4", "readonly": False},
-                "claude": {"role": "advisory"},
+                "claude": {"role": "advisory"},  # MUST NOT leak into Cursor output
+                "copilot": {"target": "solution-root"},  # MUST NOT leak either
             },
         },
     )
-    with pytest.raises(NotImplementedError, match="A-005"):
+    output = generate_cursor_agent(path)
+    # Allow-listed fields lifted to top level
+    assert "name: cur" in output
+    assert "description: Cursor agent" in output
+    assert "model: claude-sonnet-4" in output
+    assert "readonly: false" in output
+    # Cross-host fields MUST NOT leak
+    assert "role:" not in output, "Claude `role` leaked into Cursor output"
+    assert "target:" not in output, "Copilot `target` leaked into Cursor output"
+    # Body preserved verbatim
+    assert "# Body" in output
+
+
+def test_generate_cursor_agent_minimal_source(tmp_path: Path) -> None:
+    """A source without `host_overrides.cursor` emits only {name, description}.
+
+    Cursor's `model` and `readonly` are optional per the verified
+    `cursor/plugins/agent-compatibility/agents/startup-review.md` shape.
+    """
+    path = _write_agent(tmp_path, "min", {"name": "min", "description": "Minimal Cursor agent"})
+    output = generate_cursor_agent(path)
+    assert "name: min" in output
+    assert "description: Minimal Cursor agent" in output
+    # No optional fields in this output
+    assert "model:" not in output
+    assert "readonly:" not in output
+
+
+def test_generate_cursor_agent_rejects_unknown_field(tmp_path: Path) -> None:
+    """Per FR-027: unknown `host_overrides.cursor.<key>` fields MUST be rejected."""
+    path = _write_agent(
+        tmp_path,
+        "bad-cur",
+        {
+            "name": "bad-cur",
+            "description": "Bad",
+            "host_overrides": {
+                "cursor": {"model": "claude-sonnet-4", "made_up_field": "x"},
+            },
+        },
+    )
+    with pytest.raises(ValueError, match="not in the documented allow-list"):
         generate_cursor_agent(path)
 
 

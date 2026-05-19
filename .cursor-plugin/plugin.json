@@ -1,8 +1,10 @@
 {
   "name": "dotnet-ai-kit",
   "version": "1.0.0",
-  "description": "Full .NET development lifecycle plugin for Cursor: 124 skills, 16 rules, MCP integration, hooks. Sub-agent generation pending the A-005 spike fixture outcome (CHK003) — see specs/019-plugin-native-arch/discussion/tasks-phase/cursor-subagent-outcome.json.",
+  "description": "Full .NET development lifecycle plugin for Cursor: 124 skills, 16 rules (5 universal + 11 path-scoped), 13 sub-agents (per A-005 / OOS-005 PASS branch), MCP integration, hooks.",
   "skills": "./skills/",
+  "rules": "./rules/cursor/",
+  "agents": "./agents/",
   "mcpServers": "./.mcp.json",
   "hooks": "./hooks/hooks.json"
 }
