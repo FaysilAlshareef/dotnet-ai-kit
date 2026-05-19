@@ -84,9 +84,15 @@ jobs:
           # Feature 019 / commit 20 / T146-T153 (B-3) made --company/--domain/--side
           # the canonical source of ProjectMetadata; without them init won't
           # write a valid project.yml that downstream render/migrate can consume.
-          # ci/019-plugin-native-arch commit 33: fix.
+          # ci/019-plugin-native-arch commit 33: added --company/--domain/--side.
+          # commit 42: also added `--type generic` — the project.yml writer at
+          # cli.py:964 is gated by `if detected:`, and `detected` is only
+          # populated when `--type` is explicit (cli.py:849). Without `--type`
+          # init silently skipped the project.yml write and downstream render
+          # exited 22.
           dotnet-ai init "$QUICKSTART_DIR" \
             --ai claude \
+            --type generic \
             --company "QuickstartCo" \
             --domain "Quickstart" \
             --side "server" \
