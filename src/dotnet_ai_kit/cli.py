@@ -879,16 +879,21 @@ def init(
     else:
         detected_ai = detect_ai_tools(target)
         if json_output or not _stdin_is_tty():
-            # Non-interactive: pick auto-detect, fall back to Claude.
-            ai_tools = detected_ai or ["claude"]
-            if not json_output:
-                if detected_ai:
-                    console.print(f"\n[dim]Auto-detected AI tools: {', '.join(detected_ai)}.[/dim]")
-                else:
-                    console.print("\n[dim]No AI tool detected. Defaulting to Claude Code.[/dim]")
-        else:
-            # Interactive prompt per FR-014.
-            ai_tools = _prompt_for_hosts(detected_ai or ["claude"])
+            # FR-014: in non-interactive mode without an explicit --ai, MUST
+            # error rather than silently picking a host. Per spec.md:171 and
+            # clarify Q4, silent host selection (even falling back to
+            # auto-detected or Claude) is forbidden.
+            detected_note = f" (auto-detected: {', '.join(detected_ai)})" if detected_ai else ""
+            err_console.print(
+                "[red]Error:[/red] `dotnet-ai init` cannot select an AI host "
+                "in non-interactive mode without `--ai <host>`.\n"
+                "Pass one or more of: --ai claude --ai codex --ai cursor "
+                f"--ai copilot{detected_note}.\n"
+                "Per FR-014 / clarify Q4, silent host selection is forbidden."
+            )
+            raise typer.Exit(code=2)
+        # Interactive prompt per FR-014.
+        ai_tools = _prompt_for_hosts(detected_ai or ["claude"])
 
     _verbose_log(verbose, f"AI tools: {', '.join(ai_tools)}")
 
@@ -3119,7 +3124,7 @@ def check(
             )
             continue
 
-        status_obj = host_obj.verify_install()
+        status_obj = host_obj.verify_install(project_root=target)
         if status_obj.installed:
             _add(
                 f"{host_name}_plugin_install",
@@ -3142,16 +3147,20 @@ def check(
                     10,
                 )
 
-    # 2. External binary prerequisites (exit 11 on miss)
-    csharp_ls = _shutil.which("csharp-ls")
-    if csharp_ls:
-        _add("csharp_ls_binary", "pass", csharp_ls)
-    else:
-        _fail(
-            "csharp_ls_binary",
-            "csharp-ls binary not on PATH — install: https://github.com/razzmatazz/csharp-language-server",
-            11,
-        )
+    # 2. External binary prerequisites (exit 11 on miss).
+    # Per check-cli.contract.md:24-29, external-binary checks apply only when
+    # "a configured host depends on it." csharp-ls is a Claude-LSP-only
+    # dependency, so gate it on Claude being in the host scope.
+    if "claude" in host_names:
+        csharp_ls = _shutil.which("csharp-ls")
+        if csharp_ls:
+            _add("csharp_ls_binary", "pass", csharp_ls)
+        else:
+            _fail(
+                "csharp_ls_binary",
+                "csharp-ls binary not on PATH — install: https://github.com/razzmatazz/csharp-language-server",
+                11,
+            )
 
     # 3. project.yml schema (exit 12 on miss)
     # Feature 019 / commit 20 / B-4 / T153: raw-validate the YAML against

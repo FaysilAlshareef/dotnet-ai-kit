@@ -78,33 +78,44 @@ def test_prompt_helper_falls_back_when_user_cancels() -> None:
     assert result == ["claude", "codex"]
 
 
-def test_init_without_ai_in_json_mode_skips_prompt(tmp_path: Path) -> None:
-    """Per FR-014: JSON mode is non-interactive — no prompt MUST fire."""
+def test_b_cx_3_init_non_interactive_without_ai_flag_errors_per_fr014(
+    tmp_path: Path,
+) -> None:
+    """FR-014 (spec.md:171): non-interactive init MUST NOT default silently.
+    Previously this test asserted exit 0 (the bug). Now it asserts the
+    hard-fail behavior the spec actually requires."""
     _create_dotnet_project(tmp_path)
 
-    with patch("dotnet_ai_kit.cli._prompt_for_hosts") as mock_prompt:
-        result = runner.invoke(
-            app,
-            ["init", str(tmp_path), "--json"],
-            catch_exceptions=False,
-        )
+    # --json forces non-interactive. No --ai given. Per FR-014: error.
+    result = runner.invoke(
+        app,
+        ["init", str(tmp_path), "--type", "generic", "--json"],
+        catch_exceptions=False,
+    )
+    assert result.exit_code == 2, (
+        f"B-CX-3 regression: non-interactive init without --ai must exit 2 "
+        f"per FR-014. Got exit_code={result.exit_code}, output={result.output[:500]}"
+    )
+    # Message must reference FR-014 or "non-interactive" so the user
+    # understands the failure mode.
+    msg = result.output.lower()
+    assert "fr-014" in msg or "non-interactive" in msg or "--ai" in msg, (
+        f"Error message must hint at the required flag: {result.output[:500]}"
+    )
 
-    mock_prompt.assert_not_called()
-    assert result.exit_code == 0
 
-
-def test_init_without_ai_in_non_tty_skips_prompt(tmp_path: Path) -> None:
-    """When stdin is NOT a TTY (CI, piped), MUST skip the prompt."""
+def test_b_cx_3_init_non_interactive_with_explicit_ai_succeeds(tmp_path: Path) -> None:
+    """Positive case: --ai claude with --json must succeed."""
     _create_dotnet_project(tmp_path)
-
-    with (
-        patch("dotnet_ai_kit.cli._stdin_is_tty", return_value=False),
-        patch("dotnet_ai_kit.cli._prompt_for_hosts") as mock_prompt,
-    ):
-        result = runner.invoke(app, ["init", str(tmp_path)], catch_exceptions=False)
-
-    mock_prompt.assert_not_called()
-    assert result.exit_code == 0
+    result = runner.invoke(
+        app,
+        ["init", str(tmp_path), "--ai", "claude", "--type", "generic", "--json"],
+        catch_exceptions=False,
+    )
+    assert result.exit_code == 0, (
+        f"init with explicit --ai claude --json must succeed. "
+        f"Got exit_code={result.exit_code}, output={result.output[:500]}"
+    )
 
 
 def test_init_without_ai_in_tty_fires_prompt(tmp_path: Path) -> None:

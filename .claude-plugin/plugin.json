@@ -178,12 +178,5 @@
   "mcpServers": {
     "configFile": ".mcp.json"
   },
-  "lspServers": {
-    "csharp-lsp": {
-      "_note": "References csharp-lsp plugin dependency (declared in `dependencies`). Requires csharp-ls binary on PATH; verified by `dotnet-ai check` per CHK009."
-    }
-  },
-  "dependencies": [
-    "csharp-lsp"
-  ]
+  "lspServers": "./.lsp.json"
 }

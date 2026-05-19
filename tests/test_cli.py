@@ -77,16 +77,31 @@ def test_init_force_reinitializes(tmp_path: Path) -> None:
     assert result.exit_code == 0, result.output
 
 
-def test_init_defaults_to_claude_when_no_ai_detected(tmp_path: Path) -> None:
-    """Init should auto-default to Claude when no AI tool detected and no --ai flag."""
+def test_init_non_interactive_without_ai_flag_errors_per_fr014(tmp_path: Path) -> None:
+    """B-CX-3 (round-2 review): non-interactive init without --ai MUST error.
+
+    FR-014 (spec.md:171) forbids silent host selection. The previous test
+    encoded the old buggy behavior (`defaults to Claude`); the spec was
+    always clear that the CLI must prompt interactively or error in
+    non-interactive mode.
+
+    Since CliRunner does not attach a TTY, this invocation goes through the
+    non-interactive branch and MUST exit 2 with an actionable error.
+    """
     _create_dotnet_project(tmp_path)
     # No .claude/ or .cursor/ directory
 
     result = runner.invoke(app, ["init", str(tmp_path)])
 
-    # T051: auto-default to Claude instead of exit code 3
-    assert result.exit_code == 0
-    assert "defaulting to claude" in result.output.lower()
+    assert result.exit_code == 2, (
+        f"B-CX-3: non-interactive init without --ai must exit 2 per FR-014. "
+        f"Got exit_code={result.exit_code}, output={result.output[:400]}"
+    )
+    # Error message should reference the required flag so the user can fix it.
+    msg = result.output.lower()
+    assert "--ai" in msg or "non-interactive" in msg or "fr-014" in msg, (
+        f"Error message must hint at the required flag: {result.output[:400]}"
+    )
 
 
 def test_init_creates_project_yml_with_type_flag(tmp_path: Path) -> None:

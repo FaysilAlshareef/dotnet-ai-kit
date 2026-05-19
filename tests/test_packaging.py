@@ -78,6 +78,9 @@ def test_wheel_bundles_mcp_config(built_wheel: Path) -> None:
 _FEATURE_019_BUNDLED_FILES = [
     ("bundled/.codex-plugin/plugin.json", "Codex CLI plugin manifest"),
     ("bundled/.cursor-plugin/plugin.json", "Cursor plugin manifest"),
+    # Round-2 review (LSP correction): `.lsp.json` declares the csharp-ls
+    # server config referenced by `.claude-plugin/plugin.json::lspServers`.
+    ("bundled/.lsp.json", "Claude LSP server config (csharp-ls)"),
 ]
 
 _FEATURE_019_BUNDLED_DIRS = [

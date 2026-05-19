@@ -24,6 +24,9 @@ _FEATURE_019_BUNDLED_FILES = [
     "bundled/.claude-plugin/plugin.json",
     "bundled/.codex-plugin/plugin.json",
     "bundled/.cursor-plugin/plugin.json",
+    # Round-2 review (LSP correction): `.lsp.json` declares the csharp-ls
+    # server config referenced by `.claude-plugin/plugin.json::lspServers`.
+    "bundled/.lsp.json",
 ]
 
 _FEATURE_019_BUNDLED_DIRS = [

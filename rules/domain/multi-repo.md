@@ -46,7 +46,7 @@ MUST NOT deploy ControlPanel before Gateway. MUST NOT deploy Query before Comman
 
 - When a feature spans repos, a brief MUST be projected to each affected secondary repo.
 - Each repo's brief MUST declare its `role`, `required_changes`, `events_produces`, and `events_consumes`.
-- `blocked_by` MUST list upstream repos that must complete first (following deploy order above).
+- `blocked_by` MUST list upstream repos that MUST complete first (following deploy order above).
 - Secondary repo briefs MUST be kept in sync with the primary spec when the spec changes.
 
 ## Related Skills

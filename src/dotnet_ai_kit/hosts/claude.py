@@ -38,17 +38,27 @@ class ClaudeHost(Host):
             home / "plugins" / "local" / "dotnet-ai-kit",  # developer symlink
         ]
 
-    def verify_install(self) -> InstallStatus:
+    def verify_install(self, project_root: Path | None = None) -> InstallStatus:
         """Filesystem inspection only — clarify Q3.
 
-        The plugin is considered installed if EITHER the marketplace cache
-        contains a `dotnet-ai-kit/<version>/` directory OR the local symlink
-        path exists.
+        Per FR-017 + clarify Q3 (`spec.md:174, :28`), the plugin is considered
+        installed only if the host's plugin manifest file is present at the
+        expected path — not merely the containing directory.
+
+        The plugin is installed if EITHER:
+          - the marketplace cache contains a
+            `dotnet-ai-kit/<version>/.claude-plugin/plugin.json`, OR
+          - the local symlink path contains `.claude-plugin/plugin.json`.
+
+        The `project_root` argument is unused by this plugin-native host
+        (kept for ABC compatibility with the render-only Copilot host).
         """
+        del project_root  # plugin-native host: project root not consulted
         marketplace_cache, local_path = self.install_paths()
 
         # Marketplace install: scan marketplace cache for any dotnet-ai-kit
-        # version. Cache layout per Claude Code:
+        # version that ships the Claude plugin manifest.
+        # Cache layout per Claude Code:
         # ~/.claude/plugins/cache/<marketplace>/<plugin>/<version>/
         marketplace_present = False
         marketplace_versions: list[Path] = []
@@ -57,19 +67,30 @@ class ClaudeHost(Host):
                 if not marketplace_dir.is_dir():
                     continue
                 plugin_dir = marketplace_dir / "dotnet-ai-kit"
-                if plugin_dir.is_dir():
-                    marketplace_present = True
-                    marketplace_versions.extend(p for p in plugin_dir.iterdir() if p.is_dir())
+                if not plugin_dir.is_dir():
+                    continue
+                for version_dir in plugin_dir.iterdir():
+                    if not version_dir.is_dir():
+                        continue
+                    # B-CX-1: directory presence is not sufficient — the
+                    # Claude plugin manifest MUST be present at the expected
+                    # path (FR-017 + clarify Q3).
+                    if (version_dir / ".claude-plugin" / "plugin.json").is_file():
+                        marketplace_present = True
+                        marketplace_versions.append(version_dir)
 
         # Developer-local install: ~/.claude/plugins/local/dotnet-ai-kit/
-        local_present = local_path.is_dir()
+        # — requires the plugin manifest, not just the directory.
+        local_present = (local_path / ".claude-plugin" / "plugin.json").is_file()
 
         installed = marketplace_present or local_present
         notes_parts = []
         if marketplace_present:
-            notes_parts.append(f"marketplace cache: {len(marketplace_versions)} version(s) found")
+            notes_parts.append(
+                f"marketplace cache: {len(marketplace_versions)} version(s) with manifest"
+            )
         if local_present:
-            notes_parts.append(f"local dev install at {local_path}")
+            notes_parts.append(f"local dev install (with manifest) at {local_path}")
         if not installed:
             notes_parts.append(
                 "no install found — run `claude /plugin install` or symlink under "

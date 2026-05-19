@@ -68,6 +68,10 @@ packages = ["src/dotnet_ai_kit"]
 ".claude-plugin" = "dotnet_ai_kit/bundled/.claude-plugin"
 "hooks" = "dotnet_ai_kit/bundled/hooks"
 ".mcp.json" = "dotnet_ai_kit/bundled/.mcp.json"
+# Round-2 review (LSP correction): `.lsp.json` declares the csharp-ls server
+# config per https://code.claude.com/docs/en/plugins-reference. Referenced
+# from `.claude-plugin/plugin.json::lspServers`.
+".lsp.json" = "dotnet_ai_kit/bundled/.lsp.json"
 # Feature 019 (T009 / plan.md commit 2): plugin-native architecture extras.
 # `.codex-plugin` + `.cursor-plugin`: per-host plugin manifests
 #   (commit 3 contents land plugin.json; commit 2 ships stubs).

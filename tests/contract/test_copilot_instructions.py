@@ -90,21 +90,32 @@ def test_copilot_install_paths_empty_per_fr_004() -> None:
     assert paths == []
 
 
-def test_copilot_verify_install_reports_github_presence(tmp_path: Path) -> None:
-    """`verify_install` returns installed=True iff `.github/` exists in cwd.
+def test_m_cx_6_copilot_verify_install_honors_target_not_cwd(tmp_path: Path, monkeypatch) -> None:
+    """M-CX-6: CopilotHost.verify_install() must accept a project_root
+    parameter and use it instead of Path.cwd()."""
+    # Set cwd to a DIFFERENT directory than the target. The old (buggy)
+    # behavior would report status for cwd; the fixed behavior reports
+    # status for the target.
+    other_dir = tmp_path / "elsewhere"
+    other_dir.mkdir()
+    target = tmp_path / "myrepo"
+    target.mkdir()
+    (target / ".github").mkdir()  # Copilot "install" marker
 
-    Uses monkeypatch on cwd to isolate the test.
-    """
-    import os
+    monkeypatch.chdir(other_dir)  # cwd does NOT have .github/
 
-    project_root = tmp_path / "project"
-    project_root.mkdir()
-    (project_root / ".github").mkdir()
+    # Pre-fix call: verify_install() ← uses Path.cwd() → would not find .github
+    # Post-fix call: verify_install(project_root=target) → finds .github
+    status = CopilotHost().verify_install(project_root=target)
+    assert status.installed, (
+        f"M-CX-6 regression: CopilotHost.verify_install(project_root=target) "
+        f"must inspect the target, not Path.cwd(). Status: {status}"
+    )
 
-    cwd_before = os.getcwd()
-    try:
-        os.chdir(project_root)
-        status = CopilotHost().verify_install()
-        assert status.installed is True
-    finally:
-        os.chdir(cwd_before)
+
+def test_m_cx_6_copilot_verify_install_default_uses_cwd(tmp_path: Path, monkeypatch) -> None:
+    """Back-compat: when project_root is None, fall back to Path.cwd()."""
+    (tmp_path / ".github").mkdir()
+    monkeypatch.chdir(tmp_path)
+    status = CopilotHost().verify_install()  # no arg
+    assert status.installed

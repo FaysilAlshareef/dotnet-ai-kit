@@ -71,11 +71,17 @@ class Host(ABC):
         """
 
     @abstractmethod
-    def verify_install(self) -> InstallStatus:
+    def verify_install(self, project_root: Path | None = None) -> InstallStatus:
         """Inspect the filesystem to determine plugin install status.
 
         Filesystem inspection only — does NOT shell out to the host's CLI
         per clarify Q3 (predictable, fast for `dotnet-ai check`).
+
+        Args:
+            project_root: Project directory under inspection. Consumed by
+                render-only hosts (e.g., Copilot) whose "install" status is
+                the presence of host-specific files inside the project,
+                not a global plugin cache. Ignored by plugin-native hosts.
         """
 
     @abstractmethod

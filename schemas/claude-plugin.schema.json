@@ -4,7 +4,7 @@
   "title": "Claude Code Plugin Manifest (dotnet-ai-kit)",
   "description": "Schema for .claude-plugin/plugin.json under the plugin-native architecture (feature 019). All field names match Claude Code's documented plugin manifest reference (https://code.claude.com/docs/en/plugins-reference). Capabilities not documented for Claude Code MUST NOT appear here (per spec FR-002).",
   "type": "object",
-  "required": ["name", "version", "description", "agents", "skills", "commands", "hooks", "mcpServers", "lspServers", "dependencies"],
+  "required": ["name", "version", "description", "agents", "skills", "commands", "hooks", "mcpServers", "lspServers"],
   "additionalProperties": false,
   "properties": {
     "name": { "type": "string", "const": "dotnet-ai-kit" },
@@ -43,27 +43,54 @@
       },
       "description": "After commit 12: csharp-ls removed; codebase-memory-mcp retained."
     },
-    "lspServers": {
-      "type": "object",
-      "description": "Per spec FR-028: C# language intelligence exposed through host's language-server primitive after commit 11. Per Codex round-1 critique: schema tightened — unknown LSP names rejected without explicit registration.",
-      "additionalProperties": false,
-      "properties": {
-        "csharp-lsp": {
-          "type": "object",
-          "description": "References the official csharp-lsp plugin dependency declared in `dependencies`. Requires csharp-ls binary on PATH (verified by `dotnet-ai check` per CHK009)."
-        }
-      }
-    },
     "outputStyles": {
       "type": "array",
       "items": { "type": "string" },
       "description": "Unused in v1; reserved per the host's documented manifest reference."
     },
+    "lspServers": {
+      "description": "Per https://code.claude.com/docs/en/plugins-reference, `lspServers` is `string|array|object`. Recommended form is a scalar path to a `.lsp.json` file at the plugin root (e.g., `./.lsp.json`) which maps server names to configs with required `command` + `extensionToLanguage` fields.",
+      "oneOf": [
+        {
+          "type": "string",
+          "pattern": "^\\./.+\\.json$",
+          "description": "Path to an external `.lsp.json` file."
+        },
+        {
+          "type": "array",
+          "items": { "type": "string", "pattern": "^\\./.+\\.json$" },
+          "description": "Array of paths to multiple `.lsp.json` files."
+        },
+        {
+          "type": "object",
+          "additionalProperties": {
+            "type": "object",
+            "required": ["command", "extensionToLanguage"],
+            "properties": {
+              "command": { "type": "string" },
+              "extensionToLanguage": { "type": "object" }
+            }
+          },
+          "description": "Inline server configs; each entry MUST declare command + extensionToLanguage per the docs."
+        }
+      ]
+    },
     "dependencies": {
       "type": "array",
-      "items": { "type": "string" },
-      "contains": { "type": "string", "const": "csharp-lsp" },
-      "description": "Per commit 11: csharp-lsp plugin dependency added. Must contain csharp-lsp."
+      "items": {
+        "oneOf": [
+          { "type": "string" },
+          {
+            "type": "object",
+            "required": ["name"],
+            "properties": {
+              "name": { "type": "string" },
+              "version": { "type": "string" }
+            }
+          }
+        ]
+      },
+      "description": "Per docs: other plugins this plugin requires (with optional semver). Round-2 review removed the orphan `csharp-lsp` entry: there is no marketplace plugin by that name; LSP config lives under `lspServers`, not `dependencies`."
     },
     "userConfig": { "type": "object", "additionalProperties": true },
     "channels": {

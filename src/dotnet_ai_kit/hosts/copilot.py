@@ -70,16 +70,24 @@ class CopilotHost(Host):
         """
         return []
 
-    def verify_install(self) -> InstallStatus:
+    def verify_install(self, project_root: Path | None = None) -> InstallStatus:
         """For Copilot, "installed" means render artifacts exist + match manifest.
 
         Per FR-017 / CHK016: `dotnet-ai check` reports staleness if rendered
         files diverge from current plugin source or project metadata.
 
-        v1 minimal: report installed=True if `.github/` exists in the
-        current cwd (full freshness check is in commit 9 / T101+).
+        For Copilot, "install status" is the presence of `.github/` inside
+        the *target project*, not a global plugin cache. Honors
+        `project_root` when supplied by `dotnet-ai check <target>` so the
+        status describes the correct repository (M-CX-6: previously this
+        always used `Path.cwd()`, which mis-reported when the user invoked
+        `dotnet-ai check` from a different directory than the target).
+
+        v1 minimal: report installed=True if `.github/` exists under the
+        resolved root (full freshness check is in commit 9 / T101+).
         """
-        target = Path.cwd() / ".github"
+        root = (project_root or Path.cwd()).resolve()
+        target = root / ".github"
         return InstallStatus(
             host_name=self.name,
             installed=target.is_dir(),
@@ -87,7 +95,7 @@ class CopilotHost(Host):
             missing_paths=[] if target.is_dir() else [target],
             notes=(
                 "Copilot is render-only (no plugin install) — install status "
-                "= presence of .github/ in the project root."
+                f"= presence of .github/ under {root}."
             ),
         )
 

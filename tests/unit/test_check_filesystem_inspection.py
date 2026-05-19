@@ -74,3 +74,80 @@ def test_check_uses_shutil_which_for_binary_detection() -> None:
     assert "_shutil.which" in src or "shutil.which" in src, (
         "check command must use shutil.which() for binary detection per R10"
     )
+
+
+# ---------------------------------------------------------------------------
+# B-CX-1 (round-2 codex review): host install verifies the plugin MANIFEST
+# file, not just the install directory. Per FR-017 + clarify Q3, the host
+# adapter MUST treat a bare directory as "not installed" — only the presence
+# of `<host>-plugin/plugin.json` counts as a real install.
+# ---------------------------------------------------------------------------
+
+from dotnet_ai_kit.hosts.claude import ClaudeHost  # noqa: E402
+from dotnet_ai_kit.hosts.codex import CodexHost  # noqa: E402
+from dotnet_ai_kit.hosts.cursor import CursorHost  # noqa: E402
+
+
+def _make_local_install(
+    home: Path,
+    host_dir: str,
+    manifest_rel: str,
+    *,
+    with_manifest: bool,
+) -> Path:
+    """Create either a bare directory or a directory+manifest at the host's
+    local install path. Returns the directory path."""
+    install_dir = home / host_dir / "plugins" / "local" / "dotnet-ai-kit"
+    install_dir.mkdir(parents=True, exist_ok=True)
+    if with_manifest:
+        manifest_path = install_dir / manifest_rel
+        manifest_path.parent.mkdir(parents=True, exist_ok=True)
+        manifest_path.write_text('{"name": "dotnet-ai-kit"}', encoding="utf-8")
+    return install_dir
+
+
+def test_b_cx_1_claude_bare_directory_is_not_installed(tmp_path, monkeypatch):
+    """B-CX-1 (FR-017): an empty local install dir without the plugin
+    manifest must NOT be reported as installed."""
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+    _make_local_install(tmp_path, ".claude", ".claude-plugin/plugin.json", with_manifest=False)
+    status = ClaudeHost().verify_install()
+    assert not status.installed, (
+        f"Bare local-install directory must not be 'installed' per FR-017. Status: {status}"
+    )
+
+
+def test_b_cx_1_claude_with_manifest_is_installed(tmp_path, monkeypatch):
+    """B-CX-1 positive case: directory + .claude-plugin/plugin.json → installed."""
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+    _make_local_install(tmp_path, ".claude", ".claude-plugin/plugin.json", with_manifest=True)
+    status = ClaudeHost().verify_install()
+    assert status.installed, f"Local install with manifest must be detected. Status: {status}"
+
+
+def test_b_cx_1_codex_bare_directory_is_not_installed(tmp_path, monkeypatch):
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+    _make_local_install(tmp_path, ".codex", ".codex-plugin/plugin.json", with_manifest=False)
+    status = CodexHost().verify_install()
+    assert not status.installed
+
+
+def test_b_cx_1_codex_with_manifest_is_installed(tmp_path, monkeypatch):
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+    _make_local_install(tmp_path, ".codex", ".codex-plugin/plugin.json", with_manifest=True)
+    status = CodexHost().verify_install()
+    assert status.installed
+
+
+def test_b_cx_1_cursor_bare_directory_is_not_installed(tmp_path, monkeypatch):
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+    _make_local_install(tmp_path, ".cursor", ".cursor-plugin/plugin.json", with_manifest=False)
+    status = CursorHost().verify_install()
+    assert not status.installed
+
+
+def test_b_cx_1_cursor_with_manifest_is_installed(tmp_path, monkeypatch):
+    monkeypatch.setattr(Path, "home", lambda: tmp_path)
+    _make_local_install(tmp_path, ".cursor", ".cursor-plugin/plugin.json", with_manifest=True)
+    status = CursorHost().verify_install()
+    assert status.installed

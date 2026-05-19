@@ -48,16 +48,17 @@ def main() -> None:
         "commands": command_paths,
         "hooks": {"configFile": "hooks/hooks.json"},
         "mcpServers": {"configFile": ".mcp.json"},
-        "lspServers": {
-            "csharp-lsp": {
-                "_note": (
-                    "References csharp-lsp plugin dependency (declared in "
-                    "`dependencies`). Requires csharp-ls binary on PATH; "
-                    "verified by `dotnet-ai check` per CHK009."
-                )
-            }
-        },
-        "dependencies": ["csharp-lsp"],
+        # Round-2 review (LSP correction): per
+        # https://code.claude.com/docs/en/plugins-reference, `lspServers` is
+        # `string|array|object`. The recommended shape is a scalar path to a
+        # `.lsp.json` file at the plugin root. That file declares the LSP
+        # server with the required `command` + `extensionToLanguage` fields.
+        # The previous inline `_note`-only object was structurally invalid
+        # (missing both required fields). The previous `dependencies:
+        # ["csharp-lsp"]` was a misread of the docs — `dependencies` declares
+        # marketplace plugin requirements with semver, not LSP config, and
+        # no marketplace plugin literally named `csharp-lsp` exists.
+        "lspServers": "./.lsp.json",
     }
 
     target = repo / ".claude-plugin" / "plugin.json"

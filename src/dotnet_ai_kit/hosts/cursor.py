@@ -35,8 +35,18 @@ class CursorHost(Host):
             home / "plugins" / "local" / "dotnet-ai-kit",  # developer symlink
         ]
 
-    def verify_install(self) -> InstallStatus:
-        """Filesystem inspection only — clarify Q3 / no shell-out."""
+    def verify_install(self, project_root: Path | None = None) -> InstallStatus:
+        """Filesystem inspection only — clarify Q3 / no shell-out.
+
+        Per FR-017 + clarify Q3 (`spec.md:174, :28`), the plugin is considered
+        installed only if the Cursor plugin manifest file
+        (`.cursor-plugin/plugin.json`) is present at the expected path — not
+        merely the containing directory.
+
+        The `project_root` argument is unused by this plugin-native host
+        (kept for ABC compatibility with the render-only Copilot host).
+        """
+        del project_root  # plugin-native host: project root not consulted
         marketplace_cache, local_path = self.install_paths()
 
         marketplace_present = False
@@ -46,20 +56,28 @@ class CursorHost(Host):
                 if not marketplace_dir.is_dir():
                     continue
                 plugin_dir = marketplace_dir / "dotnet-ai-kit"
-                if plugin_dir.is_dir():
-                    marketplace_present = True
-                    marketplace_versions.extend(p for p in plugin_dir.iterdir() if p.is_dir())
+                if not plugin_dir.is_dir():
+                    continue
+                for version_dir in plugin_dir.iterdir():
+                    if not version_dir.is_dir():
+                        continue
+                    # B-CX-1: require the Cursor plugin manifest, not just
+                    # the directory (FR-017 + clarify Q3).
+                    if (version_dir / ".cursor-plugin" / "plugin.json").is_file():
+                        marketplace_present = True
+                        marketplace_versions.append(version_dir)
 
-        local_present = local_path.is_dir()
+        # Developer-local install requires the manifest, not just the dir.
+        local_present = (local_path / ".cursor-plugin" / "plugin.json").is_file()
         installed = marketplace_present or local_present
 
         notes_parts = []
         if marketplace_present:
             notes_parts.append(
-                f"Cursor marketplace cache: {len(marketplace_versions)} version(s) found"
+                f"Cursor marketplace cache: {len(marketplace_versions)} version(s) with manifest"
             )
         if local_present:
-            notes_parts.append(f"Cursor local dev install at {local_path}")
+            notes_parts.append(f"Cursor local dev install (with manifest) at {local_path}")
         if not installed:
             notes_parts.append(
                 "no Cursor install found — run Cursor plugin install or symlink under "

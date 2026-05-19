@@ -3,10 +3,7 @@ name: dotnet-ai-architect
 description: Cursor sub-agent fixture for the A-005 spike (CHK003)
 host_overrides:
   cursor:
-    model: claude-sonnet-4
     readonly: false
-  claude:
-    role: advisory
 ---
 
 # .NET Architecture Specialist (Cursor Spike Fixture)

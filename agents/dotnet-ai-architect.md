@@ -1,7 +1,6 @@
 ---
 name: dotnet-ai-architect
 description: Cursor sub-agent fixture for the A-005 spike (CHK003)
-model: claude-sonnet-4
 readonly: false
 ---
 
