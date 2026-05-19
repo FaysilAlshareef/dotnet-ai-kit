@@ -85,11 +85,23 @@ jobs:
     # `cursor`, `csharp-ls`) are on PATH before pytest runs, so pytest skip-marks
     # cannot produce a false-green smoke job.
     name: Smoke (gated)
+    # The smoke job requires real host CLIs (claude, codex, cursor, csharp-ls)
+    # provisioned on the runner; the install scripts in steps below use
+    # `|| true` to tolerate transient registry failures, and the T159 preflight
+    # hard-fails if a binary is missing post-install. Because the third-party
+    # install scripts don't reliably succeed on GitHub-hosted runners (claude.ai
+    # and cursor.com installers depend on interactive prompts that don't run
+    # under -NonInteractive), this job is restricted to:
+    #   - workflow_dispatch (maintainer-driven, for the T200 release gate)
+    #   - schedule (nightly)
+    #   - PR labelled `smoke` (maintainer opt-in per PR)
+    # It is intentionally NOT auto-triggered by ci/** pushes — that pathway
+    # would produce noisy false-RED runs on every push. The CI Branch
+    # Validation workflow (ci-branch.yml) covers the green-on-push need.
     if: >-
       github.event_name == 'workflow_dispatch'
       || github.event_name == 'schedule'
       || contains(github.event.pull_request.labels.*.name, 'smoke')
-      || (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/ci/'))
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
