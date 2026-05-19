@@ -1,19 +1,19 @@
 name: CI
 
+# ci/019-plugin-native-arch commit 39: smoke job extracted to its own workflow
+# at `.github/workflows/smoke.yml`. This workflow now only runs the lint +
+# static + unit suite — fast on every push. The nightly cron and the
+# workflow_dispatch trigger for the T200 release gate live on `smoke.yml`.
+#
+# Triggers:
+#   - push to master / development / ci/**  — fast static-unit matrix
+#   - pull_request against master / development — same
+#   - workflow_dispatch — manual re-run if needed (smoke is on smoke.yml)
 on:
   push:
-    # Feature 019 / commit 32: add `ci/**` so that the `ci/019-plugin-native-arch`
-    # branch (and any future `ci/*` integration branch) fires the full CI on
-    # every push. This lets the maintainer iterate on CI-only changes without
-    # opening a PR or affecting master/development.
     branches: [master, development, "ci/**"]
   pull_request:
     branches: [master, development]
-  schedule:
-    # Nightly smoke run at 04:00 UTC. Requires the `claude` CLI on the runner.
-    - cron: "0 4 * * *"
-  # Feature 019 / commit 22 / B-7 / T157: maintainer can dispatch smoke
-  # manually before tagging v1.0.0 to satisfy the release gate (T200).
   workflow_dispatch:
 
 jobs:
@@ -74,160 +74,10 @@ jobs:
         # + hosts/codex.py have the largest miss surface).
         run: python scripts/check.py --cov=dotnet_ai_kit --cov-report=term-missing --cov-fail-under=83 -q
 
-  smoke:
-    # Feature 019 / commit 22 / B-7 (T157-T160): smoke job runs the 4 feature-019
-    # host fixtures (Claude, Claude+LSP, Codex, Cursor) across the 3-OS matrix
-    # required by A-010 / SC-008. Triggered by:
-    #   - workflow_dispatch (maintainer-initiated, see T200 release gate)
-    #   - [smoke] PR label
-    #   - nightly schedule
-    # The preflight step (T159) ensures all 4 host binaries (`claude`, `codex`,
-    # `cursor`, `csharp-ls`) are on PATH before pytest runs, so pytest skip-marks
-    # cannot produce a false-green smoke job.
-    name: Smoke (gated)
-    # The smoke job has two operating modes:
-    #
-    # 1. STRICT mode — `workflow_dispatch`, `schedule`, or `smoke`-labelled PR.
-    #    The T200 release gate. T159 preflight HARD-FAILS if any of the 4
-    #    host binaries (claude, codex, cursor, csharp-ls) is missing. The
-    #    maintainer is expected to provision binaries on the runner (or to
-    #    use a self-hosted runner that has them) before tagging v1.0.0.
-    #
-    # 2. INFORMATIONAL mode — push to `ci/**`. Same job runs end-to-end,
-    #    but the preflight DEGRADES to a warning when binaries are missing.
-    #    Each smoke fixture self-skips via its `shutil.which(...)` guard,
-    #    so the job ends with skips rather than failures. Provides honest
-    #    visibility into the smoke pathway on every push without producing
-    #    false-RED noise.
-    #
-    # `if:` keeps the previous gates and adds the ci/** push trigger.
-    # Mode-switching happens INSIDE the preflight step via
-    # `github.event_name`, not by gating the job.
-    if: >-
-      github.event_name == 'workflow_dispatch'
-      || github.event_name == 'schedule'
-      || contains(github.event.pull_request.labels.*.name, 'smoke')
-      || (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/ci/'))
-    strategy:
-      matrix:
-        os: [ubuntu-latest, macos-latest, windows-latest]
-      fail-fast: false
-    runs-on: ${{ matrix.os }}
-    needs: static-unit
-    env:
-      CLAUDE_CODE_SMOKE: "1"
-      CODEX_SMOKE: "1"
-      CURSOR_SMOKE: "1"
-
-    steps:
-      - uses: actions/checkout@v6
-
-      - name: Set up Python 3.12
-        uses: actions/setup-python@v6
-        with:
-          python-version: "3.12"
-
-      - name: Install dependencies
-        run: |
-          pip install pytest pytest-cov
-          pip install -e .
-
-      # T158: provision the 4 host binaries on each runner OS.
-      # ci/019-plugin-native-arch commit 37: switched Claude install from the
-      # `claude.ai/install.sh` script (which depends on interactive prompts
-      # not present under GH Actions' -NonInteractive shell) to the official
-      # npm package `@anthropic-ai/claude-code`. Cross-platform, no prompts.
-      # See https://docs.claude.com/en/docs/claude-code/setup
-      - name: Install Claude Code CLI (npm, all OSes)
-        run: npm install -g @anthropic-ai/claude-code || true
-        shell: bash
-
-      - name: Install Codex CLI (npm)
-        run: npm install -g @openai/codex || true
-        shell: bash
-
-      # ci/019-plugin-native-arch commit 37: write Cursor CLI to a
-      # user-writable path (`~/.local/bin/cursor`) instead of `/usr/local/bin/cursor`
-      # which fails without sudo on Ubuntu GH runners. PATH update via $GITHUB_PATH.
-      - name: Install Cursor CLI (Linux/macOS)
-        if: runner.os != 'Windows'
-        shell: bash
-        run: |
-          mkdir -p "$HOME/.local/bin"
-          case "${{ runner.os }}" in
-            Linux)
-              curl -fsSL https://downloads.cursor.com/production/cli/linux/x64/cursor -o "$HOME/.local/bin/cursor" || true
-              ;;
-            macOS)
-              curl -fsSL https://downloads.cursor.com/production/cli/darwin/x64/cursor -o "$HOME/.local/bin/cursor" || true
-              ;;
-          esac
-          chmod +x "$HOME/.local/bin/cursor" 2>/dev/null || true
-          echo "$HOME/.local/bin" >> "$GITHUB_PATH"
-
-      - name: Install csharp-ls (dotnet tool)
-        shell: bash
-        run: |
-          dotnet tool install -g csharp-ls || true
-          # `$HOME/.dotnet/tools` (POSIX) and `%USERPROFILE%\.dotnet\tools` (Windows)
-          # — bash on Windows runners expands $HOME to the user profile correctly.
-          echo "$HOME/.dotnet/tools" >> "$GITHUB_PATH"
-
-      # T159 preflight — mode switch (ci/019-plugin-native-arch commit 37):
-      #   - workflow_dispatch / schedule / `smoke` PR label → STRICT (hard fail)
-      #   - push to ci/**                                  → INFORMATIONAL (warn)
-      # Both modes always emit the per-binary "found" / "missing" log lines so
-      # the maintainer can see the install pathway state at a glance.
-      - name: Preflight — verify smoke binaries on PATH
-        shell: bash
-        env:
-          IS_STRICT: ${{ github.event_name == 'workflow_dispatch' || github.event_name == 'schedule' || contains(github.event.pull_request.labels.*.name, 'smoke') }}
-        run: |
-          missing=0
-          for bin in claude codex cursor csharp-ls; do
-            if ! command -v "$bin" >/dev/null 2>&1; then
-              if [ "$IS_STRICT" = "true" ]; then
-                echo "::error::missing $bin on PATH; smoke job cannot validate ${bin}'s plugin pathway"
-              else
-                echo "::warning::missing $bin on PATH; pytest will self-skip the ${bin} smoke fixture (informational mode — ci/** push)"
-              fi
-              missing=$((missing + 1))
-            else
-              echo "found $bin: $(command -v "$bin")"
-            fi
-          done
-          if [ "$missing" -gt 0 ]; then
-            if [ "$IS_STRICT" = "true" ]; then
-              echo "::error::$missing binaries missing — failing the smoke job (T159 strict mode)"
-              exit 1
-            else
-              echo "::warning::$missing binaries missing — running smoke in degraded mode (T159 informational mode)"
-            fi
-          fi
-
-      # T160: run the 4 feature-019 host fixture files explicitly. The
-      # previous `tests/smoke` glob conflated smoke and unit tests; the
-      # explicit list ensures every B-7-tracked fixture runs on every OS.
-      #
-      # ci/019-plugin-native-arch commit 38:
-      # 1. `--rootdir .` prevents pytest from walking up to drive root (which
-      #    on Windows runners hits `D:\System Volume Information` and errors
-      #    at collection time before any test runs).
-      # 2. `continue-on-error` is true in INFORMATIONAL mode (push to ci/**)
-      #    so smoke fixture failures don't fail the job — the smoke tests
-      #    probe CLI surfaces (`claude /agents list --json`,
-      #    `codex plugin skills list --json`, etc.) that require the plugin
-      #    to be INSTALLED in the host, which the workflow doesn't do
-      #    autonomously. The step's red X is still visible for debugging,
-      #    and the maintainer sees the actual smoke pathway outcome.
-      #    STRICT mode (workflow_dispatch / schedule / smoke label) keeps
-      #    the hard-fail behavior for the T200 release gate.
-      - name: Run feature-019 smoke fixtures
-        shell: bash
-        continue-on-error: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/ci/') }}
-        run: |
-          python -m pytest -q --rootdir . \
-            tests/integration/test_smoke_claude.py \
-            tests/integration/test_smoke_claude_lsp.py \
-            tests/integration/test_smoke_codex.py \
-            tests/integration/test_smoke_cursor.py
+  # smoke job: extracted to `.github/workflows/smoke.yml` per commit 39.
+  # Rationale: smoke needs the 3-OS host-CLI install pathway which adds
+  # several minutes to every push. Splitting it into its own workflow:
+  #   - keeps THIS `CI` workflow fast on every push (lint + unit only),
+  #   - gives smoke its own GitHub status check the user can required,
+  #   - lets smoke run in parallel with CI on push to `ci/**` rather
+  #     than serially via `needs: static-unit`.
