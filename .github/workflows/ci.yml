@@ -208,9 +208,25 @@ jobs:
       # T160: run the 4 feature-019 host fixture files explicitly. The
       # previous `tests/smoke` glob conflated smoke and unit tests; the
       # explicit list ensures every B-7-tracked fixture runs on every OS.
+      #
+      # ci/019-plugin-native-arch commit 38:
+      # 1. `--rootdir .` prevents pytest from walking up to drive root (which
+      #    on Windows runners hits `D:\System Volume Information` and errors
+      #    at collection time before any test runs).
+      # 2. `continue-on-error` is true in INFORMATIONAL mode (push to ci/**)
+      #    so smoke fixture failures don't fail the job — the smoke tests
+      #    probe CLI surfaces (`claude /agents list --json`,
+      #    `codex plugin skills list --json`, etc.) that require the plugin
+      #    to be INSTALLED in the host, which the workflow doesn't do
+      #    autonomously. The step's red X is still visible for debugging,
+      #    and the maintainer sees the actual smoke pathway outcome.
+      #    STRICT mode (workflow_dispatch / schedule / smoke label) keeps
+      #    the hard-fail behavior for the T200 release gate.
       - name: Run feature-019 smoke fixtures
+        shell: bash
+        continue-on-error: ${{ github.event_name == 'push' && startsWith(github.ref, 'refs/heads/ci/') }}
         run: |
-          python -m pytest -q \
+          python -m pytest -q --rootdir . \
             tests/integration/test_smoke_claude.py \
             tests/integration/test_smoke_claude_lsp.py \
             tests/integration/test_smoke_codex.py \
