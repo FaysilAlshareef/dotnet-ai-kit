@@ -2,7 +2,11 @@ name: CI
 
 on:
   push:
-    branches: [master, development]
+    # Feature 019 / commit 32: add `ci/**` so that the `ci/019-plugin-native-arch`
+    # branch (and any future `ci/*` integration branch) fires the full CI on
+    # every push. This lets the maintainer iterate on CI-only changes without
+    # opening a PR or affecting master/development.
+    branches: [master, development, "ci/**"]
   pull_request:
     branches: [master, development]
   schedule:
@@ -79,6 +83,7 @@ jobs:
       github.event_name == 'workflow_dispatch'
       || github.event_name == 'schedule'
       || contains(github.event.pull_request.labels.*.name, 'smoke')
+      || (github.event_name == 'push' && startsWith(github.ref, 'refs/heads/ci/'))
     strategy:
       matrix:
         os: [ubuntu-latest, macos-latest, windows-latest]
