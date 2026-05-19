@@ -64,22 +64,41 @@ jobs:
         shell: bash
         run: |
           set -ex
-          # Create a fixture solution
-          mkdir -p /tmp/quickstart && cd /tmp/quickstart
+          # Use runner-temp on Windows; /tmp on POSIX. RUNNER_TEMP is set by the
+          # actions/setup-python runner across all platforms.
+          QUICKSTART_DIR="${RUNNER_TEMP}/quickstart"
+          mkdir -p "$QUICKSTART_DIR" && cd "$QUICKSTART_DIR"
+
+          # Create a minimal .NET solution fixture
           touch MyApp.sln
           mkdir -p src
-          echo '<Project Sdk="Microsoft.NET.Sdk"><PropertyGroup><TargetFramework>net8.0</TargetFramework></PropertyGroup></Project>' > src/MyApp.csproj
+          cat > src/MyApp.csproj <<'EOF'
+          <Project Sdk="Microsoft.NET.Sdk">
+            <PropertyGroup>
+              <TargetFramework>net8.0</TargetFramework>
+            </PropertyGroup>
+          </Project>
+          EOF
 
-          # Step 1: dotnet-ai init --ai claude (host CLI not required for init)
-          dotnet-ai init --ai claude --json
+          # Step 1: dotnet-ai init with explicit ProjectMetadata fields.
+          # Feature 019 / commit 20 / T146-T153 (B-3) made --company/--domain/--side
+          # the canonical source of ProjectMetadata; without them init won't
+          # write a valid project.yml that downstream render/migrate can consume.
+          # ci/019-plugin-native-arch commit 33: fix.
+          dotnet-ai init "$QUICKSTART_DIR" \
+            --ai claude \
+            --company "QuickstartCo" \
+            --domain "Quickstart" \
+            --side "server" \
+            --json
 
           # Step 2: dotnet-ai check
-          dotnet-ai check --json || true   # check may report yellow if codebase-memory-mcp not present; not a blocker
+          dotnet-ai check "$QUICKSTART_DIR" --json || true   # check may report yellow if codebase-memory-mcp not present; not a blocker
 
           # Step 3: dotnet-ai render skill async-patterns
-          dotnet-ai render skill async-patterns --project /tmp/quickstart
+          dotnet-ai render skill async-patterns --project "$QUICKSTART_DIR"
 
           # Step 4: dotnet-ai migrate --dry-run
-          dotnet-ai migrate /tmp/quickstart --dry-run
+          dotnet-ai migrate "$QUICKSTART_DIR" --dry-run
 
           echo "T130 quickstart PASS on ${{ matrix.os }}"
