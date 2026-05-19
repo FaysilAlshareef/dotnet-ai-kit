@@ -54,6 +54,6 @@ def test_smoke_workflow_runs_on_push_to_ci_branches() -> None:
     schedule / `smoke`-labelled PR).
     """
     text = _read_or_skip(SMOKE)
-    assert 'branches:' in text and 'ci/**' in text, (
+    assert "branches:" in text and "ci/**" in text, (
         "smoke.yml must trigger on push to ci/** integration branches"
     )
