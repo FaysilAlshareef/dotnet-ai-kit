@@ -24,7 +24,21 @@
   ],
   "skills": "./skills/",
   "commands": "./commands/",
-  "agents": "./agents-claude/",
+  "agents": [
+    "./agents-claude/api-designer.md",
+    "./agents-claude/command-architect.md",
+    "./agents-claude/controlpanel-architect.md",
+    "./agents-claude/cosmos-architect.md",
+    "./agents-claude/devops-engineer.md",
+    "./agents-claude/docs-engineer.md",
+    "./agents-claude/dotnet-architect.md",
+    "./agents-claude/ef-specialist.md",
+    "./agents-claude/gateway-architect.md",
+    "./agents-claude/processor-architect.md",
+    "./agents-claude/query-architect.md",
+    "./agents-claude/reviewer.md",
+    "./agents-claude/test-engineer.md"
+  ],
   "hooks": "./hooks/hooks.json",
   "mcpServers": "./.mcp.json",
   "lspServers": "./.lsp.json"

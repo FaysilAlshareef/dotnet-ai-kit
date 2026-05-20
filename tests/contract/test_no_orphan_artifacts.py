@@ -51,19 +51,18 @@ def test_no_orphan_claude_agent_files() -> None:
     agents_field = manifest.get("agents")
 
     if isinstance(agents_field, str):
-        # Directory-path form: Claude loads all .md files in the directory.
-        # No orphans are possible — pass unconditionally.
+        # Directory-path form: all .md files in the directory are considered declared.
         return
 
-    # Legacy array form: every file on disk must be in the declared list.
-    declared = {Path(p).name for p in (agents_field or [])}
+    # Array form (correct per Claude Code docs): each entry is a './agents-claude/<name>.md'
+    # file path. Strip the './' prefix and extract the basename for comparison.
+    declared = {Path(p.lstrip("./")).name for p in (agents_field or [])}
     disk = {f for f in os.listdir(agents_claude_dir) if f.endswith(".md")}
     EXEMPTIONS: set[str] = set()
     orphans = (disk - declared) - EXEMPTIONS
     assert not orphans, (
         f"Orphan agent files in agents-claude/ not declared in Claude manifest: "
-        f"{sorted(orphans)}. Switch to directory-path format './agents-claude/' "
-        f"or add the files to the agents array."
+        f"{sorted(orphans)}. Add them to the agents array as './agents-claude/<name>.md'."
     )
 
 
