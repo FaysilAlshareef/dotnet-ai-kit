@@ -1,6 +1,7 @@
 ---
 name: modern-csharp
 description: Use when adopting C# 12/13/14 features — primary constructors, collection expressions, or field keyword.
+when_to_use: Use when adopting C# 12/13/14 features — primary constructors, collection expressions, or field keyword.
 metadata:
   category: core
   agent: dotnet-architect
@@ -210,7 +211,7 @@ namespace {Company}.{Domain}.Features.Orders
 | Long if/else chains for type checks | Hard to read, error-prone | Switch expression with patterns |
 | `string.Format()` or `$""` for multi-line SQL | Escaping issues, poor readability | Raw string literals `"""` |
 | `field` keyword on .NET 8/9 projects | Compilation error | Check `<LangVersion>` first |
-| Primary constructors storing to `private readonly` | Redundant -- captured params are already fields | Use captured parameter directly |
+| Primary constructors storing to `private readonly` | C-Q5: the compiler generates backing storage **only** when an instance member captures the primary-constructor parameter. Adding an explicit `private readonly` field allocates a *second* storage slot and double-writes both — the constructor param is then captured into the implicit field AND copied to your explicit field. Wasted memory + drift risk. | Use the captured parameter directly (e.g., `IService _svc;` is unnecessary if `Foo(IService svc)` already captures `svc` via a method body referencing it). |
 | Block-scoped namespaces | Wastes indentation | File-scoped `namespace X;` |
 | `== null` / `!= null` comparisons | Operator overloading can break intent | `is null` / `is not null` |
 

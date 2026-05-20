@@ -1,0 +1,9 @@
+{
+  "outcome": "passed",
+  "timestamp": "2026-05-19T00:00:00Z",
+  "failure_log_path": null,
+  "ci_run_url": null,
+  "manual_override": true,
+  "override_reason": "Maintainer authorized PASS-branch flip pre-CI-smoke (see commit message for T171 / T195b). The v1.0.0 release tag (T200) still gates on workflow_dispatch CI green — this flip only governs the in-repo artifact shape (manifest, agents/, rules/cursor/, generators, release notes). Per `cursor-fixture-decision.contract.md:27-31`, the PASS-branch shape entails: (1) `.cursor-plugin/plugin.json` declares `agents`, (2) full 13-specialist Cursor sub-agent generation, (3) spec A-005 outcome 'spike passed', (4) release notes state 'Cursor sub-agent generation shipped'.",
+  "_note": "T170a (commit 25, OOS-005) — outcome flipped from `pending` to `passed` under maintainer authority. The PASS-branch deltas required by `cursor-fixture-decision.contract.md:27-31` are applied in the same commit set (T171 + T195b). The first post-tag `workflow_dispatch` smoke run is the authoritative validator; if it surfaces a regression, T170b/T170c MUST be re-applied (i.e., this JSON re-flipped to `failed`)."
+}

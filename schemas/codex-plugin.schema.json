@@ -1,0 +1,92 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/FaysilAlshareef/dotnet-ai-kit/specs/019-plugin-native-arch/contracts/codex-plugin.schema.json",
+  "title": "Codex CLI Plugin Manifest (dotnet-ai-kit)",
+  "description": "Schema for .codex-plugin/plugin.json per https://developers.openai.com/codex/plugins/build (retrieved 2026-05-19). Manifest fields are scalar relative paths with the `./` prefix (e.g., `\"skills\": \"./skills/\"`), NOT object/array wrappers. Codex CLI's documented plugin primitives are skills, MCP, hooks, apps, and assets. `keywords` is the only metadata field this manifest opts into for marketplace discovery. The plugin manifest does NOT bundle subagents — per https://developers.openai.com/codex/subagents (retrieved 2026-05-19), subagents are project-scoped TOML files at `.codex/agents/<name>.toml` written by CodexHost.write_per_solution_files(). Therefore `agents` AND `subagents` MUST NOT appear at the plugin manifest level (OOS-004 plugin-bundling portion still deferred to v1.1).",
+  "type": "object",
+  "required": ["name", "version", "description", "skills", "mcpServers", "hooks"],
+  "additionalProperties": false,
+  "properties": {
+    "name": { "type": "string", "const": "dotnet-ai-kit" },
+    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+(-[A-Za-z0-9\\.\\-]+)?$" },
+    "description": { "type": "string", "minLength": 1 },
+    "author": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "email": { "type": "string", "format": "email" },
+        "url": { "type": "string", "format": "uri" }
+      },
+      "description": "Per Codex plugin docs: optional publisher metadata. Minimum shape is `{name}`; `email` and `url` are documented as optional sub-fields."
+    },
+    "homepage": {
+      "type": "string",
+      "format": "uri",
+      "description": "Per Codex plugin docs: optional plugin homepage URL."
+    },
+    "repository": {
+      "type": "string",
+      "format": "uri",
+      "description": "Per Codex plugin docs: optional source-repository URL."
+    },
+    "license": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Per Codex plugin docs: optional SPDX license identifier (e.g., `MIT`, `Apache-2.0`)."
+    },
+    "logo": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Per Codex plugin docs: optional plugin-root-relative path (or URL) to a logo asset. Currently `./assets/logo-icon.svg`, bundled via `tool.hatch.build.targets.wheel.force-include.assets`."
+    },
+    "keywords": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Per Codex docs (developers.openai.com/codex/plugins/build): optional discovery tags for marketplace search."
+    },
+    "interface": {
+      "type": "string",
+      "description": "Per Codex docs: optional install-surface presentation metadata. Unused in v1 (kept as string-only for forward compat; the docs allow a richer object shape)."
+    },
+    "skills": {
+      "type": "string",
+      "pattern": "^\\./.+/?$",
+      "const": "./skills/",
+      "description": "Scalar relative path to the skills directory. The `./` prefix is required per Codex docs path rules."
+    },
+    "mcpServers": {
+      "type": "string",
+      "pattern": "^\\./.+$",
+      "const": "./.mcp.json",
+      "description": "Scalar relative path to the MCP servers config file."
+    },
+    "hooks": {
+      "type": "string",
+      "pattern": "^\\./.+$",
+      "const": "./hooks/hooks.json",
+      "description": "Scalar relative path to the hooks config file."
+    },
+    "apps": {
+      "type": "string",
+      "description": "Scalar relative path to apps. Unused in v1."
+    },
+    "assets": {
+      "type": "string",
+      "description": "Scalar relative path to assets. Unused in v1."
+    }
+  },
+  "not": {
+    "anyOf": [
+      { "required": ["agents"] },
+      { "required": ["subagents"] },
+      { "required": ["lspServers"] },
+      { "required": ["monitors"] },
+      { "required": ["settings"] },
+      { "required": ["bin"] }
+    ]
+  }
+}

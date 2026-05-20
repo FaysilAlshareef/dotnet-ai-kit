@@ -48,39 +48,27 @@ AGENT_CONFIG: dict[str, dict[str, Any]] = {
         "command_ext": None,
         "command_prefix": "dotnet-ai",
         "args_placeholder": None,
-        "agents_file": "AGENTS.md",
+        # T048: `agents_file` mapping deleted per research R13.
+        # The root-AGENTS.md emitter (copy_commands_codex) is gone; Codex
+        # plugin-native mode uses the plugin install path exclusively.
+        # See data-model.md § 1b.
     },
 }
 
-# v1.0: Only Claude Code is fully supported.
-# Cursor, Copilot, Codex planned for v1.1.
-SUPPORTED_AI_TOOLS: frozenset[str] = frozenset({"claude"})
+# Feature 019 (plugin-native architecture): all four hosts are first-class.
+# - claude/codex/cursor: plugin-native install (via each host's plugin model)
+# - copilot: render-only into `.github/` (no plugin model per FR-004)
+# v1-only single-host frozenset was replaced per T002 / plan.md commit 1.
+SUPPORTED_AI_TOOLS: frozenset[str] = frozenset({"claude", "codex", "cursor", "copilot"})
 
-# Per-tool transformation mapping for universal agent frontmatter.
-# Agent source files use tool-agnostic fields (role, expertise, complexity,
-# max_iterations). This map converts them to tool-specific frontmatter
-# during deployment via copy_agents().
-AGENT_FRONTMATTER_MAP: dict[str, dict[str, Any]] = {
-    "claude": {
-        "role": {
-            "advisory": {"disallowedTools": ["Write", "Edit"]},
-            "implementation": {},
-            "testing": {},
-            "review": {"disallowedTools": ["Write", "Edit"]},
-        },
-        # FR-013: do NOT emit ``skills:`` from agent ``expertise``. Claude Code
-        # has no ``skills:`` agent field; lifting expertise into it just
-        # silently bulk-loads skills the user did not ask for.
-        "complexity": {
-            "high": {"effort": "high", "model": "opus"},
-            "medium": {"effort": "medium", "model": "sonnet"},
-            "low": {"effort": "low", "model": "haiku"},
-        },
-        "max_iterations": lambda n: {"maxTurns": n},
-    },
-    # v1.0.1: "cursor": { ... }
-    # v1.0.1: "copilot": { ... }
-}
+# Feature 019 / T041a: the legacy AGENT_FRONTMATTER_MAP (per-tool universal
+# frontmatter transformation table) is deleted per CHK027 / research R1.
+# Per-host generation now goes through `dotnet_ai_kit.agent_generators`:
+#   - generate_claude_agent()   (commit 4)
+#   - generate_codex_agent()    (commit 5 — NotImplementedError per OOS-004)
+#   - generate_cursor_agent()   (commit 6)
+#   - generate_copilot_agent()  (commit 7)
+# See `contracts/agent-source.contract.md` for the per-host allow-lists.
 
 
 def get_agent_config(tool: str) -> dict[str, Any]:

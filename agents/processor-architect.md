@@ -1,15 +1,6 @@
 ---
 name: processor-architect
 description: Architects background processors and event handler services
-role: advisory
-expertise:
-  - hosted-service
-  - event-routing
-  - grpc-client
-  - batch-processing
-  - event-versioning
-complexity: high
-max_iterations: 20
 ---
 
 # Processor Specialist

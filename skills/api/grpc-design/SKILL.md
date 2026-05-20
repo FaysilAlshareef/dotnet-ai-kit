@@ -395,3 +395,6 @@ Map domain exceptions to gRPC status codes via interceptor (see `skills/microser
 | Ignoring deadlines | Cascading timeouts across services | Always set and propagate deadlines |
 | Returning internal errors verbatim | Leaks stack traces and implementation details | Map to status codes, log internally |
 | Synchronous blocking in async RPCs | Thread pool starvation under load | Use `async`/`await` throughout |
+
+## Related Knowledge
+- [knowledge/grpc-patterns.md](../../../knowledge/grpc-patterns.md) — streaming, deadlines, errors

@@ -1,6 +1,7 @@
 ---
 name: coding-conventions
 description: Use when applying or enforcing C# coding style — namespaces, sealed classes, var usage, XML docs.
+when_to_use: Use when applying or enforcing C# coding style — namespaces, sealed classes, var usage, XML docs.
 metadata:
   category: core
   agent: dotnet-architect
@@ -143,4 +144,12 @@ grep -r "var " --include="*.cs" | head -10          # Var usage
 
 1. Follow whatever conventions the project already uses
 2. Only apply these when no existing convention is detected
+
+## Related rules
+
+This skill depends on the always-on `coding-style` convention rule:
+
+- ${CLAUDE_PLUGIN_ROOT}/rules/conventions/coding-style.md
+
+The rule is loaded into context whenever this skill is active (FR-011 universal whitelist).
 3. Check `.editorconfig` for project-specific overrides

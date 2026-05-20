@@ -1,4 +1,9 @@
-"""T014 — packaging: plugin manifest, hook scripts, MCP config bundled in wheel."""
+"""Packaging assertions for the wheel.
+
+Original (feature 018): plugin manifest, hook scripts, MCP config.
+Extended (feature 019 / T006-T009): per-host plugin manifests, agent
+source/output dirs, rule-classification dirs, schema dir.
+"""
 
 from __future__ import annotations
 
@@ -61,3 +66,66 @@ def test_wheel_bundles_mcp_config(built_wheel: Path) -> None:
     with zipfile.ZipFile(built_wheel) as z:
         names = z.namelist()
     assert any(re.search(r"bundled/\.mcp\.json$", n) for n in names), ".mcp.json not bundled"
+
+
+# ---------------------------------------------------------------------------
+# T006 — feature 019 commit 2: per-host plugin manifests + new packaging dirs
+# ---------------------------------------------------------------------------
+
+# Each entry: (path-suffix in wheel, human-friendly description).
+# Files: the path-suffix must match a file inside the wheel.
+# Dirs: the path-suffix must be a prefix matched by at least one wheel entry.
+_FEATURE_019_BUNDLED_FILES = [
+    ("bundled/.codex-plugin/plugin.json", "Codex CLI plugin manifest"),
+    ("bundled/.cursor-plugin/plugin.json", "Cursor plugin manifest"),
+    # Round-2 review (LSP correction): `.lsp.json` declares the csharp-ls
+    # server config referenced by `.claude-plugin/plugin.json::lspServers`.
+    ("bundled/.lsp.json", "Claude LSP server config (csharp-ls)"),
+]
+
+_FEATURE_019_BUNDLED_DIRS = [
+    ("bundled/agents-source/", "Source-of-truth agent definitions"),
+    ("bundled/agents-claude/", "Generated Claude-shape agent files"),
+    # T171 (commit 25, OOS-005 PASS branch): `bundled/agents/` is the Cursor
+    # build-output directory targeted by `.cursor-plugin/plugin.json::agents`.
+    # Restored after the A-005 spike outcome JSON flipped to `passed`.
+    ("bundled/agents/", "Cursor sub-agent build output (13 files)"),
+    ("bundled/agents-copilot-templates/", "Copilot agent jinja2 templates"),
+    ("bundled/rules/conventions/", "Always-on convention rules (5 per FR-011)"),
+    ("bundled/rules/domain/", "Just-in-time domain rules (11 per FR-011)"),
+    ("bundled/rules/cursor/", "Cursor per-rule .mdc files"),
+    ("bundled/schemas/", "JSON Schema definitions"),
+    # Logo asset bundle referenced by .cursor-plugin/plugin.json::logo and
+    # .codex-plugin/plugin.json::logo. Without bundling, the manifest `logo`
+    # path resolves to a 404 after pip install.
+    ("bundled/assets/", "Logo + branding assets referenced by plugin manifests"),
+]
+
+
+@pytest.mark.parametrize(
+    "suffix,description",
+    _FEATURE_019_BUNDLED_FILES,
+    ids=[entry[1] for entry in _FEATURE_019_BUNDLED_FILES],
+)
+def test_wheel_bundles_feature_019_files(built_wheel: Path, suffix: str, description: str) -> None:
+    """T006: each per-host plugin manifest must be in the wheel."""
+    with zipfile.ZipFile(built_wheel) as z:
+        names = z.namelist()
+    assert any(n.endswith(suffix) for n in names), f"{description} ({suffix}) not bundled in wheel"
+
+
+@pytest.mark.parametrize(
+    "prefix,description",
+    _FEATURE_019_BUNDLED_DIRS,
+    ids=[entry[1] for entry in _FEATURE_019_BUNDLED_DIRS],
+)
+def test_wheel_bundles_feature_019_dirs(built_wheel: Path, prefix: str, description: str) -> None:
+    """T006: each feature-019 directory must be present in the wheel.
+
+    Asserts at least one entry exists under the directory prefix. Empty stub
+    directories that ship `.gitkeep` markers satisfy this; later feature-019
+    commits replace the markers with real content.
+    """
+    with zipfile.ZipFile(built_wheel) as z:
+        names = z.namelist()
+    assert any(prefix in n for n in names), f"{description} ({prefix}) not bundled in wheel"

@@ -76,15 +76,24 @@ Each step is also available as an independent command for manual control.
 ## Project Structure
 
 ```
-src/dotnet_ai_kit/       # Python CLI package
-skills/                   # 124 skills organized by category
-commands/                 # 27 slash command templates
-rules/                    # 15 always-loaded convention rules
-agents/                   # 13 specialist agent definitions
-hooks/                    # 5 safety hooks (bash scripts)
-templates/                # 13 project scaffolding templates
-knowledge/                # 16 reference documents
-config/                   # Permission JSON configs
-tests/                    # pytest test suite
-planning/                 # Planning documents (not shipped)
+src/dotnet_ai_kit/            # Python CLI package
+skills/                        # 124 skills organized by category
+commands/                      # 27 slash command templates
+rules/
+  conventions/                 # 5 universal rules (always active)
+  domain/                      # 11 path-scoped rules (carry paths: field)
+  cursor/                      # Cursor-format .mdc copies (16 files)
+agents-source/                 # 14 source-of-truth agent definitions
+agents-claude/                 # 13 Claude-rendered agents (with allow-lists)
+agents-copilot-templates/      # Jinja2 templates for Copilot agent render
+agents/                        # 14 Cursor sub-agent files (A-005 PASS branch)
+hooks/                         # 7 hooks (bash scripts + hooks.json config)
+templates/                     # 12 architecture profiles
+knowledge/                     # 16 reference documents
+config/                        # Permission JSON configs
+.claude-plugin/                # Claude Code plugin manifest
+.codex-plugin/                 # Codex CLI plugin manifest
+.cursor-plugin/                # Cursor plugin manifest
+tests/                         # pytest test suite
+planning/                      # Planning documents (not shipped)
 ```

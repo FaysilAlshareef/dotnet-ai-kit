@@ -169,7 +169,7 @@ dotnet-ai-kit/
     ├── 02-skills-inventory.md                   # 124 skills with descriptions
     ├── 03-agents-design.md                      # 13 agents, routing, orchestration
     ├── 04-commands-design.md                    # 27 commands, SDD lifecycle flows
-    ├── 05-rules-design.md                       # 9 always-loaded rules
+    ├── 05-rules-design.md                       # 16 rules (5 universal + 11 path-scoped)
     ├── 06-build-roadmap.md                      # Build phases and roadmap
     ├── 07-project-structure.md                  # Source repo + user project trees
     ├── 08-multi-repo-orchestration.md           # Multi-repo workspace, dependency chain

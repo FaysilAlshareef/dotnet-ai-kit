@@ -1,17 +1,6 @@
 ---
 name: command-architect
 description: Architects CQRS command-side aggregates and event sourcing
-role: advisory
-expertise:
-  - aggregate-design
-  - event-design
-  - event-store
-  - outbox
-  - command-handler
-  - event-versioning
-  - aggregate-testing
-complexity: high
-max_iterations: 20
 ---
 
 # Command Side Specialist

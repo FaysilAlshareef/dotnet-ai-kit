@@ -1,6 +1,7 @@
 ---
 name: dependency-injection
 description: Use when registering services, choosing lifetimes, or implementing DI patterns like decorator or keyed services.
+when_to_use: Use when registering services, choosing lifetimes, or implementing DI patterns like decorator or keyed services.
 metadata:
   category: core
   agent: dotnet-architect

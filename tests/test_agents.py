@@ -19,7 +19,7 @@ from dotnet_ai_kit.agents import (
 
 
 def test_agent_config_has_claude() -> None:
-    """AGENT_CONFIG must include a 'claude' entry."""
+    """AGENT_CONFIG must include a 'claude' entry (existing v1 behavior preserved)."""
     assert "claude" in AGENT_CONFIG
     cfg = AGENT_CONFIG["claude"]
     assert cfg["name"] == "Claude Code"
@@ -28,9 +28,35 @@ def test_agent_config_has_claude() -> None:
     assert cfg["command_ext"] == ".md"
 
 
-def test_supported_ai_tools_v1() -> None:
-    """v1.0 only supports Claude."""
-    assert SUPPORTED_AI_TOOLS == frozenset({"claude"})
+def test_agent_config_has_codex() -> None:
+    """AGENT_CONFIG must include a 'codex' entry (T001 — feature 019 multi-host)."""
+    assert "codex" in AGENT_CONFIG
+    cfg = AGENT_CONFIG["codex"]
+    assert cfg["name"] == "Codex CLI"
+
+
+def test_agent_config_has_cursor() -> None:
+    """AGENT_CONFIG must include a 'cursor' entry (T001 — feature 019 multi-host)."""
+    assert "cursor" in AGENT_CONFIG
+    cfg = AGENT_CONFIG["cursor"]
+    assert cfg["name"] == "Cursor"
+
+
+def test_agent_config_has_copilot() -> None:
+    """AGENT_CONFIG must include a 'copilot' entry (T001 — feature 019 multi-host)."""
+    assert "copilot" in AGENT_CONFIG
+    cfg = AGENT_CONFIG["copilot"]
+    assert cfg["name"] == "GitHub Copilot"
+
+
+def test_supported_ai_tools_multi_host() -> None:
+    """Feature 019: all four plugin hosts are first-class supported.
+
+    Replaces the v1-only single-host frozenset({"claude"}) per T001/T002 /
+    plan.md commit 1. Hosts are equal members of the supported set; Codex
+    and Cursor are plugin-native, Copilot is render-only.
+    """
+    assert SUPPORTED_AI_TOOLS == frozenset({"claude", "codex", "cursor", "copilot"})
 
 
 # ---------------------------------------------------------------------------

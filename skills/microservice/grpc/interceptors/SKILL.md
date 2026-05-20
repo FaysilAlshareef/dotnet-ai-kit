@@ -190,3 +190,7 @@ grep -r "problem-details-bin" --include="*.cs" src/
 3. **Follow ProblemDetails format** for error metadata
 4. **Add client interceptors** when calling other services (language propagation)
 5. **Test interceptor behavior** with unit tests
+
+## Related Knowledge
+
+- [knowledge/grpc-patterns.md](../../../knowledge/grpc-patterns.md) — cross-cutting gRPC patterns (streaming, deadlines, error mapping)

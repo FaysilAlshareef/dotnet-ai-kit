@@ -129,7 +129,7 @@ Prints `CHANGELOG.md` from the package directory if it exists. Falls back to lis
 ### `dotnet-ai configure` — Additional Behaviour
 
 - **Init guard**: Exits code 1 if `.dotnet-ai-kit/` directory does not exist, unless `--dry-run` (shows default config preview without requiring init).
-- **Re-deploy on save**: After saving config, re-copies commands (with updated `command_style`), rules, skills, and agents so changes take effect immediately.
+- **Re-deploy on save** *(pre-019 behavior)*: After saving config, the legacy bulk-copy path re-deployed commands / rules / skills / agents. Feature 019 made plugin-native hosts serve those from the plugin install path; the configure command now just updates `.claude/settings.json` permissions and records `command_style` in `.dotnet-ai-kit/config.yml` (see commands/configure.md for the v1.0 behavior).
 - **`--permissions` on init**: The `init` command also accepts `--permissions minimal|standard|full` to apply a permission level without a separate configure call.
 
 ---

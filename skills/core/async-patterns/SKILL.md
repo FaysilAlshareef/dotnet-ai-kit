@@ -1,6 +1,7 @@
 ---
 name: async-patterns
 description: Use when writing async code, propagating CancellationTokens, or fixing async/await pitfalls.
+when_to_use: Use when writing async code, propagating CancellationTokens, or fixing async/await pitfalls.
 metadata:
   category: core
   agent: dotnet-architect
@@ -283,6 +284,14 @@ await Task.Run(() => ComputeExpensiveSync());
 | Thread-safe lazy init | `SemaphoreSlim` with double-check pattern |
 | Producer/consumer queue | `System.Threading.Channels` |
 | Timeout | `CancellationTokenSource.CreateLinkedTokenSource` + `CancelAfter` |
+
+## Related rules
+
+This skill depends on the always-on `async-concurrency` convention rule:
+
+- ${CLAUDE_PLUGIN_ROOT}/rules/conventions/async-concurrency.md
+
+The rule is loaded into context whenever this skill is active (FR-011 universal whitelist).
 
 ## References
 

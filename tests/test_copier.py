@@ -11,7 +11,7 @@ from dotnet_ai_kit.copier import (
     CopyError,
     copy_agents,
     copy_commands,
-    copy_commands_codex,
+    # T049: copy_commands_codex deleted — root-AGENTS.md emitter gone per FR-008
     copy_commands_cursor,
     copy_permissions,
     copy_rules,
@@ -379,8 +379,9 @@ def test_copy_rules_no_rules_dir(tmp_path: Path) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_copy_commands_cursor_creates_mdc(tmp_path: Path) -> None:
-    """Cursor mode should create a single .mdc file combining commands and rules."""
+def test_copy_commands_cursor_creates_per_rule_mdc(tmp_path: Path) -> None:
+    """T056 — Cursor mode emits per-rule `.cursor/rules/<name>.mdc` files
+    (one per rule), NOT the legacy one-blob `dotnet-ai-kit.mdc`."""
     source = tmp_path / "commands_src"
     _create_command_files(source, ["specify", "plan"])
     rules = tmp_path / "rules_src"
@@ -392,32 +393,28 @@ def test_copy_commands_cursor_creates_mdc(tmp_path: Path) -> None:
 
     count = copy_commands_cursor(source, target, agent_config, rules)
 
-    assert count == 1
-    mdc_path = target / ".cursor" / "rules" / "dotnet-ai-kit.mdc"
-    assert mdc_path.is_file()
-    content = mdc_path.read_text(encoding="utf-8")
-    assert "Rule: naming" in content
-    assert "Command: dotnet-ai.specify" in content
-    assert "Command: dotnet-ai.plan" in content
+    # T056: per-rule files, not one blob
+    assert count >= 1, "MUST write at least one per-rule .mdc"
+    per_rule = target / ".cursor" / "rules" / "naming.mdc"
+    assert per_rule.is_file(), "T056: per-rule `<name>.mdc` MUST be written"
+    # T056 forbids the legacy one-blob output
+    legacy = target / ".cursor" / "rules" / "dotnet-ai-kit.mdc"
+    assert not legacy.is_file(), (
+        "T056 violation: legacy one-blob `dotnet-ai-kit.mdc` MUST NOT be emitted"
+    )
 
 
-def test_copy_commands_codex_creates_agents_md(tmp_path: Path) -> None:
-    """Codex mode should create an AGENTS.md file."""
-    source = tmp_path / "commands_src"
-    _create_command_files(source, ["specify", "plan"])
-    target = tmp_path / "project"
-    target.mkdir()
+def test_copy_commands_codex_removed_per_t049() -> None:
+    """T049: `copy_commands_codex` (root-AGENTS.md emitter) is deleted per FR-008.
 
-    agent_config = {"agents_file": "AGENTS.md"}
+    Codex CLI plugin-native mode uses the `.codex-plugin/plugin.json` manifest
+    exclusively; root `AGENTS.md` is now an unmanaged path per A-008.
+    """
+    from dotnet_ai_kit import copier as _copier
 
-    count = copy_commands_codex(source, target, agent_config)
-
-    assert count == 1
-    agents_path = target / "AGENTS.md"
-    assert agents_path.is_file()
-    content = agents_path.read_text(encoding="utf-8")
-    assert "dotnet-ai.specify" in content
-    assert "dotnet-ai.plan" in content
+    assert not hasattr(_copier, "copy_commands_codex"), (
+        "copy_commands_codex still present in copier.py — T049 incomplete"
+    )
 
 
 # ---------------------------------------------------------------------------
@@ -593,44 +590,49 @@ def _create_agent_files(source_dir: Path) -> None:
         )
 
 
-def test_copy_agents_flat_copy(tmp_path: Path) -> None:
-    """copy_agents should flat-copy all agent .md files."""
+def test_copy_agents_is_noop_under_feature_019(tmp_path: Path) -> None:
+    """copy_agents() is a no-op under feature 019 plugin-native architecture.
+
+    Per T041a / T043: agents are served from the plugin install path, NOT
+    bulk-copied to `.claude/agents/`. This test (renamed from the legacy
+    `test_copy_agents_flat_copy`) asserts the new no-op contract.
+    """
     source = tmp_path / "agents_src"
     _create_agent_files(source)
     target = tmp_path / "project"
     target.mkdir()
 
     agent_config = {"agents_dir": ".claude/agents"}
+    count = copy_agents(source, target, agent_config, tool_name="claude")
 
-    count = copy_agents(source, target, agent_config)
-
-    assert count == 3
-    assert (target / ".claude" / "agents" / "command-architect.md").is_file()
-    assert (target / ".claude" / "agents" / "query-architect.md").is_file()
-    assert (target / ".claude" / "agents" / "processor-architect.md").is_file()
+    # Under feature 019: 0 files copied. The .claude/agents directory should
+    # NOT have been populated.
+    assert count == 0
+    assert not (target / ".claude" / "agents").is_dir()
 
 
-def test_copy_agents_overwrites_existing(tmp_path: Path) -> None:
-    """copy_agents should overwrite existing agents directory."""
+def test_copy_agents_does_not_overwrite_existing(tmp_path: Path) -> None:
+    """copy_agents() MUST NOT touch a pre-existing .claude/agents/ under v019.
+
+    The user's local .claude/agents/ — whatever's there — is left alone. The
+    plugin install path is the source of truth for plugin-provided agents.
+    """
     source = tmp_path / "agents_src"
     _create_agent_files(source)
     target = tmp_path / "project"
     target.mkdir()
 
-    agent_config = {"agents_dir": ".claude/agents"}
+    # Pre-existing user-managed file in .claude/agents/
+    (target / ".claude" / "agents").mkdir(parents=True)
+    user_file = target / ".claude" / "agents" / "user-custom.md"
+    user_file.write_text("user-managed agent", encoding="utf-8")
 
-    # First copy
-    copy_agents(source, target, agent_config)
+    count = copy_agents(source, target, {"agents_dir": ".claude/agents"}, tool_name="claude")
 
-    # Add stale file
-    stale = target / ".claude" / "agents" / "stale-agent.md"
-    stale.write_text("stale", encoding="utf-8")
-
-    # Second copy should overwrite
-    count = copy_agents(source, target, agent_config)
-
-    assert count == 3
-    assert not stale.exists()
+    # User file preserved; no copy attempted
+    assert count == 0
+    assert user_file.exists()
+    assert user_file.read_text(encoding="utf-8") == "user-managed agent"
 
 
 def test_copy_agents_no_agents_dir(tmp_path: Path) -> None:

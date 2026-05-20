@@ -31,7 +31,7 @@ Also check if `.dotnet-ai-kit/briefs/` exists with content. If it does, warn: "T
 dotnet-ai init . --ai claude $ARGUMENTS
 ```
 
-This creates the config directory, copies commands/rules, and applies permissions to `.claude/settings.json`.
+This creates `.dotnet-ai-kit/` per-solution files (config.yml, project.yml, manifest.json, version.txt) and applies permissions to `.claude/settings.json`. Commands, skills, agents, and rules are served by the plugin install path (per feature 019 FR-004/FR-005) — no per-solution copies for plugin-native hosts (Claude/Codex/Cursor).
 
 After the command completes, verify:
 1. Exit code was 0 (if non-zero, report the error and stop)
@@ -41,7 +41,7 @@ After the command completes, verify:
 
 If `dotnet-ai` is not installed, tell the user: "dotnet-ai CLI not found. Install: `pip install dotnet-ai-kit`"
 
-**Plugin mode**: When running as a plugin, full-prefix commands (`dotnet-ai.*.md`) are NOT copied to `.claude/commands/` because the plugin system already serves them as `dotnet-ai-kit:*`. Only short aliases (`dai.*.md`) are copied when the command style includes "short".
+**Plugin-native mode (feature 019)**: For Claude/Codex/Cursor, commands/skills/agents/rules are served entirely by the plugin install path. The per-solution `.claude/`, `.codex/`, and `.cursor/` directories receive ONLY the manifest-tracked metadata files (settings.json for Claude). Copilot is the lone render-only host: it gets `.github/copilot-instructions.md` + `.github/instructions/*.instructions.md` + `.github/agents/*.agent.md` rendered into the repo per FR-007.
 
 ### Step 3: Detect project type using AI
 
@@ -57,8 +57,7 @@ After the CLI init completes, run project detection using the `/dotnet-ai.detect
 ### Step 4: Report results
 
 After initialization, report:
-- Number of commands copied
-- Number of rules copied
+- Per-solution file list created (config.yml, project.yml, manifest.json, version.txt, settings.json)
 - Config file location
 - Detection results (if successful):
   - Project type and architecture
@@ -70,13 +69,12 @@ After initialization, report:
 
 ### Step 5: Verify
 
-Confirm the following files/directories exist:
-- `.dotnet-ai-kit/config.yml`
-- `.dotnet-ai-kit/version.txt`
-- AI tool command directory (e.g., `.claude/commands/`)
-- AI tool rules directory (e.g., `.claude/rules/`)
-- `.dotnet-ai-kit/project.yml` (only if detection succeeded)
-- `.dotnet-ai-kit/manifest.json` (generated-file inventory, FR-032)
+Confirm the following per-solution files exist (feature 019 — these are the ONLY files written by init for plugin-native hosts):
+- `.dotnet-ai-kit/config.yml`     (UserConfig per data-model § 3)
+- `.dotnet-ai-kit/version.txt`    (plugin version stamp)
+- `.dotnet-ai-kit/project.yml`    (ProjectMetadata; only if detection / --type provided)
+- `.dotnet-ai-kit/manifest.json`  (generated-file inventory, FR-032)
+- `.claude/settings.json`         (Claude only — permission merge target)
 
 ### Step 6: Detect codebase-memory-mcp (FR-019)
 
@@ -103,8 +101,7 @@ dotnet-ai-kit v1.0.0
 
 Initializing for Claude Code...
   Created: .dotnet-ai-kit/config.yml
-  Copied: {N} commands
-  Copied: {N} rules
+  (No commands/rules/skills/agents copied — served by plugin)
 
 Detecting project type...
   Mode: {mode}
@@ -124,8 +121,7 @@ dotnet-ai-kit v1.0.0
 
 Initializing for Claude Code...
   Created: .dotnet-ai-kit/config.yml
-  Copied: {N} commands
-  Copied: {N} rules
+  (No commands/rules/skills/agents copied — served by plugin)
 
   Note: Project type detection skipped. Run /dotnet-ai.detect to classify your project.
 

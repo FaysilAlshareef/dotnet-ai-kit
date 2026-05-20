@@ -19,6 +19,35 @@ when_to_use: When configuring EF Core event store, discriminator mapping, or out
 - `OutboxMessage` has a **1:1 relationship** with Event via shared primary key (`HasForeignKey<OutboxMessage>(e => e.Id)`)
 - The `Type` column is stored as a string with `HasConversion<string>()`
 
+## Why Newtonsoft.Json (not System.Text.Json) — F-G
+
+The event-store, outbox, and event-routing pipelines deliberately use
+**Newtonsoft.Json (`JsonConvert`)** instead of `System.Text.Json`. The
+constraints that drive this choice:
+
+1. **Polymorphic deserialisation of `IEventData`** — Newtonsoft handles
+   `$type`-discriminated polymorphism out of the box (`TypeNameHandling`
+   + custom `SerializationBinder`). `System.Text.Json` only added similar
+   support in .NET 7+ via `[JsonPolymorphic]` + `[JsonDerivedType]`, and
+   it requires every concrete type to be statically known at compile time —
+   incompatible with the event-store's open set of `IEventData`
+   implementations contributed by downstream features.
+2. **Inheritance + private setters** — Newtonsoft handles inheritance,
+   private setters, and constructor-less DTOs without ceremony. STJ
+   requires public parameterless ctors or explicit `[JsonConstructor]`.
+3. **Wire compatibility with the rest of the platform** — feature-013
+   onwards has standardised on Newtonsoft across event-store / outbox /
+   event-routing. Switching one boundary breaks every historical row.
+4. **Custom converters** — the `StringEnumConverter`, contract resolver
+   for snake-case columns, and `NullValueHandling.Ignore` are all
+   Newtonsoft-native. The STJ analogues are partial and noisy.
+
+Cross-references: `skills/microservice/command/outbox/SKILL.md` (line 139
+where the outbox publisher imports `Newtonsoft.Json`),
+`skills/microservice/processor/event-routing/SKILL.md` (line ~200
+anti-pattern row reaffirming Newtonsoft), and
+`knowledge/outbox-pattern.md` (line ~251 worked example).
+
 ## Key Patterns
 
 ### GenericEventConfiguration

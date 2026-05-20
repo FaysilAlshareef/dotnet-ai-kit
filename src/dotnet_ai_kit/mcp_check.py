@@ -1,21 +1,45 @@
 """Runtime check for ``codebase-memory-mcp`` (T067 / FR-019 / FR-035).
 
-The shipped ``.mcp.json`` carries a documentation-only
-``dotnet_ai_kit_min_version`` field; the *actual* enforcement happens here.
-
-``check_codebase_memory_mcp()`` returns an ``MCPHealth`` describing whether
-the binary is present, what version it reports, and whether that version is
-``>= MIN_CODEBASE_MEMORY_MCP_VERSION``.
+The shipped ``.mcp.json`` carries a ``dotnet_ai_kit_min_version`` field
+that is the **single source of truth** for the minimum compatible MCP
+server version. ``check_codebase_memory_mcp()`` reads that value and
+returns an ``MCPHealth`` describing whether the binary is present and
+whether its reported version meets the minimum.
 """
 
 from __future__ import annotations
 
+import json
 import re
 import shutil
 import subprocess
 from dataclasses import dataclass
+from pathlib import Path
 
-MIN_CODEBASE_MEMORY_MCP_VERSION = "0.6.1"
+_FALLBACK_MIN_VERSION = "0.6.1"
+
+
+def _read_min_version_from_mcp_json() -> str:
+    """Read `mcpServers.codebase-memory-mcp.dotnet_ai_kit_min_version` from
+    the repository `.mcp.json`. Single source of truth per H-CX-5.
+    Falls back to the documented baseline if the file is unreadable
+    (e.g., when the package is installed without the repo source tree)."""
+    try:
+        # `.mcp.json` lives at the repo root, which is the parent of `src/`.
+        mcp_path = Path(__file__).resolve().parent.parent.parent / ".mcp.json"
+        if not mcp_path.is_file():
+            return _FALLBACK_MIN_VERSION
+        data = json.loads(mcp_path.read_text(encoding="utf-8"))
+        return (
+            data.get("mcpServers", {})
+            .get("codebase-memory-mcp", {})
+            .get("dotnet_ai_kit_min_version", _FALLBACK_MIN_VERSION)
+        )
+    except (OSError, json.JSONDecodeError, AttributeError):
+        return _FALLBACK_MIN_VERSION
+
+
+MIN_CODEBASE_MEMORY_MCP_VERSION = _read_min_version_from_mcp_json()
 
 _VERSION_RE = re.compile(r"(\d+)\.(\d+)\.(\d+)")
 
@@ -60,9 +84,34 @@ def check_codebase_memory_mcp() -> MCPHealth:
             [name, "--version"],
             capture_output=True,
             text=True,
-            timeout=5,
+            # 15s, not 5s: on Windows the first invocation of a freshly
+            # installed Python entry-point pays import-cost + console-host
+            # spin-up that routinely exceeds 5s on slow disks. The probe is
+            # one-shot per `dotnet-ai` invocation, so a longer ceiling is
+            # cheap and prevents post-install false negatives.
+            timeout=15,
         )
     except (subprocess.TimeoutExpired, OSError) as exc:
+        # Subprocess probe failed (timeout or spawn error). Fall back to an
+        # in-process import — works whenever the package is installed in
+        # the same interpreter even if the entry-point script is slow.
+        try:
+            import importlib  # noqa: PLC0415
+
+            mod = importlib.import_module("codebase_memory_mcp")
+            mod_version = getattr(mod, "__version__", None)
+            parsed = _parse(mod_version) if mod_version else None
+            if parsed is not None:
+                version_str = "{}.{}.{}".format(*parsed)
+                return MCPHealth(
+                    server_name=name,
+                    present=True,
+                    version=version_str,
+                    meets_minimum=parsed >= _min_tuple(),
+                    error=None,
+                )
+        except Exception:  # noqa: BLE001
+            pass
         return MCPHealth(
             server_name=name,
             present=True,

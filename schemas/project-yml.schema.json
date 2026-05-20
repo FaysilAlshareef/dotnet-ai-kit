@@ -1,0 +1,81 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/FaysilAlshareef/dotnet-ai-kit/specs/019-plugin-native-arch/contracts/project-yml.schema.json",
+  "title": "ProjectMetadata (.dotnet-ai-kit/project.yml)",
+  "description": "Schema for per-solution project metadata. Validated by `dotnet-ai check` per spec FR-017 (CHK013 / CHK014). The 12 project_type values are bound by clarify Q1 to match src/dotnet_ai_kit/models.py:88-99. The architecture_branch is derived but recorded explicitly for fast lookup.",
+  "type": "object",
+  "required": ["company", "domain", "side", "project_type", "architecture_branch", "detected_paths", "dotnet_version"],
+  "additionalProperties": false,
+  "properties": {
+    "company": { "type": "string", "minLength": 1 },
+    "domain": { "type": "string", "minLength": 1 },
+    "side": { "type": "string", "enum": ["server", "client"] },
+    "project_type": {
+      "type": "string",
+      "enum": [
+        "command",
+        "query-sql",
+        "query-cosmos",
+        "processor",
+        "gateway",
+        "controlpanel",
+        "hybrid",
+        "vsa",
+        "clean-arch",
+        "ddd",
+        "modular-monolith",
+        "generic"
+      ],
+      "description": "One of the 12 values validated by models.py:88-99. Bound by clarify Q1."
+    },
+    "architecture_branch": {
+      "type": "string",
+      "enum": ["microservice", "generic"],
+      "description": "Derived from project_type. command/query-sql/query-cosmos/processor/gateway/controlpanel/hybrid → microservice; vsa/clean-arch/ddd/modular-monolith/generic → generic."
+    },
+    "detected_paths": {
+      "type": "object",
+      "additionalProperties": { "type": "string", "minLength": 1 },
+      "minProperties": 1,
+      "description": "Layer paths discovered during detection. Resolved at runtime by skills/rules. Per spec FR-009/FR-010."
+    },
+    "architecture_profile_name": {
+      "type": "string",
+      "description": "Optional override. References a profile in profiles/<architecture_branch>/<name>.md. Drives PreToolUse hook output per FR-034."
+    },
+    "dotnet_version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+$",
+      "description": "e.g., 8.0, 9.0, 10.0. Matches Constitution III supported set."
+    },
+    "linked_repos": {
+      "type": "array",
+      "items": {
+        "type": "object",
+        "required": ["name", "path", "hosts"],
+        "additionalProperties": false,
+        "properties": {
+          "name": { "type": "string", "minLength": 1 },
+          "path": { "type": "string", "minLength": 1 },
+          "hosts": {
+            "type": "array",
+            "items": { "type": "string", "enum": ["claude", "codex", "cursor", "copilot"] },
+            "minItems": 1,
+            "uniqueItems": true
+          }
+        }
+      },
+      "description": "Constrained by spec FR-033 / SC-014. Linked sibling repositories that receive the same plugin-native footprint as the primary."
+    }
+  },
+  "allOf": [
+    {
+      "if": { "properties": { "project_type": { "enum": ["command", "query-sql", "query-cosmos", "processor", "gateway", "controlpanel", "hybrid"] } } },
+      "then": { "properties": { "architecture_branch": { "const": "microservice" } } }
+    },
+    {
+      "if": { "properties": { "project_type": { "enum": ["vsa", "clean-arch", "ddd", "modular-monolith", "generic"] } } },
+      "then": { "properties": { "architecture_branch": { "const": "generic" } } }
+    }
+  ]
+}

@@ -68,9 +68,19 @@ Source: `.dotnet-ai-kit/memory/architecture.md` + `domain-model.md` (per FR-024 
 **Feature**: {NNN}-{short-name} | **Date**: {DATE} | **Mode**: Microservice
 
 ## Summary
+
+One paragraph stating the feature's primary user-visible behavior and the
+single architectural axis it changes. No diagrams; reference the FR list
+in `spec.md` and the architectural diff in `data-model.md`.
+
 ## Constitution Check
 Source: `.dotnet-ai-kit/memory/architecture.md` + `domain-model.md` (per FR-024 split)
+
 ## Research Findings
+
+Numbered list of the R-items captured in `research.md` that drive plan
+decisions, each with a one-line "decision" / "rationale" / "alternatives"
+trio. Cross-link the canonical R-entry rather than restating it.
 
 ## Service Plan
 ### {domain}-command

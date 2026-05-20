@@ -4,9 +4,16 @@ from __future__ import annotations
 
 import logging
 import re
-from typing import Optional
+from typing import Literal, Optional
 
-from pydantic import BaseModel, ConfigDict, Field, field_validator, model_validator
+from pydantic import (
+    AliasChoices,
+    BaseModel,
+    ConfigDict,
+    Field,
+    field_validator,
+    model_validator,
+)
 
 logger = logging.getLogger(__name__)
 
@@ -32,6 +39,214 @@ KNOWN_PATH_KEYS: frozenset[str] = frozenset(
         "components",
     }
 )
+
+# ---------------------------------------------------------------------------
+# Feature 019: ProjectMetadata (`.dotnet-ai-kit/project.yml`) per data-model § 2
+# ---------------------------------------------------------------------------
+
+_PROJECT_TYPE_ENUM = (
+    "command",
+    "query-sql",
+    "query-cosmos",
+    "processor",
+    "gateway",
+    "controlpanel",
+    "hybrid",
+    "vsa",
+    "clean-arch",
+    "ddd",
+    "modular-monolith",
+    "generic",
+)
+
+# `architecture_branch` derivation rule per data-model.md § 2 / schema allOf:
+# command/query-sql/query-cosmos/processor/gateway/controlpanel/hybrid → microservice
+# vsa/clean-arch/ddd/modular-monolith/generic                          → generic
+_MICROSERVICE_PROJECT_TYPES: frozenset[str] = frozenset(
+    {"command", "query-sql", "query-cosmos", "processor", "gateway", "controlpanel", "hybrid"}
+)
+
+_DOTNET_VERSION_RE = re.compile(r"^\d+\.\d+$")
+
+
+def derive_architecture_branch(project_type: str) -> Literal["microservice", "generic"]:
+    """Derive `architecture_branch` from `project_type` per data-model § 2.
+
+    Used by `ProjectMetadata` validators and by the `dotnet-ai check` command
+    when verifying project.yml consistency.
+    """
+    return "microservice" if project_type in _MICROSERVICE_PROJECT_TYPES else "generic"
+
+
+class LinkedRepo(BaseModel):
+    """A linked secondary repository per data-model.md § 2 / § 11 / FR-033."""
+
+    model_config = ConfigDict(extra="forbid")
+
+    name: str = Field(min_length=1, description="Secondary repo directory name.")
+    path: str = Field(min_length=1, description="Filesystem path or github:org/repo reference.")
+    hosts: list[_HostName] = Field(
+        min_length=1,
+        description=(
+            "Subset of `UserConfig.enabled_hosts` to deploy in this linked repo. "
+            "Plugin-native footprint per FR-033 / SC-014."
+        ),
+    )
+
+    @field_validator("hosts")
+    @classmethod
+    def validate_hosts_unique(cls, v: list[str]) -> list[str]:
+        seen: set[str] = set()
+        out: list[str] = []
+        for host in v:
+            key = host.lower()
+            if key in seen:
+                raise ValueError(f"Duplicate host '{host}' in linked_repos.hosts")
+            seen.add(key)
+            out.append(key)
+        return out
+
+
+class ProjectMetadata(BaseModel):
+    """Per-solution project metadata stored at `.dotnet-ai-kit/project.yml`.
+
+    Validated against `contracts/project-yml.schema.json` (feature 019 / T020).
+    The `architecture_branch` is derived from `project_type` per the rule in
+    `derive_architecture_branch()`; when both are supplied, the explicit value
+    must match the derived value (a `model_validator` enforces consistency).
+    """
+
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
+
+    company: str = Field(min_length=1, description="e.g., `Contoso` (used in C# namespaces).")
+    domain: str = Field(min_length=1, description="e.g., `Sales` (logical product domain).")
+    side: Literal["server", "client"] = Field(description="server | client")
+    project_type: Literal[
+        "command",
+        "query-sql",
+        "query-cosmos",
+        "processor",
+        "gateway",
+        "controlpanel",
+        "hybrid",
+        "vsa",
+        "clean-arch",
+        "ddd",
+        "modular-monolith",
+        "generic",
+    ] = Field(description="One of 12 values per clarify Q1 / models.py:88-99.")
+    architecture_branch: Literal["microservice", "generic"] = Field(
+        description="Derived from project_type per data-model § 2."
+    )
+    detected_paths: dict[str, str] = Field(
+        default_factory=dict,
+        description="Layer paths discovered during detection (runtime-resolved by skills).",
+    )
+    architecture_profile_name: Optional[str] = Field(
+        default=None,
+        description=(
+            "Optional override referencing `profiles/<branch>/<name>.md`. "
+            "Drives PreToolUse hook output per FR-034."
+        ),
+    )
+    dotnet_version: str = Field(description="e.g., 8.0, 9.0, 10.0 (semver subset).")
+    linked_repos: list[LinkedRepo] = Field(
+        default_factory=list,
+        description="Linked secondary repositories per FR-033 / SC-014.",
+    )
+
+    @field_validator("dotnet_version")
+    @classmethod
+    def validate_dotnet_version(cls, v: str) -> str:
+        if not _DOTNET_VERSION_RE.match(v):
+            raise ValueError(f"dotnet_version '{v}' must match pattern ^\\d+\\.\\d+$ (e.g., 8.0)")
+        return v
+
+    @field_validator("detected_paths")
+    @classmethod
+    def validate_detected_paths_nonempty_values(cls, v: dict[str, str]) -> dict[str, str]:
+        for key, value in v.items():
+            if not isinstance(value, str) or not value:
+                raise ValueError(f"detected_paths['{key}'] must be a non-empty string")
+        return v
+
+    @model_validator(mode="after")
+    def validate_architecture_branch_derivation(self) -> ProjectMetadata:
+        """Ensure declared `architecture_branch` matches the derived value.
+
+        Per data-model § 2 / schema allOf rule. This is the single source-of-
+        truth derivation rule used by `dotnet-ai check` and the migrate flow.
+        """
+        derived = derive_architecture_branch(self.project_type)
+        if self.architecture_branch != derived:
+            raise ValueError(
+                f"architecture_branch '{self.architecture_branch}' does not match "
+                f"the value derived from project_type '{self.project_type}' "
+                f"(expected '{derived}'). The mapping is binding per data-model.md § 2."
+            )
+        return self
+
+
+# ---------------------------------------------------------------------------
+# Feature 019: UserConfig (`.dotnet-ai-kit/config.yml`) per data-model § 3
+# ---------------------------------------------------------------------------
+#
+# Per-solution descriptor of the developer's tool preferences. Pydantic reader
+# accepts the legacy `ai_tools` field name (used in pre-019 code at
+# `copier.py:1096-1100`) and maps it to `enabled_hosts` on read via
+# AliasChoices; writer always emits `enabled_hosts` (the canonical name) when
+# saved by `config.py.save_user_config()`. T003-T004 / plan.md commit 1.
+
+_HostName = Literal["claude", "codex", "cursor", "copilot"]
+_PermissionProfile = Literal["minimal", "standard", "full", "mcp"]
+
+
+class UserConfig(BaseModel):
+    """Per-solution descriptor of the developer's tool preferences.
+
+    Validated against `contracts/config-yml.schema.json` (feature 019).
+    Pydantic reader accepts legacy `ai_tools` as an alias for `enabled_hosts`
+    (data-model.md § 3). Writer always emits `enabled_hosts`.
+    """
+
+    model_config = ConfigDict(populate_by_name=True, extra="ignore")
+
+    enabled_hosts: list[_HostName] = Field(
+        default_factory=list,
+        validation_alias=AliasChoices("enabled_hosts", "ai_tools"),
+        description=(
+            "Subset of supported plugin hosts: claude, codex, cursor, copilot. "
+            "Accepts legacy `ai_tools` field name on read; writer emits `enabled_hosts`."
+        ),
+    )
+    retention: int = Field(
+        default=3,
+        ge=1,
+        description="Backup rotation depth — matches feature 018's 3-keep retention.",
+    )
+    permission_profile: Optional[_PermissionProfile] = Field(
+        default=None,
+        description="One of minimal, standard, full, mcp; matches existing config/ JSON files.",
+    )
+    plugin_version: str = Field(
+        default="",
+        description="Semver of the installed plugin at last init/upgrade.",
+    )
+
+    @field_validator("enabled_hosts")
+    @classmethod
+    def validate_unique_hosts(cls, v: list[str]) -> list[str]:
+        """Lowercase host names and reject duplicates."""
+        seen: set[str] = set()
+        out: list[str] = []
+        for host in v:
+            key = host.lower()
+            if key in seen:
+                raise ValueError(f"Duplicate host '{host}' in enabled_hosts")
+            seen.add(key)
+            out.append(key)
+        return out
+
 
 # ---------------------------------------------------------------------------
 # Detection signal models (used by signal-based detection pipeline)
@@ -212,6 +427,15 @@ _KNOWN_CONFIG_KEYS: frozenset[str] = frozenset(
         "repos",
         "permissions_level",
         "ai_tools",
+        # Feature 019 / commit 19 / B-2 / T145: `enabled_hosts` is the canonical
+        # v1 alias for `ai_tools`. Reader accepts either name; writer emits
+        # `enabled_hosts` per `schemas/config-yml.schema.json`.
+        "enabled_hosts",
+        # T143: init writes plugin_version into config.yml so migrate can
+        # identify pre-019 layouts.
+        "plugin_version",
+        "permission_profile",
+        "retention",
         "command_style",
         "linked_from",
         "managed_permissions",
@@ -222,10 +446,12 @@ _KNOWN_CONFIG_KEYS: frozenset[str] = frozenset(
 class DotnetAiConfig(BaseModel):
     """Main configuration model for dotnet-ai-kit.
 
-    Stored in .dotnet-ai-kit/config.yml.
+    Stored in .dotnet-ai-kit/config.yml. Feature 019 / B-2: the `ai_tools`
+    field is written as `enabled_hosts` per `schemas/config-yml.schema.json`;
+    reader accepts both names via `AliasChoices`.
     """
 
-    model_config = ConfigDict(extra="ignore")
+    model_config = ConfigDict(extra="ignore", populate_by_name=True)
 
     @model_validator(mode="before")
     @classmethod
@@ -259,7 +485,13 @@ class DotnetAiConfig(BaseModel):
     )
     permissions_level: str = Field(
         default="standard",
-        description="Permission level: minimal, standard, or full.",
+        validation_alias=AliasChoices("permissions_level", "permission_profile"),
+        serialization_alias="permission_profile",
+        description=(
+            "Permission level: minimal, standard, full, mcp. v1 emits "
+            "`permission_profile:` on write; reader accepts both `permissions_level:` "
+            "(pre-019) and `permission_profile:` (v1) per UserConfig schema."
+        ),
     )
     managed_permissions: list[str] = Field(
         default_factory=list,
@@ -267,7 +499,25 @@ class DotnetAiConfig(BaseModel):
     )
     ai_tools: list[str] = Field(
         default_factory=list,
-        description="List of configured AI tools (claude).",
+        validation_alias=AliasChoices("ai_tools", "enabled_hosts"),
+        serialization_alias="enabled_hosts",
+        description=(
+            "List of configured AI hosts. v1 emits `enabled_hosts:` on write; "
+            "reader accepts both `ai_tools:` (pre-019) and `enabled_hosts:` "
+            "(v1) per data-model.md § 3."
+        ),
+    )
+    plugin_version: str = Field(
+        default="",
+        description=(
+            "Semver of the installed plugin at last init/upgrade. "
+            "Feature 019 T143 — `migrate` uses this to identify pre-019 layouts."
+        ),
+    )
+    retention: int = Field(
+        default=3,
+        ge=1,
+        description="Backup rotation depth — matches feature 018's 3-keep retention.",
     )
     command_style: str = Field(
         default="both",

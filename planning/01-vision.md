@@ -82,7 +82,7 @@ The tool uses Claude Code's native features — no custom plugin system:
 ```
 .claude/
 ├── commands/       ← 27 slash commands (each reads relevant skills on demand)
-├── rules/          ← 9 always-loaded coding conventions
+├── rules/          ← 16 conventions (5 universal + 11 path-scoped, feature 019 v1.0.8)
 CLAUDE.md           ← Project context
 skills/             ← 124 skill files (read by commands when needed)
 knowledge/          ← 16 reference docs (read by commands when needed)
@@ -139,7 +139,7 @@ commands with the user's AI dev tool (Claude Code, Cursor, Copilot, Codex, Antig
 ```
 dotnet-ai-kit/                       # Source repository
 ├── src/                             # CLI tool (dotnet-ai init/check/upgrade)
-├── rules/                           # 9 always-loaded convention files
+├── rules/                           # 16 conventions (5 universal + 11 path-scoped)
 ├── agents/                          # 13 specialist agents
 ├── skills/                          # 124 skills by domain
 ├── commands/                        # 27 command templates

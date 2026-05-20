@@ -1,6 +1,7 @@
 ---
 name: functional-csharp
 description: Use when applying functional patterns in C# — Result types, railway-oriented programming, or immutability.
+when_to_use: Use when applying functional patterns in C# — Result types, railway-oriented programming, or immutability.
 metadata:
   category: core
   agent: dotnet-architect

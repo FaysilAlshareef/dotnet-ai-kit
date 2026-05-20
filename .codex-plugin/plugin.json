@@ -1,0 +1,27 @@
+{
+  "name": "dotnet-ai-kit",
+  "version": "1.0.0",
+  "description": "Full .NET development lifecycle plugin for Codex CLI: 124 skills, MCP integration, hooks. Renders 14 project-scoped subagents into `.codex/agents/*.toml` during `dotnet-ai init --ai codex`.",
+  "author": {
+    "name": "Faysil Alshareef",
+    "url": "https://github.com/FaysilAlshareef"
+  },
+  "homepage": "https://github.com/FaysilAlshareef/dotnet-ai-kit",
+  "repository": "https://github.com/FaysilAlshareef/dotnet-ai-kit",
+  "license": "MIT",
+  "logo": "./assets/logo-icon.svg",
+  "keywords": [
+    "dotnet",
+    "csharp",
+    "ai",
+    "cqrs",
+    "microservices",
+    "clean-architecture",
+    "vertical-slice",
+    "code-generation",
+    "sdd"
+  ],
+  "skills": "./skills/",
+  "mcpServers": "./.mcp.json",
+  "hooks": "./hooks/hooks.json"
+}

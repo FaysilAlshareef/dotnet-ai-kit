@@ -6,7 +6,10 @@ import re
 from pathlib import Path
 
 REPO = Path(__file__).resolve().parent.parent
-AGENTS = REPO / "agents"
+# Feature 019 / commit 6 / T054: agents/ -> agents-source/ rename.
+# The source-of-truth markdown bodies live under `agents-source/`.
+# `agents/` is now the Cursor build-output directory.
+AGENTS = REPO / "agents-source"
 
 
 def _agents() -> list[Path]:

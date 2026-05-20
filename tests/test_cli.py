@@ -77,16 +77,31 @@ def test_init_force_reinitializes(tmp_path: Path) -> None:
     assert result.exit_code == 0, result.output
 
 
-def test_init_defaults_to_claude_when_no_ai_detected(tmp_path: Path) -> None:
-    """Init should auto-default to Claude when no AI tool detected and no --ai flag."""
+def test_init_non_interactive_without_ai_flag_errors_per_fr014(tmp_path: Path) -> None:
+    """B-CX-3 (round-2 review): non-interactive init without --ai MUST error.
+
+    FR-014 (spec.md:171) forbids silent host selection. The previous test
+    encoded the old buggy behavior (`defaults to Claude`); the spec was
+    always clear that the CLI must prompt interactively or error in
+    non-interactive mode.
+
+    Since CliRunner does not attach a TTY, this invocation goes through the
+    non-interactive branch and MUST exit 2 with an actionable error.
+    """
     _create_dotnet_project(tmp_path)
     # No .claude/ or .cursor/ directory
 
     result = runner.invoke(app, ["init", str(tmp_path)])
 
-    # T051: auto-default to Claude instead of exit code 3
-    assert result.exit_code == 0
-    assert "defaulting to claude" in result.output.lower()
+    assert result.exit_code == 2, (
+        f"B-CX-3: non-interactive init without --ai must exit 2 per FR-014. "
+        f"Got exit_code={result.exit_code}, output={result.output[:400]}"
+    )
+    # Error message should reference the required flag so the user can fix it.
+    msg = result.output.lower()
+    assert "--ai" in msg or "non-interactive" in msg or "fr-014" in msg, (
+        f"Error message must hint at the required flag: {result.output[:400]}"
+    )
 
 
 def test_init_creates_project_yml_with_type_flag(tmp_path: Path) -> None:
@@ -106,7 +121,12 @@ def test_init_creates_project_yml_with_type_flag(tmp_path: Path) -> None:
 
 
 def test_init_with_permissions_flag_applies_level(tmp_path: Path) -> None:
-    """init --permissions should set the permissions_level in config and write settings.json."""
+    """T144 (commit 19, B-2): init --permissions writes the v1 `permission_profile:` key.
+
+    Per `schemas/config-yml.schema.json`, the canonical v1 field is
+    `permission_profile`. Reader still accepts the legacy `permissions_level`
+    name via `AliasChoices` so pre-019 config files continue to load.
+    """
     _create_dotnet_project(tmp_path)
     _create_claude_dir(tmp_path)
 
@@ -120,7 +140,14 @@ def test_init_with_permissions_flag_applies_level(tmp_path: Path) -> None:
     config_path = tmp_path / ".dotnet-ai-kit" / "config.yml"
     assert config_path.is_file()
     data = yaml.safe_load(config_path.read_text(encoding="utf-8"))
-    assert data["permissions_level"] == "standard"
+    # `permission_profile` is the v1 canonical name; legacy `permissions_level`
+    # MUST NOT appear in the emitted file.
+    assert data.get("permission_profile") == "standard", (
+        f"Expected permission_profile=='standard'; got {data!r}"
+    )
+    assert "permissions_level" not in data, (
+        f"B-2 violation: writer emitted legacy `permissions_level:` key. Data: {data!r}"
+    )
     # settings.json should have been written
     settings_path = tmp_path / ".claude" / "settings.json"
     assert settings_path.is_file()
@@ -154,7 +181,7 @@ def test_init_skips_detection_without_type_flag(tmp_path: Path) -> None:
 
 def test_check_not_initialized(tmp_path: Path) -> None:
     """Check should report not initialized when .dotnet-ai-kit/ is missing."""
-    result = runner.invoke(app, ["check"])
+    result = runner.invoke(app, ["status"])
 
     # This may or may not fail depending on cwd; we just verify it handles gracefully
     # The command checks cwd, which may not have .dotnet-ai-kit
@@ -269,7 +296,7 @@ def test_configure_permission_level_single_select(tmp_path: Path, monkeypatch) -
     assert result.exit_code == 0, result.output
 
     saved = yaml.safe_load(config_path.read_text(encoding="utf-8"))
-    assert saved["permissions_level"] == "standard"
+    assert saved["permission_profile"] == "standard"
 
 
 def test_configure_ai_tools_multi_select(tmp_path: Path, monkeypatch) -> None:
@@ -298,8 +325,8 @@ def test_configure_ai_tools_multi_select(tmp_path: Path, monkeypatch) -> None:
     assert result.exit_code == 0, result.output
 
     saved = yaml.safe_load(config_path.read_text(encoding="utf-8"))
-    assert "claude" in saved["ai_tools"]
-    assert "cursor" in saved["ai_tools"]
+    assert "claude" in saved["enabled_hosts"]
+    assert "cursor" in saved["enabled_hosts"]
 
 
 def test_configure_minimal_bypasses_interactive(tmp_path: Path, monkeypatch) -> None:
@@ -321,7 +348,7 @@ def test_configure_minimal_bypasses_interactive(tmp_path: Path, monkeypatch) -> 
     saved = yaml.safe_load(config_path.read_text(encoding="utf-8"))
     assert saved["company"]["name"] == "MinimalCo"
     # Other settings should remain at their existing/default values
-    assert saved["permissions_level"] == "minimal"  # kept from existing config
+    assert saved["permission_profile"] == "minimal"  # kept from existing config
 
 
 def test_configure_summary_table_displayed(tmp_path: Path, monkeypatch) -> None:
@@ -375,8 +402,8 @@ def test_configure_no_input_mode(tmp_path: Path, monkeypatch) -> None:
     assert saved["company"]["name"] == "CiCo"
     assert saved["company"]["github_org"] == "ci-org"
     assert saved["company"]["default_branch"] == "develop"
-    assert saved["permissions_level"] == "full"
-    assert saved["ai_tools"] == ["claude", "cursor"]
+    assert saved["permission_profile"] == "full"
+    assert saved["enabled_hosts"] == ["claude", "cursor"]
     assert saved["command_style"] == "short"
 
 
@@ -512,30 +539,36 @@ def test_validate_tools_verbose_shows_table_even_when_all_found() -> None:
 
 
 def test_tool_calls_rule_exists() -> None:
-    """T031b: A rule file in rules/ should mention sequential tool calls, not && chains."""
+    """T031b: A rule file should mention sequential tool calls, not && chains.
+
+    Feature 019 / commit 14: rules now live under rules/conventions/ +
+    rules/domain/. The tool-calls rule is a universal convention so it lives
+    in rules/conventions/tool-calls.md.
+    """
     rules_dir = Path(__file__).resolve().parent.parent / "rules"
     assert rules_dir.is_dir(), f"rules/ directory not found at {rules_dir}"
 
     found_rule = False
-    for rule_file in rules_dir.iterdir():
-        if rule_file.suffix == ".md":
-            content = rule_file.read_text(encoding="utf-8")
-            # Check that at least one rule file discusses sequential tool calls
-            if "sequential" in content.lower() and "&&" in content:
-                found_rule = True
-                # Verify the rule advises AGAINST && chains
-                assert "do not" in content.lower() or "don't" in content.lower(), (
-                    f"Rule file {rule_file.name} mentions && but does not advise against it"
-                )
-                # Check the file is under 100 lines
-                line_count = len(content.splitlines())
-                assert line_count <= 100, (
-                    f"Rule file {rule_file.name} has {line_count} lines, exceeds 100 limit"
-                )
-                break
+    # Search recursively to handle both legacy (rules/*.md) and feature 019
+    # (rules/conventions/*.md + rules/domain/*.md) layouts.
+    for rule_file in rules_dir.rglob("*.md"):
+        content = rule_file.read_text(encoding="utf-8")
+        # Check that at least one rule file discusses sequential tool calls
+        if "sequential" in content.lower() and "&&" in content:
+            found_rule = True
+            # Verify the rule advises AGAINST && chains
+            assert "do not" in content.lower() or "don't" in content.lower(), (
+                f"Rule file {rule_file.name} mentions && but does not advise against it"
+            )
+            # Check the file is under 100 lines
+            line_count = len(content.splitlines())
+            assert line_count <= 100, (
+                f"Rule file {rule_file.name} has {line_count} lines, exceeds 100 limit"
+            )
+            break
 
     assert found_rule, (
-        "No rule file found in rules/ that discusses sequential tool calls and && chains"
+        "No rule file found under rules/ that discusses sequential tool calls and && chains"
     )
 
 
@@ -603,7 +636,7 @@ def test_check_json_produces_valid_json(tmp_path: Path, monkeypatch) -> None:
 
     # Now run check --json from the project directory
     monkeypatch.chdir(tmp_path)
-    result = runner.invoke(app, ["check", "--json"], catch_exceptions=False)
+    result = runner.invoke(app, ["status", "--json"], catch_exceptions=False)
 
     assert result.exit_code == 0, result.output
 
@@ -616,9 +649,10 @@ def test_check_json_produces_valid_json(tmp_path: Path, monkeypatch) -> None:
 
     data = json.loads(json_lines[0])
     assert "version" in data
-    assert "ai_tools" in data
-    assert "claude" in data["ai_tools"]
-    assert "permissions_level" in data
+    # status --json: emits both legacy `ai_tools` and v1 `enabled_hosts` keys.
+    hosts = data.get("enabled_hosts") or data.get("ai_tools") or []
+    assert "claude" in hosts, f"status JSON missing claude in hosts: {data!r}"
+    assert "permissions_level" in data or "permission_profile" in data
     assert "company" in data
 
 
@@ -638,7 +672,7 @@ def test_check_exit_code_no_config(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.chdir(tmp_path)
     # No .dotnet-ai-kit directory exists
 
-    result = runner.invoke(app, ["check"])
+    result = runner.invoke(app, ["status"])
 
     assert result.exit_code == 1
 
@@ -663,7 +697,9 @@ def test_init_json_output(tmp_path: Path) -> None:
 
     data = json.loads(json_lines[0])
     assert data["version"]
-    assert "claude" in data["ai_tools"]
+    # init --json may emit `ai_tools` (legacy) or `enabled_hosts` (v1).
+    hosts = data.get("enabled_hosts") or data.get("ai_tools") or []
+    assert "claude" in hosts, f"init JSON missing claude in hosts: {data!r}"
     assert "config_dir" in data
 
 
@@ -714,7 +750,7 @@ def test_check_config_error_exit_code_2(tmp_path: Path, monkeypatch) -> None:
         encoding="utf-8",
     )
 
-    result = runner.invoke(app, ["check"])
+    result = runner.invoke(app, ["status"])
 
     assert result.exit_code == 2
 
@@ -724,7 +760,7 @@ def test_check_error_message_includes_fix(tmp_path: Path, monkeypatch) -> None:
     monkeypatch.chdir(tmp_path)
     # No .dotnet-ai-kit directory
 
-    result = runner.invoke(app, ["check"])
+    result = runner.invoke(app, ["status"])
 
     assert result.exit_code == 1
     # Should tell user how to fix the problem
@@ -846,21 +882,25 @@ def test_init_accepts_all_valid_types(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# --ai validation (v1.0: claude only)
+# --ai validation (feature 019: claude/codex/cursor/copilot all supported)
 # ---------------------------------------------------------------------------
 
 
-def test_init_rejects_unsupported_ai_tool(tmp_path: Path) -> None:
-    """Init should reject AI tools not supported in v1.0."""
+def test_init_rejects_unknown_ai_tool(tmp_path: Path) -> None:
+    """Init should reject AI tool names outside the SUPPORTED_AI_TOOLS set.
+
+    Per feature 019 / T002, SUPPORTED_AI_TOOLS = {claude, codex, cursor, copilot}.
+    Hosts inside the set are accepted by `--ai`; only true unknowns are rejected.
+    """
     _create_dotnet_project(tmp_path)
 
     result = runner.invoke(
         app,
-        ["init", str(tmp_path), "--ai", "cursor"],
+        ["init", str(tmp_path), "--ai", "nonexistent-host"],
     )
 
     assert result.exit_code == 1
-    assert "unsupported" in result.output.lower()
+    assert "unsupported" in result.output.lower() or "unknown" in result.output.lower()
 
 
 # ---------------------------------------------------------------------------
@@ -983,7 +1023,7 @@ def test_check_displays_project_info(tmp_path: Path, monkeypatch) -> None:
     )
     monkeypatch.chdir(tmp_path)
 
-    result = runner.invoke(app, ["check"], catch_exceptions=False)
+    result = runner.invoke(app, ["status"], catch_exceptions=False)
     assert result.exit_code == 0
     assert "command" in result.output.lower()
 
@@ -1000,7 +1040,7 @@ def test_check_json_includes_project(tmp_path: Path, monkeypatch) -> None:
     )
     monkeypatch.chdir(tmp_path)
 
-    result = runner.invoke(app, ["check", "--json"], catch_exceptions=False)
+    result = runner.invoke(app, ["status", "--json"], catch_exceptions=False)
     assert result.exit_code == 0
 
     json_lines = [ln for ln in result.output.strip().splitlines() if ln.strip().startswith("{")]
@@ -1087,7 +1127,7 @@ def test_init_force_preserves_existing_config(tmp_path: Path) -> None:
     saved = yaml.safe_load(config_path.read_text(encoding="utf-8"))
     assert saved["company"]["name"] == "Acme"
     assert saved["company"]["github_org"] == "acme-org"
-    assert saved["permissions_level"] == "full"
+    assert saved["permission_profile"] == "full"
 
 
 def test_init_force_applies_full_permissions(tmp_path: Path) -> None:
@@ -1147,34 +1187,39 @@ def test_upgrade_reapplies_permissions_when_level_changes(tmp_path: Path, monkey
 
 
 def test_upgrade_force_refreshes_when_version_matches(tmp_path: Path, monkeypatch) -> None:
-    """upgrade --force should refresh files even when version is up to date."""
+    """upgrade --force should run successfully even when version is up to date.
+
+    Feature 019 / T042: plugin-native mode no longer copies rules to
+    `.claude/rules/`. upgrade --force still re-runs the upgrade flow
+    (which refreshes the version stamp and host-adapter writes for
+    plugin-native hosts).
+    """
     _create_dotnet_project(tmp_path)
     _create_claude_dir(tmp_path)
 
     runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
     monkeypatch.chdir(tmp_path)
 
-    # Delete a rule file to prove --force re-copies it
-    rules_dir = tmp_path / ".claude" / "rules"
-    rule_files_before = list(rules_dir.glob("*.md"))
-    assert len(rule_files_before) > 0
-    rule_files_before[0].unlink()
-    rules_after_delete = list(rules_dir.glob("*.md"))
-    assert len(rules_after_delete) == len(rule_files_before) - 1
-
-    # Without --force, upgrade does nothing
+    # Without --force, upgrade reports up-to-date
     result = runner.invoke(app, ["upgrade"], catch_exceptions=False)
     assert "up to date" in result.output.lower()
-    assert len(list(rules_dir.glob("*.md"))) == len(rule_files_before) - 1
 
-    # With --force, upgrade refreshes
+    # With --force, upgrade re-runs and returns 0
     result = runner.invoke(app, ["upgrade", "--force"], catch_exceptions=False)
     assert result.exit_code == 0
-    assert len(list(rules_dir.glob("*.md"))) == len(rule_files_before)
+    # version.txt should still be present (per-solution metadata is refreshed)
+    version_file = tmp_path / ".dotnet-ai-kit" / "version.txt"
+    assert version_file.is_file()
 
 
-def test_upgrade_force_redeploys_profile(tmp_path: Path, monkeypatch) -> None:
-    """upgrade --force should call copy_profile and copy_hook even when version matches."""
+def test_upgrade_force_does_not_redeploy_profile_for_plugin_native(
+    tmp_path: Path, monkeypatch
+) -> None:
+    """T136 (commit 18, B-1): upgrade --force MUST NOT call copy_profile or copy_hook
+    for plugin-native Claude. The architecture profile lives in the plugin install
+    path (rules/conventions/ + rules/domain/), not in per-solution
+    `.claude/rules/architecture-profile.md`.
+    """
 
     _create_dotnet_project(tmp_path)
     _create_claude_dir(tmp_path)
@@ -1194,8 +1239,14 @@ def test_upgrade_force_redeploys_profile(tmp_path: Path, monkeypatch) -> None:
         result = runner.invoke(app, ["upgrade", "--force"], catch_exceptions=False)
 
     assert result.exit_code == 0, result.output
-    assert mock_profile.called, "copy_profile should be called with --force"
-    assert mock_hook.called, "copy_hook should be called with --force"
+    assert not mock_profile.called, (
+        "B-1 violation: upgrade --force called copy_profile for plugin-native Claude. "
+        "Per FR-004 the profile is served from the plugin install path."
+    )
+    assert not mock_hook.called, (
+        "B-1 violation: upgrade --force called copy_hook for plugin-native Claude. "
+        "Per FR-004 the PreToolUse hook is served from the plugin install path."
+    )
 
 
 def test_configure_fails_loudly_on_permission_error(tmp_path: Path, monkeypatch) -> None:
@@ -1241,7 +1292,7 @@ def test_check_detects_permission_mismatch(tmp_path: Path, monkeypatch) -> None:
     config_path.write_text(yaml.dump(cfg), encoding="utf-8")
 
     monkeypatch.chdir(tmp_path)
-    result = runner.invoke(app, ["check"], catch_exceptions=False)
+    result = runner.invoke(app, ["status"], catch_exceptions=False)
 
     assert result.exit_code == 0
     assert "mismatch" in result.output.lower() or "bypassPermissions" in result.output
@@ -1280,7 +1331,7 @@ def test_configure_respects_existing_permission_default(tmp_path: Path, monkeypa
 
     saved = yaml.safe_load(config_path.read_text(encoding="utf-8"))
     # Pressing Enter should keep full (default="3" mapped from existing "full")
-    assert saved["permissions_level"] == "full"
+    assert saved["permission_profile"] == "full"
     # Pressing Enter should keep short (default="2" mapped from existing "short")
     assert saved["command_style"] == "short"
 
@@ -1340,39 +1391,45 @@ def test_configure_repos_flag_ssh_url(tmp_path: Path, monkeypatch) -> None:
 
 
 def test_configure_recopy_on_style_change(tmp_path: Path, monkeypatch) -> None:
-    """Configure --style must re-copy commands so style changes take effect immediately."""
+    """Configure --style updates config.yml and is a no-op for plugin-native hosts.
+
+    Feature 019 / Codex round-2 sibling Blocker 2': for plugin-native hosts
+    (claude/codex/cursor) the plugin install serves commands; configure does
+    NOT bulk-copy per-solution. The style preference still updates `config.yml`
+    so the plugin host can read it at runtime.
+    """
     _setup_config_dir(tmp_path)
     monkeypatch.chdir(tmp_path)
 
-    # Force standalone mode so full-prefix files are written
-    with patch("dotnet_ai_kit.cli._detect_plugin_mode", return_value=False):
-        # First configure with 'both' to create both command sets
-        result = runner.invoke(
-            app,
-            ["configure", "--no-input", "--company", "TestCo", "--style", "both"],
-            catch_exceptions=False,
+    # First configure with 'full' style (non-default so it's persisted)
+    result = runner.invoke(
+        app,
+        ["configure", "--no-input", "--company", "TestCo", "--style", "full"],
+        catch_exceptions=False,
+    )
+    assert result.exit_code == 0, result.output
+
+    # Config file MUST record the non-default style
+    config_yml = (tmp_path / ".dotnet-ai-kit" / "config.yml").read_text(encoding="utf-8")
+    assert "command_style: full" in config_yml
+
+    # Now change to 'short'
+    result = runner.invoke(
+        app,
+        ["configure", "--no-input", "--company", "TestCo", "--style", "short"],
+        catch_exceptions=False,
+    )
+    assert result.exit_code == 0, result.output
+    config_yml = (tmp_path / ".dotnet-ai-kit" / "config.yml").read_text(encoding="utf-8")
+    assert "command_style: short" in config_yml
+
+    # Per FR-005/FR-006: NO per-solution commands written for plugin-native Claude
+    cmds = tmp_path / ".claude" / "commands"
+    if cmds.is_dir():
+        contents = [p.name for p in cmds.iterdir() if p.is_file()]
+        assert not contents, (
+            f"Plugin-native Claude configure MUST NOT write per-solution commands: {contents}"
         )
-        assert result.exit_code == 0, result.output
-
-        cmds = tmp_path / ".claude" / "commands"
-        assert cmds.is_dir(), "Commands directory should exist"
-        full_before = list(cmds.glob("dotnet-ai.*.md"))
-        short_before = list(cmds.glob("dai.*.md"))
-        assert len(full_before) > 0, "Expected dotnet-ai.*.md files after both style"
-        assert len(short_before) > 0, "Expected dai.*.md files after both style"
-
-        # Now change to 'short' — should clean up dotnet-ai.*.md
-        result = runner.invoke(
-            app,
-            ["configure", "--no-input", "--company", "TestCo", "--style", "short"],
-            catch_exceptions=False,
-        )
-        assert result.exit_code == 0, result.output
-
-        full_after = list(cmds.glob("dotnet-ai.*.md"))
-        short_after = list(cmds.glob("dai.*.md"))
-        assert len(full_after) == 0, f"Stale dotnet-ai.*.md files remain: {full_after}"
-        assert len(short_after) > 0, "Expected dai.*.md files after short style"
 
 
 # ---------------------------------------------------------------------------
@@ -1380,8 +1437,11 @@ def test_configure_recopy_on_style_change(tmp_path: Path, monkeypatch) -> None:
 # ---------------------------------------------------------------------------
 
 
-def test_init_deploys_profile_when_type_provided(tmp_path: Path) -> None:
-    """init --type command should deploy architecture-profile.md."""
+def test_init_does_not_deploy_profile_for_plugin_native_claude(tmp_path: Path) -> None:
+    """T136 (commit 18, B-1): init --type command MUST NOT deploy per-solution
+    architecture-profile.md for plugin-native Claude. The profile lives in the
+    plugin install path (rules/conventions/ + rules/domain/) per FR-004.
+    """
     _create_dotnet_project(tmp_path)
     _create_claude_dir(tmp_path)
 
@@ -1392,11 +1452,17 @@ def test_init_deploys_profile_when_type_provided(tmp_path: Path) -> None:
 
     assert result.exit_code == 0
     profile = tmp_path / ".claude" / "rules" / "architecture-profile.md"
-    assert profile.is_file()
+    assert not profile.is_file(), (
+        "B-1 violation: plugin-native Claude init wrote "
+        f"{profile.relative_to(tmp_path)}. Per FR-004 it lives in the plugin install path."
+    )
 
 
-def test_init_deploys_hook_when_type_provided(tmp_path: Path) -> None:
-    """init --type command should deploy enforcement hook for Claude."""
+def test_init_does_not_deploy_hook_for_plugin_native_claude(tmp_path: Path) -> None:
+    """T136 (commit 18, B-1): init MUST NOT deploy a PreToolUse `dotnet-ai-kit-arch`
+    hook entry into per-solution `.claude/settings.json` for plugin-native Claude.
+    The hook is served from the plugin install path.
+    """
     _create_dotnet_project(tmp_path)
     _create_claude_dir(tmp_path)
 
@@ -1411,7 +1477,10 @@ def test_init_deploys_hook_when_type_provided(tmp_path: Path) -> None:
         settings = json.loads(settings_path.read_text(encoding="utf-8"))
         hooks = settings.get("hooks", {}).get("PreToolUse", [])
         arch_hooks = [h for h in hooks if h.get("_source") == "dotnet-ai-kit-arch"]
-        assert len(arch_hooks) >= 1
+        assert not arch_hooks, (
+            "B-1 violation: plugin-native Claude init embedded a "
+            f"`dotnet-ai-kit-arch` PreToolUse hook in settings.json: {arch_hooks!r}"
+        )
 
 
 # ---------------------------------------------------------------------------
@@ -1524,7 +1593,7 @@ def test_check_json_includes_tool_detail_fields(tmp_path: Path, monkeypatch) -> 
     runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
 
     monkeypatch.chdir(tmp_path)
-    result = runner.invoke(app, ["check", "--json"], catch_exceptions=False)
+    result = runner.invoke(app, ["status", "--json"], catch_exceptions=False)
 
     assert result.exit_code == 0, result.output
     json_lines = [ln for ln in result.output.strip().splitlines() if ln.strip().startswith("{")]
@@ -1561,7 +1630,7 @@ def test_check_json_includes_linked_from_and_repos(tmp_path: Path, monkeypatch) 
     config_path.write_text(_yaml.dump(cfg), encoding="utf-8")
 
     monkeypatch.chdir(tmp_path)
-    result = runner.invoke(app, ["check", "--json"], catch_exceptions=False)
+    result = runner.invoke(app, ["status", "--json"], catch_exceptions=False)
 
     assert result.exit_code == 0, result.output
     json_lines = [ln for ln in result.output.strip().splitlines() if ln.strip().startswith("{")]
@@ -1588,7 +1657,7 @@ def test_check_table_includes_skill_agent_columns(tmp_path: Path, monkeypatch) -
     runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
 
     monkeypatch.chdir(tmp_path)
-    result = runner.invoke(app, ["check"], catch_exceptions=False)
+    result = runner.invoke(app, ["status"], catch_exceptions=False)
 
     assert result.exit_code == 0, result.output
     assert "Skills" in result.output
@@ -1607,11 +1676,16 @@ def test_check_verbose_shows_profile_detail(tmp_path: Path, monkeypatch) -> None
     )
     monkeypatch.chdir(tmp_path)
 
-    result = runner.invoke(app, ["check", "--verbose"], catch_exceptions=False)
+    result = runner.invoke(app, ["status", "--verbose"], catch_exceptions=False)
 
     assert result.exit_code == 0, result.output
-    # When profile is deployed, verbose output includes profile path info
-    assert "architecture-profile.md" in result.output
+    # T136 (commit 18, B-1): plugin-native Claude — `architecture-profile.md`
+    # MUST NOT appear in status output because the profile is served from the
+    # plugin install path, not from `.claude/rules/`.
+    assert "architecture-profile.md" not in result.output, (
+        "B-1 violation: plugin-native Claude status reports stale "
+        "`architecture-profile.md` from per-solution path."
+    )
 
 
 def test_check_table_includes_profile_hook_columns(tmp_path: Path, monkeypatch) -> None:
@@ -1622,7 +1696,7 @@ def test_check_table_includes_profile_hook_columns(tmp_path: Path, monkeypatch) 
     runner.invoke(app, ["init", str(tmp_path), "--ai", "claude"], catch_exceptions=False)
 
     monkeypatch.chdir(tmp_path)
-    result = runner.invoke(app, ["check"], catch_exceptions=False)
+    result = runner.invoke(app, ["status"], catch_exceptions=False)
 
     assert result.exit_code == 0, result.output
     assert "Profile" in result.output

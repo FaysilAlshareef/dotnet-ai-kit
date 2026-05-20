@@ -4,19 +4,29 @@
 
 ```
 dotnet-ai-kit/
-├── .claude-plugin/    # Claude Code plugin manifest (plugin.json)
-├── .mcp.json          # MCP server config (csharp-ls for C# intelligence)
-├── src/               # CLI tool (Python 3.10+, typer + pydantic + jinja2 + rich)
-├── hooks/             # 4 Claude Code hooks (bash-guard, edit-format, scaffold-restore, commit-lint)
-├── rules/             # 9 always-loaded convention files (≤100 lines each)
-├── agents/            # 13 specialist agents (with full skill path references)
-├── skills/            # 124 skills by domain (≤400 lines each, Agent Skills spec compliant)
-├── commands/          # 27 command templates (≤200 lines each, each loads appropriate agent)
-├── knowledge/         # 16 reference documents
-├── templates/         # 13 project scaffolds (9 microservice + 4 generic)
-├── config/            # 4 permission config templates
-├── tests/             # pytest test suite (115 test functions, 90% coverage)
-└── planning/          # 18 planning documents (design specs, not shipped)
+├── .claude-plugin/           # Claude Code plugin manifest
+├── .codex-plugin/            # Codex CLI plugin manifest
+├── .cursor-plugin/           # Cursor plugin manifest
+├── .mcp.json                 # MCP server config (codebase-memory-mcp)
+├── src/                      # CLI tool (Python 3.10+, typer + pydantic + jinja2 + rich)
+├── hooks/                    # 7 hooks (bash-guard, edit-format, scaffold-restore,
+│                             #   commit-lint, session-start, pretooluse-arch-profile,
+│                             #   + hooks.json config)
+├── rules/
+│   ├── conventions/          # 5 universal rules (always active, ≤100 lines each)
+│   ├── domain/               # 11 path-scoped rules (≤100 lines each, carry paths:)
+│   └── cursor/               # Cursor-format .mdc copies (auto-generated)
+├── agents-source/            # 14 source-of-truth agent definitions
+├── agents-claude/            # 13 Claude-rendered agents (with allow-lists)
+├── agents-copilot-templates/ # Jinja2 templates for Copilot agent render
+├── agents/                   # 14 Cursor sub-agent files (A-005 PASS branch)
+├── skills/                   # 124 skills by domain (≤400 lines each)
+├── commands/                 # 27 command templates (≤200 lines each)
+├── knowledge/                # 16 reference documents
+├── templates/                # 12 architecture profiles (7 microservice + 5 generic)
+├── config/                   # 4 permission config templates
+├── tests/                    # pytest test suite
+└── planning/                 # Design specs (not shipped)
 ```
 
 ## Development Setup
@@ -69,16 +79,28 @@ description: One-line description
 # Command instructions
 ```
 
-### Rules (`rules/{name}.md`, max 100 lines)
+### Rules
+
+Rules live in two directories (constitution v1.0.8):
+
+- `rules/conventions/<name>.md` — 5 universal rules, max 100 lines each.
+  Always active; no `paths:` field.
+- `rules/domain/<name>.md` — 11 path-scoped rules, max 100 lines each.
+  Carry a top-level `paths:` list so they load only when a matching file
+  is touched.
 
 ```markdown
 ---
-alwaysApply: true
 description: One-line description
+paths:                   # path-scoped rules only; omit for universal
+  - "**/*.cs"
 ---
 
 # Rule content
 ```
+
+Cursor-format copies live in `rules/cursor/*.mdc` (universal rules carry
+`alwaysApply: true`; path-scoped rules carry `globs:` instead).
 
 ## How to Contribute
 

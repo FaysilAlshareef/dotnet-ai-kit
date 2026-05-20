@@ -1,15 +1,6 @@
 ---
 name: docs-engineer
 description: Generates and maintains project documentation and ADRs
-role: advisory
-expertise:
-  - readme-gen
-  - api-docs
-  - architecture-docs
-  - changelog-gen
-  - adr
-complexity: low
-max_iterations: 10
 ---
 
 # Documentation Specialist

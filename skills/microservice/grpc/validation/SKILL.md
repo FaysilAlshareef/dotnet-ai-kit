@@ -205,3 +205,7 @@ grep -r "Phrases\." --include="*.cs" src/Grpc/Validators/
 3. **Ensure `AddAppValidators()` is called** (scans assembly automatically)
 4. **Follow existing validation patterns** — check how nullable fields are handled
 5. **Test validators** with xUnit and invalid inputs
+
+## Related Knowledge
+
+- [knowledge/grpc-patterns.md](../../../knowledge/grpc-patterns.md) — cross-cutting gRPC patterns (streaming, deadlines, error mapping)

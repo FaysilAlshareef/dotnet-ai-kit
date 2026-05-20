@@ -1,4 +1,21 @@
-"""Tests for copy_agents() universal→tool-specific frontmatter transformation."""
+"""Tests for the (feature-019) `copy_agents` no-op dispatch behavior.
+
+Feature 019 / T041a / T043 deletes the legacy universal-frontmatter →
+per-tool transformation pipeline (AGENT_FRONTMATTER_MAP + the
+`_transform_agent_frontmatter` helper). Per-host generation now lives in
+`dotnet_ai_kit.agent_generators` and is tested in
+`tests/unit/test_agent_generators.py`.
+
+`copy_agents` is kept as a no-op compatibility shim so legacy call sites in
+`cli.py` / `copier.py` linked-secondary writer keep functioning while
+later feature-019 commits route them through the new `hosts/` adapters.
+This file asserts the shim's no-op contract:
+
+- For plugin-native hosts (claude/codex/cursor): MUST return 0, MUST NOT
+  write any files to the target's per-solution path.
+- For copilot: MUST return 0 (the Copilot render path lands in commit 7).
+- For unknown hosts: MUST return 0 + warning log.
+"""
 
 from __future__ import annotations
 
@@ -8,15 +25,10 @@ from pathlib import Path
 import pytest
 import yaml
 
-from dotnet_ai_kit.copier import (
-    _parse_yaml_frontmatter,
-    _transform_agent_frontmatter,
-    copy_agents,
-)
+from dotnet_ai_kit.copier import copy_agents
 
 
 def _create_agent(source_dir: Path, name: str, fm: dict) -> Path:
-    """Create an agent file with universal frontmatter."""
     source_dir.mkdir(parents=True, exist_ok=True)
     fm_yaml = yaml.dump(fm, default_flow_style=False, sort_keys=False)
     content = f"---\n{fm_yaml}---\n\n# Agent body\n\nSome instructions here.\n"
@@ -25,172 +37,43 @@ def _create_agent(source_dir: Path, name: str, fm: dict) -> Path:
     return path
 
 
-class TestParseYamlFrontmatter:
-    """Verify frontmatter parsing."""
+@pytest.mark.parametrize(
+    "tool_name",
+    ["claude", "codex", "cursor", "copilot"],
+)
+def test_copy_agents_is_noop_under_feature_019(tool_name: str, tmp_path: Path) -> None:
+    """All 4 supported hosts: copy_agents() MUST NOT write per-solution files."""
+    source = tmp_path / "agents"
+    target = tmp_path / "project"
+    _create_agent(source, "test-agent", {"name": "test-agent", "description": "Test"})
 
-    def test_parse_valid_frontmatter(self) -> None:
-        content = "---\nname: test\nrole: advisory\n---\n\n# Body"
-        fm, body = _parse_yaml_frontmatter(content)
-        assert fm["name"] == "test"
-        assert fm["role"] == "advisory"
-        assert "# Body" in body
+    tool_config = {"agents_dir": ".claude/agents"}
+    count = copy_agents(source, target, tool_config, tool_name=tool_name)
 
-    def test_no_frontmatter(self) -> None:
-        content = "# Just a markdown file"
-        fm, body = _parse_yaml_frontmatter(content)
-        assert fm == {}
-        assert body == content
-
-
-class TestTransformAgentFrontmatter:
-    """Verify frontmatter transformation logic."""
-
-    def test_advisory_role_adds_disallowed_tools(self) -> None:
-        from dotnet_ai_kit.agents import AGENT_FRONTMATTER_MAP
-
-        mapping = AGENT_FRONTMATTER_MAP["claude"]
-        fm = {"name": "test", "role": "advisory"}
-        result = _transform_agent_frontmatter(fm, mapping)
-        assert result["disallowedTools"] == ["Write", "Edit"]
-
-    def test_implementation_role_no_disallowed_tools(self) -> None:
-        from dotnet_ai_kit.agents import AGENT_FRONTMATTER_MAP
-
-        mapping = AGENT_FRONTMATTER_MAP["claude"]
-        fm = {"name": "test", "role": "implementation"}
-        result = _transform_agent_frontmatter(fm, mapping)
-        assert "disallowedTools" not in result
-
-    def test_testing_role_no_disallowed_tools(self) -> None:
-        from dotnet_ai_kit.agents import AGENT_FRONTMATTER_MAP
-
-        mapping = AGENT_FRONTMATTER_MAP["claude"]
-        fm = {"name": "test", "role": "testing"}
-        result = _transform_agent_frontmatter(fm, mapping)
-        assert "disallowedTools" not in result
-
-    def test_review_role_adds_disallowed_tools(self) -> None:
-        from dotnet_ai_kit.agents import AGENT_FRONTMATTER_MAP
-
-        mapping = AGENT_FRONTMATTER_MAP["claude"]
-        fm = {"name": "test", "role": "review"}
-        result = _transform_agent_frontmatter(fm, mapping)
-        assert result["disallowedTools"] == ["Write", "Edit"]
-
-    def test_expertise_does_not_lift_to_skills(self) -> None:
-        """FR-013: ``expertise`` MUST NOT lift to a ``skills:`` agent frontmatter field."""
-        from dotnet_ai_kit.agents import AGENT_FRONTMATTER_MAP
-
-        mapping = AGENT_FRONTMATTER_MAP["claude"]
-        fm = {"name": "test", "expertise": ["aggregate-design", "event-design"]}
-        result = _transform_agent_frontmatter(fm, mapping)
-        assert "skills" not in result
-
-    def test_high_complexity_maps_to_effort_and_model(self) -> None:
-        from dotnet_ai_kit.agents import AGENT_FRONTMATTER_MAP
-
-        mapping = AGENT_FRONTMATTER_MAP["claude"]
-        fm = {"name": "test", "complexity": "high"}
-        result = _transform_agent_frontmatter(fm, mapping)
-        assert result["effort"] == "high"
-        assert result["model"] == "opus"
-
-    def test_medium_complexity(self) -> None:
-        from dotnet_ai_kit.agents import AGENT_FRONTMATTER_MAP
-
-        mapping = AGENT_FRONTMATTER_MAP["claude"]
-        fm = {"name": "test", "complexity": "medium"}
-        result = _transform_agent_frontmatter(fm, mapping)
-        assert result["effort"] == "medium"
-        assert result["model"] == "sonnet"
-
-    def test_low_complexity(self) -> None:
-        from dotnet_ai_kit.agents import AGENT_FRONTMATTER_MAP
-
-        mapping = AGENT_FRONTMATTER_MAP["claude"]
-        fm = {"name": "test", "complexity": "low"}
-        result = _transform_agent_frontmatter(fm, mapping)
-        assert result["effort"] == "low"
-        assert result["model"] == "haiku"
-
-    def test_max_iterations_maps_to_max_turns(self) -> None:
-        from dotnet_ai_kit.agents import AGENT_FRONTMATTER_MAP
-
-        mapping = AGENT_FRONTMATTER_MAP["claude"]
-        fm = {"name": "test", "max_iterations": 20}
-        result = _transform_agent_frontmatter(fm, mapping)
-        assert result["maxTurns"] == 20
-
-    def test_preserves_name_and_description(self) -> None:
-        from dotnet_ai_kit.agents import AGENT_FRONTMATTER_MAP
-
-        mapping = AGENT_FRONTMATTER_MAP["claude"]
-        fm = {"name": "my-agent", "description": "Does things", "role": "advisory"}
-        result = _transform_agent_frontmatter(fm, mapping)
-        assert result["name"] == "my-agent"
-        assert result["description"] == "Does things"
+    assert count == 0
+    # Verify no agents directory was created in the target
+    assert not (target / ".claude" / "agents").is_dir()
 
 
-class TestCopyAgentsIntegration:
-    """Verify full copy_agents() with transformation."""
+def test_copy_agents_logs_for_unknown_tool(
+    tmp_path: Path, caplog: pytest.LogCaptureFixture
+) -> None:
+    """Unknown tool name emits a warning."""
+    source = tmp_path / "agents"
+    target = tmp_path / "project"
+    _create_agent(source, "x", {"name": "x", "description": "x"})
 
-    def test_transforms_and_copies(self, tmp_path: Path) -> None:
-        source = tmp_path / "agents"
-        target = tmp_path / "project"
-        tool_config = {"agents_dir": ".claude/agents"}
+    with caplog.at_level(logging.WARNING):
+        count = copy_agents(source, target, {"agents_dir": ".x/agents"}, tool_name="bogus")
 
-        _create_agent(
-            source,
-            "test-agent",
-            {
-                "name": "test-agent",
-                "description": "A test agent",
-                "role": "advisory",
-                "expertise": ["skill-a", "skill-b"],
-                "complexity": "high",
-                "max_iterations": 20,
-            },
-        )
+    assert count == 0
+    assert "Unknown tool_name" in caplog.text or "bogus" in caplog.text
 
-        count = copy_agents(source, target, tool_config, tool_name="claude")
-        assert count == 1
 
-        deployed = (target / ".claude/agents/test-agent.md").read_text(encoding="utf-8")
-        fm, body = _parse_yaml_frontmatter(deployed)
+def test_copy_agents_handles_missing_source_dir(tmp_path: Path) -> None:
+    """When the source directory doesn't exist, copy_agents MUST not raise."""
+    source = tmp_path / "nonexistent"
+    target = tmp_path / "project"
 
-        assert fm["name"] == "test-agent"
-        assert fm["disallowedTools"] == ["Write", "Edit"]
-        # FR-013: expertise must NOT lift to a `skills:` frontmatter field
-        # (Claude Code has no such field; lifting silently bulk-loads).
-        assert "skills" not in fm
-        assert fm["effort"] == "high"
-        assert fm["model"] == "opus"
-        assert fm["maxTurns"] == 20
-        assert "Agent body" not in fm  # body preserved separately
-        # Verify body text survives transformation
-        assert "Some instructions here." in deployed
-
-    def test_unsupported_tool_logs_warning(
-        self,
-        tmp_path: Path,
-        caplog: pytest.LogCaptureFixture,
-    ) -> None:
-        source = tmp_path / "agents"
-        target = tmp_path / "project"
-        tool_config = {"agents_dir": ".cursor/agents"}
-
-        _create_agent(source, "test-agent", {"name": "test", "role": "advisory"})
-
-        with caplog.at_level(logging.WARNING):
-            count = copy_agents(source, target, tool_config, tool_name="cursor")
-
-        assert count == 0
-        assert "not yet supported" in caplog.text
-
-    def test_no_agents_dir_returns_zero(self, tmp_path: Path) -> None:
-        source = tmp_path / "agents"
-        target = tmp_path / "project"
-        tool_config = {"agents_dir": None}
-
-        count = copy_agents(source, target, tool_config, tool_name="claude")
-        assert count == 0
+    count = copy_agents(source, target, {"agents_dir": ".claude/agents"}, tool_name="claude")
+    assert count == 0

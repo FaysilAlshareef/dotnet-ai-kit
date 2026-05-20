@@ -1,0 +1,10 @@
+Wrote the verdict to `specs/019-plugin-native-arch/discussion/implement-phase/round1-codex-reply.md`: **BLOCK-WITH-CONCERNS**.
+
+Required checks were clean:
+
+- `pytest --tb=no -q`: `720 passed, 25 skipped`
+- `python scripts/measure_always_on.py`: `2880` tokens, `68.0%` reduction
+- `python scripts/doc_lint.py`: passed
+- `python scripts/check.py --static-only`: passed
+
+Blocking findings are concentrated in commit 16’s risky surface: host selection still writes Claude settings for non-Claude init, Copilot init still bulk-copies legacy command-agent files, `upgrade --copilot` cannot refresh its own managed files without `--force-render`, Copilot manifest/freshness tracking is incomplete, repo-wide Copilot render is still a placeholder, and linked-secondary Copilot deploy uses the legacy copy path instead of render. Each item in the verdict includes file:line citations and failing assertions.

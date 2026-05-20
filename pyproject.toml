@@ -33,6 +33,10 @@ dependencies = [
     "pyyaml>=6.0.3",
     "questionary>=2.0.0",
     "filelock>=3.12.0",
+    # Feature 019 (commit 3 / commit 8 / T027): JSON Schema validation used
+    # by `dotnet-ai check` and the contract tests for plugin/project/manifest
+    # schemas per research R9.
+    "jsonschema>=4.0",
 ]
 
 [project.scripts]
@@ -48,6 +52,12 @@ packages = ["src/dotnet_ai_kit"]
 [tool.hatch.build.targets.wheel.force-include]
 "commands" = "dotnet_ai_kit/bundled/commands"
 "rules" = "dotnet_ai_kit/bundled/rules"
+# Feature 019 / commit 25 / T171 (OOS-005 PASS branch): the `agents/` Cursor
+# build-output directory is RESTORED to packaging after the A-005 spike
+# fixture outcome JSON flipped to `passed`. Per
+# `contracts/cursor-fixture-decision.contract.md:27-31`, the PASS-branch
+# ships full 13-specialist Cursor sub-agent generation; the directory is
+# the manifest target of `.cursor-plugin/plugin.json::agents`.
 "agents" = "dotnet_ai_kit/bundled/agents"
 "skills" = "dotnet_ai_kit/bundled/skills"
 "knowledge" = "dotnet_ai_kit/bundled/knowledge"
@@ -58,6 +68,30 @@ packages = ["src/dotnet_ai_kit"]
 ".claude-plugin" = "dotnet_ai_kit/bundled/.claude-plugin"
 "hooks" = "dotnet_ai_kit/bundled/hooks"
 ".mcp.json" = "dotnet_ai_kit/bundled/.mcp.json"
+# Round-2 review (LSP correction): `.lsp.json` declares the csharp-ls server
+# config per https://code.claude.com/docs/en/plugins-reference. Referenced
+# from `.claude-plugin/plugin.json::lspServers`.
+".lsp.json" = "dotnet_ai_kit/bundled/.lsp.json"
+# Feature 019 (T009 / plan.md commit 2): plugin-native architecture extras.
+# `.codex-plugin` + `.cursor-plugin`: per-host plugin manifests
+#   (commit 3 contents land plugin.json; commit 2 ships stubs).
+# `agents-source/`: source-of-truth agent definitions
+#   (renamed from `agents/` in commit 6).
+# `agents-claude/`: generated Claude-shape agent files (commit 4 T041 output).
+# `agents-copilot-templates/`: Copilot agent jinja2 templates (commit 7 T069).
+# `schemas/`: JSON Schema definitions (commits 3 + 8).
+# Note: `rules/` already includes everything under it
+#   (conventions/, domain/, cursor/) via the line above.
+".codex-plugin" = "dotnet_ai_kit/bundled/.codex-plugin"
+".cursor-plugin" = "dotnet_ai_kit/bundled/.cursor-plugin"
+"agents-source" = "dotnet_ai_kit/bundled/agents-source"
+"agents-claude" = "dotnet_ai_kit/bundled/agents-claude"
+"agents-copilot-templates" = "dotnet_ai_kit/bundled/agents-copilot-templates"
+"schemas" = "dotnet_ai_kit/bundled/schemas"
+# Plugin manifests reference `./assets/logo-icon.svg` via the documented `logo`
+# field (cursor.com/docs/reference/plugins + developers.openai.com/codex/plugins).
+# Without bundling assets/, the logo path resolves to a 404 at the install root.
+"assets" = "dotnet_ai_kit/bundled/assets"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

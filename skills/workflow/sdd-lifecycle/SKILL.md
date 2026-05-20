@@ -137,3 +137,11 @@ find . -path "*/.dotnet-ai-kit/features/*/spec.md"
 3. **Match spec template** from existing features
 4. **Update `status.json`** when transitioning phases
 5. **For multi-repo features**, coordinate across service repositories
+
+## Related rules
+
+This skill depends on the always-on `tool-calls` convention rule:
+
+- ${CLAUDE_PLUGIN_ROOT}/rules/conventions/tool-calls.md
+
+The rule is loaded into context whenever this skill is active (FR-011 universal whitelist).

@@ -1,0 +1,10 @@
+{
+  "name": "dotnet-ai-kit",
+  "version": "1.0.0",
+  "description": "PASS-branch fixture for cursor-fixture-decision contract.",
+  "skills": "./skills/",
+  "rules": "./rules/cursor/",
+  "mcpServers": "./.mcp.json",
+  "hooks": "./hooks/hooks.json",
+  "agents": "./agents/"
+}

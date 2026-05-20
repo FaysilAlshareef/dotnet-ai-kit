@@ -29,6 +29,15 @@
             "if": "Bash(git commit*)"
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretooluse-arch-profile.sh"
+          }
+        ]
       }
     ],
     "PostToolUse": [

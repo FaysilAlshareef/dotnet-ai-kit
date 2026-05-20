@@ -14,7 +14,7 @@
 </p>
 
 <p align="center">
-  <code>124 skills</code> · <code>13 agents</code> · <code>27 commands</code> · <code>16 rules</code> · <code>12 profiles</code> · <code>16 knowledge docs</code> · <code>5 safety hooks</code> · <code>8 CLI commands</code>
+  <code>124 skills</code> · <code>13 agents</code> · <code>27 commands</code> · <code>16 rules</code> · <code>12 profiles</code> · <code>16 knowledge docs</code> · <code>7 hooks</code> · <code>11 CLI commands</code> · <code>4 AI hosts</code>
 </p>
 
 ---
@@ -81,7 +81,7 @@ dotnet-ai init . --ai claude --dry-run
 /plugin install dotnet-ai-kit
 ```
 
-All 27 commands, 124 skills, 13 agents, 16 rules, and 5 safety hooks are available immediately.
+All 27 commands, 124 skills, 13 agents, 16 rules, and 7 hooks are available immediately.
 
 <details>
 <summary><b>See plugin install demo</b></summary>
@@ -93,34 +93,27 @@ All 27 commands, 124 skills, 13 agents, 16 rules, and 5 safety hooks are availab
 
 ### Required dependencies
 
-The plugin ships with two MCP servers configured in `.mcp.json`:
+`dotnet-ai init` auto-installs both dependencies when they are missing (skip with `--no-install-deps`).
 
-- **`csharp-ls`** — semantic C# navigation (symbol/reference precision).
-- **`codebase-memory-mcp >= 0.6.1`** — project graph, ownership, architecture (lazy queries instead of broad reads).
+#### csharp-ls — C# language server
 
-#### Install csharp-ls
+Provides semantic symbol/reference navigation. Declared as a `csharp-lsp` plugin dependency in the Claude plugin manifest — **not** bundled in `.mcp.json`.
 
 ```bash
+# Manual install (if auto-install is skipped)
 dotnet tool install -g csharp-ls
 ```
 
-#### Install codebase-memory-mcp (>= 0.6.1)
+#### codebase-memory-mcp ≥ 0.6.1 — project graph + memory
+
+Registered in `.mcp.json`. Provides lazy project-graph queries instead of broad reads.
 
 ```bash
-# Cross-platform via PyPI
+# Cross-platform via PyPI (auto-installed by dotnet-ai init)
 pip install "codebase-memory-mcp>=0.6.1"
-
-# Windows (PowerShell) — download the latest release zip
-Invoke-WebRequest "https://github.com/.../codebase-memory-mcp-windows-amd64.zip" -OutFile cmm.zip
-Expand-Archive cmm.zip -DestinationPath "$env:LOCALAPPDATA\Programs\codebase-memory-mcp"
-# Then add that folder to PATH.
-
-# From source
-git clone https://github.com/.../codebase-memory-mcp.git
-pip install -e codebase-memory-mcp
 ```
 
-`/dai.init` and `/dai.configure` run `codebase-memory-mcp --version` and record the outcome in `.dotnet-ai-kit/mcp-state.yml :: mcp.codebase-memory-mcp` (`accepted` / `below-minimum` / `unavailable`). Stored in a sibling file so the pydantic-validated `config.yml` schema stays narrow.
+MCP health is recorded in `.dotnet-ai-kit/mcp-state.yml` (`accepted` / `below-minimum` / `unavailable`) after each `init` or `configure` run.
 
 Without `codebase-memory-mcp`, project-graph questions fall back to `csharp-ls + grep/read`. Without `csharp-ls`, the AI uses grep-based analysis which works but uses significantly more context tokens on large codebases.
 
@@ -252,26 +245,35 @@ This single command automatically runs the full 9-phase lifecycle:
 </td></tr>
 </table>
 
-### 16 Convention Rules (Always Active)
+### 16 Rules (5 Universal · 11 Path-Scoped)
+
+Rules are classified into two groups (constitution v1.0.8). Universal rules load every session; path-scoped rules load only when a matching file is touched.
+
+**5 Universal rules (always active)**
 
 | Rule | Purpose |
 |------|---------|
-| `api-design` | REST conventions, versioning, error responses |
-| `architecture` | Enforces architectural boundaries |
 | `async-concurrency` | Async/await patterns, CancellationToken propagation |
 | `coding-style` | Code formatting and patterns |
-| `configuration` | Options pattern, ValidateOnStart |
-| `data-access` | EF Core patterns, repository structure |
-| `error-handling` | Exception handling, validation |
 | `existing-projects` | Respects your existing codebase patterns |
-| `localization` | Resource files, culture handling |
-| `multi-repo` | Event contract ownership, cross-repo branch naming, deploy order |
-| `naming` | C# naming conventions, namespaces |
-| `observability` | Structured logging, metrics, tracing |
-| `performance` | Query optimization, caching patterns |
 | `security` | Auth, secrets, input validation |
-| `testing` | Test naming, AAA structure, CQRS patterns |
 | `tool-calls` | Sequential tool usage, verification |
+
+**11 Path-scoped rules (loaded on demand)**
+
+| Rule | Activates when |
+|------|----------------|
+| `api-design` | API files touched |
+| `architecture` | Architecture/project files |
+| `configuration` | `appsettings*.json`, Options files |
+| `data-access` | EF Core, migration files |
+| `error-handling` | Exception/middleware files |
+| `localization` | Resource files, culture handling |
+| `multi-repo` | Cross-repo event contracts, branch naming, deploy order |
+| `naming` | C# naming conventions, namespaces |
+| `observability` | Logging, metrics, tracing files |
+| `performance` | Query, caching files |
+| `testing` | Test files |
 
 ### 5 Safety Hooks
 
@@ -411,10 +413,12 @@ The `dotnet-ai` CLI manages installation and configuration. It's separate from t
 
 | Command | Key Flags | What It Does |
 |---------|-----------|-------------|
-| `dotnet-ai init` | `--ai claude` `--type <type>` `--permissions <level>` `--force` `--dry-run` `--json` | Initialize tooling in your project. Auto-detects architecture. |
-| `dotnet-ai check` | `--verbose` `--json` | Report current state: skills, agents, profile, hook, linked repos per AI tool. |
-| `dotnet-ai upgrade` | `--force` `--dry-run` `--json` | Re-deploy latest commands, rules, skills, agents, profile, and hook. |
-| `dotnet-ai configure` | `--no-input` `--company` `--style` `--repos` `--permissions` `--global` `--minimal` `--reset` `--dry-run` `--json` | Interactive wizard or CI/CD one-liner to set company, repos, permissions, command style. |
+| `dotnet-ai init` | `--ai <host>` (repeatable) `--type <type>` `--permissions <level>` `--force` `--dry-run` `--json` `--no-install-deps` | Initialize tooling. Auto-detects architecture. Supports multiple hosts in one pass. |
+| `dotnet-ai check` | `--verbose` `--json` | Validate plugin install per host, `csharp-ls` on PATH, `project.yml` schema, manifest integrity, and Copilot render freshness. 8 unique exit codes. |
+| `dotnet-ai upgrade` | `--copilot` `--force` `--dry-run` `--json` | **No-op for plugin-native hosts** (claude/codex/cursor). `--copilot` re-renders `.github/` files only. |
+| `dotnet-ai migrate` | `--dry-run` `--include-modified` `--host <host>` | Move pre-019 bulk-copied artifacts to `.dotnet-ai-kit/backups/migrate/` with 3-keep rotation. |
+| `dotnet-ai render` | `skill <name>` \| `rule <name>` `--host` `--project` | Print a skill or rule body with current `project.yml` metadata substituted. |
+| `dotnet-ai configure` | `--no-input` `--company` `--style` `--repos` `--permissions` `--global` `--reset` `--dry-run` `--json` | Interactive wizard or CI/CD one-liner to set company, repos, permissions, command style. |
 | `dotnet-ai changelog` | — | Show CHANGELOG.md or recent version tags with dates. |
 | `dotnet-ai extension-add` | `--dev <path>` | Install a local extension. |
 | `dotnet-ai extension-remove` | `<name>` | Uninstall an extension. |
@@ -663,14 +667,53 @@ I want to...
 
 ## Supported AI Tools
 
-| Tool | Status |
-|------|--------|
-| **Claude Code** | v1.0 — Fully supported |
-| **Cursor** | v1.1 — Planned |
-| **GitHub Copilot** | v1.1 — Planned |
-| **Codex CLI** | v1.1 — Planned |
+All four major AI coding hosts are first-class in v1.0.
 
-The core knowledge (rules, skills, agents, commands) is portable across AI tools via the Agent Skills specification.
+| Host | Mode | Per-solution writes | How to update |
+|------|------|---------------------|---------------|
+| **Claude Code** | Plugin-native | `.dotnet-ai-kit/*` + `.claude/settings.json` | `/reload-plugins` |
+| **Codex CLI** | Plugin-native + per-project subagents | + `.codex/agents/*.toml` (14 files) | Restart Codex session |
+| **Cursor** | Plugin-native | `.dotnet-ai-kit/*` only | "Reload Window" in command palette |
+| **GitHub Copilot** | Render-only | `.github/copilot-instructions.md` + `.github/instructions/*` + `.github/agents/*` | `dotnet-ai upgrade --copilot` |
+
+**Plugin-native** (Claude Code, Codex CLI, Cursor): commands, skills, agents, and rules are served directly from the plugin install path — nothing is bulk-copied into your solution. Update the plugin once and all solutions see the new behavior on next AI session. `dotnet-ai upgrade` is a no-op for these hosts.
+
+**Render-only** (GitHub Copilot): content is rendered into your repo as static Markdown files because Copilot has no plugin runtime. Re-render any time with `dotnet-ai upgrade --copilot`.
+
+### Initializing for specific hosts
+
+```bash
+# Claude Code (plugin-native, default)
+dotnet-ai init . --ai claude
+
+# Codex CLI (plugin-native + renders 14 subagents into .codex/agents/)
+dotnet-ai init . --ai codex
+
+# Cursor (plugin-native — skills, rules, commands, agents)
+dotnet-ai init . --ai cursor
+
+# GitHub Copilot (render-only — writes .github/*.md files)
+dotnet-ai init . --ai copilot
+
+# All hosts in one pass (repeatable --ai flag)
+dotnet-ai init . --ai claude --ai codex --ai cursor --ai copilot
+
+# Interactive host selector (omit --ai to get a checkbox prompt)
+dotnet-ai init .
+```
+
+### Plugin-update-mid-session recovery
+
+If you update the plugin while an AI session is open, each host has its own reload path:
+
+| Host | Reload action |
+|------|---------------|
+| Claude Code | `/reload-plugins` |
+| Codex CLI | Restart the Codex session |
+| Cursor | "Reload Window" (command palette) |
+| GitHub Copilot | `dotnet-ai upgrade --copilot` |
+
+The core knowledge (rules, skills, agents, commands) is portable across all four hosts via the Agent Skills specification.
 
 ---
 
@@ -742,20 +785,25 @@ The tool detects your .NET version from `.csproj` and uses version-appropriate p
 
 ```
 dotnet-ai-kit/
-├── commands/          # 27 slash command definitions
-├── rules/             # 16 always-loaded convention rules
-├── agents/            # 13 specialist agent definitions
-├── skills/            # 124 skills across 17 categories
-├── knowledge/         # 16 reference documents
-├── profiles/          # 12 architecture profiles (auto-deployed on detect)
-├── prompts/           # Hook prompt templates
-├── templates/         # 13 project scaffold templates (Jinja2)
-├── hooks/             # 4 safety hooks + hooks.json config
-├── config/            # 4 permission level JSON configs
-├── src/               # Python CLI source (Typer + Pydantic v2)
-├── tests/             # 307 tests
-├── .claude-plugin/    # Claude Code plugin manifest
-└── .mcp.json          # C# language server (csharp-ls) MCP config
+├── commands/                    # 27 slash command definitions
+├── rules/
+│   ├── conventions/             # 5 universal rules (always active)
+│   └── domain/                  # 11 path-scoped rules (load on demand)
+├── agents-source/               # 14 source-of-truth agent definitions
+├── agents-claude/               # 13 Claude-rendered agents (with allow-lists)
+├── agents-copilot-templates/    # Jinja2 templates for Copilot agent render
+├── agents/                      # 14 Cursor sub-agent files (A-005 PASS branch)
+├── skills/                      # 124 skills across 17 categories
+├── knowledge/                   # 16 reference documents
+├── templates/                   # 12 architecture profiles (auto-deployed on detect)
+├── hooks/                       # 7 hooks (bash scripts + hooks.json config)
+├── config/                      # 4 permission level JSON configs
+├── src/                         # Python CLI source (Typer + Pydantic v2)
+├── tests/                       # pytest test suite
+├── .claude-plugin/              # Claude Code plugin manifest
+├── .codex-plugin/               # Codex CLI plugin manifest
+├── .cursor-plugin/              # Cursor plugin manifest
+└── .mcp.json                    # codebase-memory-mcp MCP config
 ```
 
 ### Your Project (after init)
@@ -774,13 +822,19 @@ your-project/
 │   │       ├── spec.md
 │   │       ├── plan.md
 │   │       └── tasks.md
+│   ├── manifest.json           # Managed-file registry (feature 019)
 │   └── extensions/             # Installed extensions registry
 └── .claude/
-    ├── commands/               # Deployed slash commands (full or short aliases)
-    ├── rules/                  # 16 rules + architecture-profile.md
-    ├── skills/                 # 124 skills
-    └── agents/                 # 13 specialist agents
+    └── settings.json           # Permission preset (feature 019: per-solution-only)
 ```
+
+> **v1.0 plugin-native architecture**: `dotnet-ai init` writes **≤18 files**
+> per solution (down from ~180 pre-v1.0), a 90%+ reduction. All 27 commands,
+> 124 skills, 13 agents, and 16 rules are served from the **plugin install
+> path** for Claude Code, Codex CLI, and Cursor — nothing bulk-copied.
+> GitHub Copilot writes its content to `.github/copilot-instructions.md`,
+> `.github/instructions/*.instructions.md`, and `.github/agents/*.agent.md`.
+> Codex CLI additionally writes 14 project-scoped subagents to `.codex/agents/*.toml`.
 
 ### Constitution & Persistent Knowledge
 
@@ -792,6 +846,21 @@ Running `/dai.learn` generates seven files under `.dotnet-ai-kit/memory/`:
 Consumers (`/dai.plan`, `/dai.review`) load only the topic file they need (FR-024), cutting plan/review context by ~80% versus reading a monolithic constitution. Update at any time with `/dai.learn --update`.
 
 ---
+
+## Documentation
+
+| Guide | Description |
+|-------|-------------|
+| [docs/setup-claude-code.md](docs/setup-claude-code.md) | Claude Code plugin install, permissions, MCP, detection |
+| [docs/setup-codex-cli.md](docs/setup-codex-cli.md) | Codex CLI plugin install, per-project subagents |
+| [docs/setup-cursor.md](docs/setup-cursor.md) | Cursor plugin install, `.mdc` rules, sub-agents |
+| [docs/setup-copilot.md](docs/setup-copilot.md) | GitHub Copilot render-only setup, freshness, conflict policy |
+| [docs/architecture-profiles.md](docs/architecture-profiles.md) | All 12 profiles — constraints, anti-patterns, quick reference |
+| [docs/multi-repo-cqrs.md](docs/multi-repo-cqrs.md) | CQRS microservice multi-repo setup, deploy order, feature briefs |
+| [docs/extension-development.md](docs/extension-development.md) | Build and publish custom commands and rules |
+| [docs/migration-v1.md](docs/migration-v1.md) | Upgrade guide from pre-v1.0 |
+| [docs/release-notes-v1.0.md](docs/release-notes-v1.0.md) | Full v1.0 release notes |
+| [docs/unmanaged-paths.md](docs/unmanaged-paths.md) | Files dotnet-ai-kit will never touch |
 
 ## Contributing
 

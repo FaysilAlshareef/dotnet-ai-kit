@@ -35,25 +35,39 @@ def _init_project(tmp_path: Path) -> Path:
 
 
 def test_upgrade_rolls_back_on_copy_failure(tmp_path: Path, monkeypatch) -> None:
+    """Atomic rollback: when upgrade fails mid-flight, the managed tree
+    restores byte-for-byte from the snapshot.
+
+    Feature 019 / T042 adaptation: plugin-native init no longer creates
+    `.claude/commands/`, so we simulate an OLD-layout solution by manually
+    creating the legacy dir before injecting the failure. The rollback
+    semantics (snapshot/restore on exception) still apply.
+    """
     project = _init_project(tmp_path)
 
+    # Simulate an old-layout solution by manually creating the legacy paths
+    # that would have existed pre-feature-019.
     commands_dir = project / ".claude" / "commands"
-    assert commands_dir.is_dir()
+    commands_dir.mkdir(parents=True, exist_ok=True)
+    (commands_dir / "legacy.md").write_text("LEGACY\n", encoding="utf-8")
     pre_files = sorted(p.name for p in commands_dir.rglob("*.md"))
-    assert pre_files, "init should have produced commands"
 
     # Sentinel: leave a known marker we'll check survives the failed upgrade.
     sentinel = commands_dir / "_sentinel.md"
     sentinel.write_text("PRE-UPGRADE\n", encoding="utf-8")
+    pre_files = sorted(p.name for p in commands_dir.rglob("*.md"))
 
     monkeypatch.chdir(project)
 
-    # Patch copy_commands so the upgrade flow blows up MID-DEPLOY (after the
-    # snapshot, after some other copies might have run).
+    # Patch ClaudeHost.write_per_solution_files (called during plugin-native
+    # upgrade) so the upgrade flow blows up MID-DEPLOY (after the snapshot).
     def boom(*_args, **_kwargs):
         raise RuntimeError("simulated mid-upgrade failure")
 
-    with patch("dotnet_ai_kit.cli.copy_commands", side_effect=boom):
+    with patch(
+        "dotnet_ai_kit.hosts.claude.ClaudeHost.write_per_solution_files",
+        side_effect=boom,
+    ):
         result = runner.invoke(
             app,
             ["upgrade"],
@@ -63,7 +77,6 @@ def test_upgrade_rolls_back_on_copy_failure(tmp_path: Path, monkeypatch) -> None
 
     # The CLI must exit non-zero and the tree must be restored verbatim.
     assert result.exit_code != 0, result.output
-    # The simulated exception should bubble up to typer (caught by runner).
     assert isinstance(result.exception, RuntimeError)
     assert "simulated mid-upgrade failure" in str(result.exception)
 
@@ -71,9 +84,9 @@ def test_upgrade_rolls_back_on_copy_failure(tmp_path: Path, monkeypatch) -> None
     assert sentinel.is_file()
     assert sentinel.read_text(encoding="utf-8") == "PRE-UPGRADE\n"
 
-    # The set of commands is exactly what init produced + the sentinel.
+    # The set of commands is exactly what we had pre-upgrade.
     post_files = sorted(p.name for p in commands_dir.rglob("*.md"))
-    assert post_files == sorted([*pre_files, "_sentinel.md"])
+    assert post_files == pre_files
 
     # No `.bak` directories or any other artifact may leak past rollback —
     # the snapshot is the single source of backup truth (FR-031 / SC-013).

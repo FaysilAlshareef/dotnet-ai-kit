@@ -143,6 +143,15 @@ Print: `Review complete for {NNN}-{short-name}.` per-repo PASS/FIXES + counts. N
 
 ## Dry-Run / Errors
 
+- **Dry-run mode**: when `$ARGUMENTS` includes `--dry-run`, report the
+  files that WOULD be reviewed without invoking CodeRabbit or writing
+  any feedback artefacts.
+- **Empty diff**: if there are no changes since the spec's base ref,
+  skip silently and emit "No changes detected — nothing to review."
+- **Tool failures**: surface them with the tool name + first 10 lines
+  of stderr, then continue with the next checker (don't abort the
+  whole review).
+
 ## Error Handling
 
 - No changes to review: direct to `/dotnet-ai.implement`

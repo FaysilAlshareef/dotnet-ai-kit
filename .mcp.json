@@ -1,10 +1,5 @@
 {
   "mcpServers": {
-    "csharp-ls": {
-      "command": "csharp-ls",
-      "args": ["--solution", "."],
-      "transport": "stdio"
-    },
     "codebase-memory-mcp": {
       "command": "codebase-memory-mcp",
       "args": ["--project", "."],
