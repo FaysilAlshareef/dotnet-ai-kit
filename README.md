@@ -847,9 +847,20 @@ Consumers (`/dai.plan`, `/dai.review`) load only the topic file they need (FR-02
 
 ---
 
-## Upgrading from pre-v1.0
+## Documentation
 
-See [docs/migration-v1.md](docs/migration-v1.md) for the step-by-step upgrade guide.
+| Guide | Description |
+|-------|-------------|
+| [docs/setup-claude-code.md](docs/setup-claude-code.md) | Claude Code plugin install, permissions, MCP, detection |
+| [docs/setup-codex-cli.md](docs/setup-codex-cli.md) | Codex CLI plugin install, per-project subagents |
+| [docs/setup-cursor.md](docs/setup-cursor.md) | Cursor plugin install, `.mdc` rules, sub-agents |
+| [docs/setup-copilot.md](docs/setup-copilot.md) | GitHub Copilot render-only setup, freshness, conflict policy |
+| [docs/architecture-profiles.md](docs/architecture-profiles.md) | All 12 profiles — constraints, anti-patterns, quick reference |
+| [docs/multi-repo-cqrs.md](docs/multi-repo-cqrs.md) | CQRS microservice multi-repo setup, deploy order, feature briefs |
+| [docs/extension-development.md](docs/extension-development.md) | Build and publish custom commands and rules |
+| [docs/migration-v1.md](docs/migration-v1.md) | Upgrade guide from pre-v1.0 |
+| [docs/release-notes-v1.0.md](docs/release-notes-v1.0.md) | Full v1.0 release notes |
+| [docs/unmanaged-paths.md](docs/unmanaged-paths.md) | Files dotnet-ai-kit will never touch |
 
 ## Contributing
 
@@ -857,7 +868,7 @@ See [CONTRIBUTING.md](CONTRIBUTING.md) for development setup and guidelines.
 
 ## Changelog
 
-See [CHANGELOG.md](CHANGELOG.md) for version history and [docs/release-notes-v1.0.md](docs/release-notes-v1.0.md) for full v1.0 release details.
+See [CHANGELOG.md](CHANGELOG.md) for version history.
 
 ## License
 
