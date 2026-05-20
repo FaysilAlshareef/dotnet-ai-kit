@@ -62,16 +62,30 @@ def test_cursor_plugin_rules_is_scalar_path_to_cursor_dir(manifest: dict) -> Non
     assert manifest["rules"] == "./rules/cursor/"
 
 
-def test_cursor_plugin_mcp_servers_is_scalar_path(manifest: dict) -> None:
-    """`mcpServers` MUST be `"./.mcp.json"` (scalar)."""
-    assert isinstance(manifest["mcpServers"], str)
-    assert manifest["mcpServers"] == "./.mcp.json"
+def test_cursor_plugin_mcp_servers_not_declared_for_standard_path(manifest: dict) -> None:
+    """mcpServers (.mcp.json) should be absent from the manifest.
+
+    Cursor auto-discovers .mcp.json from the plugin root. Declaring the
+    standard path risks duplicate-load errors. If present, must be non-default.
+    """
+    mcp = manifest.get("mcpServers")
+    if mcp is not None:
+        assert mcp != "./.mcp.json", (
+            "mcpServers './.mcp.json' is the auto-discovered default — remove it from the manifest."
+        )
 
 
-def test_cursor_plugin_hooks_is_scalar_path(manifest: dict) -> None:
-    """`hooks` MUST be `"./hooks/hooks.json"` (scalar)."""
-    assert isinstance(manifest["hooks"], str)
-    assert manifest["hooks"] == "./hooks/hooks.json"
+def test_cursor_plugin_hooks_not_declared_for_standard_path(manifest: dict) -> None:
+    """hooks/hooks.json should be absent from the manifest.
+
+    Cursor auto-discovers hooks/hooks.json from the plugin root. Declaring the
+    standard path risks duplicate-load errors. If present, must be non-default.
+    """
+    hooks = manifest.get("hooks")
+    if hooks is not None:
+        assert hooks != "./hooks/hooks.json", (
+            "hooks './hooks/hooks.json' is auto-discovered — remove it from the manifest."
+        )
 
 
 def test_cursor_plugin_has_no_subagents_field(manifest: dict) -> None:

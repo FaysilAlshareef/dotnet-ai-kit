@@ -98,50 +98,53 @@ def test_claude_plugin_agents_is_array_of_file_paths(manifest: dict) -> None:
         assert entry.endswith(".md"), f"agents entry must be a .md file path, got {entry!r}"
 
 
-def test_claude_plugin_hooks_is_string_not_configfile_object(manifest: dict) -> None:
-    """hooks MUST be a scalar path string.
+def test_claude_plugin_hooks_not_declared_for_standard_path(manifest: dict) -> None:
+    """hooks/hooks.json MUST NOT be declared in the manifest.
 
-    The custom {'configFile': '...'} wrapper is NOT a documented Claude Code
-    format and causes 'hooks: Invalid input' validation errors at install time.
-    See https://code.claude.com/docs/en/plugins-reference#component-path-fields.
+    Claude Code auto-discovers hooks/hooks.json from the plugin root.
+    Declaring './hooks/hooks.json' in the manifest causes:
+      'Duplicate hooks file detected: ./hooks/hooks.json resolves to
+       already-loaded file. The standard hooks/hooks.json is loaded
+       automatically, so manifest.hooks should only reference additional
+       hook files.'
+
+    The manifest hooks field is only for NON-default paths (e.g. a second
+    hooks file at './config/extra-hooks.json').
     """
-    assert "hooks" in manifest
-    hooks = manifest["hooks"]
-    assert isinstance(hooks, str), (
-        f"hooks must be a scalar path string like './hooks/hooks.json', "
-        f"got {type(hooks).__name__}: {hooks!r}. "
-        "Do not use the {'configFile': '...'} wrapper."
+    hooks = manifest.get("hooks")
+    assert hooks is None, (
+        f"manifest.hooks must be absent (auto-discovered). "
+        f"Got {hooks!r}. Remove it — Claude Code loads hooks/hooks.json automatically."
     )
-    assert hooks.startswith("./")
 
 
-def test_claude_plugin_mcp_servers_is_string_not_configfile_object(manifest: dict) -> None:
-    """mcpServers MUST be a scalar path string.
+def test_claude_plugin_mcp_servers_not_declared_for_standard_path(manifest: dict) -> None:
+    """mcpServers (.mcp.json) MUST NOT be declared in the manifest.
 
-    The custom {'configFile': '...'} wrapper is NOT a documented format and
-    causes 'mcpServers: Invalid input' validation errors at install time.
+    Claude Code auto-discovers .mcp.json from the plugin root. Declaring
+    './.mcp.json' is redundant and may cause duplicate-load errors.
+    The manifest mcpServers field is only for non-default paths.
     """
-    assert "mcpServers" in manifest
-    mcp = manifest["mcpServers"]
-    assert isinstance(mcp, str), (
-        f"mcpServers must be a scalar path string like './.mcp.json', "
-        f"got {type(mcp).__name__}: {mcp!r}. "
-        "Do not use the {'configFile': '...'} wrapper."
+    mcp = manifest.get("mcpServers")
+    assert mcp is None, (
+        f"manifest.mcpServers must be absent (auto-discovered). "
+        f"Got {mcp!r}. Remove it — Claude Code loads .mcp.json automatically."
     )
-    assert mcp.startswith("./")
 
 
-def test_claude_plugin_lspservers_is_string(manifest: dict) -> None:
-    """lspServers MUST be a scalar path string pointing to .lsp.json."""
-    assert "lspServers" in manifest
-    lsp = manifest["lspServers"]
-    assert isinstance(lsp, str), (
-        f"lspServers must be a scalar path string, got {type(lsp).__name__}: {lsp!r}"
-    )
-    assert lsp == "./.lsp.json", f"lspServers must be './.lsp.json', got {lsp!r}"
+def test_lsp_json_exists_on_disk_with_correct_structure() -> None:
+    """.lsp.json must exist on disk and declare at least one server.
+
+    Claude Code auto-discovers .lsp.json from the plugin root — no manifest
+    declaration needed. This test verifies the file is present and structurally
+    valid (each server must have 'command' + 'extensionToLanguage').
+    """
     lsp_path = REPO / ".lsp.json"
-    assert lsp_path.is_file(), f".lsp.json declared but missing on disk ({lsp_path})"
+    assert lsp_path.is_file(), (
+        ".lsp.json is missing. Claude Code auto-discovers it for LSP support."
+    )
     lsp_config = json.loads(lsp_path.read_text(encoding="utf-8"))
+    assert lsp_config, ".lsp.json must declare at least one server"
     for server_name, server_cfg in lsp_config.items():
         assert "command" in server_cfg, f".lsp.json server '{server_name}' missing 'command'"
         assert "extensionToLanguage" in server_cfg, (
@@ -155,7 +158,7 @@ def test_claude_plugin_no_configfile_wrappers(manifest: dict) -> None:
     This wrapper was never documented by Anthropic and causes 'Invalid input'
     errors in the Claude Code plugin validator.
     """
-    for field in ("hooks", "mcpServers", "lspServers", "skills", "commands", "agents"):
+    for field in ("skills", "commands", "agents"):
         value = manifest.get(field)
         if isinstance(value, dict):
             assert "configFile" not in value, (

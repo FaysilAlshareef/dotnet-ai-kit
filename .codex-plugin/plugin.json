@@ -21,7 +21,5 @@
     "code-generation",
     "sdd"
   ],
-  "skills": "./skills/",
-  "mcpServers": "./.mcp.json",
-  "hooks": "./hooks/hooks.json"
+  "skills": "./skills/"
 }
