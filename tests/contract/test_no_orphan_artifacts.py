@@ -29,13 +29,15 @@ REPO = Path(__file__).resolve().parent.parent.parent
 
 
 def test_no_orphan_claude_agent_files() -> None:
-    """Every .md file in agents-claude/ MUST be declared in the Claude
-    manifest's agents[] array. Orphan files signal forgotten cleanup
-    after a generator change.
+    """Every .md file in agents-claude/ must be reachable from the Claude manifest.
 
-    Allow-list is empty by default. If you need to ship a file that
-    isn't loaded by Claude (e.g., a future host-only fixture), add it
-    here with a comment explaining the exemption.
+    When agents is a directory path (e.g. './agents-claude/'), Claude Code loads
+    all .md files in that directory — no orphans possible by definition.
+    When agents is an array of explicit paths, every file in agents-claude/ must
+    appear in the array.
+
+    The directory-path form is the correct Claude Code v2.1+ format per
+    https://code.claude.com/docs/en/plugins-reference#component-path-fields.
     """
     manifest_path = REPO / ".claude-plugin" / "plugin.json"
     agents_claude_dir = REPO / "agents-claude"
@@ -46,16 +48,22 @@ def test_no_orphan_claude_agent_files() -> None:
         pytest.skip("agents-claude/ not present")
 
     manifest = json.loads(manifest_path.read_text(encoding="utf-8"))
-    declared = {Path(p).name for p in manifest.get("agents", [])}
+    agents_field = manifest.get("agents")
+
+    if isinstance(agents_field, str):
+        # Directory-path form: Claude loads all .md files in the directory.
+        # No orphans are possible — pass unconditionally.
+        return
+
+    # Legacy array form: every file on disk must be in the declared list.
+    declared = {Path(p).name for p in (agents_field or [])}
     disk = {f for f in os.listdir(agents_claude_dir) if f.endswith(".md")}
-
-    EXEMPTIONS: set[str] = set()  # See docstring before adding entries
-
+    EXEMPTIONS: set[str] = set()
     orphans = (disk - declared) - EXEMPTIONS
     assert not orphans, (
         f"Orphan agent files in agents-claude/ not declared in Claude manifest: "
-        f"{sorted(orphans)}. Either declare them in .claude-plugin/plugin.json::agents "
-        f"or delete them."
+        f"{sorted(orphans)}. Switch to directory-path format './agents-claude/' "
+        f"or add the files to the agents array."
     )
 
 
