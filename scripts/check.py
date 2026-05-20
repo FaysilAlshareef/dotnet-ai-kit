@@ -53,9 +53,13 @@ def _check_plugin_manifests(root: Path) -> list[str]:
 
 
 def _check_claude_plugin_paths_exist(root: Path) -> list[str]:
-    """For Claude's manifest only — verify referenced skills/commands exist
-    on disk (Claude manifest enumerates concrete paths; Codex/Cursor reference
-    parent directories)."""
+    """Verify paths declared in the Claude plugin manifest exist on disk.
+
+    Fields may be scalar strings (directory or file path, e.g. './skills/')
+    or arrays of explicit paths. Scalar strings are checked as a single
+    path (exists as file OR directory). Arrays are spot-checked for the
+    first few entries as files.
+    """
     errors: list[str] = []
     manifest = root / ".claude-plugin" / "plugin.json"
     if not manifest.is_file():
@@ -64,17 +68,28 @@ def _check_claude_plugin_paths_exist(root: Path) -> list[str]:
         data = json.loads(manifest.read_text(encoding="utf-8"))
     except json.JSONDecodeError:
         return errors
-    # Sample checks — verify a sample of skill/command paths exist
-    skills = data.get("skills", [])
-    commands = data.get("commands", [])
-    agents = data.get("agents", [])
+
+    def _normalise(raw: object) -> list[str]:
+        """Return a list of path strings regardless of scalar vs array format."""
+        if isinstance(raw, str):
+            return [raw]
+        if isinstance(raw, list):
+            return [e for e in raw if isinstance(e, str)]
+        return []
+
     missing: list[str] = []
-    for entry in list(skills)[:5] + list(commands)[:5] + list(agents)[:3]:
-        # entry is a relative path like "skills/foo/SKILL.md"
-        if isinstance(entry, str):
-            target = root / entry
-            if not target.is_file():
+    for field in ("skills", "commands", "agents"):
+        raw = data.get(field)
+        if raw is None:
+            continue
+        entries = _normalise(raw)
+        # Strip the leading './' before joining with root so Path works correctly.
+        for entry in entries[:3]:
+            clean = entry.lstrip("./") if entry.startswith("./") else entry
+            target = root / clean
+            if not target.exists():
                 missing.append(entry)
+
     if missing:
         errors.append(f".claude-plugin/plugin.json references non-existent paths: {missing[:5]}")
     return errors
