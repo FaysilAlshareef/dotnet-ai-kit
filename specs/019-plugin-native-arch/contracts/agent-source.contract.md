@@ -29,6 +29,14 @@ host_overrides:
     expertise: [...]
     complexity: <low|medium|high>
     max_iterations: <int>
+  codex:
+    model: <preferred-model>
+    model_reasoning_effort: <low|medium|high>
+    sandbox_mode: <read-only|workspace-write|...>
+    mcp_servers:
+      <server_name>:
+        url: <url>
+        startup_timeout_sec: <int>
   cursor:
     model: <preferred-model>
     readonly: <bool>
@@ -86,6 +94,7 @@ host_overrides:
 `src/dotnet_ai_kit/agent_generators.py` exposes:
 
 - `generate_claude_agent(source_path: Path) -> str` — emits to `agents-claude/<name>.md`. Frontmatter contains `name`, `description`, plus `host_overrides.claude.*` fields lifted to top level. Body copied verbatim.
+- `generate_codex_agent(source_path: Path) -> str` — emits **TOML** content for `.codex/agents/<name>.toml` (project-scoped per `https://developers.openai.com/codex/subagents`, retrieved 2026-05-19). Required keys: `name`, `description`, `developer_instructions`. Optional keys lifted from `host_overrides.codex.*`: `model`, `model_reasoning_effort`, `sandbox_mode`, `mcp_servers` (rendered as `[mcp_servers.<name>]` sub-tables). Body wrapped in a TOML multi-line literal string (`'''...'''`) so markdown content survives without escape processing. Written by `CodexHost.write_per_solution_files()`. Plugin-manifest-bundled subagents remain OOS-004 (Codex docs don't document an `agents` field on the plugin manifest).
 - `generate_cursor_agent(source_path: Path) -> str` — emits to `agents/<name>.md` (the Cursor manifest's path). Frontmatter contains `name`, `description`, `model`, `readonly` (Cursor's allow-list per `cursor/plugins/agent-compatibility/agents/startup-review.md`). Body copied verbatim.
 - `generate_copilot_agent(source_path: Path, project_metadata: dict) -> str` — emits to `.github/agents/<name>.agent.md` at deploy time. Frontmatter contains the Copilot allow-list (`name`, `description`, `target`, `tools`, `model`, `disable-model-invocation`, `user-invocable`, `mcp-servers`, `metadata`) lifted from `host_overrides.copilot.*`. Body interpolated with `project_metadata` substitutions.
 

@@ -95,6 +95,10 @@ _FEATURE_019_BUNDLED_DIRS = [
     ("bundled/rules/domain/", "Just-in-time domain rules (11 per FR-011)"),
     ("bundled/rules/cursor/", "Cursor per-rule .mdc files"),
     ("bundled/schemas/", "JSON Schema definitions"),
+    # Logo asset bundle referenced by .cursor-plugin/plugin.json::logo and
+    # .codex-plugin/plugin.json::logo. Without bundling, the manifest `logo`
+    # path resolves to a 404 after pip install.
+    ("bundled/assets/", "Logo + branding assets referenced by plugin manifests"),
 ]
 
 

@@ -35,6 +35,12 @@ Per Codex docs `https://developers.openai.com/codex/plugins/build:843-860`, mani
 | `name` | string | yes | `dotnet-ai-kit` |
 | `version` | string | yes | semver |
 | `description` | string | yes | |
+| `author` | object | optional | `{name, email?, url?}` — populated from `.claude-plugin/marketplace.json::owner` |
+| `homepage` | string (URL) | optional | `https://github.com/FaysilAlshareef/dotnet-ai-kit` |
+| `repository` | string (URL) | optional | source-repo URL |
+| `license` | string | optional | SPDX identifier — `MIT` |
+| `logo` | string (path) | optional | `./assets/logo-icon.svg` — bundled via `tool.hatch.build.targets.wheel.force-include.assets` |
+| `keywords` | array | optional | non-empty unique strings — marketplace discovery |
 | `interface` | string | optional | metadata field per Codex docs |
 | `skills` | string (path) | yes | `"./skills/"` — scalar relative path |
 | `mcpServers` | string (path) | yes | `"./.mcp.json"` |
@@ -42,22 +48,29 @@ Per Codex docs `https://developers.openai.com/codex/plugins/build:843-860`, mani
 | `apps` | string (path) | optional | unused in v1 |
 | `assets` | string (path) | optional | unused in v1 |
 
-**Fields explicitly NOT present**: `agents` (OOS-004), `lspServers`, `monitors`, `settings`, `bin` (not documented by Codex CLI; FR-002 forbids inclusion).
+**Fields explicitly NOT present**: `agents` (OOS-004 plugin-bundling portion still deferred), `subagents`, `lspServers`, `monitors`, `settings`, `bin` (not documented by Codex CLI; FR-002 forbids inclusion).
 
 ### 1c. `CursorPluginManifest` (`.cursor-plugin/plugin.json`)
 
-Per the verified working example at `https://raw.githubusercontent.com/cursor/plugins/main/agent-compatibility/.cursor-plugin/plugin.json`, manifest fields are **scalar relative path strings with `./` prefix**. The agent-bearing field is `agents` (NOT `subagents`) and the verified path is `./agents/` at the plugin root.
+Per the official Cursor plugin docs at `https://cursor.com/docs/reference/plugins` (retrieved 2026-05-19) and the verified working example at `https://raw.githubusercontent.com/cursor/plugins/main/agent-compatibility/.cursor-plugin/plugin.json`, manifest fields are **scalar relative path strings with `./` prefix** (Cursor docs allow string OR array; this manifest opts into the scalar string form). The agent-bearing field is `agents` (NOT `subagents`) and the verified path is `./agents/` at the plugin root.
 
 | Field | Type | Required | Notes |
 |--|--|--|--|
 | `name` | string | yes | `dotnet-ai-kit` |
 | `version` | string | yes | semver |
 | `description` | string | yes | |
+| `author` | object | optional | `{name, email?, url?}` — populated from `.claude-plugin/marketplace.json::owner` |
+| `homepage` | string (URL) | optional | `https://github.com/FaysilAlshareef/dotnet-ai-kit` |
+| `repository` | string (URL) | optional | source-repo URL |
+| `license` | string | optional | SPDX identifier — `MIT` |
+| `logo` | string (path) | optional | `./assets/logo-icon.svg` — bundled via `tool.hatch.build.targets.wheel.force-include.assets` |
+| `keywords` | array | optional | non-empty unique strings — marketplace discovery |
 | `skills` | string (path) | yes | `"./skills/"` |
 | `rules` | string (path) | yes | `"./rules/cursor/"` — generated `.mdc` files |
+| `commands` | string (path) | yes | `"./commands/"` — 27 slash commands; declared explicitly even though Cursor's folder-discovery default would work |
 | `mcpServers` | string (path) | yes | `"./.mcp.json"` |
 | `hooks` | string (path) | yes | `"./hooks/hooks.json"` |
-| `agents` | string (path) | conditional | `"./agents/"` — conditional on A-005 spike fixture passing. If fixture fails, this field MUST be absent and `cursor-fixture-decision.contract.md` binding rule triggers. |
+| `agents` | string (path) | yes (PASS branch) | `"./agents/"` — required since the A-005 spike fixture flipped to PASS. If a future workflow_dispatch smoke regresses to FAIL, this field MUST be removed per `cursor-fixture-decision.contract.md`. |
 
 ## 2. `ProjectMetadata` (`.dotnet-ai-kit/project.yml`)
 

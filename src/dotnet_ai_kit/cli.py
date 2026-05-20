@@ -261,6 +261,57 @@ def _record_copilot_renders_in_manifest(target: Path, written: list[Path]) -> No
     write_manifest(target, new_manifest)
 
 
+def _record_codex_renders_in_manifest(target: Path, written: list[Path]) -> None:
+    """Record Codex subagent renders (`.codex/agents/*.toml`) in the manifest
+    with `host_owner="codex"` so `dotnet-ai check` / `migrate` can track them.
+
+    Mirrors `_record_copilot_renders_in_manifest`. Per OOS-004 partial lift
+    (May 2026): plugin-bundled subagents remain OOS, so this tracks per-project
+    renders only.
+    """
+    if not written:
+        return
+    import hashlib  # noqa: PLC0415
+
+    from dotnet_ai_kit.manifest import (  # noqa: PLC0415
+        DeployedFile,
+        manifest_path,
+        read_manifest,
+        utc_now_iso,
+        write_manifest,
+    )
+
+    mp = manifest_path(target)
+    if not mp.is_file():
+        # No manifest yet — skip silently (init creates it via _finalize_manifest)
+        return
+    manifest = read_manifest(target)
+    if manifest is None:
+        return
+
+    by_path = {f.path: f for f in manifest.files}
+    now = utc_now_iso()
+    for p in written:
+        rel = str(p.relative_to(target)).replace("\\", "/")
+        sha = hashlib.sha256(p.read_bytes()).hexdigest() if p.is_file() else ""
+        entry = DeployedFile(
+            path=rel,
+            sha256=sha,
+            host_owner="codex",
+            plugin_version=manifest.plugin_version,
+            deployed_at=now,
+        )
+        by_path[rel] = entry
+
+    new_manifest = manifest.model_copy(
+        update={
+            "files": list(by_path.values()),
+            "last_upgrade_at": now,
+        }
+    )
+    write_manifest(target, new_manifest)
+
+
 def _detect_shadowed_legacy_paths(target: Path) -> list[Path]:
     """Return any LEGACY_MANAGED_PATHS that contain ACTUAL FILES on disk.
 
@@ -448,6 +499,142 @@ def _validate_tools(
 
 
 # ---------------------------------------------------------------------------
+# External dependency auto-installers (mcp + lsp)
+# ---------------------------------------------------------------------------
+
+
+def _install_codebase_memory_mcp(*, verbose: bool = False, json_output: bool = False) -> bool:
+    """Install `codebase-memory-mcp` via pip when missing.
+
+    Idempotent: if the package is already importable at the minimum version
+    we skip. Returns True if an install attempt was made (regardless of
+    outcome) so the caller can re-check state.
+    """
+    import os as _os
+    import shutil as _shutil
+    import subprocess as _sp
+    import sys as _sys
+
+    # Never auto-install under pytest — tests must not touch the host's
+    # Python environment. Tests that exercise install behaviour patch this
+    # function directly.
+    if _os.environ.get("PYTEST_CURRENT_TEST"):
+        return False
+
+    try:
+        # Reuse the kit's own version check rather than open-coding pip-show.
+        from dotnet_ai_kit.mcp_check import (  # noqa: PLC0415
+            MIN_CODEBASE_MEMORY_MCP_VERSION,
+            check_codebase_memory_mcp,
+        )
+    except Exception:
+        return False
+
+    health = check_codebase_memory_mcp()
+    if health.present and health.meets_minimum:
+        return False
+
+    pip_exe = _shutil.which("pip") or _shutil.which("pip3")
+    cmd = (
+        [pip_exe, "install", f"codebase-memory-mcp>={MIN_CODEBASE_MEMORY_MCP_VERSION}"]
+        if pip_exe
+        else [
+            _sys.executable,
+            "-m",
+            "pip",
+            "install",
+            f"codebase-memory-mcp>={MIN_CODEBASE_MEMORY_MCP_VERSION}",
+        ]
+    )
+    if not json_output:
+        console.print(
+            f"[bold]Installing codebase-memory-mcp >= "
+            f"{MIN_CODEBASE_MEMORY_MCP_VERSION}...[/bold]"
+        )
+    try:
+        result = _sp.run(cmd, capture_output=True, text=True, timeout=180)
+    except (OSError, _sp.TimeoutExpired) as exc:
+        if not json_output:
+            err_console.print(
+                f"[yellow]codebase-memory-mcp install failed to start: {exc}. "
+                "Install manually with `pip install codebase-memory-mcp`.[/yellow]"
+            )
+        return True
+    if result.returncode == 0:
+        if not json_output:
+            console.print("  [green]codebase-memory-mcp installed[/green]")
+    else:
+        if not json_output:
+            err_console.print(
+                "[yellow]codebase-memory-mcp install exited "
+                f"{result.returncode}. Last lines:\n"
+                f"{(result.stderr or result.stdout).splitlines()[-3:]}[/yellow]"
+            )
+        if verbose:
+            _verbose_log(verbose, (result.stderr or result.stdout)[:2000])
+    return True
+
+
+def _install_csharp_ls(*, verbose: bool = False, json_output: bool = False) -> bool:
+    """Install `csharp-ls` as a .NET global tool when missing.
+
+    Idempotent: a no-op when csharp-ls is already on PATH. Returns True if
+    an install attempt was made.
+    """
+    import os as _os
+    import shutil as _shutil
+    import subprocess as _sp
+
+    # Pytest guard — never touch the host's .NET global tools under tests.
+    if _os.environ.get("PYTEST_CURRENT_TEST"):
+        return False
+
+    if _shutil.which("csharp-ls"):
+        return False
+    dotnet = _shutil.which("dotnet")
+    if not dotnet:
+        if not json_output:
+            err_console.print(
+                "[yellow]csharp-ls is missing and `dotnet` is not on PATH. "
+                "Install .NET SDK first, then re-run `dotnet-ai init`.[/yellow]"
+            )
+        return False
+    if not json_output:
+        console.print("[bold]Installing csharp-ls as a .NET global tool...[/bold]")
+    try:
+        result = _sp.run(
+            [dotnet, "tool", "install", "--global", "csharp-ls"],
+            capture_output=True,
+            text=True,
+            timeout=180,
+        )
+    except (OSError, _sp.TimeoutExpired) as exc:
+        if not json_output:
+            err_console.print(
+                f"[yellow]csharp-ls install failed to start: {exc}.[/yellow]"
+            )
+        return True
+    # `dotnet tool install` returns non-zero when already installed; treat
+    # the "already installed" message as success for idempotence.
+    out = (result.stdout or "") + (result.stderr or "")
+    if result.returncode == 0:
+        if not json_output:
+            console.print("  [green]csharp-ls installed[/green]")
+    elif "already installed" in out.lower():
+        if not json_output:
+            console.print("  [dim]csharp-ls already installed[/dim]")
+    else:
+        if not json_output:
+            err_console.print(
+                f"[yellow]csharp-ls install exited {result.returncode}. "
+                f"Last lines:\n{out.splitlines()[-3:]}[/yellow]"
+            )
+        if verbose:
+            _verbose_log(verbose, out[:2000])
+    return True
+
+
+# ---------------------------------------------------------------------------
 # MCP detection helper (T068 / T068a / FR-019)
 # ---------------------------------------------------------------------------
 
@@ -509,6 +696,16 @@ def _record_mcp_state(
                 "for graph queries."
             ),
             "below-minimum": (
+                # Fix (D3): when version is None the binary exists on PATH but
+                # didn't report a parseable version — say "version unknown",
+                # not the literal `None`. The "outdated install" wording is
+                # reserved for the case where we actually read a number that's
+                # below MIN_CODEBASE_MEMORY_MCP_VERSION.
+                f"codebase-memory-mcp version unknown (binary on PATH but no "
+                f"version reported). Required: >= {MIN_CODEBASE_MEMORY_MCP_VERSION}. "
+                f"Reinstall with `pip install --upgrade "
+                f"codebase-memory-mcp>={MIN_CODEBASE_MEMORY_MCP_VERSION}`."
+                if health.version is None else
                 f"codebase-memory-mcp {health.version} is below the required "
                 f">= {MIN_CODEBASE_MEMORY_MCP_VERSION}. Upgrade for graph queries."
             ),
@@ -540,6 +737,11 @@ _MANIFEST_SCAN_DIRS: tuple[str, ...] = (
     # can pick them up with host_owner='copilot'.
     ".github/instructions",
     ".github/agents",
+    # Vendored Copilot skills (per https://docs.github.com/en/copilot/concepts/agents/about-agent-skills).
+    # Without this entry, _finalize_manifest never records the 124 SKILL.md
+    # files written by CopilotHost._render_vendored_skills, and subsequent
+    # `upgrade --copilot` flags them as user-authored → exit 1 (Blocker-4).
+    ".github/skills",
     ".codex",
 )
 
@@ -775,6 +977,17 @@ def init(
         "--side",
         help="server | client — for ProjectMetadata.side (feature 019 / B-3).",
     ),
+    install_deps: bool = typer.Option(
+        True,
+        "--install-deps/--no-install-deps",
+        help=(
+            "Auto-install missing external dependencies during setup: "
+            "`pip install codebase-memory-mcp` and `dotnet tool install --global "
+            "csharp-ls` (when csharp-ls is missing AND claude is enabled). "
+            "Defaults to ON. Pass --no-install-deps for offline / restricted "
+            "environments."
+        ),
+    ),
 ) -> None:
     """Initialize dotnet-ai-kit in a .NET project directory."""
     target = path.resolve()
@@ -966,7 +1179,14 @@ def init(
     # top-level shape per `schemas/project-yml.schema.json`. The legacy
     # DetectedProject info is preserved in-memory for downstream checks, but
     # what lands on disk follows the v1 contract.
-    if detected:
+    # Fix (B1): emit ProjectMetadata when ANY of --company/--domain/--side/
+    # --type is provided OR detection ran. Previously only `if detected:`
+    # gated this block, so explicit flags were silently dropped when the
+    # user supplied them without --type (no detection => detected=None).
+    _has_meta_flag = any(
+        v not in (None, "") for v in (company, domain, side, project_type)
+    )
+    if detected or _has_meta_flag:
         project_path = config_dir / "project.yml"
 
         # T147 derivation table: gather required ProjectMetadata fields from
@@ -980,16 +1200,24 @@ def init(
         pm_company = company or getattr(getattr(config, "company", None), "name", "") or ""
         pm_domain = domain or "Sales"  # placeholder when no flag/detection
         pm_side = (side or "server").lower()
-        pm_type = (project_type or detected.project_type or "generic").lower()
+        pm_type = (
+            project_type
+            or (detected.project_type if detected else None)
+            or "generic"
+        ).lower()
         pm_branch = derive_architecture_branch(pm_type)
-        pm_dotnet = detected.dotnet_version or "8.0"
+        pm_dotnet = (detected.dotnet_version if detected else None) or "8.0"
         # detected_paths must be non-empty per schema minProperties:1
         pm_paths: dict[str, str] = {}
         for layer, p in (getattr(detected, "detected_paths", {}) or {}).items():
             if p:
                 pm_paths[layer] = str(p)
         if not pm_paths:
-            pm_paths = {"src": "src"}
+            # Fix (B4): use a placeholder key that IS in the known-keys list
+            # for the project_type so the "Unknown detected_paths key" warning
+            # doesn't fire on every subsequent command. `persistence` is a
+            # universal layer (present in every project type).
+            pm_paths = {"persistence": "src"}
 
         # T149 / T150: refuse to write if required fields cannot be derived.
         # Option A: clean — emit only when company is set (or rely on flag).
@@ -1064,10 +1292,26 @@ def init(
         # land via the host adapter (see below) + the config write in step 4.
         if tool_name in PLUGIN_NATIVE_HOSTS:
             if not json_output:
-                console.print(
-                    f"  [dim]Plugin-native host: commands/skills/agents served from "
-                    f"the {tool_display} plugin install (no per-solution copies).[/dim]"
-                )
+                # Fix (C1): be honest about Codex's per-solution subagents.
+                # Per https://developers.openai.com/codex/subagents Codex
+                # only auto-loads subagents from `~/.codex/agents/` (user)
+                # or `.codex/agents/` (project). The kit writes 14
+                # `.codex/agents/*.toml` files to the solution so they ride
+                # with the repo. Commands and skills DO come from the plugin
+                # install.
+                if tool_name == "codex":
+                    console.print(
+                        f"  [dim]Plugin-native host: commands & skills served from "
+                        f"the {tool_display} plugin install. Subagents are written "
+                        f"per-solution under `.codex/agents/*.toml` so they ride "
+                        f"with the repo (Codex only auto-loads subagents from "
+                        f"`~/.codex/agents/` or `.codex/agents/`).[/dim]"
+                    )
+                else:
+                    console.print(
+                        f"  [dim]Plugin-native host: commands/skills/agents served from "
+                        f"the {tool_display} plugin install (no per-solution copies).[/dim]"
+                    )
             # Cursor still emits per-rule `.cursor/rules/<name>.mdc` files
             # (T056 — already serves per-rule via copy_commands_cursor when
             # plugin install path is unavailable; preserve legacy behavior
@@ -1130,8 +1374,8 @@ def init(
                 console.print(f"  Copied: {agent_count} agents -> {tool_config['agents_dir']}")
 
         # Feature 019 / T042: plugin-native hosts route through hosts/ adapter
-        # for per-solution writes (currently `.claude/settings.json` for Claude
-        # when permissions present). Codex / Cursor have no per-solution files.
+        # for per-solution writes (Claude → `.claude/settings.json`; Codex →
+        # `.codex/agents/*.toml` per OOS-004 partial lift; Cursor has none).
         if tool_name == "claude":
             try:
                 from dotnet_ai_kit.hosts.claude import ClaudeHost  # noqa: PLC0415
@@ -1146,6 +1390,27 @@ def init(
                         console.print(f"  Host adapter: wrote {p.relative_to(target)}")
             except Exception as _exc:
                 _verbose_log(verbose, f"Claude host adapter skipped: {_exc}")
+
+        # OOS-004 partial lift (May 2026): render `.codex/agents/*.toml`
+        # subagent files per https://developers.openai.com/codex/subagents.
+        # Plugin install still serves skills/MCP/hooks; subagents MUST be
+        # project-scoped because the Codex plugin manifest does NOT bundle them.
+        if tool_name == "codex":
+            try:
+                from dotnet_ai_kit.hosts.codex import CodexHost  # noqa: PLC0415
+
+                _xh = CodexHost()
+                _written = _xh.write_per_solution_files(
+                    target,
+                    plugin_root=_get_package_dir(),
+                )
+                for p in _written:
+                    if not json_output:
+                        console.print(f"  Codex subagent: wrote {p.relative_to(target)}")
+                if _written:
+                    _record_codex_renders_in_manifest(target, _written)
+            except Exception as _exc:
+                _verbose_log(verbose, f"Codex host adapter skipped: {_exc}")
 
         # Feature 019 / T070 / T072c: Copilot render path.
         if tool_name == "copilot":
@@ -1295,13 +1560,38 @@ def init(
 
     # FR-019 / T068: detect codebase-memory-mcp and record outcome.
     try:
-        _record_mcp_state(target, verbose=verbose)
+        mcp_outcome = _record_mcp_state(target, verbose=verbose)
     except Exception as exc:
+        mcp_outcome = None
         _verbose_log(verbose, f"mcp check skipped: {exc}")
+
+    # Auto-install external dependencies (codebase-memory-mcp + csharp-ls).
+    # On by default; suppressed by --no-install-deps. Re-checks state after
+    # each install attempt so the on-disk mcp-state.yml and the user-facing
+    # output reflect reality, not the pre-install snapshot.
+    if install_deps and not dry_run:
+        installed_anything = False
+        if mcp_outcome and mcp_outcome.get("status") != "accepted":
+            if _install_codebase_memory_mcp(verbose=verbose, json_output=json_output):
+                installed_anything = True
+                try:
+                    _record_mcp_state(target, verbose=verbose)
+                except Exception as exc:
+                    _verbose_log(verbose, f"mcp re-check skipped: {exc}")
+        if "claude" in ai_tools:
+            if _install_csharp_ls(verbose=verbose, json_output=json_output):
+                installed_anything = True
+        if installed_anything and not json_output:
+            console.print(
+                "[dim]Tip: restart your terminal so new tools on PATH "
+                "become visible.[/dim]"
+            )
 
     # T052 - Next-command suggestion
     console.print(
-        "\nNext: Run [bold]dotnet-ai detect[/bold] then [bold]dotnet-ai configure[/bold].\n"
+        "\nNext: open this project in your AI host and run "
+        "[bold]/dotnet-ai.detect[/bold] (slash command), then "
+        "[bold]dotnet-ai configure[/bold].\n"
     )
 
 
@@ -1312,6 +1602,12 @@ def init(
 
 @app.command("status")
 def status(
+    path: str = typer.Argument(
+        ".",
+        help="Project directory to report on. Defaults to the current directory. "
+        "Mirrors the positional path arg accepted by init / check / migrate / "
+        "render / upgrade.",
+    ),
     verbose: bool = typer.Option(
         False,
         "--verbose",
@@ -1330,8 +1626,11 @@ def status(
     `check` command is now the spec-mandated validation command per FR-017.
     The status command keeps the legacy informational behavior — tool tables,
     config status, project info.
+
+    Fix (B3): now accepts a positional path arg like every other path-aware
+    command.
     """
-    target = Path(".").resolve()
+    target = Path(path).resolve()
 
     if not json_output:
         console.print(f"\n[bold]dotnet-ai-kit v{__version__}[/bold]\n")
@@ -1362,9 +1661,19 @@ def status(
         )
         raise typer.Exit(code=2) from exc
 
-    # Load project info
+    # Load project info — prefer the canonical v1.0 ProjectMetadata so the
+    # status display reflects the actual project_type / architecture_branch
+    # instead of the legacy DetectedProject defaults (which were yielding
+    # "Mode: Generic" for every v1.0 project regardless of project_type).
     project_path = config_dir / "project.yml"
     detected = None
+    project_meta = None
+    try:
+        from dotnet_ai_kit.config import load_project_metadata  # noqa: PLC0415
+
+        project_meta = load_project_metadata(project_path)
+    except (FileNotFoundError, ValueError, Exception):  # noqa: BLE001
+        project_meta = None
     try:
         detected = load_project(project_path)
     except (FileNotFoundError, ValueError):
@@ -1439,8 +1748,13 @@ def status(
         print(json.dumps(data))
         return
 
-    # Project info
-    if detected:
+    # Project info — prefer v1.0 ProjectMetadata fields when available; fall
+    # back to legacy DetectedProject only when the modern schema isn't there.
+    if project_meta is not None:
+        console.print(f"Project Type: {project_meta.project_type.title()}")
+        console.print(f"Architecture: {project_meta.architecture_branch.title()}")
+        console.print(f".NET: {project_meta.dotnet_version or 'unknown'}")
+    elif detected:
         console.print(f"Project Type: {detected.project_type.title()}")
         console.print(f"Mode: {detected.mode.title()} ({detected.architecture})")
         console.print(f".NET: {detected.dotnet_version or 'unknown'}")
@@ -2748,10 +3062,22 @@ def render(
 
     # Use plain sys.stdout to bypass Rich color codes — keeps output
     # consumable by downstream pipes.
+    #
+    # On Windows with non-UTF-8 locales (cp1252, cp1256, ...) sys.stdout
+    # cannot encode characters outside the active codepage (e.g., em-dash,
+    # arrows, emoji used in skill bodies). Bypass the text encoder and
+    # write UTF-8 bytes directly when the buffer interface is available;
+    # fall back to a permissive text write otherwise.
     import sys as _sys
 
-    _sys.stdout.write(output)
-    _sys.stdout.flush()
+    buf = getattr(_sys.stdout, "buffer", None)
+    if buf is not None:
+        buf.write(output.encode("utf-8"))
+        buf.flush()
+    else:
+        encoding = getattr(_sys.stdout, "encoding", None) or "utf-8"
+        _sys.stdout.write(output.encode(encoding, errors="replace").decode(encoding))
+        _sys.stdout.flush()
 
 
 # ---------------------------------------------------------------------------
@@ -2819,11 +3145,64 @@ def migrate(
 
     manifest_p = manifest_path(target)
     if not manifest_p.is_file():
-        err_console.print(
-            f"[red]manifest.json not found at {manifest_p}[/red]\n"
-            f"Run [bold]dotnet-ai init {target}[/bold] first to (re)create it."
+        # Pre-019 fallback: there is no manifest to classify against, but the
+        # project may still carry legacy per-solution copies (`.claude/commands`
+        # etc.). Move those wholesale to the migrate backup folder so the
+        # subsequent `dotnet-ai init` can write a clean v1.0 layout. Without
+        # this path the workflow loops (init says "run migrate"; migrate says
+        # "run init") for any project that pre-dates manifest.json.
+        legacy = _detect_shadowed_legacy_paths(target)
+        if not legacy:
+            err_console.print(
+                f"[red]manifest.json not found at {manifest_p}[/red]\n"
+                f"Run [bold]dotnet-ai init {target}[/bold] first to (re)create it."
+            )
+            raise typer.Exit(code=1)
+
+        timestamp = datetime.now(timezone.utc).strftime("%Y%m%d-%H%M%S")
+        backup_folder = target / ".dotnet-ai-kit" / "backups" / "migrate" / timestamp
+
+        console.print(
+            f"\n[bold]dotnet-ai migrate{' (dry-run)' if dry_run else ''} "
+            f"— legacy pre-019 layout[/bold]"
         )
-        raise typer.Exit(code=1)
+        console.print("=" * 50)
+        console.print(
+            "No manifest.json present; classifying legacy directories from "
+            "feature-018 layout (no per-file hash classification possible)."
+        )
+        console.print(f"\n  {len(legacy)} legacy path(s) MOVE to {backup_folder}/")
+        for p in legacy:
+            console.print(f"    {p.relative_to(target)}")
+
+        if dry_run:
+            console.print("\n[dim]Dry-run: no files moved.[/dim]")
+            raise typer.Exit(code=0)
+
+        backup_folder.mkdir(parents=True, exist_ok=True)
+        for src in legacy:
+            rel = src.relative_to(target)
+            dst = backup_folder / rel
+            dst.parent.mkdir(parents=True, exist_ok=True)
+            _shutil.move(str(src), str(dst))
+        # Apply 3-keep rotation to the backup parent (FR-023).
+        migrate_backups_root = target / ".dotnet-ai-kit" / "backups" / "migrate"
+        if migrate_backups_root.is_dir():
+            existing = sorted(
+                (p for p in migrate_backups_root.iterdir() if p.is_dir()),
+                key=lambda p: p.name,
+            )
+            for old in existing[:-3]:
+                _shutil.rmtree(old, ignore_errors=True)
+        console.print(
+            f"\n[green]Moved {len(legacy)} legacy path(s) to "
+            f"{backup_folder.relative_to(target)}[/green]"
+        )
+        console.print(
+            f"\nNext: run [bold]dotnet-ai init {target}[/bold] to write the "
+            f"v1.0 plugin-native layout."
+        )
+        raise typer.Exit(code=0)
 
     manifest = read_manifest(target)
     assert manifest is not None  # narrowed
@@ -3305,8 +3684,17 @@ def check(
                         if rendered is None:
                             # Template unavailable — skip Tier 2 for this entry
                             continue
-                        rendered_sha = _hashlib.sha256(rendered.encode("utf-8")).hexdigest()
-                        if rendered_sha != on_disk_sha:
+                        # Normalize line endings before content-equivalence
+                        # comparison. Python's text-mode writer on Windows
+                        # emits CRLF, but `re_render_for_freshness` returns
+                        # the in-memory LF string. Compare on a normalized
+                        # canonical form so this check is platform-neutral.
+                        on_disk_bytes = on_disk.read_bytes().replace(b"\r\n", b"\n")
+                        rendered_bytes = rendered.encode("utf-8").replace(b"\r\n", b"\n")
+                        if (
+                            _hashlib.sha256(rendered_bytes).hexdigest()
+                            != _hashlib.sha256(on_disk_bytes).hexdigest()
+                        ):
                             stale.append(f"{entry.path} (re-render drift)")
 
                 if stale:

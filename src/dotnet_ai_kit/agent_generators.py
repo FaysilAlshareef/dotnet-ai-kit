@@ -5,9 +5,12 @@ Each generator takes a single source-of-truth agent markdown (under
 
 - `generate_claude_agent(source_path) -> str`: Claude allow-list frontmatter
   + verbatim body. Output target: `agents-claude/<name>.md`.
-- `generate_codex_agent(source_path) -> None`: Codex native agents are
-  deferred to v1.1 per OOS-004 — raises NotImplementedError to make the
-  FR-035 admission gate explicit.
+- `generate_codex_agent(source_path) -> str`: Codex subagent TOML body
+  per `https://developers.openai.com/codex/subagents`. Output target:
+  `.codex/agents/<name>.toml` (per-project, written by `CodexHost`).
+  OOS-004 partial lift (May 2026): plugin-manifest-bundled subagents
+  remain deferred (Codex docs don't support an `agents` field); per-project
+  subagent files ARE supported and shipped here.
 - `generate_cursor_agent(source_path) -> str`: Cursor allow-list frontmatter
   + verbatim body. Output target: `agents/<name>.md` (Cursor's manifest
   path). Added in commit 6 (T058).
@@ -101,6 +104,16 @@ _CLAUDE_ALLOW_LIST: frozenset[str] = frozenset(
 
 _CURSOR_ALLOW_LIST: frozenset[str] = frozenset({"name", "description", "model", "readonly"})
 
+# Codex subagent allow-list per `https://developers.openai.com/codex/subagents`
+# (retrieved 2026-05-19). The Codex docs document these optional fields on top
+# of the required {name, description, developer_instructions} triplet.
+# `nickname_candidates` (array) and `skills_config` (sub-table) are
+# documented but deferred to a follow-up commit — no current source agent
+# uses them.
+_CODEX_ALLOW_LIST: frozenset[str] = frozenset(
+    {"name", "description", "model", "model_reasoning_effort", "sandbox_mode", "mcp_servers"}
+)
+
 _COPILOT_ALLOW_LIST: frozenset[str] = frozenset(
     {
         "name",
@@ -180,31 +193,141 @@ def generate_claude_agent(source_path: Path) -> str:
     return _render_frontmatter(fm) + src.body.lstrip("\n")
 
 
-def generate_codex_agent(source_path: Path) -> None:
-    """Codex native agents deferred to v1.1 per OOS-004 / FR-035 admission gate.
+def _toml_quote_basic(value: str) -> str:
+    """Render a string as a TOML basic string with proper escaping.
 
-    Raises NotImplementedError explicitly to make the deferral observable in
-    the type system. Commit 5 (T050) re-declares this raise to keep the
-    admission gate visible.
-
-    Feature 019 / commit 27 / T183 — forward-compat hook for v1.1: when
-    Codex CLI exposes a sub-agent primitive in its plugin manifest, the
-    v1.1 release will:
-    1. Reserve the `host_overrides.codex:` block convention in
-       `data-model.md` § 7 (already documented as a forward-compat note).
-    2. Materialise this generator analogously to `generate_claude_agent`,
-       reading the Codex allow-list from `host_overrides.codex.*` of each
-       agents-source/*.md file.
-    See `https://developers.openai.com/codex/plugins` (retrieved 2026-05-18)
-    for the latest Codex plugin documentation — no `agents` primitive in
-    Codex plugin manifest as of v0.117.0.
+    Used for short scalar values where we want minimal output (single-line).
+    Markdown bodies use `_toml_literal_multiline` instead.
     """
-    raise NotImplementedError(
-        "Codex native plugin agents are deferred to v1.1 per OOS-004 — "
-        "no `agents` primitive in the Codex plugin manifest as of v0.117.0 "
-        "(see https://developers.openai.com/codex/plugins, retrieved 2026-05-18). "
-        f"received {source_path}, no Codex agent file generated."
+    escaped = (
+        value.replace("\\", "\\\\")
+        .replace('"', '\\"')
+        .replace("\n", "\\n")
+        .replace("\r", "\\r")
+        .replace("\t", "\\t")
     )
+    return f'"{escaped}"'
+
+
+def _toml_literal_multiline(value: str) -> str:
+    """Render a string as a TOML multi-line literal string (`'''...'''`).
+
+    TOML literal strings do NOT process escape sequences, so markdown bodies
+    containing `\\n`, `\\t`, dollar signs, quotes, etc. survive verbatim.
+    The only forbidden content is the closing delimiter `'''` itself.
+    """
+    assert "'''" not in value, (
+        "Codex subagent body contains the TOML literal-string terminator `'''`; "
+        "this would break the emitted TOML. Rewrite the body to avoid triple "
+        "single-quotes."
+    )
+    # Leading newline after `'''` is permitted and ignored by TOML parsers;
+    # we add one so the body starts on its own line for readability.
+    return f"'''\n{value.rstrip()}\n'''"
+
+
+def _toml_render_scalar(value: object) -> str:
+    """Render a Python scalar to its TOML representation."""
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, int):
+        return str(value)
+    if isinstance(value, float):
+        return repr(value)
+    if isinstance(value, str):
+        return _toml_quote_basic(value)
+    raise ValueError(f"unsupported TOML scalar type: {type(value).__name__}")
+
+
+def generate_codex_agent(source_path: Path) -> str:
+    """Render a Codex-shape subagent TOML body from an `agents-source/<name>.md`.
+
+    Returns the full TOML content ready to be written to
+    `.codex/agents/<name>.toml` in the target project (per
+    `https://developers.openai.com/codex/subagents`, retrieved 2026-05-19).
+
+    Output shape (kebab-case `name` preserved across hosts):
+
+    ```toml
+    name = "api-designer"
+    description = "Designs REST and gRPC API contracts and endpoint conventions"
+    # optional Codex fields lifted from host_overrides.codex.*:
+    # model = "..."
+    # model_reasoning_effort = "..."
+    # sandbox_mode = "..."
+    # [mcp_servers.<name>] tables (if present)
+    developer_instructions = '''
+    <markdown body verbatim>
+    '''
+    ```
+
+    Per FR-026 (per-host generation) / FR-027 (allow-listed fields only).
+    Per OOS-004 (partial lift, May 2026): plugin-manifest-bundled subagents
+    are still OOS — Codex docs don't define an `agents` field on the plugin
+    manifest, so subagents are project-scoped TOML files instead.
+    """
+    src = AgentSource.from_file(source_path)
+
+    # Validate host_overrides.codex.* against the documented allow-list.
+    host_overrides = src.frontmatter.get("host_overrides", {}) or {}
+    if not isinstance(host_overrides, dict):
+        raise ValueError(
+            f"{source_path}: `host_overrides` must be a mapping if present, "
+            f"got {type(host_overrides).__name__}"
+        )
+    codex_fields = host_overrides.get("codex", {}) or {}
+    if not isinstance(codex_fields, dict):
+        raise ValueError(
+            f"{source_path}: `host_overrides.codex` must be a mapping, "
+            f"got {type(codex_fields).__name__}"
+        )
+    for key in codex_fields:
+        if key not in _CODEX_ALLOW_LIST:
+            raise ValueError(
+                f"{source_path}: `host_overrides.codex.{key}` is not in the "
+                f"documented allow-list for host 'codex'. Allowed: "
+                f"{sorted(_CODEX_ALLOW_LIST - {'name', 'description'})}. (per FR-027)"
+            )
+
+    # Compose TOML output. Order matches the Codex docs examples:
+    # required identity → optional scalars → optional mcp_servers tables → body.
+    lines: list[str] = []
+    # Identity (kebab-case preserved — cross-host UX consistency; same agent is
+    # `@api-designer` in Claude/Cursor/Codex).
+    lines.append(f"name = {_toml_quote_basic(src.name)}")
+    lines.append(f"description = {_toml_quote_basic(src.description)}")
+
+    # Optional scalar fields from host_overrides.codex.* (in stable order).
+    for key in ("model", "model_reasoning_effort", "sandbox_mode"):
+        if key in codex_fields:
+            lines.append(f"{key} = {_toml_render_scalar(codex_fields[key])}")
+
+    # Body as a TOML multi-line literal string (TOML rule: literal strings do
+    # NOT process escapes, so markdown survives verbatim).
+    body = src.body.lstrip("\n")
+    lines.append(f"developer_instructions = {_toml_literal_multiline(body)}")
+
+    # Optional [mcp_servers.<name>] tables.
+    mcp_servers = codex_fields.get("mcp_servers")
+    if mcp_servers is not None:
+        if not isinstance(mcp_servers, dict):
+            raise ValueError(
+                f"{source_path}: `host_overrides.codex.mcp_servers` must be a "
+                f"mapping of server-name to server-config, "
+                f"got {type(mcp_servers).__name__}"
+            )
+        for server_name, server_cfg in mcp_servers.items():
+            if not isinstance(server_cfg, dict):
+                raise ValueError(
+                    f"{source_path}: `host_overrides.codex.mcp_servers.{server_name}` "
+                    f"must be a mapping, got {type(server_cfg).__name__}"
+                )
+            lines.append("")  # blank line separates tables
+            lines.append(f"[mcp_servers.{server_name}]")
+            for k, v in server_cfg.items():
+                lines.append(f"{k} = {_toml_render_scalar(v)}")
+
+    return "\n".join(lines) + "\n"
 
 
 def generate_cursor_agent(source_path: Path) -> str:

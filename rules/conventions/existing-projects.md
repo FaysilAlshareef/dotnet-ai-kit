@@ -50,4 +50,4 @@ Before generating any code, scan the project for:
 
 ## Related Skills
 
-- `skills/workflow/spec-driven-flow/`, `skills/workflow/specify/`, `skills/core/coding-conventions/`
+- `skills/workflow/sdd-lifecycle/`, `skills/core/coding-conventions/`

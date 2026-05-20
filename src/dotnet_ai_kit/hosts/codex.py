@@ -1,12 +1,19 @@
-"""Codex CLI host adapter (feature 019 / T047).
+"""Codex CLI host adapter (feature 019 / T047 + OOS-004 partial lift).
 
 Implements the `Host` interface for Codex CLI's plugin model:
 - Plugin cache path: `~/.codex/plugins/cache/<marketplace>/<plugin>/<version>/`
   (per research R7 / Codex docs `developers.openai.com/codex/plugins/build`).
-- Codex documented primitives: skills, MCP, hooks. No native agents (OOS-004).
-- Per-solution writes: NONE under feature 019 — the plugin install path
-  serves skills/MCP/hooks; the legacy AGENTS.md emitter (copy_commands_codex)
-  was removed in T049.
+- Plugin-bundled primitives: skills, MCP, hooks. Plugin manifest does NOT
+  bundle subagents (no documented `agents` field — OOS-004 plugin-bundling
+  portion still deferred to v1.1).
+- Per-solution writes (OOS-004 partial lift, May 2026): `.codex/agents/*.toml`
+  subagent files rendered from `agents-source/<name>.md` per
+  `https://developers.openai.com/codex/subagents` (retrieved 2026-05-19).
+  Codex loads subagents from `~/.codex/agents/` (user) or `.codex/agents/`
+  (project) — the kit writes them at the project scope so they ride with
+  the solution and survive without per-user installation steps.
+- The legacy AGENTS.md emitter (copy_commands_codex) was removed in T049
+  and is NOT restored — root AGENTS.md remains user-owned per FR-008 / A-008.
 """
 
 from __future__ import annotations
@@ -97,16 +104,73 @@ class CodexHost(Host):
         project_root: Path,
         *,
         permission_profile: Optional[str] = None,
+        plugin_root: Optional[Path] = None,
     ) -> list[Path]:
-        """Codex has NO per-solution writes under feature 019.
+        """Render `.codex/agents/<name>.toml` subagent files for each
+        `agents-source/<name>.md` in the plugin.
 
-        Per FR-005: the plugin install path serves skills/MCP/hooks. The
-        legacy `copy_commands_codex` (root-AGENTS.md emitter) was deleted
-        in T049 — Codex now relies on the plugin manifest exclusively.
+        Per `https://developers.openai.com/codex/subagents` (retrieved
+        2026-05-19), Codex loads subagents from `~/.codex/agents/` (user)
+        or `.codex/agents/` (project). We write to the project scope so
+        subagents ride with the solution.
+
+        **Conflict policy (v1.0)**: if a target file already exists, the
+        existing content is PRESERVED (user customizations win) and the
+        skip is logged. To regenerate, delete the file and re-run init.
+        Manifest-SHA-based conflict detection (like Copilot's render
+        orchestrator) is a follow-up; the v1.0 contract is render-once.
+
+        Args:
+            project_root: Project root receiving `.codex/agents/*.toml`.
+            permission_profile: Unused — accepted for ABC compatibility
+                with other hosts.
+            plugin_root: Optional override for the plugin source root
+                (containing `agents-source/`). Defaults to auto-detection.
+
+        Returns:
+            List of paths the adapter actually wrote (excludes skipped
+            pre-existing files).
         """
-        logger.debug(
-            "CodexHost.write_per_solution_files() is a no-op (plugin install "
-            "serves Codex skills/MCP/hooks). project_root=%s",
-            project_root,
-        )
-        return []
+        del permission_profile  # unused for Codex subagent render
+
+        if plugin_root is None:
+            from dotnet_ai_kit.cli import _get_package_dir  # noqa: PLC0415
+
+            plugin_root = _get_package_dir()
+
+        agents_source = plugin_root / "agents-source"
+        if not agents_source.is_dir():
+            logger.debug(
+                "CodexHost: no agents-source/ dir at %s — nothing to render",
+                agents_source,
+            )
+            return []
+
+        from dotnet_ai_kit.agent_generators import generate_codex_agent  # noqa: PLC0415
+
+        agents_dir = project_root / ".codex" / "agents"
+        written: list[Path] = []
+
+        for source_path in sorted(agents_source.glob("*.md")):
+            target = agents_dir / f"{source_path.stem}.toml"
+            if target.is_file():
+                logger.debug(
+                    "CodexHost: %s already exists — preserving user content "
+                    "(delete file and re-run to regenerate)",
+                    target,
+                )
+                continue
+            try:
+                content = generate_codex_agent(source_path)
+            except (ValueError, AssertionError) as exc:
+                logger.warning(
+                    "CodexHost: skipping %s — generator rejected source: %s",
+                    source_path.name,
+                    exc,
+                )
+                continue
+            agents_dir.mkdir(parents=True, exist_ok=True)
+            target.write_text(content, encoding="utf-8")
+            written.append(target)
+
+        return written

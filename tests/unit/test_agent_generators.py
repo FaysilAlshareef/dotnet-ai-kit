@@ -199,15 +199,168 @@ def test_generate_claude_agent_body_is_verbatim(tmp_path: Path) -> None:
 
 
 # ---------------------------------------------------------------------------
-# Codex generator — explicit NotImplementedError per OOS-004
+# Codex generator (OOS-004 partial lift, May 2026 — per-project subagents
+# shipped; plugin-manifest bundling still deferred to v1.1)
 # ---------------------------------------------------------------------------
 
 
-def test_generate_codex_agent_raises_not_implemented(tmp_path: Path) -> None:
-    """Per OOS-004 / FR-035: Codex native agents are deferred to v1.1."""
+def test_generate_codex_agent_minimal_emits_required_triplet(tmp_path: Path) -> None:
+    """A minimal source emits the required {name, description, developer_instructions}
+    triplet per https://developers.openai.com/codex/subagents (retrieved 2026-05-19)."""
+    body = "# Body\n\nText.\n"
+    path = _write_agent(tmp_path, "minimal", {"name": "minimal", "description": "M"}, body=body)
+    output = generate_codex_agent(path)
+    assert 'name = "minimal"' in output
+    assert 'description = "M"' in output
+    assert "developer_instructions = '''" in output
+    # Body is inside the literal-string block, verbatim
+    assert "# Body" in output
+    assert "Text." in output
+
+
+def test_generate_codex_agent_preserves_kebab_case_name(tmp_path: Path) -> None:
+    """Cross-host consistency: the same agent is `@api-designer` in Claude,
+    Cursor, AND Codex. Codex docs only state `name` is "Agent identifier for
+    spawning" with no case constraint, so we preserve the source spelling."""
+    path = _write_agent(tmp_path, "api-designer", {"name": "api-designer", "description": "D"})
+    output = generate_codex_agent(path)
+    assert 'name = "api-designer"' in output
+
+
+def test_generate_codex_agent_lifts_host_overrides_codex(tmp_path: Path) -> None:
+    """`host_overrides.codex.*` fields are lifted to top-level TOML keys."""
+    path = _write_agent(
+        tmp_path,
+        "expert",
+        {
+            "name": "expert",
+            "description": "E",
+            "host_overrides": {
+                "codex": {
+                    "model": "gpt-5.4",
+                    "model_reasoning_effort": "high",
+                    "sandbox_mode": "workspace-write",
+                }
+            },
+        },
+    )
+    output = generate_codex_agent(path)
+    assert 'model = "gpt-5.4"' in output
+    assert 'model_reasoning_effort = "high"' in output
+    assert 'sandbox_mode = "workspace-write"' in output
+
+
+def test_generate_codex_agent_emits_mcp_servers_table(tmp_path: Path) -> None:
+    """`mcp_servers` mapping renders as TOML sub-tables per Codex docs example."""
+    path = _write_agent(
+        tmp_path,
+        "browser",
+        {
+            "name": "browser",
+            "description": "Browser debugger",
+            "host_overrides": {
+                "codex": {
+                    "mcp_servers": {
+                        "chrome_devtools": {
+                            "url": "http://localhost:3000/mcp",
+                            "startup_timeout_sec": 20,
+                        }
+                    }
+                }
+            },
+        },
+    )
+    output = generate_codex_agent(path)
+    assert "[mcp_servers.chrome_devtools]" in output
+    assert 'url = "http://localhost:3000/mcp"' in output
+    assert "startup_timeout_sec = 20" in output
+
+
+def test_generate_codex_agent_no_default_model(tmp_path: Path) -> None:
+    """Per user directive ('never set models for now because it's changes always'):
+    when the source has no `host_overrides.codex.model`, the generator MUST NOT
+    inject a default model field."""
     path = _write_agent(tmp_path, "x", {"name": "x", "description": "x"})
-    with pytest.raises(NotImplementedError, match="OOS-004"):
+    output = generate_codex_agent(path)
+    assert "model =" not in output, "Codex generator must not inject a default model"
+
+
+def test_generate_codex_agent_rejects_unknown_field(tmp_path: Path) -> None:
+    """Per FR-027: unknown `host_overrides.codex.<key>` fields MUST be rejected."""
+    path = _write_agent(
+        tmp_path,
+        "bad",
+        {
+            "name": "bad",
+            "description": "B",
+            "host_overrides": {"codex": {"model": "gpt-5.4", "made_up_field": "x"}},
+        },
+    )
+    with pytest.raises(ValueError, match="not in the documented allow-list"):
         generate_codex_agent(path)
+
+
+def test_generate_codex_agent_no_cross_host_leak(tmp_path: Path) -> None:
+    """Cursor/Claude/Copilot fields MUST NOT leak into Codex TOML output."""
+    path = _write_agent(
+        tmp_path,
+        "iso",
+        {
+            "name": "iso",
+            "description": "Isolation test",
+            "host_overrides": {
+                "codex": {"model": "gpt-5.4"},
+                "cursor": {"readonly": True, "model": "claude-sonnet-4"},
+                "claude": {"role": "advisory", "complexity": "high"},
+                "copilot": {"target": "solution-root"},
+            },
+        },
+    )
+    output = generate_codex_agent(path)
+    # Codex's own field
+    assert 'model = "gpt-5.4"' in output
+    # Other-host fields MUST NOT appear as TOML keys
+    assert "readonly" not in output
+    assert "role" not in output
+    assert "complexity" not in output
+    assert "target" not in output
+
+
+def test_generate_codex_agent_body_is_verbatim_inside_literal_string(tmp_path: Path) -> None:
+    """The markdown body is preserved verbatim inside the TOML literal-string
+    block — including backslashes, dollar signs, and quotes that would break
+    a TOML basic string."""
+    body = (
+        "# Agent\n\n"
+        "Use `$ARGUMENTS` like a shell var.\n"
+        'Escapes \\n must stay as the two-char sequence "\\n".\n'
+        "Quotes \"double\" and 'single' both pass through.\n"
+    )
+    path = _write_agent(
+        tmp_path, "body", {"name": "body", "description": "Body verbatim"}, body=body
+    )
+    output = generate_codex_agent(path)
+    # The exact body text must appear inside the developer_instructions block.
+    assert "$ARGUMENTS" in output
+    assert "\\n" in output
+    assert '"double"' in output
+    assert "'single'" in output
+
+
+def test_codex_allow_list_completeness() -> None:
+    """The Codex allow-list MUST match the documented Codex subagent fields
+    (per https://developers.openai.com/codex/subagents, retrieved 2026-05-19)."""
+    from dotnet_ai_kit.agent_generators import _CODEX_ALLOW_LIST  # noqa: PLC0415
+
+    expected = {
+        "name",
+        "description",
+        "model",
+        "model_reasoning_effort",
+        "sandbox_mode",
+        "mcp_servers",
+    }
+    assert set(_CODEX_ALLOW_LIST) == expected
 
 
 # ---------------------------------------------------------------------------

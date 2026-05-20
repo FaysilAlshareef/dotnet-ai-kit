@@ -61,6 +61,11 @@ def infer_host_owner(path: str) -> str | None:
         return "copilot"
     if p.startswith(".github/instructions/") and p.endswith(".instructions.md"):
         return "copilot"
+    # Vendored agent skills under .github/skills/<name>/SKILL.md, deployed
+    # by CopilotHost._render_vendored_skills per
+    # https://docs.github.com/en/copilot/concepts/agents/about-agent-skills.
+    if p.startswith(".github/skills/") and p.endswith("/SKILL.md"):
+        return "copilot"
     return None
 
 

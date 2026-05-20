@@ -58,4 +58,4 @@ If a tool is not available, inform the user and suggest installation:
 
 ## Related Skills
 
-- `skills/workflow/parallel-tool-execution/`, `skills/workflow/systematic-debugging/`
+- `skills/workflow/systematic-debugging/`

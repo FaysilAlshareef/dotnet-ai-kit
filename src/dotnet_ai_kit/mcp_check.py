@@ -84,9 +84,34 @@ def check_codebase_memory_mcp() -> MCPHealth:
             [name, "--version"],
             capture_output=True,
             text=True,
-            timeout=5,
+            # 15s, not 5s: on Windows the first invocation of a freshly
+            # installed Python entry-point pays import-cost + console-host
+            # spin-up that routinely exceeds 5s on slow disks. The probe is
+            # one-shot per `dotnet-ai` invocation, so a longer ceiling is
+            # cheap and prevents post-install false negatives.
+            timeout=15,
         )
     except (subprocess.TimeoutExpired, OSError) as exc:
+        # Subprocess probe failed (timeout or spawn error). Fall back to an
+        # in-process import — works whenever the package is installed in
+        # the same interpreter even if the entry-point script is slow.
+        try:
+            import importlib  # noqa: PLC0415
+
+            mod = importlib.import_module("codebase_memory_mcp")
+            mod_version = getattr(mod, "__version__", None)
+            parsed = _parse(mod_version) if mod_version else None
+            if parsed is not None:
+                version_str = "{}.{}.{}".format(*parsed)
+                return MCPHealth(
+                    server_name=name,
+                    present=True,
+                    version=version_str,
+                    meets_minimum=parsed >= _min_tuple(),
+                    error=None,
+                )
+        except Exception:  # noqa: BLE001
+            pass
         return MCPHealth(
             server_name=name,
             present=True,

@@ -92,6 +92,87 @@ def test_cursor_plugin_agents_field_if_present_uses_verified_path(
         )
 
 
+def test_cursor_plugin_commands_field_is_scalar_path(manifest: dict) -> None:
+    """Per Cursor docs (https://cursor.com/docs/reference/plugins, retrieved
+    2026-05-19): `commands` is a documented optional field. The kit declares
+    it explicitly so the 27 slash commands are self-documented at the manifest
+    level instead of relying on Cursor's folder-discovery default."""
+    assert "commands" in manifest, (
+        "Cursor plugin must declare `commands` explicitly. The kit ships 27 "
+        "slash commands at `./commands/`; folder-discovery default works but "
+        "explicit declaration is the docs-recommended pattern."
+    )
+    assert manifest["commands"] == "./commands/", (
+        f"Cursor commands field must be the scalar path `./commands/`; got {manifest['commands']}"
+    )
+
+
+def test_cursor_plugin_keywords_is_a_non_empty_string_array(manifest: dict) -> None:
+    """Per Cursor docs: `keywords` is an optional array of discovery tags
+    for marketplace search. The kit opts in for cross-host parity with
+    .codex-plugin and .claude-plugin."""
+    assert "keywords" in manifest, (
+        "Cursor plugin must declare `keywords` for marketplace discovery — "
+        "this matches the per-Cursor-docs recommendation and the cross-host "
+        "parity established with .codex-plugin/plugin.json."
+    )
+    kws = manifest["keywords"]
+    assert isinstance(kws, list) and kws, "keywords must be a non-empty array"
+    assert all(isinstance(k, str) and k for k in kws), "keywords entries must be non-empty strings"
+    assert len(set(kws)) == len(kws), "keywords entries must be unique"
+
+
+def test_cursor_plugin_author_object_has_required_name(manifest: dict) -> None:
+    """Per Cursor docs: `author` is an optional object whose minimum shape is
+    `{name}`. We populate from .claude-plugin/marketplace.json::owner."""
+    assert "author" in manifest, "Cursor plugin must declare `author` per docs"
+    author = manifest["author"]
+    assert isinstance(author, dict), f"author must be an object, got {type(author).__name__}"
+    assert author.get("name"), "author.name is required per Cursor docs"
+
+
+def test_cursor_plugin_homepage_is_http_url(manifest: dict) -> None:
+    """Per Cursor docs: `homepage` is an optional URL string."""
+    assert "homepage" in manifest, "Cursor plugin must declare `homepage` per docs"
+    hp = manifest["homepage"]
+    assert isinstance(hp, str) and hp.startswith(("http://", "https://")), (
+        f"homepage must be an http(s) URL, got {hp!r}"
+    )
+
+
+def test_cursor_plugin_repository_is_http_url(manifest: dict) -> None:
+    """Per Cursor docs: `repository` is an optional source-repo URL string."""
+    assert "repository" in manifest, "Cursor plugin must declare `repository` per docs"
+    repo = manifest["repository"]
+    assert isinstance(repo, str) and repo.startswith(("http://", "https://")), (
+        f"repository must be an http(s) URL, got {repo!r}"
+    )
+
+
+def test_cursor_plugin_license_is_spdx_identifier(manifest: dict) -> None:
+    """Per Cursor docs: `license` is an optional SPDX identifier."""
+    assert "license" in manifest, "Cursor plugin must declare `license` per docs"
+    assert isinstance(manifest["license"], str) and manifest["license"], (
+        "license must be a non-empty string"
+    )
+
+
+def test_cursor_plugin_logo_points_to_existing_asset(manifest: dict) -> None:
+    """Per Cursor docs: `logo` is an optional plugin-root-relative path. The
+    referenced file MUST exist on disk so the wheel actually ships it (per
+    pyproject.toml `tool.hatch.build.targets.wheel.force-include.assets`)."""
+    assert "logo" in manifest, "Cursor plugin must declare `logo` per docs"
+    logo_rel = manifest["logo"]
+    assert isinstance(logo_rel, str) and logo_rel, "logo must be a non-empty string"
+    # Strip optional `./` prefix and resolve relative to the plugin root (repo root).
+    rel = logo_rel[2:] if logo_rel.startswith("./") else logo_rel
+    logo_path = REPO / rel
+    assert logo_path.is_file(), (
+        f"`{logo_rel}` declared in manifest but file missing at {logo_path}. "
+        f"Wheel-install will resolve the path to a 404."
+    )
+
+
 def test_cursor_plugin_name_is_dotnet_ai_kit(manifest: dict) -> None:
     """Plugin name MUST be `dotnet-ai-kit`."""
     assert manifest["name"] == "dotnet-ai-kit"

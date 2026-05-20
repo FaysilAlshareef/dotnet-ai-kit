@@ -40,6 +40,9 @@ _FEATURE_019_BUNDLED_DIRS = [
     "bundled/rules/domain/",
     "bundled/rules/cursor/",
     "bundled/schemas/",
+    # Logo asset bundle referenced by .cursor-plugin/plugin.json::logo and
+    # .codex-plugin/plugin.json::logo (per Cursor + Codex plugin docs).
+    "bundled/assets/",
 ]
 
 

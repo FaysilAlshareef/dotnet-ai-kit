@@ -20,15 +20,30 @@ surface without adding value for the v1 user persona (.NET dev who's
 already using one of the 4 hosts). The launcher is staged for v1.1 when
 plugin-less CI/CD integration patterns are first-class.
 
-## OOS-004 — Native Codex agents (deferred to v1.1)
+## OOS-004 — Native Codex agents (partially lifted in v1.0)
 
-**Decision**: `generate_codex_agent()` raises `NotImplementedError` with
-the message "Codex native plugin agents deferred to v1.1 per OOS-004".
-**Rationale**: at spec-phase round 2 the Codex plugin API for `agents/*`
-files was not stable enough to ship against. The forward-declaration in
-`.codex-plugin/plugin.json` mentions `agents-source/` as the canonical
-location; the actual per-agent rendering is staged for v1.1 when the
-upstream Codex agent contract is locked.
+**Decision (May 2026 revision)**: per-project subagent rendering is now
+in v1.0 scope; plugin-manifest-bundled subagents remain deferred to v1.1.
+
+**What shipped (v1.0)**: `generate_codex_agent(source_path) -> str` emits
+TOML content for `.codex/agents/<name>.toml`, written by
+`CodexHost.write_per_solution_files()` during `dotnet-ai init --ai codex`.
+Per `https://developers.openai.com/codex/subagents` (retrieved
+2026-05-19), Codex loads subagents from `~/.codex/agents/` (user) or
+`.codex/agents/` (project); we write at the project scope so subagents
+ride with the solution. Required TOML keys: `name`, `description`,
+`developer_instructions`. Optional keys lifted from
+`host_overrides.codex.*`: `model`, `model_reasoning_effort`,
+`sandbox_mode`, `mcp_servers` (sub-tables). Conflict policy: pre-existing
+files preserved; user customizations win.
+
+**What stays deferred (v1.1)**: bundling subagents via the plugin manifest
+itself. The Codex docs at `developers.openai.com/codex/plugins/build`
+(retrieved 2026-05-19) list complete top-level manifest fields as
+`name`, `version`, `description`, `author`, `homepage`, `repository`,
+`license`, `keywords`, `skills`, `mcpServers`, `apps`, `hooks`,
+`interface` — no `agents` / `subagents` field. The schema's
+`not.anyOf` clause forbids inventing one to prevent drift.
 
 ## OOS-006 — Multi-repository monitor (deferred)
 

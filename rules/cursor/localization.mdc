@@ -47,4 +47,4 @@ After editing a `.resx` file:
 ## Related Skills
 
 - `skills/controlpanel/blazor-pages/` — Blazor pages that consume localized resources
-- `skills/workflow/specify/` — describe localization scope in the spec phase
+- `skills/workflow/sdd-lifecycle/` — describe localization scope in the spec phase

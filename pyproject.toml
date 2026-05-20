@@ -88,6 +88,10 @@ packages = ["src/dotnet_ai_kit"]
 "agents-claude" = "dotnet_ai_kit/bundled/agents-claude"
 "agents-copilot-templates" = "dotnet_ai_kit/bundled/agents-copilot-templates"
 "schemas" = "dotnet_ai_kit/bundled/schemas"
+# Plugin manifests reference `./assets/logo-icon.svg` via the documented `logo`
+# field (cursor.com/docs/reference/plugins + developers.openai.com/codex/plugins).
+# Without bundling assets/, the logo path resolves to a 404 at the install root.
+"assets" = "dotnet_ai_kit/bundled/assets"
 
 [tool.pytest.ini_options]
 testpaths = ["tests"]

@@ -2,7 +2,7 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/FaysilAlshareef/dotnet-ai-kit/specs/019-plugin-native-arch/contracts/cursor-plugin.schema.json",
   "title": "Cursor Plugin Manifest (dotnet-ai-kit)",
-  "description": "Schema for .cursor-plugin/plugin.json modeled on the verified working example at https://raw.githubusercontent.com/cursor/plugins/main/agent-compatibility/.cursor-plugin/plugin.json. Manifest field is `agents` (NOT `subagents`); field value is a scalar relative path `./agents/` (NOT array). Verified agent frontmatter (per cursor/plugins/agent-compatibility/agents/startup-review.md): `name`, `description`, `model`, `readonly`. The `agents` field is conditional in this v1 release per spec A-005: if the spike fixture under `./agents/` passes (CHK003), full Cursor agent generation lands; if the fixture fails, the `agents` field MUST be removed from the manifest and spec/checklist/release notes updated in the same PR per the cursor-fixture-decision.contract.md binding rule.",
+  "description": "Schema for .cursor-plugin/plugin.json per the official Cursor plugin docs at https://cursor.com/docs/reference/plugins (retrieved 2026-05-19) and modeled on the verified working example at https://raw.githubusercontent.com/cursor/plugins/main/agent-compatibility/.cursor-plugin/plugin.json. Manifest fields are scalar relative path strings with `./` prefix (Cursor docs allow string OR array; this manifest opts into the scalar string form). The agent-bearing field is `agents` (NOT `subagents`) and the verified path is `./agents/`. Per spec A-005 / OOS-005: with the spike fixture flipped to PASS, the `agents` field is required; if a future workflow_dispatch smoke run regresses to FAIL, the `agents` field MUST be removed per cursor-fixture-decision.contract.md. Optional fields per docs: `commands`, `keywords`, `author`, `homepage`, `repository`, `license`, `logo` — the manifest currently opts into `commands` (declares the 27 slash commands explicitly) and `keywords` (marketplace discovery).",
   "type": "object",
   "required": ["name", "version", "description", "skills", "mcpServers", "hooks"],
   "additionalProperties": false,
@@ -10,6 +10,44 @@
     "name": { "type": "string", "const": "dotnet-ai-kit" },
     "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+(-[A-Za-z0-9\\.\\-]+)?$" },
     "description": { "type": "string", "minLength": 1 },
+    "author": {
+      "type": "object",
+      "required": ["name"],
+      "additionalProperties": false,
+      "properties": {
+        "name": { "type": "string", "minLength": 1 },
+        "email": { "type": "string", "format": "email" },
+        "url": { "type": "string", "format": "uri" }
+      },
+      "description": "Per Cursor plugin docs: optional publisher metadata. Minimum shape is `{name}`; `email` and `url` are documented as optional sub-fields."
+    },
+    "homepage": {
+      "type": "string",
+      "format": "uri",
+      "description": "Per Cursor plugin docs: optional plugin homepage URL."
+    },
+    "repository": {
+      "type": "string",
+      "format": "uri",
+      "description": "Per Cursor plugin docs: optional source-repository URL."
+    },
+    "license": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Per Cursor plugin docs: optional SPDX license identifier (e.g., `MIT`, `Apache-2.0`)."
+    },
+    "logo": {
+      "type": "string",
+      "minLength": 1,
+      "description": "Per Cursor plugin docs: optional plugin-root-relative path (or URL) to a logo asset. Currently `./assets/logo-icon.svg`, bundled via `tool.hatch.build.targets.wheel.force-include.assets`."
+    },
+    "keywords": {
+      "type": "array",
+      "items": { "type": "string", "minLength": 1 },
+      "minItems": 1,
+      "uniqueItems": true,
+      "description": "Per Cursor plugin docs: optional discovery tags for marketplace search."
+    },
     "skills": {
       "type": "string",
       "pattern": "^\\./.+/?$",
@@ -21,6 +59,12 @@
       "pattern": "^\\./.+/?$",
       "const": "./rules/cursor/",
       "description": "Scalar relative path to the generated Cursor .mdc rule directory. Replaces the legacy one-blob .cursor/rules/dotnet-ai-kit.mdc behavior (research R12)."
+    },
+    "commands": {
+      "type": "string",
+      "pattern": "^\\./.+/?$",
+      "const": "./commands/",
+      "description": "Per Cursor plugin docs (https://cursor.com/docs/reference/plugins, retrieved 2026-05-19): scalar relative path to the slash-commands directory. Cursor's default folder discovery is `commands/`; we declare it explicitly so the manifest is self-documenting about the 27 commands shipped."
     },
     "mcpServers": {
       "type": "string",
@@ -36,7 +80,7 @@
       "type": "string",
       "pattern": "^\\./.+/?$",
       "const": "./agents/",
-      "description": "Per cursor/plugins/agent-compatibility evidence: scalar relative path to the agents directory at the plugin root. Conditional on the A-005 spike fixture passing. If the fixture fails, this field MUST be absent and the cursor-fixture-decision.contract.md binding rule triggers."
+      "description": "Per cursor/plugins/agent-compatibility evidence + cursor.com/docs/reference/plugins: scalar relative path to the agents directory at the plugin root. With OOS-005 spike fixture PASS, this field is part of the v1.0 shipped contract. A future regression flips it back to absent per cursor-fixture-decision.contract.md."
     }
   }
 }

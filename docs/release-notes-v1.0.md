@@ -90,9 +90,15 @@ Recorded so reviewers know these are intentional v1.1+ items:
 
 - **`bin/` launcher**: deferred to v1.1 (OOS-003). The spike result is
   recorded in the planning folder.
-- **Native Codex CLI plugin agents**: deferred to v1.1 (OOS-004). The
-  Codex plugin manifest does NOT declare `agents`; `generate_codex_agent()`
-  raises NotImplementedError.
+- **Native Codex CLI subagents**: partially lifted (OOS-004). v1.0 SHIPS
+  per-project subagent rendering — `dotnet-ai init --ai codex` now writes
+  14 `.codex/agents/<name>.toml` files per
+  `https://developers.openai.com/codex/subagents` (retrieved 2026-05-19).
+  Plugin-manifest-bundled subagents remain deferred to v1.1: the Codex
+  plugin manifest still does NOT document an `agents` / `subagents` field,
+  so plugin-level distribution of subagents is not feasible until the
+  docs add the surface. Conflict policy: existing `.codex/agents/*.toml`
+  files are preserved on re-init (user customizations win).
 - **Multi-repository activity monitor**: not included in this release
   (OOS-006). Plugin-served-artifact drift across linked secondary
   repositories is solved by FR-033 (linked-secondary-repository footprint)

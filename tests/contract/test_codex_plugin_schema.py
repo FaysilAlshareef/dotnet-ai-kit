@@ -61,9 +61,25 @@ def test_codex_plugin_hooks_is_scalar_path(manifest: dict) -> None:
 
 
 def test_codex_plugin_has_no_agents_field(manifest: dict) -> None:
-    """Per OOS-004: native Codex agents are deferred to v1.1 — `agents` MUST be absent."""
+    """Per OOS-004 (plugin-bundling portion still deferred to v1.1): the Codex
+    plugin manifest does NOT have a documented `agents` field per
+    https://developers.openai.com/codex/plugins/build (retrieved 2026-05-19).
+    Subagents live as `.codex/agents/<name>.toml` files at the project scope
+    instead (rendered by CodexHost.write_per_solution_files())."""
     assert "agents" not in manifest, (
-        "Codex plugin must NOT declare `agents` (OOS-004 — deferred to v1.1)"
+        "Codex plugin must NOT declare `agents` — the Codex plugin manifest "
+        "does not document this field. Subagents are project-scoped TOML "
+        "files per https://developers.openai.com/codex/subagents."
+    )
+
+
+def test_codex_plugin_has_no_subagents_field(manifest: dict) -> None:
+    """Per OOS-004: the variant spelling `subagents` is also forbidden at the
+    plugin manifest level for the same reason as `agents` — neither is
+    documented. The structural gate (`schema.not.anyOf`) blocks future drift."""
+    assert "subagents" not in manifest, (
+        "Codex plugin must NOT declare `subagents` — not a documented field. "
+        "Subagents are project-scoped per the Codex subagents docs."
     )
 
 
@@ -78,6 +94,68 @@ def test_codex_plugin_has_no_undocumented_fields(manifest: dict) -> None:
         assert forbidden not in manifest, (
             f"Codex plugin must NOT declare `{forbidden}` (FR-002 / schema constraint)"
         )
+
+
+def test_codex_plugin_keywords_is_a_non_empty_string_array(manifest: dict) -> None:
+    """If `keywords` is present (optional per Codex docs), it must be a
+    non-empty array of unique strings — the manifest opts in for marketplace
+    discovery."""
+    if "keywords" not in manifest:
+        return  # optional
+    kws = manifest["keywords"]
+    assert isinstance(kws, list) and kws, "keywords must be a non-empty array"
+    assert all(isinstance(k, str) and k for k in kws), "keywords entries must be non-empty strings"
+    assert len(set(kws)) == len(kws), "keywords entries must be unique"
+
+
+def test_codex_plugin_author_object_has_required_name(manifest: dict) -> None:
+    """Per Codex docs: `author` is an optional object whose minimum shape is
+    `{name}`. We populate from .claude-plugin/marketplace.json::owner."""
+    assert "author" in manifest, "Codex plugin must declare `author` per docs"
+    author = manifest["author"]
+    assert isinstance(author, dict), f"author must be an object, got {type(author).__name__}"
+    assert author.get("name"), "author.name is required per Codex docs"
+
+
+def test_codex_plugin_homepage_is_http_url(manifest: dict) -> None:
+    """Per Codex docs: `homepage` is an optional URL string."""
+    assert "homepage" in manifest, "Codex plugin must declare `homepage` per docs"
+    hp = manifest["homepage"]
+    assert isinstance(hp, str) and hp.startswith(("http://", "https://")), (
+        f"homepage must be an http(s) URL, got {hp!r}"
+    )
+
+
+def test_codex_plugin_repository_is_http_url(manifest: dict) -> None:
+    """Per Codex docs: `repository` is an optional source-repo URL string."""
+    assert "repository" in manifest, "Codex plugin must declare `repository` per docs"
+    repo = manifest["repository"]
+    assert isinstance(repo, str) and repo.startswith(("http://", "https://")), (
+        f"repository must be an http(s) URL, got {repo!r}"
+    )
+
+
+def test_codex_plugin_license_is_spdx_identifier(manifest: dict) -> None:
+    """Per Codex docs: `license` is an optional SPDX identifier."""
+    assert "license" in manifest, "Codex plugin must declare `license` per docs"
+    assert isinstance(manifest["license"], str) and manifest["license"], (
+        "license must be a non-empty string"
+    )
+
+
+def test_codex_plugin_logo_points_to_existing_asset(manifest: dict) -> None:
+    """Per Codex docs: `logo` is an optional plugin-root-relative path. The
+    referenced file MUST exist on disk so the wheel actually ships it (per
+    pyproject.toml `tool.hatch.build.targets.wheel.force-include.assets`)."""
+    assert "logo" in manifest, "Codex plugin must declare `logo` per docs"
+    logo_rel = manifest["logo"]
+    assert isinstance(logo_rel, str) and logo_rel, "logo must be a non-empty string"
+    rel = logo_rel[2:] if logo_rel.startswith("./") else logo_rel
+    logo_path = REPO / rel
+    assert logo_path.is_file(), (
+        f"`{logo_rel}` declared in manifest but file missing at {logo_path}. "
+        f"Wheel-install will resolve the path to a 404."
+    )
 
 
 def test_codex_plugin_name_is_dotnet_ai_kit(manifest: dict) -> None:

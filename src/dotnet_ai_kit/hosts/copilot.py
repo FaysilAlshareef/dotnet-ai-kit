@@ -33,6 +33,37 @@ from dotnet_ai_kit.hosts.base import Host, InstallStatus
 logger = logging.getLogger(__name__)
 
 
+def _rewrite_skill_paths(body: str) -> str:
+    """Rewrite ``skills/<category>/<name>/SKILL.md`` references inline in a
+    rule body to ``.github/skills/<name>/SKILL.md`` — the path Copilot
+    auto-discovers per GitHub's "About agent skills" documentation.
+
+    The kit's rule files end with skill pointers like
+    ``- `skills/core/async-patterns/SKILL.md` — ...`` which are relative to
+    the plugin-source tree. The vendored skills (deployed by
+    ``CopilotHost._render_vendored_skills``) live at
+    ``.github/skills/<name>/SKILL.md`` so we rewrite to that path here.
+
+    Trailing-slash references like ``skills/microservice/command/event-store/``
+    are normalised to ``.github/skills/<name>/SKILL.md`` too.
+    """
+    import re
+
+    # Backticked: `skills/<cat>/<name>/SKILL.md`
+    body = re.sub(
+        r"`skills/[^/`]+/([^/`]+)/SKILL\.md`",
+        r"`.github/skills/\1/SKILL.md`",
+        body,
+    )
+    # Backticked dir form: `skills/<cat>/<name>/`
+    body = re.sub(
+        r"`skills/[^/`]+/([^/`]+)/`",
+        r"`.github/skills/\1/SKILL.md`",
+        body,
+    )
+    return body
+
+
 @dataclass
 class CopilotRenderResult:
     """Result of `CopilotHost.render()`.
@@ -245,6 +276,32 @@ class CopilotHost(Host):
                 else:
                     result.written.append(agent_file)
 
+        # ---- 4. Vendored skills under .github/skills/ ----
+        # Per https://docs.github.com/en/copilot/concepts/agents/about-agent-skills
+        # GitHub Copilot auto-discovers skills from `.github/skills/<name>/SKILL.md`.
+        # Unlike Claude / Codex / Cursor (which serve skills from the plugin
+        # install), Copilot has no plugin mechanism, so the kit's 124 skills
+        # would be invisible to Copilot if not vendored here.
+        skills_source_root = plugin_root / "skills"
+        skills_dest_root = github_dir / "skills"
+        if skills_source_root.is_dir():
+            for skill_src in sorted(skills_source_root.rglob("SKILL.md")):
+                # Source layout: skills/<category>/<name>/SKILL.md
+                # Dest layout:   .github/skills/<name>/SKILL.md
+                skill_name = skill_src.parent.name
+                skill_dest = skills_dest_root / skill_name / "SKILL.md"
+                if _should_skip(skill_dest):
+                    result.pending_user_consent.append(skill_dest)
+                    continue
+                skill_dest.parent.mkdir(parents=True, exist_ok=True)
+                skill_dest.write_text(
+                    skill_src.read_text(encoding="utf-8"), encoding="utf-8"
+                )
+                if skill_dest.resolve() in force_set:
+                    result.force_rendered.append(skill_dest)
+                else:
+                    result.written.append(skill_dest)
+
         return result
 
     @classmethod
@@ -304,6 +361,15 @@ class CopilotHost(Host):
                 return None
             return cls._render_agent_file(plugin_root, agent_src)
 
+        # (4) Vendored skills: .github/skills/<name>/SKILL.md
+        if rel.startswith(".github/skills/") and rel.endswith("/SKILL.md"):
+            skill_name = rel[len(".github/skills/") : -len("/SKILL.md")]
+            # Skills live under any category folder in the plugin source.
+            for candidate in (plugin_root / "skills").rglob("SKILL.md"):
+                if candidate.parent.name == skill_name:
+                    return candidate.read_text(encoding="utf-8")
+            return None
+
         return None
 
     @staticmethod
@@ -360,9 +426,15 @@ class CopilotHost(Host):
                 return None
             tmpl = Template(template_path.read_text(encoding="utf-8"))
 
-            # Use the matching domain rule body when available
+            # Use the matching domain rule body when available; rewrite
+            # any `skills/<cat>/<name>/SKILL.md` references so they point
+            # at the vendored copy under `.github/skills/`.
             rule_path = plugin_root / "rules" / "domain" / f"{area_key}.md"
-            domain_rule_body = rule_path.read_text(encoding="utf-8") if rule_path.is_file() else ""
+            domain_rule_body = (
+                _rewrite_skill_paths(rule_path.read_text(encoding="utf-8"))
+                if rule_path.is_file()
+                else ""
+            )
             return tmpl.render(
                 apply_to_globs=[glob_pattern],
                 area_title=area_key.replace("-", " ").title(),
@@ -462,11 +534,17 @@ class CopilotHost(Host):
             detected_paths = {}
 
         # --- Convention rules (universal whitelist, inlined verbatim) ---
+        # Rewrite `skills/<cat>/<name>/SKILL.md` references in the
+        # "## Related Skills" footer so they point at the vendored skills
+        # under `.github/skills/<name>/SKILL.md` (deployed by
+        # _render_vendored_skills) — the path Copilot auto-discovers per
+        # https://docs.github.com/en/copilot/concepts/agents/about-agent-skills
         convention_rules: dict[str, str] = {}
         conventions_dir = plugin_root / "rules" / "conventions"
         if conventions_dir.is_dir():
             for rule_file in sorted(conventions_dir.glob("*.md")):
-                convention_rules[rule_file.stem] = rule_file.read_text(encoding="utf-8")
+                body = rule_file.read_text(encoding="utf-8")
+                convention_rules[rule_file.stem] = _rewrite_skill_paths(body)
 
         # --- Architecture profile (optional) ---
         arch_branch = meta.get("architecture_branch", "")
@@ -477,7 +555,9 @@ class CopilotHost(Host):
         ]
         for cand in profile_candidates:
             if cand.is_file():
-                architecture_profile_body = cand.read_text(encoding="utf-8")
+                architecture_profile_body = _rewrite_skill_paths(
+                    cand.read_text(encoding="utf-8")
+                )
                 break
 
         # --- Path scopes from detected_paths ---

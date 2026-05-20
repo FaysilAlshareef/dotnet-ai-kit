@@ -1,9 +1,30 @@
 {
   "name": "dotnet-ai-kit",
   "version": "1.0.0",
-  "description": "Full .NET development lifecycle plugin for Cursor: 124 skills, 16 rules (5 universal + 11 path-scoped), 14 sub-agents (1 A-005 spike fixture + 13 specialists, per OOS-005 PASS branch), MCP integration, hooks.",
+  "description": "Full .NET development lifecycle plugin for Cursor: 27 slash commands, 124 skills, 16 rules (5 universal + 11 path-scoped), 14 sub-agents (1 A-005 spike fixture + 13 specialists, per OOS-005 PASS branch), MCP integration, hooks.",
+  "author": {
+    "name": "Faysil Alshareef",
+    "url": "https://github.com/FaysilAlshareef"
+  },
+  "homepage": "https://github.com/FaysilAlshareef/dotnet-ai-kit",
+  "repository": "https://github.com/FaysilAlshareef/dotnet-ai-kit",
+  "license": "MIT",
+  "logo": "./assets/logo-icon.svg",
+  "keywords": [
+    "dotnet",
+    "csharp",
+    "ai",
+    "cqrs",
+    "microservices",
+    "clean-architecture",
+    "vertical-slice",
+    "ddd",
+    "code-generation",
+    "sdd"
+  ],
   "skills": "./skills/",
   "rules": "./rules/cursor/",
+  "commands": "./commands/",
   "agents": "./agents/",
   "mcpServers": "./.mcp.json",
   "hooks": "./hooks/hooks.json"
