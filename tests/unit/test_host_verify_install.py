@@ -9,31 +9,13 @@ from __future__ import annotations
 
 from pathlib import Path
 
-import pytest
-
 from dotnet_ai_kit.hosts.claude import ClaudeHost
 from dotnet_ai_kit.hosts.codex import CodexHost
 from dotnet_ai_kit.hosts.cursor import CursorHost
 
-
 # ---------------------------------------------------------------------------
 # Helpers
 # ---------------------------------------------------------------------------
-
-
-def _make_marketplace_install(
-    cache_root: Path,
-    marketplace: str,
-    plugin: str,
-    version: str,
-    manifest_filename: str,
-) -> Path:
-    """Create the nested cache structure and return the version dir."""
-    version_dir = cache_root / marketplace / plugin / version
-    manifest_dir = version_dir / manifest_filename.rsplit("/", 1)[0]
-    manifest_dir.mkdir(parents=True, exist_ok=True)
-    (version_dir / manifest_filename.rsplit("/", 1)[0] / manifest_filename.rsplit("/", 1)[-1]).touch()
-    return version_dir
 
 
 def _make_manifest(version_dir: Path, subdir: str) -> None:
