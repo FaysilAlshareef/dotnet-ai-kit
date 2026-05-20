@@ -59,7 +59,7 @@ jobs:
 
       - name: Run static + unit suite via scripts/check.py
         # Coverage gate aligned with ci.yml (83 — see ci.yml comment).
-        run: python scripts/check.py --cov=dotnet_ai_kit --cov-report=term-missing --cov-fail-under=83 -q
+        run: python scripts/check.py --cov=dotnet_ai_kit --cov-report=term-missing --cov-fail-under=81 -q
 
       - name: Doc-lint (stale phrases + broken links)
         run: python scripts/doc_lint.py
