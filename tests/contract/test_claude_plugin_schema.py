@@ -66,18 +66,36 @@ def test_claude_plugin_commands_is_scalar_path(manifest: dict) -> None:
     assert manifest["commands"].startswith("./")
 
 
-def test_claude_plugin_agents_is_scalar_path(manifest: dict) -> None:
-    """agents MUST be a scalar directory path, not an array of individual agent files."""
+def test_claude_plugin_agents_is_array_of_file_paths(manifest: dict) -> None:
+    """agents MUST be an array of individual .md file paths with './' prefix.
+
+    Per https://code.claude.com/docs/en/plugins-reference#component-path-fields:
+    - `agents` description: "Custom agent FILES" (not directories)
+    - Example value: `["./custom/agents/reviewer.md"]`
+    - A scalar directory path like './agents-claude/' is invalid — the validator
+      expects file paths, not a directory.
+    - Paths without the './' prefix are also rejected.
+
+    skills/commands accept directory paths; agents does not — it's 'files' not 'directories'.
+    """
     assert "agents" in manifest
-    assert isinstance(manifest["agents"], str), (
-        f"agents must be a scalar path string, got {type(manifest['agents']).__name__}. "
-        "Use './agents-claude/' not a list of individual file paths."
+    agents = manifest["agents"]
+    assert isinstance(agents, list), (
+        f"agents must be an array of './agents-claude/<name>.md' file paths, "
+        f"got {type(agents).__name__}: {agents!r}. "
+        "A scalar directory path is invalid for agents per the Claude Code docs."
     )
-    assert manifest["agents"].startswith("./")
-    assert "agents-claude" in manifest["agents"], (
-        "Claude plugin agents must point to the agents-claude/ directory "
-        "(contains Claude-specific allow-list metadata)"
-    )
+    assert len(agents) >= 1, "agents array must contain at least one entry"
+    for entry in agents:
+        assert isinstance(entry, str), f"agents entry must be a string, got {entry!r}"
+        assert entry.startswith("./"), (
+            f"agents entry must start with './', got {entry!r}. "
+            "The './' prefix is required per the Claude Code plugin path rules."
+        )
+        assert entry.startswith("./agents-claude/"), (
+            f"Claude plugin agents entry must be in agents-claude/, got {entry!r}"
+        )
+        assert entry.endswith(".md"), f"agents entry must be a .md file path, got {entry!r}"
 
 
 def test_claude_plugin_hooks_is_string_not_configfile_object(manifest: dict) -> None:
