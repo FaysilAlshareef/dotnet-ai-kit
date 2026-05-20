@@ -548,8 +548,7 @@ def _install_codebase_memory_mcp(*, verbose: bool = False, json_output: bool = F
     )
     if not json_output:
         console.print(
-            f"[bold]Installing codebase-memory-mcp >= "
-            f"{MIN_CODEBASE_MEMORY_MCP_VERSION}...[/bold]"
+            f"[bold]Installing codebase-memory-mcp >= {MIN_CODEBASE_MEMORY_MCP_VERSION}...[/bold]"
         )
     try:
         result = _sp.run(cmd, capture_output=True, text=True, timeout=180)
@@ -610,9 +609,7 @@ def _install_csharp_ls(*, verbose: bool = False, json_output: bool = False) -> b
         )
     except (OSError, _sp.TimeoutExpired) as exc:
         if not json_output:
-            err_console.print(
-                f"[yellow]csharp-ls install failed to start: {exc}.[/yellow]"
-            )
+            err_console.print(f"[yellow]csharp-ls install failed to start: {exc}.[/yellow]")
         return True
     # `dotnet tool install` returns non-zero when already installed; treat
     # the "already installed" message as success for idempotence.
@@ -705,8 +702,8 @@ def _record_mcp_state(
                 f"version reported). Required: >= {MIN_CODEBASE_MEMORY_MCP_VERSION}. "
                 f"Reinstall with `pip install --upgrade "
                 f"codebase-memory-mcp>={MIN_CODEBASE_MEMORY_MCP_VERSION}`."
-                if health.version is None else
-                f"codebase-memory-mcp {health.version} is below the required "
+                if health.version is None
+                else f"codebase-memory-mcp {health.version} is below the required "
                 f">= {MIN_CODEBASE_MEMORY_MCP_VERSION}. Upgrade for graph queries."
             ),
         }.get(status, "")
@@ -1183,9 +1180,7 @@ def init(
     # --type is provided OR detection ran. Previously only `if detected:`
     # gated this block, so explicit flags were silently dropped when the
     # user supplied them without --type (no detection => detected=None).
-    _has_meta_flag = any(
-        v not in (None, "") for v in (company, domain, side, project_type)
-    )
+    _has_meta_flag = any(v not in (None, "") for v in (company, domain, side, project_type))
     if detected or _has_meta_flag:
         project_path = config_dir / "project.yml"
 
@@ -1201,9 +1196,7 @@ def init(
         pm_domain = domain or "Sales"  # placeholder when no flag/detection
         pm_side = (side or "server").lower()
         pm_type = (
-            project_type
-            or (detected.project_type if detected else None)
-            or "generic"
+            project_type or (detected.project_type if detected else None) or "generic"
         ).lower()
         pm_branch = derive_architecture_branch(pm_type)
         pm_dotnet = (detected.dotnet_version if detected else None) or "8.0"
@@ -1583,8 +1576,7 @@ def init(
                 installed_anything = True
         if installed_anything and not json_output:
             console.print(
-                "[dim]Tip: restart your terminal so new tools on PATH "
-                "become visible.[/dim]"
+                "[dim]Tip: restart your terminal so new tools on PATH become visible.[/dim]"
             )
 
     # T052 - Next-command suggestion

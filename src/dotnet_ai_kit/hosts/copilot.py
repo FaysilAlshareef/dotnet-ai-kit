@@ -294,9 +294,7 @@ class CopilotHost(Host):
                     result.pending_user_consent.append(skill_dest)
                     continue
                 skill_dest.parent.mkdir(parents=True, exist_ok=True)
-                skill_dest.write_text(
-                    skill_src.read_text(encoding="utf-8"), encoding="utf-8"
-                )
+                skill_dest.write_text(skill_src.read_text(encoding="utf-8"), encoding="utf-8")
                 if skill_dest.resolve() in force_set:
                     result.force_rendered.append(skill_dest)
                 else:
@@ -555,9 +553,7 @@ class CopilotHost(Host):
         ]
         for cand in profile_candidates:
             if cand.is_file():
-                architecture_profile_body = _rewrite_skill_paths(
-                    cand.read_text(encoding="utf-8")
-                )
+                architecture_profile_body = _rewrite_skill_paths(cand.read_text(encoding="utf-8"))
                 break
 
         # --- Path scopes from detected_paths ---
