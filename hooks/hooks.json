@@ -38,6 +38,15 @@
             "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretooluse-arch-profile.sh"
           }
         ]
+      },
+      {
+        "matcher": "Edit|Write|MultiEdit",
+        "hooks": [
+          {
+            "type": "command",
+            "command": "${CLAUDE_PLUGIN_ROOT}/hooks/pretooluse-domain-rules.sh"
+          }
+        ]
       }
     ],
     "PostToolUse": [

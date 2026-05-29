@@ -116,6 +116,9 @@ class ClaudeHost(Host):
         """Write only per-solution files per FR-005.
 
         - `.claude/settings.json` — permissions merge only (no bulk copies).
+        - `CLAUDE.md` — merge the 5 universal convention rules between sentinel
+          markers (Claude Code plugins have no `rules` key, so always-on rules
+          ride in CLAUDE.md, which Claude Code always loads).
         - Does NOT write `.claude/commands/`, `.claude/skills/`, `.claude/agents/`
           (those live in the plugin install path per FR-004).
 
@@ -127,7 +130,33 @@ class ClaudeHost(Host):
             settings_path = self._write_settings_json(project_root, permission_profile)
             written.append(settings_path)
 
+        claude_md_path = self._merge_claude_md(project_root)
+        if claude_md_path is not None:
+            written.append(claude_md_path)
+
         return written
+
+    @staticmethod
+    def _merge_claude_md(project_root: Path) -> Path | None:
+        """Merge universal conventions into CLAUDE.md.
+
+        Returns the path written, or None if the kit's `rules/conventions/`
+        directory cannot be located (defensive — never fail init for this).
+        """
+        from dotnet_ai_kit.claude_md import merge_into_claude_md  # noqa: PLC0415
+        from dotnet_ai_kit.cli import _get_package_dir  # noqa: PLC0415
+
+        pkg_root = _get_package_dir()
+        rules_dir = pkg_root / "rules"
+        if not (rules_dir / "conventions").is_dir():
+            logger.warning(
+                "rules/conventions not found under %s — skipping CLAUDE.md merge",
+                pkg_root,
+            )
+            return None
+
+        path, _digest = merge_into_claude_md(project_root, rules_dir)
+        return path
 
     @staticmethod
     def _write_settings_json(project_root: Path, permission_profile: str) -> Path:

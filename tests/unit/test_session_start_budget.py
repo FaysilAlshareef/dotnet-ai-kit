@@ -68,17 +68,18 @@ def _run_hook(cwd: Path) -> str:
         profile = m.group(1) if m else "(unset)"
         return (
             "dotnet-ai-kit active\n"
-            f"Project metadata: .dotnet-ai-kit/project.yml\n"
+            "Project metadata: .dotnet-ai-kit/project.yml\n"
             f"Architecture profile: {profile}\n"
             "Run `dotnet-ai check` to verify state\n"
-            "Skills and rules load on-demand via plugin namespace\n"
-            "Persistent memory: codebase-memory-mcp (call on demand for cross-session context)\n"
+            "Rules: universal conventions in CLAUDE.md; "
+            "path-scoped rules injected on Edit/Write\n"
+            "Skills load on demand via plugin namespace; memory: codebase-memory-mcp\n"
         )
     return (
         "dotnet-ai-kit active\n"
         "Project metadata not initialized; run `dotnet-ai init`\n"
-        "Skills and rules load on-demand via plugin namespace\n"
-        "Persistent memory: codebase-memory-mcp (call on demand for cross-session context)\n"
+        "Rules: `dotnet-ai init` writes conventions to CLAUDE.md\n"
+        "Skills load on demand via plugin namespace; memory: codebase-memory-mcp\n"
     )
 
 

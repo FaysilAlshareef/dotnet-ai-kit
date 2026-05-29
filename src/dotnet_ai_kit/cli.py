@@ -3628,6 +3628,56 @@ def check(
     else:
         _fail("manifest_integrity", integrity.fail_message(), 14)
 
+    # 5b. CLAUDE.md conventions block (advisory — does not change exit code).
+    # The block is the always-on rules companion to skills/agents in the plugin.
+    # Drift here means the user should re-run `dotnet-ai upgrade` to refresh.
+    if "claude" in host_names:
+        claude_md = target / "CLAUDE.md"
+        if not claude_md.is_file():
+            _add(
+                "claude_conventions_block",
+                "fail",
+                "CLAUDE.md missing — run `dotnet-ai init` or `dotnet-ai upgrade` to deploy "
+                "the universal conventions block",
+            )
+        else:
+            try:
+                from dotnet_ai_kit.claude_md import (  # noqa: PLC0415
+                    extract_block,
+                    render_conventions_block,
+                )
+
+                text = claude_md.read_text(encoding="utf-8")
+                on_disk = extract_block(text)
+                if on_disk is None:
+                    _add(
+                        "claude_conventions_block",
+                        "fail",
+                        "CLAUDE.md present but conventions markers absent — "
+                        "run `dotnet-ai upgrade` to inject the block",
+                    )
+                else:
+                    expected = render_conventions_block(_get_package_dir() / "rules")
+                    if on_disk.strip() == expected.strip():
+                        _add(
+                            "claude_conventions_block",
+                            "pass",
+                            "CLAUDE.md conventions block matches current kit",
+                        )
+                    else:
+                        _add(
+                            "claude_conventions_block",
+                            "fail",
+                            "CLAUDE.md conventions block drifted from current kit — "
+                            "run `dotnet-ai upgrade` to refresh",
+                        )
+            except Exception as exc:
+                _add(
+                    "claude_conventions_block",
+                    "skip",
+                    f"could not verify: {exc}",
+                )
+
     # 6. Copilot render freshness (exit 15 on stale)
     # Feature 019 / Blocker-5 (T156): two-tier check.
     #  Tier 1 — fast hash-only: on-disk SHA vs manifest SHA. Catches user

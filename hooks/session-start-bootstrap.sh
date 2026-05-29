@@ -16,14 +16,14 @@ dotnet-ai-kit active
 Project metadata: $PYM
 Architecture profile: $prof
 Run \`dotnet-ai check\` to verify state
-Skills and rules load on-demand via plugin namespace
-Persistent memory: codebase-memory-mcp (call on demand for cross-session context)
+Rules: universal conventions in CLAUDE.md; path-scoped rules injected on Edit/Write
+Skills load on demand via plugin namespace; memory: codebase-memory-mcp
 EOF
 else
   cat <<EOF
 dotnet-ai-kit active
 Project metadata not initialized; run \`dotnet-ai init\`
-Skills and rules load on-demand via plugin namespace
-Persistent memory: codebase-memory-mcp (call on demand for cross-session context)
+Rules: \`dotnet-ai init\` writes conventions to CLAUDE.md
+Skills load on demand via plugin namespace; memory: codebase-memory-mcp
 EOF
 fi
