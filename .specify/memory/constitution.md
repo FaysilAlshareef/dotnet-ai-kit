@@ -1,24 +1,33 @@
 <!--
 Sync Impact Report
 ===================
-- Version change: 1.0.7 → 1.0.8
-- Modified principles: N/A
-- Updated sections:
-  - Token discipline: rule semantics — 16 rules total = 5 universal
-    (always loaded) + 11 path-scoped (loaded only when a matching file
-    is touched). Added `async-concurrency` to the universal whitelist
-    per feature 019 / FR-011 (it has no architecture-specific branches
-    and applies to ALL .NET code).
-  - Knowledge base composition: rule count + universal/path-scoped split
-- Removed sections: N/A
-- Templates requiring updates: none
+- Version change: 1.0.8 → 1.1.0
+- Modified principles: NONE — all five core principles (Detect-First,
+  Pattern Fidelity, Architecture & Platform Agnostic, Best Practices &
+  Quality, Safety & Token Discipline) are preserved verbatim and are
+  upheld by the v2 rewrite.
+- Updated sections (descriptive/factual only, to reflect the locked v2
+  .NET 10 rewrite — feature 020-v2-net10-rewrite; see planning/26):
+  - Technology Constraints → Runtime requirements: the dotnet-ai-kit
+    CLI itself is now built on **.NET 10** (v2 full rewrite, replacing
+    the v1 Python CLI). Target-project .NET 8/9/10 support is unchanged.
+  - Token discipline: skill body cap aligned to the Agent Skills open
+    standard (≤500 lines); rule total updated to 21 (5 universal +
+    16 path-scoped) per the v2 artifact catalog (planning/23).
+  - Knowledge base composition: counts updated to v2 (21 rules,
+    15 agents, ~160 skills, 32 commands, 12 profiles).
+  - Development Workflow: lifecycle extended with the v2 commands
+    (constitution, checklist, fix, orchestrate, release); command total 32.
+- Removed sections: NONE
+- Templates requiring updates: none (principles unchanged)
 - Follow-up TODOs: none
-- Driver: feature 019-plugin-native-arch (commit 14 PASS-CONDITIONAL gate)
-- Amendment reason: plugin-native architecture spec FR-011 elevates
-  async-concurrency to always-on. The rule has no architecture-specific
-  branches (unlike error-handling) and no runtime-substitution
-  requirements (unlike naming), so it qualifies as a universal
-  convention.
+- Driver: feature 020-v2-net10-rewrite (planning/26 authoritative; AR-9
+  fixes command count to 32; AR-1 license-light defaults)
+- Amendment reason: the maintainer locked a full .NET 10 rewrite. The
+  governing PRINCIPLES are unchanged and fully honored by v2; only the
+  descriptive technology/corpus/workflow facts are updated so the
+  governance document matches the implemented system. MINOR bump
+  (material expansion of descriptive sections, no principle change).
 -->
 
 # dotnet-ai-kit Constitution
@@ -123,11 +132,11 @@ The tool MUST prioritize safety and context efficiency:
   idempotency keys server-side
 
 **Token discipline**:
-- Skills: maximum 400 lines per file
+- Skills: maximum 500 lines per file (Agent Skills open-standard body cap)
 - Commands: maximum 200 lines per file
-- Rules: maximum 100 lines per file. 16 rules total —
+- Rules: maximum 100 lines per file. 21 rules total —
   5 universal (always loaded; combined ≤300 lines) and
-  11 path-scoped (loaded only when a matching file is
+  16 path-scoped (loaded only when a matching file is
   touched). Universal whitelist: `async-concurrency`,
   `coding-style`, `existing-projects`, `security`,
   `tool-calls`.
@@ -144,7 +153,9 @@ and efficiency are two sides of the same coin.
 ## Technology Constraints
 
 **Runtime requirements**:
-- Python 3.10+ (CLI tool)
+- .NET 10 SDK (the dotnet-ai-kit CLI itself — v2 full rewrite; the v1
+  Python CLI is kept as the runnable reference spec until the .NET CLI
+  passes the contract suite, then removed)
 - .NET SDK 8.0+ (target projects)
 - Git (version control and multi-repo orchestration)
 
@@ -163,23 +174,27 @@ implementation, and linked PR creation.
   Python `pathlib.Path`
 - YAML for configuration (`.dotnet-ai-kit/config.yml`)
 
-**Knowledge base composition**:
-- 16 rules total: 5 universal (always loaded) + 11 path-scoped
+**Knowledge base composition** (v2 targets; authored once in
+`artifacts/`, projected per host):
+- 21 rules total: 5 universal (always loaded) + 16 path-scoped
   (loaded only when a matching file is touched)
-- 13 specialist agents (routing logic in commands)
-- 124 skills (loaded on demand, Agent Skills spec compliant)
-- 27 commands (slash commands)
-- 16 knowledge documents (reference material)
-- 13 templates (project scaffolds)
+- 15 specialist agents (reference skills; routing intents in metadata)
+- ~160 skills (loaded on demand, Agent Skills spec compliant)
+- 32 commands (authored as command-skills, user-invoked / off-budget)
+- 12 architecture profiles (hard constraints, path-scoped)
+- knowledge documents + reusable fragments (reference material)
 
 ## Development Workflow
 
-**Specification-Driven Development (SDD) lifecycle**:
+**Specification-Driven Development (SDD) lifecycle** (v2 — 32 commands):
 
 ```
-specify → clarify → plan → tasks → analyze →
-implement → review → verify → pr → wrap-up
+constitution → specify → clarify → checklist → plan → tasks(→issues) →
+analyze → orchestrate → implement → review → verify → fix → pr → release
 ```
+
+with `status`/`undo`/`checkpoint`/`wrap-up` available at any point, `do`
+chaining the core path, and the code-generation commands below.
 
 **Quick mode** (`/dotnet-ai.do`): Chains the full lifecycle
 automatically. Pauses only for complex features (multi-repo
@@ -230,4 +245,4 @@ compliance with this constitution. Complexity that violates
 a principle MUST be explicitly justified in the plan's
 Complexity Tracking table.
 
-**Version**: 1.0.8 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-05-18
+**Version**: 1.1.0 | **Ratified**: 2026-03-15 | **Last Amended**: 2026-05-31
