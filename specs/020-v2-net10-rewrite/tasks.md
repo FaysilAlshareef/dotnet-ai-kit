@@ -158,10 +158,10 @@ description: "Task list for 020-v2-net10-rewrite"
 **Goal**: triggering/selection precision + budget gates in CI.
 **Independent Test**: should-trigger queries select the skill; siblings stay silent; budget within target.
 
-- [ ] T067 [US6] Triggering eval harness in `tests/DotnetAiKit.Triggering.Evals/`: load `evals/cases.jsonl`; ambiguous clusters first (FR-028)
-- [ ] T068 [US6] Cross-skill confusion matrix assertion (right skill fires, siblings don't) (SC-005)
-- [ ] T069 [US6] Authored `evals/cases.jsonl` for the ambiguous clusters (mediator, CQRS, eventing, testing, architecture, gateway/control-panel)
-- [ ] T070 [US6] Token-budget regression gate in CI (always-loaded listing within target; commands off-listing) (SC-006); wire to `check`
+- [x] T067 [US6] Triggering eval harness in `tests/DotnetAiKit.Triggering.Evals/`: load `evals/cases.jsonl`; ambiguous clusters first (FR-028)
+- [x] T068 [US6] Cross-skill confusion matrix assertion (right skill fires, siblings don't) (SC-005)
+- [x] T069 [US6] Authored `evals/cases.jsonl` for the ambiguous clusters (mediator, CQRS, eventing, testing, architecture, gateway/control-panel)
+- [x] T070 [US6] Token-budget regression gate in CI (always-loaded listing within target; commands off-listing) (SC-006); wire to `check`
 
 **Checkpoint**: SC-005, SC-006 green.
 

@@ -16,6 +16,7 @@
 
   <ItemGroup>
     <ProjectReference Include="..\..\src\DotnetAiKit.Application\DotnetAiKit.Application.csproj" />
+    <ProjectReference Include="..\..\src\DotnetAiKit.Infrastructure\DotnetAiKit.Infrastructure.csproj" />
     <ProjectReference Include="..\..\src\DotnetAiKit.Core\DotnetAiKit.Core.csproj" />
   </ItemGroup>
 
