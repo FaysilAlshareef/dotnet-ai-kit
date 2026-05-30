@@ -26,14 +26,20 @@ internal static class CompositionRoot
     private static IArtifactRepository BuildRepository() =>
         new FileSystemArtifactRepository(FileSystem, new YamlFrontmatterParser());
 
+    private static IDetectionProvider BuildDetector() => new DotnetProjectDetector(FileSystem);
+
     public static GenerateService BuildGenerateService() =>
         new(BuildRepository(), new ProjectionEngine(HostRegistry), FileSystem);
 
     public static CheckService BuildCheckService() => new(FileSystem);
 
+    public static RenderService BuildRenderService() => new(BuildRepository(), BuildDetector());
+
+    public static DetectService BuildDetectService() => new(BuildDetector());
+
     public static InitService BuildInitService(HostName host)
     {
-        IDetectionProvider detector = new DotnetProjectDetector(FileSystem);
+        IDetectionProvider detector = BuildDetector();
         IHostAdapter adapter = host switch
         {
             HostName.Claude => new ClaudeHostAdapter(FileSystem),
