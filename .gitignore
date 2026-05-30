@@ -383,3 +383,13 @@ htmlcov/
 # Claude Code local files (not for distribution)
 .claude/settings.local.json
 .claude/projects/
+
+# === v2 .NET 10 rewrite (feature 020) ===
+# artifacts/ is the AUTHORED SOURCE OF TRUTH (not .NET build output) — must be tracked.
+# build/ holds COMMITTED generated per-host outputs (the drift baseline) — must be tracked.
+# The default VS .gitignore excludes both; re-include them (root-anchored).
+!/artifacts/
+!/artifacts/**
+!/build/
+!/build/**
+# (src/**/bin and src/**/obj remain ignored via [Bb]in//[Oo]bj/ above.)

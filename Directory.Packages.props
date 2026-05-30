@@ -1,0 +1,31 @@
+<Project>
+
+  <!-- Central Package Management. Versions resolved by restore-spike against nuget.org 2026-05-31. -->
+  <PropertyGroup>
+    <ManagePackageVersionsCentrally>true</ManagePackageVersionsCentrally>
+    <CentralPackageTransitivePinningEnabled>true</CentralPackageTransitivePinningEnabled>
+  </PropertyGroup>
+
+  <ItemGroup Label="Runtime">
+    <PackageVersion Include="System.CommandLine" Version="2.0.8" />
+    <PackageVersion Include="Spectre.Console" Version="0.55.2" />
+    <PackageVersion Include="YamlDotNet" Version="18.0.0" />
+    <PackageVersion Include="Microsoft.ML.Tokenizers" Version="2.0.0" />
+    <PackageVersion Include="Microsoft.ML.Tokenizers.Data.Cl100kBase" Version="2.0.0" />
+  </ItemGroup>
+
+  <ItemGroup Label="Analyzer (P7)">
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp" Version="4.14.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.Analyzers" Version="3.11.0" />
+    <PackageVersion Include="Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.XUnit" Version="1.1.2" />
+  </ItemGroup>
+
+  <ItemGroup Label="Test">
+    <PackageVersion Include="Microsoft.NET.Test.Sdk" Version="17.14.1" />
+    <PackageVersion Include="xunit" Version="2.9.3" />
+    <PackageVersion Include="xunit.runner.visualstudio" Version="3.1.4" />
+    <PackageVersion Include="coverlet.collector" Version="6.0.4" />
+    <PackageVersion Include="Verify.Xunit" Version="31.12.5" />
+  </ItemGroup>
+
+</Project>

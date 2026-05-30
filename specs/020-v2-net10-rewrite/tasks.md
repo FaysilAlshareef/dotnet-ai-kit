@@ -18,18 +18,18 @@ description: "Task list for 020-v2-net10-rewrite"
 
 **Purpose**: .NET 10 solution skeleton that builds clean and a green CI floor.
 
-- [ ] T001 Create `global.json` pinning SDK `10.0.300` (rollForward latestFeature) at repo root
-- [ ] T002 Create `Directory.Build.props` (LangVersion, Nullable enable, ImplicitUsings, TreatWarningsAsErrors, common metadata) and `Directory.Packages.props` (central package management; pin all versions) at repo root
-- [ ] T003 [P] Create `.editorconfig` (C# style + analyzer severities) at repo root
-- [ ] T004 [P] Create `.gitignore` for .NET (`bin/`, `obj/`, `*.user`, test results) — explicitly NOT excluding `build/`
-- [ ] T005 Create `src/DotnetAiKit.Core/DotnetAiKit.Core.csproj` (net10.0, no deps)
-- [ ] T006 Create `src/DotnetAiKit.Application/`, `DotnetAiKit.Hosts/`, `DotnetAiKit.Infrastructure/`, `DotnetAiKit.Cli/` csproj with inward project references (Cli→Hosts,Infra,App,Core; Hosts/Infra→App,Core; App→Core)
-- [ ] T007 Create `src/DotnetAiKit.Analyzers/DotnetAiKit.Analyzers.csproj` (netstandard2.0, Microsoft.CodeAnalysis.CSharp; package id `Dotnet.Ai.Kit.Analyzers`)
-- [ ] T008 Create test projects `tests/DotnetAiKit.{Core,Application,Hosts,Cli,Analyzers,Acceptance}.Tests/` + `tests/DotnetAiKit.Triggering.Evals/` (xUnit; add Verify to Hosts/Cli)
-- [ ] T009 Create `dotnet-ai-kit.slnx` referencing all src + test projects
-- [ ] T010 Create `artifacts/` tree (`skills/`, `agents/`, `rules/conventions/`, `rules/domain/`, `profiles/`, `fragments/`, `knowledge/`) + placeholder `artifacts/manifest.yml`
-- [ ] T011 [P] Create `.github/workflows/ci.yml` skeleton: `dotnet build` + `dotnet test` + `generate --check` git-diff gate
-- [ ] T012 Verify `dotnet build dotnet-ai-kit.slnx` and `dotnet test` are green on the empty solution (P0 gate)
+- [x] T001 Create `global.json` pinning SDK `10.0.300` (rollForward latestFeature) at repo root
+- [x] T002 Create `Directory.Build.props` (LangVersion, Nullable enable, ImplicitUsings, TreatWarningsAsErrors, common metadata) and `Directory.Packages.props` (central package management; pin all versions) at repo root
+- [x] T003 [P] Create `.editorconfig` (C# style + analyzer severities) at repo root
+- [x] T004 [P] Create `.gitignore` for .NET (`bin/`, `obj/`, `*.user`, test results) — explicitly NOT excluding `build/`
+- [x] T005 Create `src/DotnetAiKit.Core/DotnetAiKit.Core.csproj` (net10.0, no deps)
+- [x] T006 Create `src/DotnetAiKit.Application/`, `DotnetAiKit.Hosts/`, `DotnetAiKit.Infrastructure/`, `DotnetAiKit.Cli/` csproj with inward project references (Cli→Hosts,Infra,App,Core; Hosts/Infra→App,Core; App→Core)
+- [x] T007 Create `src/DotnetAiKit.Analyzers/DotnetAiKit.Analyzers.csproj` (netstandard2.0, Microsoft.CodeAnalysis.CSharp; package id `Dotnet.Ai.Kit.Analyzers`)
+- [x] T008 Create test projects `tests/DotnetAiKit.{Core,Application,Hosts,Cli,Analyzers,Acceptance}.Tests/` + `tests/DotnetAiKit.Triggering.Evals/` (xUnit; add Verify to Hosts/Cli)
+- [x] T009 Create `dotnet-ai-kit.slnx` referencing all src + test projects
+- [x] T010 Create `artifacts/` tree (`skills/`, `agents/`, `rules/conventions/`, `rules/domain/`, `profiles/`, `fragments/`, `knowledge/`) + placeholder `artifacts/manifest.yml`
+- [x] T011 [P] Create `.github/workflows/ci.yml` skeleton: `dotnet build` + `dotnet test` + `generate --check` git-diff gate
+- [x] T012 Verify `dotnet build dotnet-ai-kit.slnx` and `dotnet test` are green on the empty solution (P0 gate)
 
 **Checkpoint**: empty solution builds; CI green.
 

@@ -1,0 +1,19 @@
+<Project>
+
+  <!-- Common build settings for the dotnet-ai-kit v2 .NET solution (feature 020).
+       TargetFramework is set per-project (net10.0 for src/tests; netstandard2.0 for the analyzer). -->
+  <PropertyGroup>
+    <LangVersion>latest</LangVersion>
+    <Nullable>enable</Nullable>
+    <ImplicitUsings>enable</ImplicitUsings>
+    <TreatWarningsAsErrors>false</TreatWarningsAsErrors>
+    <EnableNETAnalyzers>true</EnableNETAnalyzers>
+    <AnalysisLevel>latest</AnalysisLevel>
+    <Deterministic>true</Deterministic>
+    <GenerateDocumentationFile>false</GenerateDocumentationFile>
+    <Authors>Faysil Alshareef</Authors>
+    <Product>dotnet-ai-kit</Product>
+    <Company>dotnet-ai-kit</Company>
+  </PropertyGroup>
+
+</Project>

@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Use-cases + ports. Depends only on Core. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>DotnetAiKit.Application</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotnetAiKit.Core\DotnetAiKit.Core.csproj" />
+  </ItemGroup>
+
+</Project>

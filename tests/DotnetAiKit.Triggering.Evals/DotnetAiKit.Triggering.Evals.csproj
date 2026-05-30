@@ -1,0 +1,22 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Skill-description triggering harness + cross-skill confusion matrix (selection precision as a CI metric). -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>DotnetAiKit.Triggering.Evals</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="coverlet.collector" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\DotnetAiKit.Application\DotnetAiKit.Application.csproj" />
+    <ProjectReference Include="..\..\src\DotnetAiKit.Core\DotnetAiKit.Core.csproj" />
+  </ItemGroup>
+
+</Project>

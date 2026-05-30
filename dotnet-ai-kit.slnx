@@ -1,0 +1,19 @@
+<Solution>
+  <Folder Name="/src/">
+    <Project Path="src/DotnetAiKit.Analyzers/DotnetAiKit.Analyzers.csproj" />
+    <Project Path="src/DotnetAiKit.Application/DotnetAiKit.Application.csproj" />
+    <Project Path="src/DotnetAiKit.Cli/DotnetAiKit.Cli.csproj" />
+    <Project Path="src/DotnetAiKit.Core/DotnetAiKit.Core.csproj" />
+    <Project Path="src/DotnetAiKit.Hosts/DotnetAiKit.Hosts.csproj" />
+    <Project Path="src/DotnetAiKit.Infrastructure/DotnetAiKit.Infrastructure.csproj" />
+  </Folder>
+  <Folder Name="/tests/">
+    <Project Path="tests/DotnetAiKit.Acceptance.Tests/DotnetAiKit.Acceptance.Tests.csproj" />
+    <Project Path="tests/DotnetAiKit.Analyzers.Tests/DotnetAiKit.Analyzers.Tests.csproj" />
+    <Project Path="tests/DotnetAiKit.Application.Tests/DotnetAiKit.Application.Tests.csproj" />
+    <Project Path="tests/DotnetAiKit.Cli.Tests/DotnetAiKit.Cli.Tests.csproj" />
+    <Project Path="tests/DotnetAiKit.Core.Tests/DotnetAiKit.Core.Tests.csproj" />
+    <Project Path="tests/DotnetAiKit.Hosts.Tests/DotnetAiKit.Hosts.Tests.csproj" />
+    <Project Path="tests/DotnetAiKit.Triggering.Evals/DotnetAiKit.Triggering.Evals.csproj" />
+  </Folder>
+</Solution>

@@ -1,0 +1,23 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- The portable spec: cross-language invariants (no-network, exit codes, footprint, host symmetry). -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <IsPackable>false</IsPackable>
+    <RootNamespace>DotnetAiKit.Acceptance.Tests</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.NET.Test.Sdk" />
+    <PackageReference Include="xunit" />
+    <PackageReference Include="xunit.runner.visualstudio" />
+    <PackageReference Include="coverlet.collector" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\..\src\DotnetAiKit.Cli\DotnetAiKit.Cli.csproj" />
+    <ProjectReference Include="..\..\src\DotnetAiKit.Application\DotnetAiKit.Application.csproj" />
+    <ProjectReference Include="..\..\src\DotnetAiKit.Core\DotnetAiKit.Core.csproj" />
+  </ItemGroup>
+
+</Project>

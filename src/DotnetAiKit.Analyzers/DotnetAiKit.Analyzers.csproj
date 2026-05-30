@@ -1,0 +1,13 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Roslyn analyzers shipped as the Dotnet.Ai.Kit.Analyzers NuGet (netstandard2.0 so it loads in the compiler).
+       Microsoft.CodeAnalysis references + IsRoslynComponent are wired in P7 (after the analyzer-Roslyn-version spike). -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>DotnetAiKit.Analyzers</RootNamespace>
+    <PackageId>Dotnet.Ai.Kit.Analyzers</PackageId>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+  </PropertyGroup>
+
+</Project>

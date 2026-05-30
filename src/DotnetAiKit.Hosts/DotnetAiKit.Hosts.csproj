@@ -1,0 +1,14 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Per-tool IHostAdapter + projectors (the projection backbone). Depends on Application + Core. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>DotnetAiKit.Hosts</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotnetAiKit.Application\DotnetAiKit.Application.csproj" />
+    <ProjectReference Include="..\DotnetAiKit.Core\DotnetAiKit.Core.csproj" />
+  </ItemGroup>
+
+</Project>

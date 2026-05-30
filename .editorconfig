@@ -1,0 +1,33 @@
+root = true
+
+[*]
+charset = utf-8
+end_of_line = lf
+insert_final_newline = true
+trim_trailing_whitespace = true
+indent_style = space
+
+[*.{cs,csx}]
+indent_size = 4
+dotnet_sort_system_directives_first = true
+csharp_using_directive_placement = outside_namespace:warning
+csharp_style_namespace_declarations = file_scoped:warning
+dotnet_style_qualification_for_field = false:warning
+dotnet_style_require_accessibility_modifiers = always:warning
+csharp_prefer_braces = true:suggestion
+dotnet_diagnostic.CA1062.severity = none
+dotnet_diagnostic.CA1303.severity = none
+
+# Analyzer-backed rules shipped by Dotnet.Ai.Kit.Analyzers (severities wired in P7)
+# dotnet_diagnostic.DAK0001.severity = error   # layer-dependency direction
+# dotnet_diagnostic.DAK0002.severity = error   # naming convention
+# dotnet_diagnostic.DAK0003.severity = error   # banned API
+
+[*.{csproj,props,targets,slnx}]
+indent_size = 2
+
+[*.{json,yml,yaml}]
+indent_size = 2
+
+[*.md]
+trim_trailing_whitespace = false

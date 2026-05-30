@@ -1,0 +1,20 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Adapter implementations (FS, git, serializers, tokenizer, detector). Depends on Application + Core. -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>DotnetAiKit.Infrastructure</RootNamespace>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotnetAiKit.Application\DotnetAiKit.Application.csproj" />
+    <ProjectReference Include="..\DotnetAiKit.Core\DotnetAiKit.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="YamlDotNet" />
+    <PackageReference Include="Microsoft.ML.Tokenizers" />
+    <PackageReference Include="Microsoft.ML.Tokenizers.Data.Cl100kBase" />
+  </ItemGroup>
+
+</Project>

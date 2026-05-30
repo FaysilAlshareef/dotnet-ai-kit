@@ -1,0 +1,24 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Composition root + System.CommandLine tree. Depends on all inner layers. -->
+  <PropertyGroup>
+    <OutputType>Exe</OutputType>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>DotnetAiKit.Cli</RootNamespace>
+    <AssemblyName>dotnet-ai</AssemblyName>
+    <InvariantGlobalization>true</InvariantGlobalization>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <ProjectReference Include="..\DotnetAiKit.Hosts\DotnetAiKit.Hosts.csproj" />
+    <ProjectReference Include="..\DotnetAiKit.Infrastructure\DotnetAiKit.Infrastructure.csproj" />
+    <ProjectReference Include="..\DotnetAiKit.Application\DotnetAiKit.Application.csproj" />
+    <ProjectReference Include="..\DotnetAiKit.Core\DotnetAiKit.Core.csproj" />
+  </ItemGroup>
+
+  <ItemGroup>
+    <PackageReference Include="System.CommandLine" />
+    <PackageReference Include="Spectre.Console" />
+  </ItemGroup>
+
+</Project>

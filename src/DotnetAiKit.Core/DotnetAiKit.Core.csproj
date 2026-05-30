@@ -1,0 +1,9 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Pure domain. No I/O. No third-party dependencies (clean-architecture core). -->
+  <PropertyGroup>
+    <TargetFramework>net10.0</TargetFramework>
+    <RootNamespace>DotnetAiKit.Core</RootNamespace>
+  </PropertyGroup>
+
+</Project>
