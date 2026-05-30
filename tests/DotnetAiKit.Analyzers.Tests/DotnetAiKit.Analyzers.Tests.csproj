@@ -11,10 +11,11 @@
     <PackageReference Include="xunit" />
     <PackageReference Include="xunit.runner.visualstudio" />
     <PackageReference Include="coverlet.collector" />
-    <!-- Microsoft.CodeAnalysis.CSharp.Analyzer.Testing.XUnit added in P7 -->
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" />
   </ItemGroup>
 
   <ItemGroup>
+    <!-- Reference the analyzer as a normal library so tests can instantiate it directly. -->
     <ProjectReference Include="..\..\src\DotnetAiKit.Analyzers\DotnetAiKit.Analyzers.csproj" />
   </ItemGroup>
 

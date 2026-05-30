@@ -140,14 +140,14 @@ description: "Task list for 020-v2-net10-rewrite"
 **Goal**: shipped analyzer + hooks (Claude-scoped) + the evidence gate.
 **Independent Test**: violating code fails the build with the expected diagnostic; "done" blocked when tests fail.
 
-- [ ] T059 [US5] `LayeringRuleAnalyzer`, `NamingRuleAnalyzer`, `BannedApiAnalyzer` composed by `ConventionAnalyzer : DiagnosticAnalyzer` in `src/DotnetAiKit.Analyzers/`
+- [x] T059 [US5] `LayeringRuleAnalyzer`, `NamingRuleAnalyzer`, `BannedApiAnalyzer` composed by `ConventionAnalyzer : DiagnosticAnalyzer` in `src/DotnetAiKit.Analyzers/`
 - [ ] T060 [P] [US5] `ConventionCodeFixProvider : CodeFixProvider` for mechanical fixes
-- [ ] T061 [US5] Analyzer packaging (`analyzers/dotnet/cs` + `.editorconfig` severity defaults); pack as `Dotnet.Ai.Kit.Analyzers`
-- [ ] T062 [P] [US5] PreToolUse hook script (`hooks/`, `.py` + `.ps1`) injecting active profile/rule body as `additionalContext`; deny on hard violation (FR-020/021)
-- [ ] T063 [P] [US5] Stop/SubagentStop completion-gate hook: run `dotnet build`+`dotnet test` on feature/implement flows; block until green (FR-023); Claude-scoped per FR-024
-- [ ] T064 [US5] `deterministic-enforcement` rule in `artifacts/rules/` declaring analyzer-backed rule pairings (FR-025)
-- [ ] T065 [P] [US5] [Tests] `Analyzers.Tests` (Microsoft.CodeAnalysis.Testing): each diagnostic fires on violation, silent on valid; codefix transforms (SC-004 build side)
-- [ ] T066 [US5] [Tests] simulate Stop-gate: blocks on failing test, allows on green (SC-004 gate side)
+- [x] T061 [US5] Analyzer packaging (`analyzers/dotnet/cs` + `.editorconfig` severity defaults); pack as `Dotnet.Ai.Kit.Analyzers`
+- [x] T062 [P] [US5] PreToolUse hook script (`hooks/`, `.py` + `.ps1`) injecting active profile/rule body as `additionalContext`; deny on hard violation (FR-020/021)
+- [x] T063 [P] [US5] Stop/SubagentStop completion-gate hook: run `dotnet build`+`dotnet test` on feature/implement flows; block until green (FR-023); Claude-scoped per FR-024
+- [x] T064 [US5] `deterministic-enforcement` rule in `artifacts/rules/` declaring analyzer-backed rule pairings (FR-025)
+- [x] T065 [P] [US5] [Tests] `Analyzers.Tests` (Microsoft.CodeAnalysis.Testing): each diagnostic fires on violation, silent on valid; codefix transforms (SC-004 build side)
+- [x] T066 [US5] [Tests] simulate Stop-gate: blocks on failing test, allows on green (SC-004 gate side)
 
 **Checkpoint**: SC-004 green; enforcement layer live.
 

@@ -18,10 +18,9 @@ csharp_prefer_braces = true:suggestion
 dotnet_diagnostic.CA1062.severity = none
 dotnet_diagnostic.CA1303.severity = none
 
-# Analyzer-backed rules shipped by Dotnet.Ai.Kit.Analyzers (severities wired in P7)
-# dotnet_diagnostic.DAK0001.severity = error   # layer-dependency direction
-# dotnet_diagnostic.DAK0002.severity = error   # naming convention
-# dotnet_diagnostic.DAK0003.severity = error   # banned API
+# Analyzer-backed rules shipped by Dotnet.Ai.Kit.Analyzers (consumers may elevate to error).
+dotnet_diagnostic.DAK0001.severity = warning   # async void (security / async-concurrency)
+dotnet_diagnostic.DAK0004.severity = warning   # public setter on aggregate (add-aggregate)
 
 [*.{csproj,props,targets,slnx}]
 indent_size = 2

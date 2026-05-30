@@ -1,13 +1,24 @@
 <Project Sdk="Microsoft.NET.Sdk">
 
   <!-- Roslyn analyzers shipped as the Dotnet.Ai.Kit.Analyzers NuGet (netstandard2.0 so it loads in the compiler).
-       Microsoft.CodeAnalysis references + IsRoslynComponent are wired in P7 (after the analyzer-Roslyn-version spike). -->
+       References an older Roslyn (4.14) for broad compiler compatibility; newer compilers load it forward-compatibly. -->
   <PropertyGroup>
     <TargetFramework>netstandard2.0</TargetFramework>
     <RootNamespace>DotnetAiKit.Analyzers</RootNamespace>
     <PackageId>Dotnet.Ai.Kit.Analyzers</PackageId>
+    <IsRoslynComponent>true</IsRoslynComponent>
     <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
     <IncludeBuildOutput>false</IncludeBuildOutput>
   </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Ship the analyzer assembly + the default severities into the analyzers/ NuGet folder. -->
+  <ItemGroup>
+    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
 
 </Project>
