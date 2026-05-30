@@ -1,5 +1,6 @@
 using DotnetAiKit.Application.Ports;
 using DotnetAiKit.Application.UseCases;
+using DotnetAiKit.Core.Values;
 using DotnetAiKit.Hosts;
 using DotnetAiKit.Hosts.Claude;
 using DotnetAiKit.Infrastructure;
@@ -17,11 +18,20 @@ internal static class CompositionRoot
         // Codex/Cursor/Copilot projectors registered in P4.
     ]);
 
-    public static GenerateService BuildGenerateService()
+    private static IArtifactRepository BuildRepository() =>
+        new FileSystemArtifactRepository(FileSystem, new YamlFrontmatterParser());
+
+    public static GenerateService BuildGenerateService() =>
+        new(BuildRepository(), new ProjectionEngine(HostRegistry), FileSystem);
+
+    public static InitService BuildInitService(HostName host)
     {
-        IArtifactSerializer serializer = new YamlFrontmatterParser();
-        IArtifactRepository repository = new FileSystemArtifactRepository(FileSystem, serializer);
-        IProjectionEngine engine = new ProjectionEngine(HostRegistry);
-        return new GenerateService(repository, engine, FileSystem);
+        IDetectionProvider detector = new DotnetProjectDetector(FileSystem);
+        IHostAdapter adapter = host switch
+        {
+            HostName.Claude => new ClaudeHostAdapter(FileSystem),
+            _ => throw new NotSupportedException($"init for host '{host}' is not implemented yet."),
+        };
+        return new InitService(detector, BuildRepository(), adapter);
     }
 }

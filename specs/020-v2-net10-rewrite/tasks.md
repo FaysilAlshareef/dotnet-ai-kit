@@ -90,11 +90,11 @@ description: "Task list for 020-v2-net10-rewrite"
 **Goal**: `init` writes `.claude/rules/*.md` with `paths:` + the bounded footprint.
 **Independent Test**: `init` on a temp project → `.claude/rules/*.md` exist with `paths:`; footprint within bound.
 
-- [ ] T039 [US2] `ClaudeHostAdapter : IHostAdapter` in `src/DotnetAiKit.Hosts/Claude/` extending `PluginNativeHostBase`: `WritePerSolution` writes `.dotnet-ai-kit/*` + `.claude/settings.json` + **`.claude/rules/*.md` with `paths:`** (FR-019)
-- [ ] T040 [US2] `InitService` in `src/DotnetAiKit.Application/UseCases/`: detect → write per-solution footprint via `IHostAdapter`; `--dry-run`; user-owned-file merge policy (FR-037)
-- [ ] T041 [US2] `init` command in `src/DotnetAiKit.Cli/Commands/InitCommand.cs` (`[path]`, `--host`, `--include-linked`, `--dry-run`)
-- [ ] T042 [US2] [Tests] `Application.Tests`: `InitService` writes `.claude/rules/*.md` with `paths:` (SC-002, the v1 bug-fix regression test) on a fake FS
-- [ ] T043 [US2] [Tests] `Acceptance.Tests`: footprint count within bound after `init` (SC-011)
+- [x] T039 [US2] `ClaudeHostAdapter : IHostAdapter` in `src/DotnetAiKit.Hosts/Claude/` extending `PluginNativeHostBase`: `WritePerSolution` writes `.dotnet-ai-kit/*` + `.claude/settings.json` + **`.claude/rules/*.md` with `paths:`** (FR-019)
+- [x] T040 [US2] `InitService` in `src/DotnetAiKit.Application/UseCases/`: detect → write per-solution footprint via `IHostAdapter`; `--dry-run`; user-owned-file merge policy (FR-037)
+- [x] T041 [US2] `init` command in `src/DotnetAiKit.Cli/Commands/InitCommand.cs` (`[path]`, `--host`, `--include-linked`, `--dry-run`)
+- [x] T042 [US2] [Tests] `Application.Tests`: `InitService` writes `.claude/rules/*.md` with `paths:` (SC-002, the v1 bug-fix regression test) on a fake FS
+- [x] T043 [US2] [Tests] `Acceptance.Tests`: footprint count within bound after `init` (SC-011)
 
 **Checkpoint**: SC-002 green — the motivating defect is fixed and locked by a test.
 
