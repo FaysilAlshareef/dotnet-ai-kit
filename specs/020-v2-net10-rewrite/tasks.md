@@ -41,26 +41,26 @@ description: "Task list for 020-v2-net10-rewrite"
 
 ### Core domain (P1)
 
-- [ ] T013 [P] Value objects in `src/DotnetAiKit.Core/Values/`: `ArtifactName`, `Description`, `Glob`, `SemVer`, `HostName`, `TokenBudget`, `InvocationPolicy`, `SkillKind`, `RuleScope` (parse-don't-validate)
-- [ ] T014 [P] `Frontmatter` + `HostExtensionBlock` in `src/DotnetAiKit.Core/Frontmatter/` (portable core fields + `x-<host>` blocks)
-- [ ] T015 Artifact entities in `src/DotnetAiKit.Core/Artifacts/`: `Skill`, `Agent`, `Rule`, `Profile`, `Fragment`, `KnowledgeDoc`, `SkillResourceSet` (immutable records + invariants)
-- [ ] T016 [P] `ProjectMetadata`, `DetectedPaths`, `UserConfig` in `src/DotnetAiKit.Core/Project/` (incl. `ai_tools`→`enabled_hosts` alias intent)
-- [ ] T017 [P] `PluginManifest`, `ComponentMap`, `HostCapabilityMatrix` in `src/DotnetAiKit.Core/Manifest/`
-- [ ] T018 `ArtifactGraph`, `ArtifactNode`, `ArtifactEdge` in `src/DotnetAiKit.Core/Graph/` with `Build()` returning broken-edge errors (FR-006)
-- [ ] T019 [P] Policies in `src/DotnetAiKit.Core/Policies/`: `DescriptionStandard`, `TokenBudgetPolicy`, `SubstitutionEngine` (regex token replace + unresolved-token detection)
-- [ ] T020 [P] [Tests] `Core.Tests`: value-object invariants, `Skill` invariants (name==dir, ≤500 body), `DescriptionStandard` pass/fail, `SubstitutionEngine` round-trip, graph build fails on broken edge
+- [x] T013 [P] Value objects in `src/DotnetAiKit.Core/Values/`: `ArtifactName`, `Description`, `Glob`, `SemVer`, `HostName`, `TokenBudget`, `InvocationPolicy`, `SkillKind`, `RuleScope` (parse-don't-validate)
+- [x] T014 [P] `Frontmatter` + `HostExtensionBlock` in `src/DotnetAiKit.Core/Frontmatter/` (portable core fields + `x-<host>` blocks)
+- [x] T015 Artifact entities in `src/DotnetAiKit.Core/Artifacts/`: `Skill`, `Agent`, `Rule`, `Profile`, `Fragment`, `KnowledgeDoc`, `SkillResourceSet` (immutable records + invariants)
+- [x] T016 [P] `ProjectMetadata`, `DetectedPaths`, `UserConfig` in `src/DotnetAiKit.Core/Project/` (incl. `ai_tools`→`enabled_hosts` alias intent)
+- [x] T017 [P] `PluginManifest`, `ComponentMap`, `HostCapabilityMatrix` in `src/DotnetAiKit.Core/Manifest/`
+- [x] T018 `ArtifactGraph`, `ArtifactNode`, `ArtifactEdge` in `src/DotnetAiKit.Core/Graph/` with `Build()` returning broken-edge errors (FR-006)
+- [x] T019 [P] Policies in `src/DotnetAiKit.Core/Policies/`: `DescriptionStandard`, `TokenBudgetPolicy`, `SubstitutionEngine` (regex token replace + unresolved-token detection)
+- [x] T020 [P] [Tests] `Core.Tests`: value-object invariants, `Skill` invariants (name==dir, ≤500 body), `DescriptionStandard` pass/fail, `SubstitutionEngine` round-trip, graph build fails on broken edge
 
 ### Ports + Infrastructure (P2)
 
-- [ ] T021 Ports in `src/DotnetAiKit.Application/Ports/`: `IFileSystem`, `IGitClient`, `IProcessRunner`, `IHostAdapter`, `IProjectionEngine`, `IArtifactRepository`, `IArtifactSerializer`, `IConsoleReporter`, `ITokenizer`, `IDetectionProvider`, `IManifestWriter`, `IBackupService`
-- [ ] T022 [P] `PhysicalFileSystem : IFileSystem` in `src/DotnetAiKit.Infrastructure/` (atomic temp-replace writes, utf-8, fixed LF newline policy)
-- [ ] T023 [P] `YamlFrontmatterParser : IArtifactSerializer` in `src/DotnetAiKit.Infrastructure/` (frontmatter+body split; round-trip-safe). Spike YamlDotNet static gen; fallback thin scanner if AOT-awkward (research D5)
-- [ ] T024 [P] `JsonArtifactSerializer` + `AppJsonContext` (STJ source-gen) in `src/DotnetAiKit.Infrastructure/`/`src/DotnetAiKit.Cli/Json/`
-- [ ] T025 `FileSystemArtifactRepository : IArtifactRepository` in `src/DotnetAiKit.Infrastructure/` (walk `artifacts/` → Core models + build `ArtifactGraph`)
-- [ ] T026 [P] `ProcessRunner : IProcessRunner` + `GitCliClient : IGitClient` (list-args, never shell)
-- [ ] T027 [P] `TiktokenTokenizer : ITokenizer` in `src/DotnetAiKit.Infrastructure/` (Microsoft.ML.Tokenizers)
-- [ ] T028 [P] `DotnetProjectDetector : IDetectionProvider` (parse `.csproj`/namespaces → metadata/paths)
-- [ ] T029 [P] [Tests] `Application.Tests`: `YamlFrontmatterParser` round-trips a sample SKILL.md; `FileSystemArtifactRepository` loads a fixture corpus + builds the graph (fakes for FS where useful)
+- [x] T021 Ports in `src/DotnetAiKit.Application/Ports/`: `IFileSystem`, `IGitClient`, `IProcessRunner`, `IHostAdapter`, `IProjectionEngine`, `IArtifactRepository`, `IArtifactSerializer`, `IConsoleReporter`, `ITokenizer`, `IDetectionProvider`, `IManifestWriter`, `IBackupService`
+- [x] T022 [P] `PhysicalFileSystem : IFileSystem` in `src/DotnetAiKit.Infrastructure/` (atomic temp-replace writes, utf-8, fixed LF newline policy)
+- [x] T023 [P] `YamlFrontmatterParser : IArtifactSerializer` in `src/DotnetAiKit.Infrastructure/` (frontmatter+body split; round-trip-safe). Spike YamlDotNet static gen; fallback thin scanner if AOT-awkward (research D5)
+- [x] T024 [P] `JsonArtifactSerializer` + `AppJsonContext` (STJ source-gen) in `src/DotnetAiKit.Infrastructure/`/`src/DotnetAiKit.Cli/Json/`
+- [x] T025 `FileSystemArtifactRepository : IArtifactRepository` in `src/DotnetAiKit.Infrastructure/` (walk `artifacts/` → Core models + build `ArtifactGraph`)
+- [x] T026 [P] `ProcessRunner : IProcessRunner` + `GitCliClient : IGitClient` (list-args, never shell)
+- [x] T027 [P] `TiktokenTokenizer : ITokenizer` in `src/DotnetAiKit.Infrastructure/` (Microsoft.ML.Tokenizers)
+- [x] T028 [P] `DotnetProjectDetector : IDetectionProvider` (parse `.csproj`/namespaces → metadata/paths)
+- [x] T029 [P] [Tests] `Application.Tests`: `YamlFrontmatterParser` round-trips a sample SKILL.md; `FileSystemArtifactRepository` loads a fixture corpus + builds the graph (fakes for FS where useful)
 
 **Checkpoint**: frontmatter round-trips; foundational tests green.
 
