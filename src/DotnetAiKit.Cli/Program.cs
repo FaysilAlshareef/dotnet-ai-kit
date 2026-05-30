@@ -1,14 +1,7 @@
-namespace DotnetAiKit.Cli;
+using System.CommandLine;
+using DotnetAiKit.Cli.Commands;
 
-/// <summary>
-/// CLI composition root. The P0 stub prints a banner; the System.CommandLine root-command
-/// tree and manual DI wiring are introduced in P3 (generate) / P5 (all verbs).
-/// </summary>
-internal static class Program
-{
-    public static int Main(string[] args)
-    {
-        Console.WriteLine("dotnet-ai (v2 scaffold)");
-        return 0;
-    }
-}
+var root = new RootCommand("dotnet-ai — single-source artifact engine for .NET AI coding assistants.");
+root.Subcommands.Add(GenerateCommand.Create());
+
+return await root.Parse(args).InvokeAsync();

@@ -1,0 +1,4 @@
+name: dotnet-ai-kit
+version: 2.0.0
+description: "AI dev tool plugin for the full .NET development lifecycle — authored once, projected to Claude Code, Codex CLI, Cursor, and GitHub Copilot."
+keywords: "dotnet, ai, cqrs, minimal-api, sdd, clean-architecture"

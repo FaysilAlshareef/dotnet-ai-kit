@@ -1,0 +1,12 @@
+---
+name: security
+description: "Enforces secure coding: parameterized queries, no hardcoded secrets, no async void, no swallowed exceptions. Use when writing or reviewing any C# code. Do NOT use as a substitute for a full security review (use review)."
+metadata:
+  analyzer-backed: "true"
+---
+# Security (universal)
+
+- Use parameterized queries; never concatenate SQL.
+- No hardcoded secrets or connection strings; read from configuration.
+- No `async void` (except event handlers); no empty `catch` blocks.
+- Validate and encode all external input.

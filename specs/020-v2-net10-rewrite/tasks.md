@@ -71,15 +71,15 @@ description: "Task list for 020-v2-net10-rewrite"
 **Goal**: `generate` projects the authored corpus to Claude; drift gate green.
 **Independent Test**: `generate` on ~5 artifacts → `git diff --exit-code build/` clean; delete a file + regenerate restores byte-identically.
 
-- [ ] T030 [US1] Author a thin real corpus (~5 artifacts) under `artifacts/`: 2 skills, 1 agent, 1 universal rule, 1 domain rule (with `paths:`), + `manifest.yml` populated
-- [ ] T031 [US1] `ProjectionEngine : IProjectionEngine` + `HostRegistry` + `HostWriteResult` in `src/DotnetAiKit.Hosts/`
-- [ ] T032 [US1] `ClaudeProjector` in `src/DotnetAiKit.Hosts/Claude/`: skill→`SKILL.md`, agent→`.md`, rule→`.md`+`paths:`; strips non-claude `x-*`; deterministic ordering, fixed newline
-- [ ] T033 [US1] `ClaudeManifestWriter` in `src/DotnetAiKit.Hosts/Claude/`: render `.claude-plugin/plugin.json` from `PluginManifest`; no `hooks`/`mcpServers`/`lspServers` keys
-- [ ] T034 [US1] `GenerateService` in `src/DotnetAiKit.Application/UseCases/`: load corpus → project to `build/claude/` + `build/.claude-plugin/` → fail-fast on broken edges; idempotent
-- [ ] T035 [US1] `generate` command in `src/DotnetAiKit.Cli/Commands/GenerateCommand.cs` (`--out`, `--check`) + wire composition root `Program.cs` (System.CommandLine `SetAction`, manual DI)
-- [ ] T036 [US1] Run `generate --out build/`, commit `build/claude/` + `build/.claude-plugin/` as the drift baseline
-- [ ] T037 [P] [US1] [Tests] `Hosts.Tests` Verify golden snapshots of each projected Claude file; accept baselines (`*.verified.*`) and commit
-- [ ] T038 [US1] [Tests] `Cli.Tests`/`Acceptance.Tests`: `generate --check` exits 0 with no diff; delete-a-file-then-regenerate restores it (SC-001)
+- [x] T030 [US1] Author a thin real corpus (~5 artifacts) under `artifacts/`: 2 skills, 1 agent, 1 universal rule, 1 domain rule (with `paths:`), + `manifest.yml` populated
+- [x] T031 [US1] `ProjectionEngine : IProjectionEngine` + `HostRegistry` + `HostWriteResult` in `src/DotnetAiKit.Hosts/`
+- [x] T032 [US1] `ClaudeProjector` in `src/DotnetAiKit.Hosts/Claude/`: skill→`SKILL.md`, agent→`.md`, rule→`.md`+`paths:`; strips non-claude `x-*`; deterministic ordering, fixed newline
+- [x] T033 [US1] `ClaudeManifestWriter` in `src/DotnetAiKit.Hosts/Claude/`: render `.claude-plugin/plugin.json` from `PluginManifest`; no `hooks`/`mcpServers`/`lspServers` keys
+- [x] T034 [US1] `GenerateService` in `src/DotnetAiKit.Application/UseCases/`: load corpus → project to `build/claude/` + `build/.claude-plugin/` → fail-fast on broken edges; idempotent
+- [x] T035 [US1] `generate` command in `src/DotnetAiKit.Cli/Commands/GenerateCommand.cs` (`--out`, `--check`) + wire composition root `Program.cs` (System.CommandLine `SetAction`, manual DI)
+- [x] T036 [US1] Run `generate --out build/`, commit `build/claude/` + `build/.claude-plugin/` as the drift baseline
+- [x] T037 [P] [US1] [Tests] `Hosts.Tests` Verify golden snapshots of each projected Claude file; accept baselines (`*.verified.*`) and commit
+- [x] T038 [US1] [Tests] `Cli.Tests`/`Acceptance.Tests`: `generate --check` exits 0 with no diff; delete-a-file-then-regenerate restores it (SC-001)
 
 **Checkpoint**: SC-001 green on the slice. MVP demonstrable.
 
