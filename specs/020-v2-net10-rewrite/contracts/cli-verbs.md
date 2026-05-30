@@ -9,7 +9,7 @@ Each verb is a thin `*Command` (System.CommandLine) delegating to an Application
 | `render` | `RenderService` | `skill\|rule <name>`, `[path]` | Resolves the artifact + substitutes project metadata → prints the rendered body. < 2 s. No unresolved tokens remain. | ✅ |
 | `migrate` | `MigrateService` | `[path]`, `--include-linked`, `--dry-run` | Cleans v1 layout artifacts with 3-keep rotated backups; accepts `ai_tools`→`enabled_hosts` alias on read. | ✅ |
 | `generate` | `GenerateService` | `--out build/`, `--check` | Build-time: load `artifacts/` → project every artifact to every host → render all manifests → write `build/`. `--check` asserts no drift (CI gate). Deterministic/idempotent. | ✅ |
-| `configure` | `ConfigureService` | interactive / `--set k=v` | Edits `config.yml` (enabled_hosts, permission profile, repos). | ✅ |
+| `configure` | `ConfigureService` | interactive / `--set k=v`, `--dry-run` | Edits `config.yml` (enabled_hosts, permission profile, repos); `--dry-run` previews (constitution V). | ✅ |
 | `detect` | `DetectService` | `[path]`, `--json` | Drives detection → prints `ProjectMetadata` + `DetectedPaths`. | ✅ |
 | `upgrade` | `UpgradeService` | `[path]`, `--copilot` | Plugin-native = no-op; `--copilot` re-renders Copilot files only. | ✅ |
 

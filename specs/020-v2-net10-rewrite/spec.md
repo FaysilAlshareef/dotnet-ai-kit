@@ -277,7 +277,7 @@ A developer installs the tool through the standard .NET tool mechanism and runs 
 - **SC-008 (multi-assistant reach)**: After generation, all four assistant output locations are populated with correctly-shaped files that pass golden-output comparison.
 - **SC-009 (multi-repo awareness)**: A multi-repo specify/orchestrate run leaves a matching feature brief in every service-map repository and initializes each secondary repository's configuration.
 - **SC-010 (performance)**: Validation completes in under 10 seconds and single-artifact render completes in under 2 seconds on a representative corpus.
-- **SC-011 (footprint)**: The per-solution initialized footprint is within its fixed bound (the corpus is not copied per project).
+- **SC-011 (footprint)**: The per-solution initialized footprint is within its fixed bound of **≤18 files** (the v1 contract; the corpus is not copied per project).
 - **SC-012 (cross-platform)**: The same commands produce identical generated content on Windows, macOS, and Linux.
 
 ## Assumptions & Constraints
