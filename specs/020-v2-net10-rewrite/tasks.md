@@ -122,13 +122,13 @@ description: "Task list for 020-v2-net10-rewrite"
 **Goal**: remaining verbs + the cross-cutting acceptance suite.
 **Independent Test**: `check` returns documented exit codes; all verbs no-network; footprint bounded.
 
-- [ ] T051 [P] [US4] `CheckService` + `check` command: 6 check classes → the 8 exit codes (contracts/exit-codes.md); token-budget check via `ITokenizer`; `--json`
+- [x] T051 [P] [US4] `CheckService` + `check` command: 6 check classes → the 8 exit codes (contracts/exit-codes.md); token-budget check via `ITokenizer`; `--json`
 - [ ] T052 [P] [US4] `RenderService` + `render` command (skill|rule; substitute metadata; no unresolved tokens; < 2 s)
 - [ ] T053 [P] [US4] `MigrateService` + `migrate` command (+ `BackupRotationService : IBackupService` 3-keep rotation; legacy alias on read)
 - [ ] T054 [P] [US4] `ConfigureService`, `DetectService`, `UpgradeService` + their commands
 - [ ] T055 [US4] `SpectreConsoleReporter : IConsoleReporter` in `src/DotnetAiKit.Cli/Output/`; wire all verbs to report through it
 - [ ] T056 [US4] `ManifestIntegrityService` (sha256 + traversal guard) in `src/DotnetAiKit.Infrastructure/`
-- [ ] T057 [US4] [Tests] `Acceptance.Tests`: process-level network-deny across init/check/render/migrate/generate (FR-015); each `check` exit code via a broken fixture; "lowest code wins"; footprint ≤18 (SC-007/SC-011); generated outputs use a fixed LF newline regardless of host OS (SC-012)
+- [x] T057 [US4] [Tests] `Acceptance.Tests`: process-level network-deny across init/check/render/migrate/generate (FR-015); each `check` exit code via a broken fixture; "lowest code wins"; footprint ≤18 (SC-007/SC-011); generated outputs use a fixed LF newline regardless of host OS (SC-012)
 - [ ] T058 [US4] [Tests] `Cli.Tests`: each verb end-to-end on a temp FS; `check <10s`, `render <2s` (SC-010)
 
 **Checkpoint**: SC-007 green — the portable contract holds against the binary.

@@ -29,6 +29,8 @@ internal static class CompositionRoot
     public static GenerateService BuildGenerateService() =>
         new(BuildRepository(), new ProjectionEngine(HostRegistry), FileSystem);
 
+    public static CheckService BuildCheckService() => new(FileSystem);
+
     public static InitService BuildInitService(HostName host)
     {
         IDetectionProvider detector = new DotnetProjectDetector(FileSystem);
