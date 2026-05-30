@@ -105,13 +105,13 @@ description: "Task list for 020-v2-net10-rewrite"
 **Goal**: project to Codex/Cursor/Copilot; publish the capability matrix.
 **Independent Test**: `generate` populates all 4 host dirs with correctly-shaped files; matrix validated.
 
-- [ ] T044 [P] [US3] `CodexProjector` + `CodexManifestWriter` + `AgentsMdWriter` in `src/DotnetAiKit.Hosts/Codex/` (skill→SKILL.md, agent→`.toml`, rules→`AGENTS.md`; `.codex-plugin/plugin.json` no `agents`)
-- [ ] T045 [P] [US3] `CursorProjector` + `CursorManifestWriter` + `MdcRuleWriter` in `src/DotnetAiKit.Hosts/Cursor/` (rules→`.mdc` alwaysApply|globs; commands→`.md`; `.cursor-plugin/plugin.json` with `agents`)
-- [ ] T046 [P] [US3] `CopilotProjector` + `InstructionsWriter` + `PromptFileWriter` in `src/DotnetAiKit.Hosts/Copilot/` (`.instructions.md` applyTo, `.prompt.md`, `.agent.md`; reuse `.claude-plugin`)
-- [ ] T047 [US3] Register all projectors in `HostRegistry`; `GenerateService` projects to all 4 hosts in one pass
+- [x] T044 [P] [US3] `CodexProjector` + `CodexManifestWriter` + `AgentsMdWriter` in `src/DotnetAiKit.Hosts/Codex/` (skill→SKILL.md, agent→`.toml`, rules→`AGENTS.md`; `.codex-plugin/plugin.json` no `agents`)
+- [x] T045 [P] [US3] `CursorProjector` + `CursorManifestWriter` + `MdcRuleWriter` in `src/DotnetAiKit.Hosts/Cursor/` (rules→`.mdc` alwaysApply|globs; commands→`.md`; `.cursor-plugin/plugin.json` with `agents`)
+- [x] T046 [P] [US3] `CopilotProjector` + `InstructionsWriter` + `PromptFileWriter` in `src/DotnetAiKit.Hosts/Copilot/` (`.instructions.md` applyTo, `.prompt.md`, `.agent.md`; reuse `.claude-plugin`)
+- [x] T047 [US3] Register all projectors in `HostRegistry`; `GenerateService` projects to all 4 hosts in one pass
 - [ ] T048 [US3] Populate `HostCapabilityMatrix` in `manifest.yml` per contracts/host-capability-matrix.md; `check` validates artifact capability deps
-- [ ] T049 [US3] Run `generate`, commit `build/codex|cursor|copilot/` + manifests baselines
-- [ ] T050 [P] [US3] [Tests] `Hosts.Tests` Verify golden snapshots for Codex/Cursor/Copilot; accept baselines (SC-008)
+- [x] T049 [US3] Run `generate`, commit `build/codex|cursor|copilot/` + manifests baselines
+- [x] T050 [P] [US3] [Tests] `Hosts.Tests` Verify golden snapshots for Codex/Cursor/Copilot; accept baselines (SC-008)
 
 **Checkpoint**: SC-008 green; all 4 hosts projected.
 

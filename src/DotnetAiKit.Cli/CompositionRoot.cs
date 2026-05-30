@@ -3,6 +3,9 @@ using DotnetAiKit.Application.UseCases;
 using DotnetAiKit.Core.Values;
 using DotnetAiKit.Hosts;
 using DotnetAiKit.Hosts.Claude;
+using DotnetAiKit.Hosts.Codex;
+using DotnetAiKit.Hosts.Copilot;
+using DotnetAiKit.Hosts.Cursor;
 using DotnetAiKit.Infrastructure;
 
 namespace DotnetAiKit.Cli;
@@ -15,7 +18,9 @@ internal static class CompositionRoot
     public static HostRegistry HostRegistry { get; } = new(
     [
         new ClaudeProjector(),
-        // Codex/Cursor/Copilot projectors registered in P4.
+        new CodexProjector(),
+        new CursorProjector(),
+        new CopilotProjector(),
     ]);
 
     private static IArtifactRepository BuildRepository() =>
