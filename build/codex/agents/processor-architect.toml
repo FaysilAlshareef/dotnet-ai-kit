@@ -1,0 +1,3 @@
+name = "processor-architect"
+description = "Architects background processors and event handler services"
+skills = ["batch-processing", "event-routing", "grpc-client", "hosted-service"]

@@ -1,0 +1,3 @@
+name = "query-architect"
+description = "Architects CQRS query-side read models and projections"
+skills = ["event-handler", "listener-pattern", "query-entity", "query-handler", "sequence-checking"]

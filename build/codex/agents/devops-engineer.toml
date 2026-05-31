@@ -1,0 +1,3 @@
+name = "devops-engineer"
+description = "Manages CI/CD pipelines, Docker, and infrastructure as code"
+skills = ["aspire-orchestration", "azure-resources", "dockerfile", "github-actions", "health-checks", "kubernetes", "opentelemetry", "serilog-structured"]

@@ -1,0 +1,185 @@
+---
+name: implement
+description: "Executes all planned implementation tasks. Use when ready to generate code from the task list."
+metadata:
+  kind: "command"
+  invocation: "disable-model-invocation"
+---
+# /dotnet-ai.implement — Execute Implementation
+
+You are an AI coding assistant executing the `/dotnet-ai.implement` command.
+Your job is to implement the tasks defined in tasks.md, writing real code.
+
+## Usage
+
+```
+/dotnet-ai.implement $ARGUMENTS
+```
+
+**Examples:**
+- (no args) — Execute all tasks from tasks.md on current feature
+- `--dry-run` — Show task list without writing code
+
+## Input
+
+Flags: `--dry-run` (preview without writing), `--verbose` (diagnostic output),
+       `--resume` (continue from last incomplete/failed task)
+
+## Step 1: Check Prerequisites
+
+1. Find the active feature in `.dotnet-ai-kit/features/`.
+2. Verify required artifacts exist:
+   - `tasks.md` — required. If missing: "No tasks found. Run /dotnet-ai.tasks first."
+   - `plan.md` — required for implementation guidance.
+   - `spec.md` — required for acceptance criteria.
+3. Check for `analysis.md` — if exists, warn about any CRITICAL findings.
+   Do NOT block; inform the user and let them decide.
+4. Detect mode: **generic** or **microservice**.
+5. If no `.dotnet-ai-kit/config.yml`: prompt to run `/dotnet-ai.configure` first.
+
+## Step 1b: Per-Task Review Gate
+
+After completing each task, before moving to the next:
+
+1. **Verify** — Run `dotnet build` and `dotnet test`. Report actual output.
+   Do NOT claim success without fresh evidence (see `skills/workflow/verification-gate/SKILL.md`).
+2. **Spec check** — Compare the task output against its acceptance criteria in `spec.md`.
+   Flag any deviation: missing requirement, extra scope, or behavioral mismatch.
+3. **Quality check** — Check the changed files against `rules/` conventions.
+   Flag any violations (naming, architecture boundaries, error handling).
+4. If any check fails: fix before proceeding to the next task. Do NOT batch failures.
+
+## Step 2: Load Skills on Demand
+
+**Always load** (regardless of task type):
+- `skills/workflow/verification-gate/SKILL.md` — Evidence before claims
+- `skills/workflow/receiving-review-feedback/SKILL.md` — Technical rigor on feedback
+- `skills/core/configuration/SKILL.md` — Options pattern, DI registration, ValidateOnStart
+- `skills/core/dependency-injection/SKILL.md` — Service lifetime, registration patterns
+
+Load skills based on the tasks being implemented:
+- Read `skills/workflow/sdd-lifecycle/SKILL.md` for lifecycle patterns
+- Per task type, load the relevant skill:
+  - Aggregate tasks: `skills/microservice/command/aggregate-design/SKILL.md`
+  - Event tasks: `skills/microservice/command/event-design/SKILL.md`
+  - Entity tasks: `skills/microservice/query/query-entity/SKILL.md`
+  - Handler tasks: `skills/microservice/query/event-handler/SKILL.md`
+  - Endpoint tasks: `skills/microservice/gateway/gateway-endpoint/SKILL.md`
+  - Page tasks: `skills/microservice/controlpanel/blazor-component/SKILL.md`
+  - Test tasks: `skills/testing/unit-testing/SKILL.md`
+  - Generic API: `skills/api/minimal-api/SKILL.md`
+  - Generic data: `skills/data/ef-core-basics/SKILL.md`
+  - Generic CQRS: `skills/cqrs/mediatr-handlers/SKILL.md`
+
+## Step 2b: Load Specialist Agent
+
+Based on the project's detected `project_type`, read the specialist agent for architectural guidance:
+- command → Read `agents/command-architect.md`
+- query-sql → Read `agents/query-architect.md`
+- query-cosmos → Read `agents/cosmos-architect.md`
+- processor → Read `agents/processor-architect.md`
+- gateway → Read `agents/gateway-architect.md`
+- controlpanel → Read `agents/controlpanel-architect.md`
+- hybrid → Read both `agents/command-architect.md` and `agents/query-architect.md`
+- vsa, clean-arch, ddd, modular-monolith, generic → Read `agents/dotnet-architect.md`
+
+## Step 2c: Load Task-Specific Secondary Agent
+
+Based on the current task's domain, also load a secondary specialist agent:
+- API/endpoint tasks → Read `agents/api-designer.md`
+- Entity/data/EF tasks → Read `agents/ef-specialist.md`
+- Test tasks → Read `agents/test-engineer.md`
+- DevOps/Docker/CI tasks → Read `agents/devops-engineer.md`
+- Documentation tasks → Read `agents/docs-engineer.md`
+- Review tasks → Read `agents/reviewer.md`
+
+Bounded skill selection (FR-012): keep one architect agent for the project type loaded, load at most 2 task-specific skills initially, and run MCP queries (codebase-memory-mcp) before broad file reads.
+
+## Step 3: Resume Logic
+
+`--resume`: find first unchecked `- [ ]` in tasks.md, show last failed task from `undo-log.md`, skip `- [x]` tasks. Without `--resume`: verify fresh start; if partially complete, ask "Resume or reset?".
+
+## Step 4: Execute Tasks (Generic Mode)
+
+1. Create / switch to `feature/{NNN}-{short-name}`.
+2. For each task (in dependency order): print task; read plan; scan existing code; generate code following detected conventions; write files; log to `undo-log.md`; mark `- [x]`. If a `.resx` is touched, also update the matching `.Designer.cs` (see `rules/localization.md`).
+3. After each layer (Domain, Application, Infrastructure, API) run `dotnet build`; stop on failure.
+4. After all tasks: `dotnet test` on `*.Test.csproj` only (skip `*.Test.Live` / integration).
+5. On task failure: stop, report, suggest fix; user re-runs with `--resume`.
+
+## Step 5: Execute Tasks (Microservice Mode)
+
+### 5a: Resolve Repos
+
+Read repo paths from `config.yml`; for each repo in `service-map.md` use local path, clone via `gh repo clone` for GitHub URLs, or prompt if null. Verify `.sln`/`.slnx`/`.csproj` exists and update `config.yml` after cloning. Load or project `feature-brief.md` for each secondary repo.
+
+### 5b: Branch and Execute in Dependency Order
+
+Execution order: `command -> query/processor (parallel) -> gateway -> controlpanel`
+
+For each repo in dependency order:
+
+1. `cd` into the repo directory.
+2. Create feature branch: `git checkout -b feature/{NNN}-{feature-name}`
+   - If branch exists (resume): `git checkout feature/{NNN}-{feature-name}`
+3. Execute tasks tagged for this repo (respecting `[depends:]` and `[P]` markers).
+4. After each task group: run `dotnet build` in the repo root.
+   - On build failure: stop this repo, mark remaining tasks as `- [B] T{NNN}` (blocked).
+5. After all tasks for this repo: run `dotnet test` on unit test projects only (exclude `*.Test.Live`).
+6. Mark tasks complete in the shared `tasks.md` with repo context.
+7. Log actions to `undo-log.md` with `**Repo**: {repo-name}`.
+8. Update the secondary repo's `feature-brief.md`: mark completed tasks as `- [x]`, update phase to "Implementing". When all tasks done: phase "Implemented". On failure: phase "Blocked — T{NNN} failed: {error}". Auto-commit with `chore: update feature brief {NNN}-{name} — {phase}`. Skip auto-commit if repo has uncommitted changes.
+
+Query and Processor repos may execute in parallel after Command completes.
+Gateway waits for Query (needs proto definitions). ControlPanel waits for Gateway.
+
+### 5c: Cross-Repo Progress Tracking
+
+Update `tasks.md` with per-repo status after each repo completes:
+
+```
+## Progress
+- command:      6/6 tasks DONE
+- query:        4/4 tasks DONE
+- processor:    2/4 tasks (T009 FAILED)
+- gateway:      0/3 tasks BLOCKED
+- controlpanel: 0/1 tasks BLOCKED
+```
+
+### 5d: Partial Failure Handling
+
+When a task or build fails in a repo:
+
+1. **Stop** execution for that repo immediately.
+2. **Mark** the failed task in tasks.md: `- [!] T{NNN} FAILED: {error summary}`
+3. **Mark** all downstream tasks as blocked: `- [B] T{NNN} BLOCKED by T{failed}`
+4. **Preserve** the feature branch in the failed repo (do not delete or reset).
+5. **Continue?** If the failed repo is not a dependency for remaining repos, ask:
+   "Repo {name} failed. Skip and continue with independent repos? [Y/n]"
+   Otherwise, stop all execution.
+6. **Record** the failure context in `undo-log.md` for debugging.
+7. User can fix the issue and run `/dotnet-ai.implement --resume`.
+
+Read `skills/workflow/multi-repo-workflow/SKILL.md` for orchestration patterns.
+
+## Step 6: Undo Log
+
+Record every created/modified file in `undo-log.md` per task. Each entry: task ID, ISO timestamp, repo, status (`OK` / `FAILED -- {error}`), per-file actions. `--resume` reads this file to find the last failed task.
+
+## Step 7: Completion Report
+
+Report: tasks completed/total, files created/modified, build status, test results. For microservice mode, include per-repo summary. Suggest next: `/dotnet-ai.review` or `/dotnet-ai.verify`.
+
+## Dry-Run, Branch Safety, Errors
+
+- `--dry-run`: print would-be tasks/files per repo; never write code, branches, builds, or `tasks.md`. Prefix `[DRY-RUN]`.
+- Secondary repo branch: read repos from `.dotnet-ai-kit/config.yml`. For each local path, check current branch; if main/master/develop, create or switch to `chore/brief-{NNN}-{name}`. Skip if working tree dirty. Never commit to main/master/develop.
+- Errors: build failure → stop, show error, `--resume`. Test failure → report, continue if `--verbose`. Missing repo → prompt. Unmet dep → skip, report `Blocked by T{N}`.
+
+## MCP-first (FR-021 / FR-022)
+
+Graph/dependency/ownership/architecture questions: query `codebase-memory-mcp` first; use `csharp-ls` for symbol-precise lookups; `grep`/file reads only as last resort.
+
+If MCP is unavailable, emit exactly:
+> MCP unavailable: codebase-memory-mcp is not connected or below >=0.6.1; falling back to csharp-ls + grep/read.
+

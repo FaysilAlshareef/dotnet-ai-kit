@@ -1,0 +1,3 @@
+name = "gateway-architect"
+description = "Designs API gateway routing, aggregation, and BFF patterns"
+skills = ["endpoint-registration", "gateway-endpoint", "gateway-security", "scalar-docs"]

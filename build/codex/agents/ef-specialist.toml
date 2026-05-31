@@ -1,0 +1,3 @@
+name = "ef-specialist"
+description = "Manages Entity Framework Core models, migrations, and queries"
+skills = ["audit-trail", "command-generator", "dapper", "db-transactions", "ef-core-basics", "ef-migrations", "ef-queries", "mediatr-handlers", "notification-handlers", "pipeline-behaviors", "query-generator", "repository-patterns", "request-response", "specification-pattern"]

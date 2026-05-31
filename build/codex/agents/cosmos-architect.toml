@@ -1,0 +1,3 @@
+name = "cosmos-architect"
+description = "Designs Cosmos DB data models and query-side projections"
+skills = ["cosmos-entity", "cosmos-repository", "partition-strategy", "transactional-batch"]

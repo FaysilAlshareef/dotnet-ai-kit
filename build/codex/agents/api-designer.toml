@@ -1,0 +1,3 @@
+name = "api-designer"
+description = "Designs REST and gRPC API contracts and endpoint conventions"
+skills = ["auth-jwt", "auth-policies", "caching-strategies", "circuit-breaker", "content-negotiation", "controller-patterns", "cors-configuration", "data-protection", "grpc-design", "input-sanitization", "minimal-api", "openapi-scalar", "polly-resilience", "rate-limiting", "retry-patterns", "signalr-realtime", "versioning"]

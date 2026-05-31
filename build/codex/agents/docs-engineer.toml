@@ -1,0 +1,3 @@
+name = "docs-engineer"
+description = "Generates and maintains project documentation and ADRs"
+skills = ["adr", "api-docs", "architecture-docs", "changelog-gen", "diagram-gen", "event-catalogue", "onboarding", "readme-gen", "runbook"]

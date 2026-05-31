@@ -1,0 +1,194 @@
+---
+name: detect
+description: "Detects project architecture, .NET version, and patterns. Use when initializing or learning project structure."
+disable-model-invocation: true
+---
+# /dotnet-ai.detect
+
+AI-powered project type detection for the current .NET project.
+
+## Usage
+
+```
+/dotnet-ai.detect $ARGUMENTS
+```
+
+**Examples:**
+- (no args) — Detect project type and architecture
+- `--verbose` — Show detection signals and confidence breakdown
+
+## User Input
+
+```text
+$ARGUMENTS
+```
+
+You **MUST** consider the user input before proceeding (if not empty). The user may specify a path, override type, or provide hints about their architecture.
+
+## Outline
+
+You are detecting the project type and saving results to `.dotnet-ai-kit/project.yml`. This replaces manual Python-based detection with AI analysis that can understand architectural patterns in context.
+
+Follow this execution flow:
+
+1. **Check prerequisites**
+   - Verify `.dotnet-ai-kit/` directory exists. If not, tell the user to run `/dotnet-ai.init` first.
+   - Check for `.sln`, `.slnx`, or `.csproj` files. If none found, report "No .NET project detected" and exit.
+
+2. **Gather project context**
+   Read the following files (skip any that don't exist):
+   - All `*.csproj` files — extract TargetFramework, NuGet packages, project references
+   - `*.sln` or `*.slnx` — understand solution structure
+   - `Program.cs` or `Startup.cs` — startup configuration
+   - Up to 5 representative handler/service/controller files (prioritize by directory):
+     1. `**/Features/**/*Handler.cs` or `**/Application/**/Handlers/**/*.cs`
+     2. `**/Controllers/**/*.cs`
+     3. `**/Services/**/*Service.cs`
+     4. `**/Domain/**/Aggregate*.cs` or `**/Domain/**/Core/*.cs`
+     5. `**/Endpoints/**/*.cs` or `**/Modules/**/*.cs`
+   - Check directory structure: list top-level directories and key subdirectories
+
+3. **Apply smart detection**
+   Use the classification rules from the smart-detect skill to determine:
+   - **Project type** (specific): command, query-sql, query-cosmos, processor, gateway, controlpanel, hybrid, vsa, clean-arch, ddd, modular-monolith, or generic. **This is the specific role/architecture — NOT "microservice" or "generic".**
+   - **Mode** (broad category): `microservice` if project_type is command/query-sql/query-cosmos/processor/gateway/controlpanel/hybrid; `generic` if project_type is vsa/clean-arch/ddd/modular-monolith/generic. **Mode is ALWAYS either "microservice" or "generic" — never a specific type like "command".**
+   - **Confidence**: high, medium, or low
+   - **Evidence**: top 3 signals that support the classification
+   - **Architecture description**: human-readable summary
+
+4. **Present results to user**
+   Display the detection results clearly:
+   ```
+   Detection Results:
+     Mode:         {microservice|generic}
+     Project Type: {type}
+     Architecture: {description}
+     .NET Version: {version}
+     Confidence:   {high|medium|low}
+
+     Evidence:
+       1. {evidence_1}
+       2. {evidence_2}
+       3. {evidence_3}
+
+     Reasoning: {explanation}
+   ```
+
+5. **Confirm with user**
+   Ask: "Is this correct? [Y/n/change]"
+   - **Y** (default): accept and save
+   - **n**: abort without saving
+   - **change**: show all valid project types and let user pick:
+     ```
+     Microservice types:
+       1. command          - Event-sourced Command service (CQRS write side)
+       2. query-sql        - SQL Server Query service (CQRS read side)
+       3. query-cosmos     - Cosmos DB Query service (CQRS read side)
+       4. processor        - Background event Processor service
+       5. gateway          - REST API Gateway with gRPC backends
+       6. controlpanel     - Blazor WASM Control Panel
+       7. hybrid           - Hybrid CQRS service (command + query)
+
+     Generic types:
+       8. vsa              - Vertical Slice Architecture
+       9. clean-arch       - Clean Architecture
+      10. ddd              - Domain-Driven Design
+      11. modular-monolith - Modular Monolith
+      12. generic          - Generic .NET project
+     ```
+
+6. **Save results**
+   Write the detection results to `.dotnet-ai-kit/project.yml`.
+   **CRITICAL**: `mode` is ALWAYS `microservice` or `generic`. `project_type` is the SPECIFIC type (e.g., `command`, `query-sql`, `vsa`). Do NOT swap these values.
+   ```yaml
+   mode: {microservice|generic}
+   project_type: {command|query-sql|query-cosmos|processor|gateway|controlpanel|hybrid|vsa|clean-arch|ddd|modular-monolith|generic}
+   dotnet_version: "{version}"
+   architecture: "{description}"
+   namespace_format: "{detected namespace pattern}"
+   packages:
+     - {package1}
+     - {package2}
+   confidence: {confidence}
+   confidence_score: {0.0-1.0}
+   user_override: {null or user-selected type}
+   top_signals:
+     - pattern_name: "{signal}"
+       signal_type: "{structural|code-pattern|build-config|naming}"
+       confidence: "{high|medium|low}"
+       evidence: "{detail}"
+       is_negative: false
+   solution_name: "{solution name without extension}"
+   layers:
+     domain: "{Domain project name or empty}"
+     application: "{Application project name or empty}"
+     infrastructure: "{Infrastructure project name or empty}"
+     presentation: "{Presentation project name or empty}"
+   api_style: "{grpc|rest|blazor|minimal-api|none}"
+   patterns:
+     - "{pattern1, e.g. cqrs-command-side}"
+     - "{pattern2, e.g. event-sourcing}"
+   deployment:
+     containerized: {true|false}
+     orchestration: "{kubernetes|docker-compose|empty}"
+   test_projects:
+     - "{TestProject1}"
+     - "{TestProject2}"
+   sibling_repos:
+     - name: "{repo-directory-name}"
+       type: "{command|query|processor|gateway|controlpanel|empty}"
+   ```
+
+   **Field notes:**
+   - `solution_name`: From the `.sln` or `.slnx` file name (without extension)
+   - `layers`: Map each logical layer to its actual project name from the solution. Leave empty if a layer doesn't exist.
+   - `api_style`: Determined from the presentation project — `grpc` if Grpc.AspNetCore, `rest` if controllers/minimal API, `blazor` if .razor files, `none` if class library
+   - `patterns`: Architectural patterns found (e.g., cqrs-command-side, mediator, event-sourcing, outbox-pattern, clean-architecture, vertical-slice, repository-pattern)
+   - `deployment`: Check for Dockerfile (`containerized: true`) and k8s manifests (`orchestration: kubernetes`) or docker-compose.yml
+   - `test_projects`: Project names from solution that are test projects (contain "Test" or reference xunit/nunit/mstest)
+   - `sibling_repos`: From step 6b scan — include repos found with their detected type
+
+6b. **Sibling repo scan** (optional)
+
+   Scan `../` for sibling directories that are git repos (contain `.git/`) with `.sln`, `.slnx`, or `.csproj` files. Report as "Sibling repos found:" with detected type if classifiable (command, query, gateway, controlpanel, processor, or unclassified). This feeds context into `/dotnet-ai.configure`.
+
+7. **Report completion**
+   ```
+   Project detection saved to .dotnet-ai-kit/project.yml
+
+   Next: Run /dotnet-ai.configure to set company name and repo paths.
+   ```
+
+## Re-detection
+
+If `.dotnet-ai-kit/project.yml` already exists, show the current detection first:
+```
+Current detection:
+  Type: {current_type} ({current_architecture})
+  Confidence: {current_confidence}
+
+Re-running detection...
+```
+
+Then proceed with steps 2-7. The new results overwrite the old file.
+
+## Error Handling
+
+- **No .NET project files**: Report clearly and suggest creating a project first
+- **Ambiguous detection**: Show top 2-3 candidates with their evidence and let user choose
+- **Low confidence**: Warn the user and recommend manual override
+
+## Flags
+
+Pass these as part of `$ARGUMENTS`:
+- `--path <dir>`: Detect in a specific directory (default: current directory)
+- `--type <type>`: Skip detection and set type directly
+- `--json`: Output results as JSON instead of interactive display
+
+## MCP-first (FR-021 / FR-022)
+
+Graph/dependency/ownership/architecture questions: query `codebase-memory-mcp` first; use `csharp-ls` for symbol-precise lookups; `grep`/file reads only as last resort.
+
+If MCP is unavailable, emit exactly:
+> MCP unavailable: codebase-memory-mcp is not connected or below >=0.6.1; falling back to csharp-ls + grep/read.
+

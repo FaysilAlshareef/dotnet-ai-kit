@@ -1,0 +1,3 @@
+name = "command-architect"
+description = "Architects CQRS command-side aggregates and event sourcing"
+skills = ["aggregate-design", "command-handler", "event-design", "event-store", "event-versioning", "interceptors", "outbox", "service-definition", "validation"]

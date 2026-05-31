@@ -1,0 +1,164 @@
+---
+description: "Generates an implementation plan from the spec. Use when ready to design the technical approach."
+---
+# /dotnet-ai.plan — Implementation Planning
+
+You are an AI coding assistant executing the `/dotnet-ai.plan` command.
+Your job is to create a detailed implementation plan from an existing feature spec.
+
+## Usage
+
+```
+/dotnet-ai.plan $ARGUMENTS
+```
+
+**Examples:**
+- (no args) — Generate implementation plan from current spec
+- `--dry-run` — Preview plan structure without writing files
+
+## Input
+
+Flags: `--dry-run` (preview without writing), `--verbose` (diagnostic output)
+
+## Load Specialist Agent
+
+Based on the detected project type, read the specialist agent for architectural guidance:
+- **Microservice mode**:
+  - command → Read `agents/command-architect.md`
+  - query-sql → Read `agents/query-architect.md`
+  - query-cosmos → Read `agents/cosmos-architect.md`
+  - processor → Read `agents/processor-architect.md`
+  - gateway → Read `agents/gateway-architect.md`
+  - controlpanel → Read `agents/controlpanel-architect.md`
+  - hybrid → Read both `agents/command-architect.md` and `agents/query-architect.md`
+- **Generic mode** (VSA, Clean Arch, DDD, Modular Monolith):
+  - Read `agents/dotnet-architect.md`
+
+Bounded skill selection (FR-012): keep one architect agent for the project type loaded, load at most 2 task-specific skills initially, and run MCP queries (codebase-memory-mcp) before broad file reads.
+
+## Step 1: Load Prerequisites
+
+1. Find the active feature in `.dotnet-ai-kit/features/` (most recent or in-progress).
+2. Load `spec.md` — **required**. If missing: "No spec found. Run /dotnet-ai.specify first." **STOP — do not continue.**
+3. Verify spec was approved: check for `status: approved` or user sign-off marker.
+   If not approved: "Spec exists but hasn't been approved. Review it with /dotnet-ai.clarify or approve it before planning."
+4. Load `.dotnet-ai-kit/config.yml` if it exists.
+5. Note any remaining `[NEEDS CLARIFICATION]` markers — warn but do not block.
+6. If `--verbose`, print loaded artifacts and detected mode.
+
+## Step 2: Detect Project Mode
+
+1. From config or spec content, determine: **generic** or **microservice**.
+2. Load skills on demand based on mode:
+   - Always: `skills/workflow/sdd-lifecycle/SKILL.md`
+   - Generic: `skills/architecture/clean-architecture/SKILL.md` or VSA skill
+   - Microservice: `skills/workflow/multi-repo-workflow/SKILL.md`
+
+## Step 3: Constitution Check Gate
+
+If `.dotnet-ai-kit/memory/constitution.md` does not exist, skip this gate with a warning: "Project constitution not found — run /dai.learn to generate." Continue to Phase 0.
+
+Read the topic files relevant to planning — typically `.dotnet-ai-kit/memory/architecture.md` and `.dotnet-ai-kit/memory/domain-model.md` — *not* the full monolithic constitution (FR-024). The `constitution.md` index lists which topic to read for which check.
+
+Verify compliance:
+- Detect-First: plan must research existing code before proposing changes (uses `architecture.md` + `conventions.md`).
+- Pattern Fidelity: plan must follow detected conventions (`conventions.md`).
+- Architecture Agnostic: plan must match the project's architecture (`architecture.md`).
+
+Document result in `## Constitution Check`. Violations go to `## Complexity Tracking`.
+
+## Step 4: Complexity Analysis
+
+Analyze spec for feature complexity:
+
+| Indicator | Threshold | Weight |
+|-----------|-----------|--------|
+| Entities / data models | >= 3 | High |
+| External service integrations | >= 1 | High |
+| Multi-repo (spans services) | Yes | High |
+| Functional requirements | >= 5 | Medium |
+| Data migrations / state transitions | Yes | Medium |
+
+- **Complex** (any HIGH met): generate full artifacts (research.md, data-model.md, contracts/, quickstart.md)
+- **Simple** (no HIGH met): generate plan.md only
+
+## Step 5: Research Phase
+
+Scan existing codebase for: folder structure, naming conventions, entities, handlers,
+NuGet packages, DI patterns, test frameworks. If `--verbose`, print discoveries.
+
+## Step 6: Generate Plan
+
+Load `skills/workflow/plan-templates/SKILL.md` for mode-specific plan structure.
+
+## Step 7: Generate Supporting Artifacts (Complex Only)
+
+Load `skills/workflow/plan-artifacts/SKILL.md` for research.md, data-model.md,
+contracts/, and quickstart.md generation guidance.
+
+## Step 7b: Generate Event Flow (microservice mode)
+
+For microservice mode projects with inter-service communication:
+1. Generate `event-flow.md` in the feature directory
+2. Document each inter-service event:
+   - **Event name**: Domain event class name
+   - **Producer**: Service that publishes the event
+   - **Consumer(s)**: Service(s) that subscribe
+   - **Payload schema**: Key fields in the event payload
+3. Include event ordering and idempotency notes where relevant
+
+## Step 7c: Update Projected Briefs (microservice mode)
+
+For each secondary repo with an existing brief in `.dotnet-ai-kit/briefs/{source-repo-name}/{NNN}-{name}/`:
+1. Append or update "Implementation Approach" section with architecture decisions relevant to that repo.
+2. Update "Required Changes" with technical approach from plan.md.
+3. If `data-model.md` was generated, include relevant entity details for that repo.
+4. Update phase to "Planned". If brief doesn't exist yet (repo cloned after specify), create it now with all available info.
+
+Auto-commit with `chore: update feature brief {NNN}-{name} — planned`. Skip auto-commit if repo has uncommitted changes.
+
+## Step 8: Report
+
+```
+Plan generated for {NNN}-{short-name}.
+Mode: {generic|microservice} | Complexity: {simple|complex}
+Constitution: {PASS|FAIL with count}
+
+Artifacts created:
+- plan.md
+{if complex:} research.md, data-model.md, quickstart.md, contracts/
+{if microservice:} service-map.md, event-flow.md
+
+Next: /dotnet-ai.tasks or /dotnet-ai.analyze
+```
+
+## Dry-Run Behavior
+
+When `--dry-run`: print plan content, show file paths, do NOT write files, prefix `[DRY-RUN]`.
+
+## Secondary Repo Branch Safety
+
+When updating projected briefs in linked secondary repos:
+1. Read linked repos from `.dotnet-ai-kit/config.yml` repos section
+2. For each linked repo with a local path:
+   - Run `git -C {repo_path} rev-parse --abbrev-ref HEAD` to check current branch
+   - If on main/master/develop: run `git -C {repo_path} checkout -b chore/brief-{NNN}-{name}`
+   - If `chore/brief-{NNN}-{name}` already exists: run `git -C {repo_path} checkout chore/brief-{NNN}-{name}` (reuse the branch created by specify)
+   - If working directory dirty (`git -C {repo_path} status --porcelain` returns output): warn and skip
+3. After writing the brief file, stage and commit on the chore branch
+4. NEVER commit directly to main, master, or develop branches
+5. Optionally offer PR creation for the chore branch
+
+## Error Handling
+
+- Missing spec: direct to `/dotnet-ai.specify`
+- Missing config: proceed with auto-detection, warn user
+- Constitution violations: document but do not block
+
+## MCP-first (FR-021 / FR-022)
+
+Graph/dependency/ownership/architecture questions: query `codebase-memory-mcp` first; use `csharp-ls` for symbol-precise lookups; `grep`/file reads only as last resort.
+
+If MCP is unavailable, emit exactly:
+> MCP unavailable: codebase-memory-mcp is not connected or below >=0.6.1; falling back to csharp-ls + grep/read.
+

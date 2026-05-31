@@ -1,3 +1,3 @@
 name = "dotnet-architect"
-description = "Leads overall .NET solution architecture and cross-cutting design decisions. Use when choosing layering, project structure, or design patterns for a .NET solution. Do NOT use for query-side read models (use query-architect) or command-side aggregates (use command-architect)."
-skills = ["minimal-api-patterns", "add-aggregate"]
+description = "Leads overall .NET solution architecture and design patterns"
+skills = ["advisor", "async-patterns", "background-jobs", "clean-architecture", "coding-conventions", "configuration", "csharp-idioms", "ddd-patterns", "dependency-injection", "design-patterns", "email-notifications", "error-handling", "feature-flags", "feature-tracking", "file-storage", "fluent-validation", "functional-csharp", "mapping-strategies", "modern-csharp", "modular-monolith", "multi-repo-workflow", "multi-tenancy", "sdd-lifecycle", "session-management", "solid-principles", "vertical-slice"]
