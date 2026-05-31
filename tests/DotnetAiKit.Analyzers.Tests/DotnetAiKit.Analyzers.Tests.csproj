@@ -16,8 +16,9 @@
   </ItemGroup>
 
   <ItemGroup>
-    <!-- Reference the analyzer as a normal library so tests can instantiate it directly. -->
+    <!-- Reference analyzer + code-fix as normal libraries so tests can instantiate them directly. -->
     <ProjectReference Include="..\..\src\DotnetAiKit.Analyzers\DotnetAiKit.Analyzers.csproj" />
+    <ProjectReference Include="..\..\src\DotnetAiKit.Analyzers.CodeFixes\DotnetAiKit.Analyzers.CodeFixes.csproj" />
   </ItemGroup>
 
 </Project>

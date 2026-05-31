@@ -24,6 +24,9 @@ public sealed class ClaudeProjector : IHostProjector
             yield return ProjectRule(rule);
         if (corpus.Manifest is { } manifest)
             yield return ClaudeManifestWriter.Write(manifest);
+
+        // Claude-scoped enforcement hooks (planning/24 T1/T2/T4): PreToolUse injection/deny + Stop gate.
+        yield return ClaudeHooksWriter.Write();
     }
 
     private static ProjectedFile ProjectSkill(Skill skill)

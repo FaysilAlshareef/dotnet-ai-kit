@@ -113,22 +113,21 @@ dotnet format clean, generate --check drift-clean (833 files, 4 hosts), no pkg v
   accurate install flow (`dotnet tool install` + plugin marketplace), real `init` footprint, and the true
   per-host projection (Claude 181 skills; Codex AGENTS.md; Cursor `.mdc` rules + commands; Copilot
   render-only `.github/copilot-instructions.md`).
-- **Dead-file cleanup.** Removed the v1 top-level `hooks/` dir (planning/22 places hooks in the `build/`
-  projection, not a source dir) and fixed stale `hooks/`/Python references in the shipped root docs
-  (`README.md`, `AGENTS.md`, `CONTRIBUTING.md`, `SECURITY.md` were still v1).
 
-## Still deferred — named honestly (NOT claimed complete)
+## Enforcement-tier gap CLOSED + final cleanup
 
-- **Interceptive (PreToolUse) + completion-gate (Stop) enforcement tiers are UNDELIVERED.** planning/24
-  defines four enforcement tiers. Two are wired and proven: **advisory** (`init` writes `.claude/rules/*.md`
-  with `paths:`) and **deterministic** (the shipped Roslyn analyzer DAK0001/DAK0004 + code-fix, SC-004 green).
-  The other two are **designed but not wired into any host**: `VerificationGateService` and the PreToolUse
-  rule-injection logic exist with passing *unit* tests, but no host manifest or `settings.json` invokes them
-  (commit 982daf0 authored top-level hook *scripts* that nothing referenced — now removed as dead). Faithful
-  delivery (planning/22) is to author hooks in `artifacts/` and have the Claude projector emit
-  `build/claude/hooks/hooks.json` — a scoped follow-on feature. **Not done this session; do not mark closed.**
-  Also fixed CI stragglers: `.github/dependabot.yml` (pip → nuget ecosystem) and `pull_request_template.md`
-  (pytest/ruff gates → dotnet build/test/format/generate gates).
-- **`bin/` removed (dead v1).** `bin/dotnet-ai`/`.cmd` were `exec python -m dotnet_ai_kit.cli` wrappers —
-  broken once Python was deleted — and `bin/README.md` documented pip/uv install. Removed the dir and the
-  now-pointless `!/bin/` `.gitignore` exception. Distribution is `dotnet tool install --global DotnetAiKit.Tool`.
+- **All FOUR planning/24 enforcement tiers are now WIRED for Claude (the prior 2-of-4 gap is closed).**
+  T1 advisory (`init` writes `.claude/rules/*.md` with `paths:`) **+** a PreToolUse hook injecting matching
+  rule bodies as `additionalContext`; T2 interceptive (PreToolUse **deny** on generated-file edits —
+  obj/bin/*.g.cs/*.Designer.cs/*.AssemblyInfo.cs); T3 deterministic (the Roslyn analyzer DAK0001/DAK0004 +
+  code-fix); T4 completion-gate (Stop/SubagentStop runs `dotnet build` + `dotnet test`, blocks "done" until
+  green). Delivered as a cross-platform `dotnet-ai hook {pretooluse,stop}` verb (`PreToolUseHookService` +
+  `VerificationGateService`) wired via `ClaudeProjector` → `build/claude/hooks/hooks.json`. Per planning/26
+  the hard tiers (T2/T4) are Claude-scoped; other hosts fall back to analyzer + CI. Covered by unit tests
+  (`HookTests`) + a projector test + verified end-to-end (inject/deny/scope/block all confirmed via stdin).
+  The analyzer/code-fix were also **split** into `DotnetAiKit.Analyzers` (no Workspaces) +
+  `DotnetAiKit.Analyzers.CodeFixes` to satisfy RS1038 (a code-fix's Workspaces ref must not sit in the
+  analyzer assembly, or consumers' command-line builds could fail to load the analyzers).
+- **Dead-file cleanup + CI.** Removed the v1 top-level `hooks/` source dir (planning/22 projects hooks into
+  `build/`) and the dead v1 `bin/` python wrappers; fixed `.github/dependabot.yml` (pip → nuget) and
+  `pull_request_template.md` (pytest/ruff → dotnet gates); fixed stale v1 references in the root docs.

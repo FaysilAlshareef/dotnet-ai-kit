@@ -10,5 +10,6 @@ root.Subcommands.Add(DetectCommand.Create());
 root.Subcommands.Add(MigrateCommand.Create());
 root.Subcommands.Add(ConfigureCommand.Create());
 root.Subcommands.Add(UpgradeCommand.Create());
+root.Subcommands.Add(HookCommand.Create());
 
 return await root.Parse(args).InvokeAsync();

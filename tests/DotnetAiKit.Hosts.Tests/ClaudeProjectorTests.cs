@@ -112,4 +112,21 @@ public class ClaudeProjectorTests
         Assert.DoesNotContain("mcpServers", file.Content, StringComparison.Ordinal);
         Assert.DoesNotContain("lspServers", file.Content, StringComparison.Ordinal);
     }
+
+    [Fact]
+    public void Projector_emits_claude_enforcement_hooks_wired_to_the_tool()
+    {
+        // planning/24 T1/T2 (PreToolUse) + T4 (Stop/SubagentStop) wired to the on-PATH dotnet-ai tool.
+        var file = Project(new ArtifactCorpus())["claude/hooks/hooks.json"];
+
+        using var doc = System.Text.Json.JsonDocument.Parse(file.Content); // must be valid JSON
+        Assert.Contains("\"matcher\": \"Edit|Write|MultiEdit\"", file.Content, StringComparison.Ordinal);
+        Assert.Contains("dotnet-ai hook pretooluse", file.Content, StringComparison.Ordinal);
+        Assert.Contains("dotnet-ai hook stop", file.Content, StringComparison.Ordinal);
+
+        var hooks = doc.RootElement.GetProperty("hooks");
+        Assert.True(hooks.TryGetProperty("PreToolUse", out _));
+        Assert.True(hooks.TryGetProperty("Stop", out _));
+        Assert.True(hooks.TryGetProperty("SubagentStop", out _));
+    }
 }

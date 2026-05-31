@@ -1,0 +1,25 @@
+<Project Sdk="Microsoft.NET.Sdk">
+
+  <!-- Code-fix providers shipped as the Dotnet.Ai.Kit.CodeFixes NuGet, separate from the analyzers:
+       code-fixes reference Microsoft.CodeAnalysis.Workspaces (IDE-only), which must NOT live in an
+       assembly containing DiagnosticAnalyzers (RS1038). This assembly contains only CodeFixProviders. -->
+  <PropertyGroup>
+    <TargetFramework>netstandard2.0</TargetFramework>
+    <RootNamespace>DotnetAiKit.Analyzers</RootNamespace>
+    <PackageId>Dotnet.Ai.Kit.CodeFixes</PackageId>
+    <IsRoslynComponent>true</IsRoslynComponent>
+    <EnforceExtendedAnalyzerRules>true</EnforceExtendedAnalyzerRules>
+    <IncludeBuildOutput>false</IncludeBuildOutput>
+  </PropertyGroup>
+
+  <ItemGroup>
+    <PackageReference Include="Microsoft.CodeAnalysis.CSharp.Workspaces" PrivateAssets="all" />
+    <PackageReference Include="Microsoft.CodeAnalysis.Analyzers" PrivateAssets="all" />
+  </ItemGroup>
+
+  <!-- Ship the code-fix assembly into the analyzers/ NuGet folder so the IDE loads it. -->
+  <ItemGroup>
+    <None Include="$(OutputPath)\$(AssemblyName).dll" Pack="true" PackagePath="analyzers/dotnet/cs" Visible="false" />
+  </ItemGroup>
+
+</Project>

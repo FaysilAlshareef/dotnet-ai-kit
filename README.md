@@ -20,7 +20,7 @@
 
 - **One source, four assistants** — author a skill/agent/rule/command once in `artifacts/`; `dotnet-ai generate` projects it to Claude, Codex, Cursor, and Copilot. A CI drift gate (`git diff --exit-code`) makes divergence impossible to merge.
 - **Rules that actually arrive** — `dotnet-ai init` writes your domain rules to `.claude/rules/*.md` with `paths:` scoping, so the right conventions load when the relevant file is touched (the v1 bug, fixed).
-- **Deterministic enforcement** — a shipped `DotnetAiKit.Analyzers` Roslyn package turns mechanical conventions into build errors with code-fixes (`DAK0001` no `async void`; `DAK0004` aggregates expose no public setters). Advisory rules + the analyzer are the two wired enforcement tiers; the interceptive (PreToolUse) and completion-gate (Stop) hook tiers are designed in `planning/24` and slated for a follow-on.
+- **Deterministic enforcement** — all four `planning/24` tiers are wired: advisory rules + a PreToolUse `additionalContext` injection (T1), a PreToolUse **deny** on generated-file edits (T2), the shipped `DotnetAiKit.Analyzers` Roslyn package turning mechanical conventions into build errors with code-fixes (`DAK0001`, `DAK0004` — T3), and a **Stop hook** that blocks "done" until `dotnet build` + `dotnet test` are green (T4). The hard hook tiers are Claude-scoped (other hosts fall back to the analyzer + CI).
 - **A full SDD lifecycle** — 32 commands from `constitution` → `specify` → … → `verify` → `pr` → `release`, plus code-generation commands.
 - **Token-frugal** — commands are off the always-loaded listing; selection is sharp descriptions + an artifact graph, gated by a triggering eval — not a heavyweight router.
 

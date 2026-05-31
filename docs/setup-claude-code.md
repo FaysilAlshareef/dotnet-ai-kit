@@ -68,18 +68,23 @@ plugin install path on every session.
 
 ## 4. Enforcement
 
-Two enforcement tiers are wired and active:
+All four enforcement tiers (planning/24) are wired and active for Claude Code:
 
-- **Advisory (rules)** — the `.claude/rules/*.md` written by `init`; domain rules carry
-  `paths:` so they load just-in-time, universal rules are always on.
-- **Deterministic (Roslyn analyzer)** — `DAK0001` (no `async void`) and `DAK0004`
-  (aggregate properties must not have public setters, with a code-fix that makes the
-  setter `private`). Costs zero model tokens; fails the build regardless of host.
+- **T1 Advisory** — the `.claude/rules/*.md` written by `init` (domain rules carry
+  `paths:` so they load just-in-time; universal rules are always on), **plus** the
+  PreToolUse hook injecting the matching rule bodies as `additionalContext` on every
+  Write/Edit (the runtime half of the rule-delivery fix).
+- **T2 Interceptive** — the PreToolUse hook **denies** edits to generated/build-output
+  files (`obj/`, `bin/`, `*.g.cs`, `*.Designer.cs`, `*.AssemblyInfo.cs`) before they reach disk.
+- **T3 Deterministic** — the Roslyn analyzer: `DAK0001` (no `async void`) and `DAK0004`
+  (aggregates expose no public setters, with a code-fix). Zero model tokens; fails the build.
+- **T4 Completion gate** — the Stop / SubagentStop hook runs `dotnet build` + `dotnet test`
+  when the assistant tries to finish and **blocks "done"** until both are green.
 
-Two further tiers are **designed (planning/24) but not yet wired** into the plugin:
-the interceptive **PreToolUse** hook (arch-profile check before Write/Edit) and the
-completion-gate **Stop** hook (block "done" on unmet gates). Their logic exists with
-unit tests; projecting them to `build/claude/hooks/hooks.json` is a tracked follow-on.
+The hook tiers are projected to `build/claude/hooks/hooks.json` and call the on-PATH
+`dotnet-ai hook pretooluse` / `dotnet-ai hook stop` (cross-platform — no bash/python).
+Per planning/26 these hard tiers (T2/T4) are Claude-scoped; other hosts fall back to the
+analyzer + CI.
 
 ---
 

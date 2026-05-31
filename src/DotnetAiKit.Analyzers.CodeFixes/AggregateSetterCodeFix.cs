@@ -1,6 +1,5 @@
 using System.Collections.Immutable;
 using System.Composition;
-using System.Linq;
 using System.Threading.Tasks;
 using Microsoft.CodeAnalysis;
 using Microsoft.CodeAnalysis.CodeActions;
@@ -10,13 +9,19 @@ using Microsoft.CodeAnalysis.CSharp.Syntax;
 
 namespace DotnetAiKit.Analyzers;
 
-/// <summary>Code-fix for DAK0004: add <c>private</c> to a public setter on an aggregate (FR-F3 / T060).</summary>
+/// <summary>
+/// Code-fix for DAK0004: add <c>private</c> to a public setter on an aggregate (FR-F3 / T060).
+/// Lives in its own assembly (Dotnet.Ai.Kit.CodeFixes) so its Workspaces reference never sits in the
+/// analyzer assembly (RS1038). The fixable id is the analyzer's stable public diagnostic id.
+/// </summary>
 [ExportCodeFixProvider(LanguageNames.CSharp, Name = nameof(AggregateSetterCodeFix))]
 [Shared]
 public sealed class AggregateSetterCodeFix : CodeFixProvider
 {
-    public override ImmutableArray<string> FixableDiagnosticIds =>
-        ImmutableArray.Create(AggregateEncapsulationAnalyzer.DiagnosticId);
+    // The stable public diagnostic id of AggregateEncapsulationAnalyzer (see AnalyzerReleases.Shipped.md).
+    private const string DiagnosticId = "DAK0004";
+
+    public override ImmutableArray<string> FixableDiagnosticIds => ImmutableArray.Create(DiagnosticId);
 
     public override FixAllProvider GetFixAllProvider() => WellKnownFixAllProviders.BatchFixer;
 

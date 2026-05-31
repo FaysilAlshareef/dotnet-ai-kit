@@ -40,6 +40,8 @@ internal static class CompositionRoot
 
     public static DetectService BuildDetectService() => new(BuildDetector());
 
+    public static VerificationGateService BuildVerificationGateService() => new(new ProcessRunner());
+
     public static MigrateService BuildMigrateService() => new(FileSystem, new BackupRotationService(FileSystem));
 
     public static ConfigureService BuildConfigureService() => new(FileSystem);

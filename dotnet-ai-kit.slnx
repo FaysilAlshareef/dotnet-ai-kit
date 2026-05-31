@@ -1,6 +1,7 @@
 <Solution>
   <Folder Name="/src/">
     <Project Path="src/DotnetAiKit.Analyzers/DotnetAiKit.Analyzers.csproj" />
+    <Project Path="src/DotnetAiKit.Analyzers.CodeFixes/DotnetAiKit.Analyzers.CodeFixes.csproj" />
     <Project Path="src/DotnetAiKit.Application/DotnetAiKit.Application.csproj" />
     <Project Path="src/DotnetAiKit.Cli/DotnetAiKit.Cli.csproj" />
     <Project Path="src/DotnetAiKit.Core/DotnetAiKit.Core.csproj" />
