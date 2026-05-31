@@ -37,7 +37,9 @@ jobs:
       - name: Restore
         run: dotnet restore dotnet-ai-kit.slnx
       - name: Build
-        run: dotnet build dotnet-ai-kit.slnx --no-restore -c Release
+        run: dotnet build dotnet-ai-kit.slnx --no-restore -c Release -warnaserror
+      - name: Format check
+        run: dotnet format dotnet-ai-kit.slnx --verify-no-changes --no-restore
       - name: Test
         run: dotnet test dotnet-ai-kit.slnx --no-build -c Release
 

@@ -1,7 +1,7 @@
+using DotnetAiKit.Application.Ports;
 using DotnetAiKit.Application.UseCases;
 using DotnetAiKit.Hosts;
 using DotnetAiKit.Hosts.Claude;
-using DotnetAiKit.Application.Ports;
 using DotnetAiKit.Infrastructure;
 using Xunit;
 

@@ -12,6 +12,9 @@
     <PackageVersion Include="YamlDotNet" Version="18.0.0" />
     <PackageVersion Include="Microsoft.ML.Tokenizers" Version="2.0.0" />
     <PackageVersion Include="Microsoft.ML.Tokenizers.Data.Cl100kBase" Version="2.0.0" />
+    <!-- Transitive pin: Microsoft.ML.Tokenizers 2.0.0 pulls Bcl.Memory 9.0.4 (NU1903, GHSA-73j8-2gch-69rq).
+         Pin forward to the latest patched 9.x. -->
+    <PackageVersion Include="Microsoft.Bcl.Memory" Version="9.0.16" />
   </ItemGroup>
 
   <ItemGroup Label="Analyzer (P7)">
