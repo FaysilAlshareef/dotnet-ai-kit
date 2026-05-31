@@ -2,5 +2,6 @@
   "name": "dotnet-ai-kit",
   "version": "2.0.0",
   "description": "AI dev tool plugin for the full .NET development lifecycle \u2014 authored once, projected to Claude Code, Codex CLI, Cursor, and GitHub Copilot.",
+  "author": { "name": "Faysil Alshareef" },
   "keywords": ["dotnet", "ai", "cqrs", "minimal-api", "sdd", "clean-architecture"]
 }

@@ -1,10 +1,11 @@
 {
   "name": "dotnet-ai-kit",
+  "description": "AI dev tool plugin for the full .NET development lifecycle \u2014 authored once, projected to Claude Code, Codex CLI, Cursor, and GitHub Copilot.",
   "owner": { "name": "Faysil Alshareef" },
   "plugins": [
     {
       "name": "dotnet-ai-kit",
-      "source": ".",
+      "source": "./claude",
       "version": "2.0.0",
       "description": "AI dev tool plugin for the full .NET development lifecycle \u2014 authored once, projected to Claude Code, Codex CLI, Cursor, and GitHub Copilot."
     }

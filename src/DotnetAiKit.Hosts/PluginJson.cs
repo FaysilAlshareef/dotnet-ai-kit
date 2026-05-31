@@ -14,6 +14,7 @@ internal static class PluginJson
         sb.Append("  \"name\": ").Append(Json(name)).Append(",\n");
         sb.Append("  \"version\": ").Append(Json(version)).Append(",\n");
         sb.Append("  \"description\": ").Append(Json(description)).Append(",\n");
+        sb.Append("  \"author\": { \"name\": ").Append(Json("Faysil Alshareef")).Append(" },\n");
         sb.Append("  \"keywords\": ").Append(Array(keywords)).Append('\n');
         sb.Append("}\n");
         return sb.ToString();

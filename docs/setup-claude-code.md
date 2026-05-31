@@ -23,7 +23,8 @@ dotnet-ai --version          # 2.0.0
 
 ## 2. Install the plugin
 
-The plugin is the generated `build/` tree, advertised by `build/marketplace.json`.
+The generated `build/` tree is a marketplace (`build/.claude-plugin/marketplace.json`)
+whose one plugin's `source` is `./claude`, so the plugin root is `build/claude/`.
 
 ```bash
 # From the repo checkout (or a published marketplace)
@@ -31,9 +32,9 @@ The plugin is the generated `build/` tree, advertised by `build/marketplace.json
 /plugin install dotnet-ai-kit
 ```
 
-After install, all skills, command-skills (`/dai.*`), agents, rules, and hooks are
-live immediately. No `dotnet-ai init` is required just to *use* the plugin — `init`
-only wires a specific solution to the convention rules.
+After install, all skills, command-skills (`/dai.*`), agents, and hooks are live
+immediately. No `dotnet-ai init` is required just to *use* the plugin — `init` wires a
+specific solution to the convention rules (`.claude/rules/*.md`).
 
 ---
 
@@ -88,12 +89,12 @@ analyzer + CI. The Stop gate runs on every Stop/SubagentStop (an intentional alw
 default; planning/24 left always-on-vs-opt-in open) and honors `stop_hook_active` so a
 red build can't wedge the session in a block loop.
 
-> **Discovery note.** The hook backend (`dotnet-ai hook`) and the generated `hooks.json`
-> are verified end-to-end. Whether Claude Code auto-*fires* them in-session depends on it
-> discovering `build/claude/hooks/hooks.json` from the installed plugin — the same
-> plugin-root resolution that governs whether `build/claude/skills|agents|rules` load.
-> That end-to-end plugin-load path is tracked separately (the "`build/` as a loadable
-> plugin" item) and is not asserted here.
+> **Verified loadable.** `build/claude/` is a valid Claude plugin and `build/` a valid
+> marketplace — both pass `claude plugin validate … --strict`. The marketplace
+> (`build/.claude-plugin/marketplace.json`) points the plugin `source` at `./claude`, so the
+> plugin root is `build/claude/` and its `skills/`, `agents/`, and `hooks/hooks.json` are
+> auto-discovered. With the plugin installed, the PreToolUse/Stop hooks fire from
+> `build/claude/hooks/hooks.json`; the `dotnet-ai hook` backend is verified end-to-end.
 
 ---
 

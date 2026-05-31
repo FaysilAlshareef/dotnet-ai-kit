@@ -105,7 +105,7 @@ public class ClaudeProjectorTests
             },
         };
 
-        var file = Project(corpus)[".claude-plugin/plugin.json"];
+        var file = Project(corpus)["claude/.claude-plugin/plugin.json"];
         Assert.Contains("\"name\": \"dotnet-ai-kit\"", file.Content, StringComparison.Ordinal);
         Assert.Contains("\"version\": \"2.0.0\"", file.Content, StringComparison.Ordinal);
         Assert.DoesNotContain("hooks", file.Content, StringComparison.Ordinal);
