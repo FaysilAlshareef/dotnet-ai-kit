@@ -12,7 +12,7 @@ namespace DotnetAiKit.Hosts.Tests;
 
 public class MultiHostProjectorTests
 {
-    private static ArtifactCorpus Sample()
+    internal static ArtifactCorpus Sample()
     {
         const string skillDesc = "Generates endpoints. Use when adding routes. Do NOT use for MVC (use controller-patterns).";
         const string cmdDesc = "Creates a spec. Use when starting a feature. Do NOT use for planning (use plan).";
