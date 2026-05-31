@@ -4,20 +4,45 @@
   "title": "Cursor Plugin Manifest (dotnet-ai-kit)",
   "description": "Schema for .cursor-plugin/plugin.json per the official Cursor plugin docs at https://cursor.com/docs/reference/plugins (retrieved 2026-05-19) and modeled on the verified working example at https://raw.githubusercontent.com/cursor/plugins/main/agent-compatibility/.cursor-plugin/plugin.json. Manifest fields are scalar relative path strings with `./` prefix (Cursor docs allow string OR array; this manifest opts into the scalar string form). The agent-bearing field is `agents` (NOT `subagents`) and the verified path is `./agents/`. Per spec A-005 / OOS-005: with the spike fixture flipped to PASS, the `agents` field is required; if a future workflow_dispatch smoke run regresses to FAIL, the `agents` field MUST be removed per cursor-fixture-decision.contract.md. Optional fields per docs: `commands`, `keywords`, `author`, `homepage`, `repository`, `license`, `logo` — the manifest currently opts into `commands` (declares the 27 slash commands explicitly) and `keywords` (marketplace discovery).",
   "type": "object",
-  "required": ["name", "version", "description", "skills", "mcpServers", "hooks"],
+  "required": [
+    "name",
+    "version",
+    "description",
+    "skills"
+  ],
   "additionalProperties": false,
   "properties": {
-    "name": { "type": "string", "const": "dotnet-ai-kit" },
-    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+(-[A-Za-z0-9\\.\\-]+)?$" },
-    "description": { "type": "string", "minLength": 1 },
+    "name": {
+      "type": "string",
+      "const": "dotnet-ai-kit"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[A-Za-z0-9\\.\\-]+)?$"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
     "author": {
       "type": "object",
-      "required": ["name"],
+      "required": [
+        "name"
+      ],
       "additionalProperties": false,
       "properties": {
-        "name": { "type": "string", "minLength": 1 },
-        "email": { "type": "string", "format": "email" },
-        "url": { "type": "string", "format": "uri" }
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        }
       },
       "description": "Per Cursor plugin docs: optional publisher metadata. Minimum shape is `{name}`; `email` and `url` are documented as optional sub-fields."
     },
@@ -43,7 +68,10 @@
     },
     "keywords": {
       "type": "array",
-      "items": { "type": "string", "minLength": 1 },
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
       "minItems": 1,
       "uniqueItems": true,
       "description": "Per Cursor plugin docs: optional discovery tags for marketplace search."

@@ -48,16 +48,32 @@ def test_codex_plugin_skills_is_scalar_path(manifest: dict) -> None:
     assert manifest["skills"] == "./skills/"
 
 
-def test_codex_plugin_mcp_servers_is_scalar_path(manifest: dict) -> None:
-    """`mcpServers` MUST be a scalar path string `"./.mcp.json"`."""
-    assert isinstance(manifest["mcpServers"], str)
-    assert manifest["mcpServers"] == "./.mcp.json"
+def test_codex_plugin_mcp_servers_not_declared_for_standard_path(manifest: dict) -> None:
+    """mcpServers (.mcp.json) should be absent from the manifest.
+
+    Codex auto-discovers .mcp.json from the plugin root. Declaring the
+    standard path in the manifest is redundant and risks duplicate-load errors.
+    If present, it must NOT point to the default './.mcp.json'.
+    """
+    mcp = manifest.get("mcpServers")
+    if mcp is not None:
+        assert mcp != "./.mcp.json", (
+            "mcpServers './.mcp.json' is the auto-discovered default — remove it from the manifest."
+        )
 
 
-def test_codex_plugin_hooks_is_scalar_path(manifest: dict) -> None:
-    """`hooks` MUST be a scalar path string `"./hooks/hooks.json"`."""
-    assert isinstance(manifest["hooks"], str)
-    assert manifest["hooks"] == "./hooks/hooks.json"
+def test_codex_plugin_hooks_not_declared_for_standard_path(manifest: dict) -> None:
+    """hooks/hooks.json should be absent from the manifest.
+
+    Codex auto-discovers hooks/hooks.json from the plugin root. Declaring the
+    standard path in the manifest is redundant and risks duplicate-load errors.
+    If present, it must NOT point to the default './hooks/hooks.json'.
+    """
+    hooks = manifest.get("hooks")
+    if hooks is not None:
+        assert hooks != "./hooks/hooks.json", (
+            "hooks './hooks/hooks.json' is auto-discovered — remove it from the manifest."
+        )
 
 
 def test_codex_plugin_has_no_agents_field(manifest: dict) -> None:

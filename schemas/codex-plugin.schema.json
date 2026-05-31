@@ -4,20 +4,45 @@
   "title": "Codex CLI Plugin Manifest (dotnet-ai-kit)",
   "description": "Schema for .codex-plugin/plugin.json per https://developers.openai.com/codex/plugins/build (retrieved 2026-05-19). Manifest fields are scalar relative paths with the `./` prefix (e.g., `\"skills\": \"./skills/\"`), NOT object/array wrappers. Codex CLI's documented plugin primitives are skills, MCP, hooks, apps, and assets. `keywords` is the only metadata field this manifest opts into for marketplace discovery. The plugin manifest does NOT bundle subagents — per https://developers.openai.com/codex/subagents (retrieved 2026-05-19), subagents are project-scoped TOML files at `.codex/agents/<name>.toml` written by CodexHost.write_per_solution_files(). Therefore `agents` AND `subagents` MUST NOT appear at the plugin manifest level (OOS-004 plugin-bundling portion still deferred to v1.1).",
   "type": "object",
-  "required": ["name", "version", "description", "skills", "mcpServers", "hooks"],
+  "required": [
+    "name",
+    "version",
+    "description",
+    "skills"
+  ],
   "additionalProperties": false,
   "properties": {
-    "name": { "type": "string", "const": "dotnet-ai-kit" },
-    "version": { "type": "string", "pattern": "^\\d+\\.\\d+\\.\\d+(-[A-Za-z0-9\\.\\-]+)?$" },
-    "description": { "type": "string", "minLength": 1 },
+    "name": {
+      "type": "string",
+      "const": "dotnet-ai-kit"
+    },
+    "version": {
+      "type": "string",
+      "pattern": "^\\d+\\.\\d+\\.\\d+(-[A-Za-z0-9\\.\\-]+)?$"
+    },
+    "description": {
+      "type": "string",
+      "minLength": 1
+    },
     "author": {
       "type": "object",
-      "required": ["name"],
+      "required": [
+        "name"
+      ],
       "additionalProperties": false,
       "properties": {
-        "name": { "type": "string", "minLength": 1 },
-        "email": { "type": "string", "format": "email" },
-        "url": { "type": "string", "format": "uri" }
+        "name": {
+          "type": "string",
+          "minLength": 1
+        },
+        "email": {
+          "type": "string",
+          "format": "email"
+        },
+        "url": {
+          "type": "string",
+          "format": "uri"
+        }
       },
       "description": "Per Codex plugin docs: optional publisher metadata. Minimum shape is `{name}`; `email` and `url` are documented as optional sub-fields."
     },
@@ -43,7 +68,10 @@
     },
     "keywords": {
       "type": "array",
-      "items": { "type": "string", "minLength": 1 },
+      "items": {
+        "type": "string",
+        "minLength": 1
+      },
       "minItems": 1,
       "uniqueItems": true,
       "description": "Per Codex docs (developers.openai.com/codex/plugins/build): optional discovery tags for marketplace search."
@@ -81,12 +109,36 @@
   },
   "not": {
     "anyOf": [
-      { "required": ["agents"] },
-      { "required": ["subagents"] },
-      { "required": ["lspServers"] },
-      { "required": ["monitors"] },
-      { "required": ["settings"] },
-      { "required": ["bin"] }
+      {
+        "required": [
+          "agents"
+        ]
+      },
+      {
+        "required": [
+          "subagents"
+        ]
+      },
+      {
+        "required": [
+          "lspServers"
+        ]
+      },
+      {
+        "required": [
+          "monitors"
+        ]
+      },
+      {
+        "required": [
+          "settings"
+        ]
+      },
+      {
+        "required": [
+          "bin"
+        ]
+      }
     ]
   }
 }

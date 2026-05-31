@@ -38,8 +38,5 @@
     "./agents-claude/query-architect.md",
     "./agents-claude/reviewer.md",
     "./agents-claude/test-engineer.md"
-  ],
-  "hooks": "./hooks/hooks.json",
-  "mcpServers": "./.mcp.json",
-  "lspServers": "./.lsp.json"
+  ]
 }
