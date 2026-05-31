@@ -76,6 +76,43 @@ public sealed class InfrastructureAdapterTests : IDisposable
         Assert.Contains(result.Errors, e => e.Contains("ghost-skill", StringComparison.Ordinal));
     }
 
+    [Fact]
+    public void Repository_rejects_an_unsupported_schema_version()
+    {
+        var dir = Path.Combine(_root, "artifacts", "skills", "sample", "future-skill");
+        _fs.WriteAllText(Path.Combine(dir, "SKILL.md"),
+            "---\nname: future-skill\n"
+            + "description: \"Does X. Use when Y. Do NOT use for Z (use add-entity).\"\n"
+            + "schema-version: \"9.0.0\"\n---\n# future-skill\n");
+
+        var result = new FileSystemArtifactRepository(_fs, _serializer).Load(Path.Combine(_root, "artifacts"));
+
+        Assert.False(result.Ok);
+        Assert.Contains(result.Errors, e => e.Contains("schema-version", StringComparison.Ordinal));
+    }
+
+    [Fact]
+    public void Repository_loads_skill_resources_with_relative_paths_and_lf_content()
+    {
+        var dir = Path.Combine(_root, "artifacts", "skills", "sample", "resourced");
+        _fs.WriteAllText(Path.Combine(dir, "SKILL.md"),
+            "---\nname: resourced\n"
+            + "description: \"Does X. Use when Y. Do NOT use for Z (use add-entity).\"\n---\n# resourced\n");
+        _fs.WriteAllText(Path.Combine(dir, "scripts", "run.py"), "print('hi')\r\n");          // CRLF → must normalize
+        _fs.WriteAllText(Path.Combine(dir, "examples", "proj", "Order.cs"), "class Order;\n"); // nested → preserve subdir
+
+        var result = new FileSystemArtifactRepository(_fs, _serializer).Load(Path.Combine(_root, "artifacts"));
+
+        Assert.True(result.Ok, string.Join("; ", result.Errors));
+        var skill = Assert.Single(result.Corpus!.Skills);
+        var script = Assert.Single(skill.Resources.Scripts);
+        Assert.Equal("scripts/run.py", script.RelativePath);
+        Assert.Equal("print('hi')\n", script.Content);   // LF-normalized
+        Assert.True(script.IsExecutable);
+        var example = Assert.Single(skill.Resources.Examples);
+        Assert.Equal("examples/proj/Order.cs", example.RelativePath);  // nested subdir preserved
+    }
+
     private void WriteSkill(string name, string agent)
     {
         var dir = Path.Combine(_root, "artifacts", "skills", "sample", name);

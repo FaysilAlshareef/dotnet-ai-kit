@@ -17,7 +17,12 @@ public sealed class ClaudeProjector : IHostProjector
     public IEnumerable<ProjectedFile> Project(ArtifactCorpus corpus)
     {
         foreach (var skill in corpus.Skills)
+        {
             yield return ProjectSkill(skill);
+            foreach (var resource in SkillResourceProjection.Emit(skill, "claude/skills"))
+                yield return resource;
+        }
+
         foreach (var agent in corpus.Agents)
             yield return ProjectAgent(agent);
         foreach (var rule in corpus.Rules)

@@ -23,12 +23,16 @@ public sealed class CursorProjector : IHostProjector
                     $"cursor/commands/{skill.Name.Value}.md",
                     new FrontmatterWriter().Quoted("description", skill.Description.Value).Compose(skill.Body));
             else
+            {
                 yield return new ProjectedFile(
                     $"cursor/skills/{skill.Name.Value}/SKILL.md",
                     new FrontmatterWriter()
                         .Scalar("name", skill.Name.Value)
                         .Quoted("description", skill.Description.Value)
                         .Compose(skill.Body));
+                foreach (var resource in SkillResourceProjection.Emit(skill, "cursor/skills"))
+                    yield return resource;
+            }
         }
 
         foreach (var rule in corpus.Rules)

@@ -72,6 +72,16 @@ public sealed class FileSystemArtifactRepository(IFileSystem fileSystem, IArtifa
                 var meta = fm.Metadata;
                 var isCommand = file.Replace('\\', '/').Contains("/skills/commands/", StringComparison.Ordinal)
                                 || Meta(meta, "kind") == "command";
+
+                // FR-022-19: the schema-version guard. The parser already populated fm.SchemaVersion
+                // (top-level frontmatter, default 1.0.0); fail an out-of-range version rather than load it.
+                if (!ArtifactSchema.IsSupported(fm.SchemaVersion))
+                {
+                    errors.Add($"skills: {file}: unsupported schema-version '{fm.SchemaVersion}' "
+                        + $"(supported >={ArtifactSchema.Min} <{ArtifactSchema.MaxExclusive}; run migrate).");
+                    continue;
+                }
+
                 result.Add(new Skill
                 {
                     Name = ArtifactName.From(dirName),
@@ -83,6 +93,7 @@ public sealed class FileSystemArtifactRepository(IFileSystem fileSystem, IArtifa
                     OwningAgent = OptionalName(Meta(meta, "agent")),
                     Paths = ParseGlobs(Meta(meta, "paths")),
                     Resources = ScanResources(Path.GetDirectoryName(file)!),
+                    SchemaVersion = fm.SchemaVersion,
                 });
             }
             catch (DomainException ex)
@@ -303,21 +314,31 @@ public sealed class FileSystemArtifactRepository(IFileSystem fileSystem, IArtifa
 
     private SkillResourceSet ScanResources(string skillDir)
     {
-        IReadOnlyList<string> Names(string sub)
+        // Load each resource subtree with content so the (pure) projectors can emit it. Paths are
+        // skill-dir-relative + forward-slashed (preserve subdirs), sorted (deterministic drift), and
+        // LF-normalized (byte-stable on Windows). Text-only.
+        IReadOnlyList<ResourceFile> Load(string sub)
         {
-            var path = Path.Combine(skillDir, sub);
-            return fileSystem.DirectoryExists(path)
-                ? fileSystem.EnumerateFiles(path, "*", recursive: true).Select(Path.GetFileName).Where(n => n is not null).Cast<string>().ToList()
-                : [];
+            var dir = Path.Combine(skillDir, sub);
+            if (!fileSystem.DirectoryExists(dir))
+                return [];
+            return fileSystem.EnumerateFiles(dir, "*", recursive: true)
+                .OrderBy(p => p.Replace('\\', '/'), StringComparer.Ordinal)
+                .Select(p => new ResourceFile(
+                    Path.GetRelativePath(skillDir, p).Replace('\\', '/'),
+                    Lf(fileSystem.ReadAllText(p))))
+                .ToList();
         }
 
         return new SkillResourceSet
         {
-            Scripts = Names("scripts"),
-            Examples = Names("examples"),
-            References = Names("references"),
-            Assets = Names("assets"),
-            Evals = Names("evals"),
+            Scripts = Load("scripts"),
+            Examples = Load("examples"),
+            References = Load("references"),
+            Assets = Load("assets"),
+            Evals = Load("evals"),
         };
     }
+
+    private static string Lf(string text) => text.Replace("\r\n", "\n").Replace("\r", "\n");
 }

@@ -24,12 +24,16 @@ public sealed class CopilotProjector : IHostProjector
                     $"copilot/.github/prompts/{skill.Name.Value}.prompt.md",
                     new FrontmatterWriter().Quoted("description", skill.Description.Value).Compose(skill.Body));
             else
+            {
                 yield return new ProjectedFile(
                     $"copilot/skills/{skill.Name.Value}/SKILL.md",
                     new FrontmatterWriter()
                         .Scalar("name", skill.Name.Value)
                         .Quoted("description", skill.Description.Value)
                         .Compose(skill.Body));
+                foreach (var resource in SkillResourceProjection.Emit(skill, "copilot/skills"))
+                    yield return resource;
+            }
         }
 
         foreach (var agent in corpus.Agents)

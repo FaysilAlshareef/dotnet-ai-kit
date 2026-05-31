@@ -16,12 +16,16 @@ public sealed class CodexProjector : IHostProjector
     public IEnumerable<ProjectedFile> Project(ArtifactCorpus corpus)
     {
         foreach (var skill in corpus.Skills)
+        {
             yield return new ProjectedFile(
                 $"codex/skills/{skill.Name.Value}/SKILL.md",
                 new FrontmatterWriter()
                     .Scalar("name", skill.Name.Value)
                     .Quoted("description", skill.Description.Value)
                     .Compose(skill.Body));
+            foreach (var resource in SkillResourceProjection.Emit(skill, "codex/skills"))
+                yield return resource;
+        }
 
         foreach (var agent in corpus.Agents)
             yield return ProjectAgent(agent);
