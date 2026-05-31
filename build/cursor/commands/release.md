@@ -1,5 +1,5 @@
 ---
-description: "Closes out a merged feature — version bump, changelog, tag, and GitHub release. Use after pull requests merge to publish a release. Do NOT use to open the pull request (use pr) or to write release-note documentation only (use docs)."
+description: "Closes out a merged feature — version bump, changelog, tag, and GitHub release. Use when publishing a release after pull requests merge. Do NOT use to open the pull request (use pr) or to write release-note documentation only (use docs)."
 ---
 # /dotnet-ai.release — Post-Merge Release
 

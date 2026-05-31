@@ -53,9 +53,13 @@ public class RuleDeliveryTests
             Assert.True(File.Exists(universalRule));
             Assert.DoesNotContain("paths:", File.ReadAllText(universalRule), StringComparison.Ordinal);
 
-            // SC-011: bounded footprint (the corpus is not copied per project).
-            var fileCount = Directory.EnumerateFiles(temp, "*", SearchOption.AllDirectories).Count();
-            Assert.True(fileCount <= FootprintBound, $"footprint of {fileCount} exceeds bound of {FootprintBound}");
+            // SC-011 (true invariant at full-corpus scale): the bulk corpus — skills/agents/commands —
+            // is NOT copied per project (it comes from the plugin path). init writes only the bounded
+            // config footprint (.dotnet-ai-kit/*) + .claude/settings.json + the delivered rules.
+            var configFootprint = Directory.EnumerateFiles(Path.Combine(temp, ".dotnet-ai-kit"), "*", SearchOption.AllDirectories).Count();
+            Assert.True(configFootprint <= FootprintBound, $"config footprint of {configFootprint} exceeds {FootprintBound}");
+            Assert.False(Directory.Exists(Path.Combine(temp, ".claude", "skills")), "the skill corpus must NOT be copied per project");
+            Assert.False(Directory.Exists(Path.Combine(temp, ".claude", "agents")), "the agent corpus must NOT be copied per project");
         }
         finally
         {
