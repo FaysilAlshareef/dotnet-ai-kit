@@ -84,7 +84,16 @@ All four enforcement tiers (planning/24) are wired and active for Claude Code:
 The hook tiers are projected to `build/claude/hooks/hooks.json` and call the on-PATH
 `dotnet-ai hook pretooluse` / `dotnet-ai hook stop` (cross-platform — no bash/python).
 Per planning/26 these hard tiers (T2/T4) are Claude-scoped; other hosts fall back to the
-analyzer + CI.
+analyzer + CI. The Stop gate runs on every Stop/SubagentStop (an intentional always-on
+default; planning/24 left always-on-vs-opt-in open) and honors `stop_hook_active` so a
+red build can't wedge the session in a block loop.
+
+> **Discovery note.** The hook backend (`dotnet-ai hook`) and the generated `hooks.json`
+> are verified end-to-end. Whether Claude Code auto-*fires* them in-session depends on it
+> discovering `build/claude/hooks/hooks.json` from the installed plugin — the same
+> plugin-root resolution that governs whether `build/claude/skills|agents|rules` load.
+> That end-to-end plugin-load path is tracked separately (the "`build/` as a loadable
+> plugin" item) and is not asserted here.
 
 ---
 

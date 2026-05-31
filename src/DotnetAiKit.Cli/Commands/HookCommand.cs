@@ -55,18 +55,21 @@ internal static class HookCommand
         {
             try
             {
+                // If Claude is already in a Stop-hook continuation, do NOT re-block — otherwise a
+                // persistently-red build (WIP tests, env issue) wedges the session in a loop it can't
+                // escape. Claude sets stop_hook_active for exactly this guard.
+                if (StopHookAlreadyActive(Console.In.ReadToEnd()))
+                    return 0;
+
                 var gate = await CompositionRoot.BuildVerificationGateService()
                     .EvaluateAsync(Environment.CurrentDirectory, cancellationToken);
                 if (!gate.Allowed)
-                {
-                    var block = new JsonObject
+                    Emit(new JsonObject
                     {
                         ["decision"] = "block",
                         ["reason"] = gate.Summary
                             + " — run `dotnet build` and `dotnet test`, fix failures, then finish.",
-                    };
-                    Emit(block);
-                }
+                    });
             }
             catch
             {
@@ -84,6 +87,14 @@ internal static class HookCommand
             return null;
         var root = JsonNode.Parse(stdin);
         return root?["tool_input"]?["file_path"]?.GetValue<string>();
+    }
+
+    private static bool StopHookAlreadyActive(string stdin)
+    {
+        if (string.IsNullOrWhiteSpace(stdin))
+            return false;
+        try { return JsonNode.Parse(stdin)?["stop_hook_active"]?.GetValue<bool>() == true; }
+        catch { return false; }
     }
 
     private static JsonObject PreToolUseOutput(string? permissionDecision, string? reason, string? context)

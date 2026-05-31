@@ -127,7 +127,14 @@ dotnet format clean, generate --check drift-clean (833 files, 4 hosts), no pkg v
   (`HookTests`) + a projector test + verified end-to-end (inject/deny/scope/block all confirmed via stdin).
   The analyzer/code-fix were also **split** into `DotnetAiKit.Analyzers` (no Workspaces) +
   `DotnetAiKit.Analyzers.CodeFixes` to satisfy RS1038 (a code-fix's Workspaces ref must not sit in the
-  analyzer assembly, or consumers' command-line builds could fail to load the analyzers).
+  analyzer assembly, or consumers' command-line builds could fail to load the analyzers). The Stop gate
+  honors `stop_hook_active` (no re-block / wedge loop on a red build) and is an always-on default
+  (planning/24 left always-on-vs-opt-in open).
+- **Honest scope on the hooks:** the `dotnet-ai hook` backend + generated `build/claude/hooks/hooks.json`
+  are verified end-to-end (stdin→protocol). Whether Claude auto-*fires* them in-session depends on
+  plugin-root discovery of `build/claude/hooks/` — the same unresolved **"is `build/` a loadable plugin"**
+  question that governs whether `build/claude/{skills,agents,rules}` load (plugin.json declares no paths;
+  marketplace `source` is `.`). That integration path is pre-existing, project-wide, and NOT asserted here.
 - **Dead-file cleanup + CI.** Removed the v1 top-level `hooks/` source dir (planning/22 projects hooks into
   `build/`) and the dead v1 `bin/` python wrappers; fixed `.github/dependabot.yml` (pip → nuget) and
   `pull_request_template.md` (pytest/ruff → dotnet gates); fixed stale v1 references in the root docs.
