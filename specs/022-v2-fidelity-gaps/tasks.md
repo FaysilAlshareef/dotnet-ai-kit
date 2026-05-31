@@ -50,9 +50,10 @@
 - [ ] T023 [US6] T2 PreToolUse `prompt` (Haiku) hook for judgment-class violations the analyzer can't catch → deny + reason (FR-022-15, Claude-scoped AR-3).
 - [ ] T024 [US6] Forced-output-style channel: author + project the Claude output-style artifact (FR-022-16, AR-10).
 
-## Phase F8 — Schema-version migration (FR-L)
+## Phase F8 — Schema-version migration + corpus name-parity
 
 - [ ] T025 [P] Enforce `SchemaVersion` compatibility on load; out-of-range fails with migration guidance (FR-022-19).
+- [ ] T025b [P] Close the `blazor-hybrid` name-parity gap (FR-022-20): author the skill to the description standard, or record a deliberate de-scope note in planning/23 §5.2 so the corpus and catalog agree. (Only named NEW skill currently absent.)
 
 ## Phase F9 — Final verification
 

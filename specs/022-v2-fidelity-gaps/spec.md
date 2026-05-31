@@ -14,7 +14,8 @@ This feature closes the **remaining fidelity gaps** between the planning baselin
 - **0 of 181 skills** and **0 of 32 command-skills** carry any bundled resource (`scripts/`, `examples/`, `references/`, `assets/`, `evals/`) — every skill is a bare `SKILL.md`. The Core `Skill` model already has `SkillResourceSet Resources` and a `SchemaVersion`; the corpus simply never populates them. (FR-A2, FR-D33, planning/23 §368.)
 - **0 `evals/cases.jsonl`** exist and the triggering oracle is 3 hard-coded lexical `InlineData` cases — far below the FR-E6 design (cluster-curated queries + a confusion matrix). (FR-E6, AR-6.)
 - **0 Verify golden-output files** (`*.verified.*`) exist, though `Verify.Xunit` is referenced — NFR-6 ("golden-output for every projected/generated file") is unmet.
-- The enforcement hooks call `dotnet-ai hook …`, but bare `dotnet-ai` resolves to a **stale v1 Python shim**, not the (un-installed) v2 .NET tool — so the hooks load and validate but **error on fire**.
+- The enforcement hooks call `dotnet-ai hook …`, but bare `dotnet-ai` resolves to a **stale v1 Python shim**, not the (un-installed) v2 .NET tool — so the hooks load and validate but **error on fire**. *(Verified firsthand: `Get-Command dotnet-ai` → `…\Python312\Scripts\dotnet-ai.exe` (v1 pip launcher, v0.0.0.0); `dotnet tool list -g` shows the v2 tool is not installed.)*
+- One named artifact is **absent**: `blazor-hybrid` (planning/23 §5.2, marked "low priority") is the only one of the 29 named NEW skills not in the corpus — count parity (181 ≥ 160) masked it. (The 12 profiles, the other 28 NEW skills, and the 🔀 merges `controllers→controller-patterns`/`scalar→openapi-scalar`/`cqrs-basics` are all correct.)
 - `init` **overwrites** `.claude/settings.json` with a bare schema; the `HostWriteResult.Preserved/PendingConsent/ForceRendered` policy fields are **never populated** — the FR-K user-owned-file policy is unimplemented.
 - T2's **`prompt` (Haiku) judgment hook** (FR-F2) and the **forced-output-style** rule-delivery channel (AR-10) are not implemented; **per-host install smoke tests** (FR-I/AR-2) do not exist; **Codex/Cursor plugin loadability** is unverified (only Claude was validated in 021).
 
@@ -183,6 +184,9 @@ The host-capability matrix (already in Core) is backed by per-host install smoke
 **Schema versioning / migration (FR-L)**
 - **FR-022-19**: The existing `SchemaVersion` field MUST have an enforced compatibility/migration check (the field exists; the migration path does not) — out-of-range schema versions fail load with guidance.
 
+**Corpus name-parity (planning/23 §5.2)**
+- **FR-022-20**: The named-but-absent skill `blazor-hybrid` (planning/23 §5.2, "low priority": reuse control-panel components in MAUI Blazor Hybrid) MUST either be authored to the description standard or explicitly recorded as a deliberate de-scope in the catalog (so name-parity with planning/23 is closed, not silently divergent).
+
 ### Key Entities
 
 - **SkillResourceSet** (exists, empty in corpus): `scripts/` / `examples/` / `references/` / `assets/` / `evals/` for a skill; this feature populates it where required and the projectors emit it.
@@ -215,7 +219,8 @@ The host-capability matrix (already in Core) is backed by per-host install smoke
 | Planning ref | Specified | Codebase status | Addressed by |
 |---|---|---|---|
 | FR-A2 / FR-D33 / 23 §368 | skills bundle resources | **0/181, 0/32 command-skills** (bare MD) | US1 / FR-022-01..05 |
-| memory: dotnet-ai shim | hooks fire | wired + validate-load, but **error on fire** (v1 shim) | US2 / FR-022-10..12 |
+| memory: dotnet-ai shim | hooks fire | wired + validate-load, but **error on fire** — verified: `dotnet-ai`→`Python312\Scripts\dotnet-ai.exe`, v2 tool not installed | US2 / FR-022-10..12 |
+| 23 §5.2 | `blazor-hybrid` skill | **absent** (only named NEW skill missing; "low priority") | FR-022-20 |
 | FR-E6 / AR-6 | eval harness + matrix | **3-case lexical stub; 0 cases.jsonl** | US3 / FR-022-06..07 |
 | NFR-6 | golden output | **0 `*.verified.*`** | US4 / FR-022-08..09 |
 | FR-K / AR-7b | user-file policy | **overwrites; policy fields unused** | US5 / FR-022-13..14 |
@@ -227,3 +232,5 @@ The host-capability matrix (already in Core) is backed by per-host install smoke
 | FR-G2 / FR-G8 | feature-brief + awareness test | **present** (`OrchestrateService`, `MultiRepoAwarenessTests`) | — (no gap) |
 | FR-H4 / FR-H5 | new agents + rules | **present** (aspire-architect, ai-engineer; 5 rules) | — (no gap) |
 | FR-D (32 cmds) | command-skills present | **present** (32) | — (resources only, US1) |
+| FR-B1 | Copilot `.instructions.md`/`.prompt.md`/`.agent.md` | **present** (`CopilotProjector` emits all three + copilot-instructions) | — (no gap; verified) |
+| 23 §5.2 (28 skills) / profiles / merges | named NEW skills, 12 profiles, 🔀 merges | **present/correct** (28/29 NEW; 12 profiles; merges done) | — (no gap; verified) |
