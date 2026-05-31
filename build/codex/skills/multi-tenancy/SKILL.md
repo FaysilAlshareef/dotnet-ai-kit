@@ -1,6 +1,6 @@
 ---
 name: multi-tenancy
-description: "Use when adding multi-tenant support with tenant isolation, per-tenant databases, or query filters."
+description: "Adds multi-tenant support with tenant isolation, per-tenant databases, and query filters. Use when adding multi-tenant support with tenant isolation, per-tenant databases, or query filters. Do NOT use for module-boundary isolation within one app (use modular-monolith)."
 ---
 # Multi-Tenancy
 

@@ -1,6 +1,6 @@
 ---
 name: repository-patterns
-description: "Use when implementing the repository pattern with Unit of Work or specification pattern."
+description: "Implements the repository and Unit of Work patterns, scoping one repository per aggregate root that returns domain entities. Use when abstracting persistence access behind a domain-facing interface. Do NOT use for the composable query criteria a repository accepts (use specification-pattern)."
 ---
 # Repository & Unit of Work Patterns
 

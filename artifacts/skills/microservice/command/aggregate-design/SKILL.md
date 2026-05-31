@@ -1,6 +1,6 @@
 ---
 name: aggregate-design
-description: "Use when designing or implementing event-sourced aggregate roots for a command microservice."
+description: "Design and implement event-sourced aggregate roots as the command-side consistency boundary, raising events via ApplyChange and rebuilding state with LoadFromHistory. Use when modeling a new aggregate, its factory methods, invariants, or Apply overloads. Do NOT use for designing the event types themselves (use event-design) or for writing aggregate tests (use aggregate-testing)."
 metadata:
   category: "microservice/command"
   agent: "command-architect"

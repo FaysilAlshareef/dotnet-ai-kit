@@ -1,6 +1,6 @@
 ---
 name: query-string-bindable
-description: "Use when synchronizing filter models with URL query strings in Blazor data grids."
+description: "Synchronize Blazor data-grid filter models with the browser URL using a QueryStringBindable base class and INotifyPropertyChanged so filters are bookmarkable, shareable, restored on back/forward navigation, and debounced on text input. Use when filter state must round-trip through the query string. Do NOT use for the grid and dialog UI itself (use blazor-component) or for surviving prerender/circuit reconnects (use blazor-persistent-state)."
 metadata:
   category: "microservice/controlpanel"
   agent: "controlpanel-architect"

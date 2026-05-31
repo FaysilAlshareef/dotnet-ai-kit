@@ -1,6 +1,6 @@
 ---
 name: feature-flags
-description: "Use when adding feature flags, percentage rollouts, or toggling features at runtime."
+description: "Adds feature flags with Microsoft.FeatureManagement for percentage rollouts, kill switches, and runtime toggling decoupled from deployment. Use when gating short-lived features behind configuration. Do NOT use for scheduling out-of-band work (use background-jobs)."
 ---
 # Feature Flags — Microsoft.FeatureManagement
 

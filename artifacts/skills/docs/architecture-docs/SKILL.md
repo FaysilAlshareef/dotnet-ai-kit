@@ -1,6 +1,6 @@
 ---
 name: architecture-docs
-description: "Use when documenting system architecture with Mermaid diagrams and service topology."
+description: "Documents high-level system architecture — service topology, communication patterns, and event/data flows with embedded Mermaid diagrams. Use when writing an architecture overview that explains how services fit together. Do NOT use for recording a single decision's rationale (use adr) or for authoring standalone diagrams (use diagram-gen)."
 metadata:
   category: "docs"
   agent: "docs-engineer"

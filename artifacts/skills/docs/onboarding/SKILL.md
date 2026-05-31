@@ -1,6 +1,6 @@
 ---
 name: onboarding
-description: "Use when generating developer onboarding documentation or setup guides."
+description: "Generates developer onboarding documentation — environment setup, local-run steps, and first-contribution guides to get new engineers productive. Use when documenting how to get started working on the project. Do NOT use for the public-facing project overview (use readme-gen) or for operational/deployment procedures (use runbook)."
 metadata:
   category: "docs"
   agent: "docs-engineer"

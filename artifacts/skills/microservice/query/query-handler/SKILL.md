@@ -1,6 +1,6 @@
 ---
 name: query-handler
-description: "Use when implementing MediatR query handlers with pagination, filtering, and DTO mapping."
+description: "Implement read-only MediatR query handlers as IRequestHandler<TQuery, TOutput> that use IUnitOfWork repositories for filtering, pagination, and sorting, then map entities to output DTOs. Use when serving list or single-entity reads with PageSize/CurrentPage/Total outputs or not-found exceptions. Do NOT use for entities being queried (use query-entity) or for write-side command handling (use command-handler)."
 metadata:
   category: "microservice/query"
   agent: "query-architect"

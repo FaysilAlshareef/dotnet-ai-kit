@@ -1,6 +1,6 @@
 ---
 name: modern-csharp
-description: "Use when adopting C# 12/13/14 features — primary constructors, collection expressions, or field keyword."
+description: "Adopts C# 12/13/14 language features — primary constructors, collection expressions, field keyword — gated by target framework. Use when adopting C# 12/13/14 features. Do NOT use for general idiomatic style conventions (use csharp-idioms)."
 ---
 # Modern C# Features
 

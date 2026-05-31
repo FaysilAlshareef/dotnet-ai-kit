@@ -1,6 +1,6 @@
 ---
 name: pr
-description: "Creates a pull request with linked changes. Use when implementation is verified and ready for team review."
+description: "Creates a pull request with linked changes. Use when implementation is verified and ready for team review. Do NOT use to publish a release after the PR merges (use release)."
 disable-model-invocation: true
 ---
 # /dotnet-ai.pr — Pull Request Creation

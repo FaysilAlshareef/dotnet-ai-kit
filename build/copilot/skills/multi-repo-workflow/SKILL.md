@@ -1,6 +1,6 @@
 ---
 name: multi-repo-workflow
-description: "Use when coordinating changes across multiple microservice repositories."
+description: "Coordinate a single change across multiple microservice repositories, keeping each repo's branch, feature, and contracts in sync. Use when a change spans more than one repository. Do NOT use to track a single feature's directory within one repo (use feature-tracking)."
 ---
 # Multi-Repo Workflow — Cross-Service Coordination
 

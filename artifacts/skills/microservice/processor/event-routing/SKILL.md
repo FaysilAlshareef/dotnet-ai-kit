@@ -1,6 +1,6 @@
 ---
 name: event-routing
-description: "Use when routing Service Bus events by subject to typed MediatR handlers."
+description: "Route Service Bus messages inline via a switch expression on message.Subject to typed HandleAsync<TEventData> methods that deserialize Event<T>, open a DI scope, dispatch through IMediator, and complete unknown subjects. Use when mapping incoming subjects to processor handlers without a separate router class. Do NOT use for the hosting/lifecycle wiring (use hosted-service) or bulk batch dispatch (use batch-processing)."
 metadata:
   category: "microservice/processor"
   agent: "processor-architect"

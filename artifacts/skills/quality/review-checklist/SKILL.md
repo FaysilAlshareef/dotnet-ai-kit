@@ -1,6 +1,6 @@
 ---
 name: review-checklist
-description: "Use when performing code review with standards-based checklists and severity ratings."
+description: "Reviews code against standards-based checklists and assigns P0-P3 severity ratings with actionable findings. Use when performing a manual code review or quality pass before merge. Do NOT use for automated static-analysis configuration (use code-analysis) or for enforcing dependency rules as tests (use architectural-fitness)."
 metadata:
   category: "quality"
   agent: "reviewer"

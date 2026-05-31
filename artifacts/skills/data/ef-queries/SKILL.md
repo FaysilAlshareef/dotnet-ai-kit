@@ -1,6 +1,6 @@
 ---
 name: ef-queries
-description: "Use when writing EF Core queries — LINQ, raw SQL, compiled queries, or fixing N+1 patterns."
+description: "Writes EF Core queries with LINQ, AsNoTracking, projection, split queries, and compilation, and fixes N+1 patterns. Use when retrieving data through EF Core's query pipeline. Do NOT use for hand-written raw SQL via micro-ORM (use dapper)."
 metadata:
   category: "data"
   agent: "ef-specialist"

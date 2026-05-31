@@ -1,6 +1,6 @@
 ---
 name: gateway-endpoint
-description: "Use when building REST gateway controllers that delegate to gRPC backend services."
+description: "Build versioned REST gateway controllers that inherit from ControllerBaseV1, inject typed gRPC clients via primary constructors, and map requests to backend gRPC services inline. Use when exposing a new REST route that bridges to a gRPC backend. Do NOT use for registering those gRPC clients (use endpoint-registration) or for securing the endpoint (use gateway-security)."
 paths:
   - "${detected_paths.controllers}/**/*.cs"
 ---

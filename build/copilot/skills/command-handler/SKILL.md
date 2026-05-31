@@ -1,6 +1,6 @@
 ---
 name: command-handler
-description: "Use when implementing MediatR command handlers in event-sourced microservices."
+description: "Implement MediatR command handlers that validate, load or create an aggregate, invoke a domain method, and commit events via ICommitEventService and IUnitOfWork. Use when wiring an IRequestHandler for a command, mapping custom exceptions to problem details, or orchestrating cross-service gRPC queries. Do NOT use for designing the aggregate's behavior (use aggregate-design) or query-side read handlers (use query-handler)."
 ---
 # Command Handler -- MediatR Command Pattern
 

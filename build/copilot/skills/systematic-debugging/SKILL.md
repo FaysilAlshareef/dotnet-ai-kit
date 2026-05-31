@@ -1,6 +1,6 @@
 ---
 name: systematic-debugging
-description: "Use when encountering any bug, test failure, build error, or unexpected behavior — before proposing fixes or making changes."
+description: "Investigate the root cause of a defect before proposing any fix — form hypotheses, gather evidence, and isolate the cause rather than patching symptoms. Use when encountering any bug, test failure, build error, or unexpected behavior before making changes. Do NOT use to confirm a fix actually passes (use verification-gate)."
 ---
 # Systematic Debugging — Root Cause Before Fixes
 

@@ -1,5 +1,5 @@
 ---
-description: "Generates an API endpoint with request/response. Use when adding a new REST or Minimal API route."
+description: "Generates an API endpoint with request/response. Use when adding a new REST or Minimal API route. Do NOT use to add a Blazor UI page (use add-page)."
 ---
 # Add Endpoint
 

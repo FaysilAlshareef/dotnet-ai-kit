@@ -22,6 +22,13 @@ public sealed class GenerateService(IArtifactRepository repository, IProjectionE
         if (!load.Ok || load.Corpus is null)
             return GenerateResult.Failed(load.Errors);
 
+        // FR-012: fail generation if any artifact declares a capability the matrix can't honor.
+        var capabilityViolations = new CapabilityValidationService()
+            .Validate(load.Corpus, Core.Values.HostNames.All);
+        if (capabilityViolations.Count > 0)
+            return GenerateResult.Failed(
+                capabilityViolations.Select(v => $"{v.Artifact}: capability '{v.Capability}' on {v.Host} — {v.Reason}").ToList());
+
         var files = engine.ProjectAll(load.Corpus);
         var expected = files.Select(f => NormalizePath(f.RelativePath)).ToHashSet(StringComparer.OrdinalIgnoreCase);
 

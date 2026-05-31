@@ -1,6 +1,6 @@
 ---
 name: grpc-design
-description: "Use when designing gRPC services, proto files, or adding gRPC-Web or JSON transcoding."
+description: "Designs gRPC services with proto files, gRPC-Web, and JSON transcoding. Use when designing gRPC services, proto files, or adding gRPC-Web or JSON transcoding. Do NOT use for resource-oriented HTTP REST endpoints (use minimal-api)."
 metadata:
   category: "api"
   agent: "api-designer"

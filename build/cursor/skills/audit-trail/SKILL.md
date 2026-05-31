@@ -1,6 +1,6 @@
 ---
 name: audit-trail
-description: "Use when adding automatic audit trail (CreatedAt, UpdatedBy) via EF Core interceptors."
+description: "Adds an automatic audit trail (CreatedAt, UpdatedBy) by stamping IAuditable entities via EF Core SaveChanges interceptors. Use when capturing who-and-when metadata transparently on persistence. Do NOT use for explicit transaction or isolation-level control (use db-transactions)."
 ---
 # Audit Trail
 

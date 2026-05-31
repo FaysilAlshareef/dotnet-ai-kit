@@ -1,6 +1,6 @@
 ---
 name: integration-testing
-description: "Use when writing integration tests with WebApplicationFactory, TestContainers, or test fixtures."
+description: "Writes ASP.NET Core integration tests with WebApplicationFactory and Testcontainers, exercising real HTTP endpoints against containerized dependencies (databases, brokers). Use when verifying end-to-end backend behaviour across the request pipeline and infrastructure. Do NOT use for isolated logic tests with mocks (use unit-testing), browser UI flows (use playwright-e2e), or shared faker/assertion helpers (use test-fixtures)."
 metadata:
   category: "testing"
   agent: "test-engineer"

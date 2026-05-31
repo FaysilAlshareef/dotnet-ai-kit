@@ -1,6 +1,6 @@
 ---
 name: dockerfile
-description: "Use when writing or optimizing Dockerfiles for .NET applications."
+description: "Writes and optimizes multi-stage Dockerfiles for .NET apps with layer caching, non-root users, and health checks. Use when containerizing a .NET service into an image. Do NOT use for orchestrating those containers across a cluster (use kubernetes)."
 ---
 # Dockerfile — Multi-Stage .NET Builds
 

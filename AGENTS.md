@@ -1,99 +1,83 @@
 # dotnet-ai-kit
 
-AI dev tool plugin for the full .NET development lifecycle. Provides slash commands, rules, skills, agents, and project templates for AI coding assistants.
+AI dev tool plugin for the full .NET development lifecycle. Authored **once** in a
+tool-agnostic `artifacts/` source tree and **projected** to Claude Code, Codex CLI,
+Cursor, and GitHub Copilot, CI-gated so the assistants never drift apart.
+
+> v2 is a .NET 10 rewrite. The .NET CLI is the sole implementation — the v1 Python
+> CLI has been removed.
 
 ## Setup
 
-**Requirements**:
-- Python 3.10+
-- .NET SDK 8.0+
-- Git
+**Requirements**: .NET 10 SDK (10.0.300+) · Git
 
-**Install**:
 ```bash
-uv tool install dotnet-ai-kit --from git+https://github.com/FaysilAlshareef/dotnet-ai-kit.git
+dotnet tool install --global DotnetAiKit.Tool     # the `dotnet-ai` CLI
 ```
 
 ## Build & Test
 
 ```bash
-# Run all tests
-pytest
-
-# Run tests with coverage
-pytest --cov=dotnet_ai_kit
-
-# Lint
-ruff check src/ tests/
-
-# Format check
-ruff format --check src/ tests/
-
-# Install in development mode
-pip install -e ".[dev]"
+dotnet build dotnet-ai-kit.slnx -warnaserror      # build engine + analyzer
+dotnet test  dotnet-ai-kit.slnx                    # full suite incl. corpus-integrity
+dotnet format dotnet-ai-kit.slnx --verify-no-changes
+dotnet run --project src/DotnetAiKit.Cli -- generate --check   # CI drift gate (exit 0 = clean)
 ```
 
-## Architecture Detection
+## Architecture
 
-The tool auto-detects project architecture from code patterns:
+Clean/hexagonal .NET solution; dependencies point inward (Core is pure):
 
-**Generic .NET**: Vertical Slice Architecture (VSA), Clean Architecture, Domain-Driven Design (DDD), Modular Monolith
+```
+DotnetAiKit.Cli ─▶ DotnetAiKit.Hosts ─┐
+                   DotnetAiKit.Infrastructure ─▶ DotnetAiKit.Application ─▶ DotnetAiKit.Core
+                   DotnetAiKit.Analyzers (netstandard2.0, shipped as NuGet)
+```
 
-**CQRS Microservices**: Command (event-sourced write side), Query (SQL Server read side), Query (Cosmos DB), Processor (background events), Gateway (REST API), Control Panel (Blazor WASM), Hybrid (multi-side)
+- **Core** — artifacts (Skill/Agent/Rule/Profile/Knowledge), value objects, policies
+  (DescriptionStandard, TokenBudget, SubstitutionEngine), the artifact graph. No I/O.
+- **Application** — use-case services (Init/Check/Render/Generate/Detect/Migrate/Configure/Upgrade) + ports.
+- **Hosts** — one `IHostProjector` per assistant (Claude/Codex/Cursor/Copilot) + plugin manifests.
+- **Infrastructure** — filesystem, YAML parsing, detection, manifest integrity (sha256).
+- **Cli** — System.CommandLine verbs; packs as the `dotnet-ai` tool.
+- **Analyzers** — Roslyn analyzers DAK0001 (no `async void`) / DAK0004 (aggregate no public setter) + code-fix.
 
-Detection scans `.csproj` files, folder structure, NuGet packages, and naming patterns to determine the architecture before generating any code.
+## Single-source projection
+
+`artifacts/` is the only authored source. `dotnet-ai generate` projects it to
+`build/{claude,codex,cursor,copilot}` + per-host plugin manifests + `marketplace.json`.
+CI runs `generate --check` (`git diff --exit-code`) so drift cannot merge.
 
 ## Development Workflow
 
-Specification-Driven Development (SDD) lifecycle:
-
-```
-specify → clarify → plan → tasks → analyze → implement → review → verify → PR
-```
-
-Quick mode (`/dai.do "feature description"`) chains the full lifecycle automatically.
-
-Each step is also available as an independent command for manual control.
+Spec-Driven Development: `specify → clarify → plan → tasks → analyze → implement →
+review → verify → PR`. `/dai.do "feature"` chains the full lifecycle. Features live
+under `specs/NNN-name/`.
 
 ## Code Conventions
 
-- **Paths**: Always use `pathlib.Path` — never `os.path.join()` or string concatenation
-- **Subprocess**: Use `subprocess.run()` with list args — never `shell=True`
-- **Home directory**: Use `Path.home()` — never hardcode `~` or `$HOME`
-- **Temp files**: Use `tempfile` module — never hardcode `/tmp`
-- **File encoding**: Always specify `encoding="utf-8"`
-- **Models**: Pydantic v2 BaseModel with field_validator decorators
-- **Token budgets**: Skills ≤ 400 lines, Commands ≤ 200 lines, Rules ≤ 100 lines
+- **Paths**: `System.IO.Path` / `Path.Combine` — never string concatenation.
+- **Cross-platform**: must work on Windows, macOS, Linux.
+- **Serialization**: explicit/source-friendly (no reflection-heavy paths) — keeps a future Native-AOT path open.
+- **Determinism**: projection + policies are pure and deterministic (CI-gated; no network in init/check/migrate/render/generate).
+- **Token budgets**: skill ≤500 lines, rule ≤100, agent ≤120, profile ≤100.
+- **Descriptions**: every skill is action-verb-first + "Use when…" + "Do NOT use… (use <sibling>)" (hard-gated).
 
 ## Testing
 
-- Use pytest with `tmp_path` fixture for filesystem tests
-- Mock external calls (subprocess, network) — never hit real services
-- Test cross-platform path handling (Windows, macOS, Linux)
-- Each test file should have 5-10 focused test functions
-- Test both success paths and error cases
+- xUnit; `DotnetAiKit.Acceptance.Tests` holds the portable cross-host invariants
+  (corpus loads, zero broken graph edges, every host projects without path collisions,
+  every skill passes the description standard).
+- Mock external calls; never hit the network. Verify golden-output where projection shape matters.
 
 ## Project Structure
 
 ```
-src/dotnet_ai_kit/            # Python CLI package
-skills/                        # 124 skills organized by category
-commands/                      # 27 slash command templates
-rules/
-  conventions/                 # 5 universal rules (always active)
-  domain/                      # 11 path-scoped rules (carry paths: field)
-  cursor/                      # Cursor-format .mdc copies (16 files)
-agents-source/                 # 14 source-of-truth agent definitions
-agents-claude/                 # 13 Claude-rendered agents (with allow-lists)
-agents-copilot-templates/      # Jinja2 templates for Copilot agent render
-agents/                        # 14 Cursor sub-agent files (A-005 PASS branch)
-hooks/                         # 7 hooks (bash scripts + hooks.json config)
-templates/                     # 12 architecture profiles
-knowledge/                     # 16 reference documents
-config/                        # Permission JSON configs
-.claude-plugin/                # Claude Code plugin manifest
-.codex-plugin/                 # Codex CLI plugin manifest
-.cursor-plugin/                # Cursor plugin manifest
-tests/                         # pytest test suite
-planning/                      # Planning documents (not shipped)
+artifacts/        # SINGLE SOURCE: skills/ agents/ rules/ profiles/ knowledge/ (+ manifest)
+src/              # .NET 10 solution (Core/Application/Hosts/Infrastructure/Cli/Analyzers)
+tests/            # xUnit suites incl. Acceptance + Triggering.Evals
+build/            # GENERATED per-host outputs + plugin manifests (CI drift-gated)
+docs/             # setup + architecture + ADRs
+specs/            # SDD features (NNN-name)
+planning/         # design record (20–26; 26 authoritative) — not shipped
 ```

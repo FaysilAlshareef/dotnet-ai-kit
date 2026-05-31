@@ -1,6 +1,6 @@
 ---
 name: batch-processing
-description: "Use when implementing batch event processing with BackgroundService and concurrency control."
+description: "Implement batched event processing in a BackgroundService that manually accepts sessions, receives messages in bulk with ReceiveMessagesAsync, bounds concurrency with SemaphoreSlim, deduplicates by SourceId, and sends an aggregated batch to IMediator. Use when throughput needs grouped, concurrent batch handling. Do NOT use for one-message-at-a-time session processing (use hosted-service) or for subject-to-handler dispatch (use event-routing)."
 metadata:
   category: "microservice/processor"
   agent: "processor-architect"

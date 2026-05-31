@@ -1,6 +1,6 @@
 ---
 name: modular-monolith
-description: "Use when structuring a modular monolith with module isolation and inter-module communication."
+description: "Structures a modular monolith with module isolation and inter-module communication. Use when structuring a modular monolith with module isolation and inter-module communication. Do NOT use for organizing a single module by feature folders (use vertical-slice)."
 ---
 # Modular Monolith
 

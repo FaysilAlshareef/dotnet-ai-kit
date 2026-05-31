@@ -1,6 +1,6 @@
 ---
 name: ef-core-basics
-description: "Use when configuring EF Core DbContext, entity configuration, or connection resiliency."
+description: "Configures the EF Core DbContext, IEntityTypeConfiguration mappings, value converters, and connection resiliency. Use when setting up the data model and context infrastructure. Do NOT use for evolving an existing schema over time (use ef-migrations)."
 metadata:
   category: "data"
   agent: "ef-specialist"

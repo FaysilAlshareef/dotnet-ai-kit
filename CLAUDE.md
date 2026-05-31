@@ -2,7 +2,7 @@
 
 AI dev tool for the full .NET development lifecycle. Authors every artifact (skills, agents, commands, rules, profiles) **once** in a tool-agnostic source tree and **projects** it to Claude Code, Codex CLI, Cursor, and GitHub Copilot.
 
-> **v2 = a .NET 10 rewrite.** The CLI and engine are C# (.NET 10). The v1 Python implementation in `src/dotnet_ai_kit/` is kept as a runnable reference until the .NET CLI reaches full parity (then removed). When working here, the **.NET solution is the product** — do not extend the Python code.
+> **v2 = a .NET 10 rewrite.** The CLI and engine are C# (.NET 10). The .NET solution is the **sole product** — the v1 Python CLI has been removed.
 
 ## Tech Stack (v2)
 
@@ -27,8 +27,7 @@ src/
   DotnetAiKit.Hosts/         # IHostProjector per assistant (→ Application, Core)
   DotnetAiKit.Infrastructure/# adapter impls (FS, git, serializers, tokenizer, detector)
   DotnetAiKit.Cli/           # composition root + System.CommandLine verbs
-  DotnetAiKit.Analyzers/     # Roslyn analyzers (netstandard2.0) → Dotnet.Ai.Kit.Analyzers NuGet
-  dotnet_ai_kit/             # v1 Python — REFERENCE ONLY (removed at parity)
+  DotnetAiKit.Analyzers/     # Roslyn analyzers (netstandard2.0) → DotnetAiKit.Analyzers NuGet
 tests/                       # Core/Application/Hosts/Cli/Analyzers/Acceptance.Tests + Triggering.Evals
 build/                       # GENERATED per-assistant outputs (committed; drift baseline)
 dotnet-ai-kit.slnx  Directory.Build.props  Directory.Packages.props  global.json

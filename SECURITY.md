@@ -4,8 +4,8 @@
 
 | Version | Supported          |
 |---------|--------------------|
-| 1.0.x   | Yes                |
-| < 1.0   | No                 |
+| 2.0.x   | Yes                |
+| < 2.0   | No (v1 Python CLI removed) |
 
 ## Reporting a Vulnerability
 
@@ -31,20 +31,24 @@ responsibly. **Do not open a public GitHub issue.**
 ### Scope
 
 This policy covers:
-- The `dotnet-ai-kit` Python package (`src/dotnet_ai_kit/`)
-- CLI commands and their behavior
-- Hook scripts (`hooks/`)
-- Permission configurations (`config/`)
+- The .NET CLI (`src/DotnetAiKit.*`) and the `dotnet-ai` tool
+- CLI verbs and their behavior (init/check/render/generate/detect/migrate/configure/upgrade)
+- The shipped Roslyn analyzers (`DotnetAiKit.Analyzers`)
+- The projection engine and generated plugin manifests under `build/`
 
 This policy does **not** cover:
-- Slash command markdown files (they are instructions, not executable code)
-- Skill/agent/rule content (documentation, not runtime code)
-- Template files (rendered by the tool, not executed directly)
+- Slash-command / skill / agent / rule markdown content (instructions, not executable code)
+- Generated guidance the assistant chooses to act on (subject to the host's own permissions)
 
 ## Security Design
 
-dotnet-ai-kit includes safety features:
-- **Bash guard hook** blocks dangerous shell commands (rm -rf /, DROP TABLE, etc.)
-- **Permission levels** (minimal, standard, full) control what operations the AI can perform
-- **No `shell=True`** in subprocess calls -- all commands use list arguments
-- **No hardcoded paths** -- uses `pathlib.Path` and `tempfile` for cross-platform safety
+dotnet-ai-kit is built for safe, deterministic operation:
+- **No-network invariant** — `init`/`check`/`migrate`/`render`/`generate` make no network
+  calls (enforced by `DotnetAiKit.Acceptance.Tests`).
+- **Deterministic, reflection-free projection** — output is a pure function of `artifacts/`;
+  CI's `generate --check` drift gate makes tampered/divergent output un-mergeable.
+- **Manifest integrity** — `ManifestIntegrityService` computes a sha256 over
+  newline-normalized content for verification.
+- **Cross-platform path safety** — `System.IO.Path` everywhere; no hardcoded paths.
+- **Deterministic enforcement** — the shipped analyzer turns mechanical conventions into
+  build errors independent of which assistant wrote the code.

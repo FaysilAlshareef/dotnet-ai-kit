@@ -1,6 +1,6 @@
 ---
 name: event-store
-description: "Use when configuring EF Core event store with discriminator mapping for event sourcing."
+description: "Configure the append-only EF Core event store with TPH discriminator mapping, Newtonsoft.Json data conversion, and a unique (AggregateId, Sequence) index. Use when setting up EventConfiguration, GenericEventConfiguration, or the 1:1 Event-to-OutboxMessage relationship. Do NOT use for defining the event classes themselves (use event-design) or for publishing committed events (use outbox)."
 metadata:
   category: "microservice/command"
   agent: "command-architect"

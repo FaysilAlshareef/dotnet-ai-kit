@@ -1,6 +1,6 @@
 ---
 name: content-negotiation
-description: "Use when configuring API response formats, custom formatters, or Accept header handling."
+description: "Configures API response formats with custom formatters and Accept header handling. Use when configuring API response formats, custom formatters, or Accept header handling. Do NOT use for selecting between API versions (use versioning)."
 ---
 # Content Negotiation
 

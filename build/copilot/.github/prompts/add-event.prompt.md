@@ -1,5 +1,5 @@
 ---
-description: "Generates a domain event type for an aggregate. Use when adding a new event to an existing aggregate."
+description: "Generates a domain event type for an aggregate. Use when adding a new event to an existing aggregate. Do NOT use to create the aggregate itself from scratch (use add-aggregate)."
 ---
 # Add Event
 

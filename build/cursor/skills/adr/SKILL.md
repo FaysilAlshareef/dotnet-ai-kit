@@ -1,6 +1,6 @@
 ---
 name: adr
-description: "Use when writing Architecture Decision Records to document technical decisions."
+description: "Writes Architecture Decision Records (ADRs) capturing context, the decision, considered options, and consequences for a significant technical choice. Use when recording why an architectural or technology decision was made. Do NOT use for describing the resulting system structure (use architecture-docs) or for capturing decisions as diagrams (use diagram-gen)."
 ---
 # ADR — Architecture Decision Records
 

@@ -1,6 +1,6 @@
 ---
 name: explain
-description: "Explains code patterns with examples. Use when learning architecture patterns or understanding existing code."
+description: "Explains code patterns with examples. Use when learning architecture patterns or understanding existing code. Do NOT use to persist project knowledge into a constitution (use learn)."
 metadata:
   kind: "command"
   invocation: "disable-model-invocation"

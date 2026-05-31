@@ -1,6 +1,6 @@
 ---
 name: do
-description: "Runs the full SDD lifecycle from spec to PR. Use when building a complete feature end-to-end."
+description: "Runs the full SDD lifecycle from spec to PR. Use when building a complete feature end-to-end. Do NOT use to run only the code-generation phase from an existing task list (use implement)."
 metadata:
   kind: "command"
   invocation: "disable-model-invocation"

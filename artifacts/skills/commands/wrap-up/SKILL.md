@@ -1,6 +1,6 @@
 ---
 name: wrap-up
-description: "Ends session with summary and handoff notes. Use when finishing work for the day or handing off to a teammate."
+description: "Ends session with summary and handoff notes. Use when finishing work for the day or handing off to a teammate. Do NOT use to save a mid-session snapshot you intend to resume (use checkpoint)."
 metadata:
   kind: "command"
   invocation: "disable-model-invocation"

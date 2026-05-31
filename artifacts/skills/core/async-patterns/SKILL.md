@@ -1,6 +1,6 @@
 ---
 name: async-patterns
-description: "Use when writing async code, propagating CancellationTokens, or fixing async/await pitfalls."
+description: "Writes correct async code, propagates CancellationTokens, and fixes async/await pitfalls. Use when writing async code, propagating CancellationTokens, or fixing async/await pitfalls. Do NOT use for exception flow and failure mapping (use error-handling)."
 metadata:
   category: "core"
   agent: "dotnet-architect"

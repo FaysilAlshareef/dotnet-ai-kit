@@ -1,6 +1,6 @@
 ---
 name: undo
-description: "Reverts the last AI-generated changes safely. Use when the last action produced incorrect results."
+description: "Reverts the last AI-generated changes safely. Use when the last action produced incorrect results. Do NOT use to debug and repair a reported bug in place (use fix)."
 ---
 # Undo
 

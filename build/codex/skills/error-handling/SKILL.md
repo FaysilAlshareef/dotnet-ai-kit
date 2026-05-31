@@ -1,6 +1,6 @@
 ---
 name: error-handling
-description: "Use when implementing error handling with domain exceptions, ProblemDetails, or RpcException mapping."
+description: "Implements error handling with domain exceptions, ProblemDetails, and RpcException mapping. Use when implementing error handling with domain exceptions, ProblemDetails, or RpcException mapping. Do NOT use for validating input before it is processed (use fluent-validation)."
 ---
 # Error Handling Patterns
 

@@ -1,5 +1,5 @@
 ---
-description: "Generates a project constitution + topic split. Use when persisting project knowledge across sessions."
+description: "Generates a project constitution + topic split. Use when persisting project knowledge across sessions. Do NOT use to scan and report the raw project architecture (use detect)."
 ---
 # /dotnet-ai.learn
 

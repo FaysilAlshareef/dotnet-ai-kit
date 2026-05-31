@@ -1,6 +1,6 @@
 ---
 name: detect
-description: "Detects project architecture, .NET version, and patterns. Use when initializing or learning project structure."
+description: "Detects project architecture, .NET version, and patterns. Use when initializing or learning project structure. Do NOT use to persist that knowledge into a constitution and topic split (use learn)."
 ---
 # /dotnet-ai.detect
 

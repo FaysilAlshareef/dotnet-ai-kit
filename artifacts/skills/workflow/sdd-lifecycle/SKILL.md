@@ -1,6 +1,6 @@
 ---
 name: sdd-lifecycle
-description: "Use when following the Specification-Driven Development lifecycle from plan through ship."
+description: "Guide a feature through the Specification-Driven Development phases — plan, spec, implement, review, ship — keeping each phase's gates in order. Use when following the SDD lifecycle from plan through ship. Do NOT use to manage an individual feature's directory and status (use feature-tracking)."
 metadata:
   category: "workflow"
   agent: "dotnet-architect"

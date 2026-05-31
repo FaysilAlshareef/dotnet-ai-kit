@@ -1,6 +1,6 @@
 ---
 name: command-generator
-description: "Use when creating a new CQRS command with handler and FluentValidation validator."
+description: "Generates a new CQRS command with its handler and FluentValidation validator. Use when scaffolding a state-changing command operation on the write side. Do NOT use for read-side queries with DTOs and pagination (use query-generator)."
 ---
 # CQRS Command Generator
 

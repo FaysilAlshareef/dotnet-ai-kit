@@ -1,6 +1,6 @@
 ---
 name: specify
-description: "Creates a feature specification from a description. Use when starting a new feature or user story."
+description: "Creates a feature specification from a description. Use when starting a new feature or user story. Do NOT use to design the technical implementation approach (use plan)."
 disable-model-invocation: true
 ---
 # /dotnet-ai.specify — Feature Specification

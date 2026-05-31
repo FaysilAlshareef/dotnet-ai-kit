@@ -1,6 +1,6 @@
 ---
 name: rate-limiting
-description: "Use when adding rate limiting or throttling to .NET API endpoints."
+description: "Adds rate limiting and throttling to .NET API endpoints to protect against excessive request volume. Use when adding rate limiting or throttling to .NET API endpoints. Do NOT use for reducing load by reusing responses (use caching-strategies)."
 metadata:
   category: "api"
   agent: "api-designer"

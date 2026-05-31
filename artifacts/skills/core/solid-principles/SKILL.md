@@ -1,6 +1,6 @@
 ---
 name: solid-principles
-description: "Use when evaluating code against SOLID principles or deciding when to apply or skip them."
+description: "Evaluates code against SOLID principles and decides when to apply or skip them. Use when evaluating code against SOLID principles or deciding when to apply or skip them. Do NOT use for implementing concrete GoF patterns (use design-patterns)."
 metadata:
   category: "core"
   agent: "dotnet-architect"

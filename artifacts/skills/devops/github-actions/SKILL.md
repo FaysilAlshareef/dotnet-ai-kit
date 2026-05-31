@@ -1,6 +1,6 @@
 ---
 name: github-actions
-description: "Use when creating GitHub Actions CI/CD workflows for .NET build, test, and deployment."
+description: "Creates GitHub Actions CI/CD workflows for .NET build, test, image push to ACR, and deployment via Azure OIDC. Use when automating the pipeline that ships a solution. Do NOT use for authoring the Dockerfile the pipeline builds (use dockerfile)."
 metadata:
   category: "devops"
   agent: "devops-engineer"

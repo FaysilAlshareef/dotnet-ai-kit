@@ -1,6 +1,6 @@
 ---
 name: fluent-validation
-description: "Use when adding FluentValidation validators, custom rules, or async validation to a .NET project."
+description: "Adds FluentValidation validators, custom rules, and async validation to a .NET project. Use when adding FluentValidation validators, custom rules, or async validation to a .NET project. Do NOT use for mapping exceptions to error responses (use error-handling)."
 ---
 # FluentValidation (Standalone)
 

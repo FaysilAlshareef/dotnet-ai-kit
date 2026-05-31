@@ -1,6 +1,6 @@
 ---
 name: aggregate-testing
-description: "Use when writing tests for event-sourced aggregates with fakers and assertion extensions."
+description: "Write unit and integration tests for event-sourced aggregates using CustomConstructorFaker, event-data fakers, and field-by-field assertion extensions over WebApplicationFactory. Use when testing that commands persist events, create outbox messages, and surface the right exceptions. Do NOT use for designing the aggregate itself (use aggregate-design) or the command handler logic (use command-handler)."
 ---
 # Aggregate Testing -- CustomConstructorFaker and Test Patterns
 

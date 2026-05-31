@@ -1,6 +1,6 @@
 ---
 name: mediatr-handlers
-description: "Use when implementing MediatR request handlers, notification handlers, or command/query dispatch."
+description: "Implements MediatR request and notification handler bodies for command/query dispatch. Use when writing the handler logic that processes a request and returns a response. Do NOT use for cross-cutting middleware that wraps every request (use pipeline-behaviors)."
 ---
 # MediatR Handlers
 

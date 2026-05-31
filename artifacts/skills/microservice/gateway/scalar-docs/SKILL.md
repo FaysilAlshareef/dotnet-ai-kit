@@ -1,6 +1,6 @@
 ---
 name: scalar-docs
-description: "Use when setting up Scalar API documentation for gateway endpoints."
+description: "Set up Scalar API documentation for a gateway via AddOpenApiDocumentation with versioned OpenApiDocEntry groups, the /scalar UI, a BearerSecuritySchemeTransformer, and ScalarBasicAuthMiddleware protecting /scalar and /openapi. Use when exposing or theming versioned API docs and rate limiting on the gateway. Do NOT use for the actual endpoint controllers (use gateway-endpoint) or for JWT authorization policies (use gateway-security)."
 metadata:
   category: "microservice/gateway"
   agent: "gateway-architect"

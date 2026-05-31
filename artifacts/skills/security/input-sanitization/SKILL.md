@@ -1,6 +1,6 @@
 ---
 name: input-sanitization
-description: "Use when preventing XSS, adding CSP headers, or validating file uploads."
+description: "Hardens inputs against XSS and injection — HTML encoding, Content-Security-Policy headers, and safe file-upload validation. Use when sanitizing untrusted user input, adding CSP/security headers, or vetting uploaded files. Do NOT use for cross-origin request rules (use cors-configuration) or for encrypting stored data (use data-protection)."
 metadata:
   category: "security"
   agent: "api-designer"

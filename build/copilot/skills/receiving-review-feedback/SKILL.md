@@ -1,6 +1,6 @@
 ---
 name: receiving-review-feedback
-description: "Use when receiving code review feedback from CodeRabbit, PR reviewers, or human reviewers — before implementing any suggested changes."
+description: "Evaluate incoming review feedback with technical rigor — verify each suggestion against the code before implementing it, and push back when a comment is wrong. Use when receiving code review feedback from CodeRabbit, PR reviewers, or human reviewers before implementing suggested changes. Do NOT use to perform a review of someone else's implementation (use code-review-workflow)."
 ---
 # Receiving Review Feedback — Technical Rigor Over Social Performance
 

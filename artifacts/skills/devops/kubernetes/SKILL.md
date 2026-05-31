@@ -1,6 +1,6 @@
 ---
 name: kubernetes
-description: "Use when writing Kubernetes manifests for .NET microservice deployment."
+description: "Writes Kubernetes deployment manifests for .NET microservices with probes, rolling updates, Secrets, and ConfigMaps. Use when defining how containers run on a cluster. Do NOT use for building the container image itself (use dockerfile)."
 metadata:
   category: "devops"
   agent: "devops-engineer"

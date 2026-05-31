@@ -1,6 +1,6 @@
 ---
 name: api-docs
-description: "Use when generating or enriching API documentation from OpenAPI specs."
+description: "Enriches OpenAPI specs with summaries, descriptions, and examples, then generates a Markdown API reference from endpoint metadata. Use when documenting REST endpoints or improving generated OpenAPI output. Do NOT use for system-level architecture docs (use architecture-docs) or for the project README (use readme-gen)."
 ---
 # API Docs — OpenAPI Enrichment & Reference
 

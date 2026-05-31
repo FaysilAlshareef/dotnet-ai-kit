@@ -1,6 +1,6 @@
 ---
 name: minimal-api
-description: "Use when building minimal API endpoints with route groups, filters, or TypedResults."
+description: "Builds Minimal API endpoints with route groups, filters, and TypedResults. Use when building minimal API endpoints with route groups, filters, or TypedResults. Do NOT use for controller-based MVC APIs (use controller-patterns)."
 ---
 # Minimal API Endpoints
 

@@ -1,6 +1,6 @@
 ---
 name: changelog-gen
-description: "Use when generating changelogs from git history or preparing release notes."
+description: "Generates a Keep a Changelog-formatted CHANGELOG and release notes from git history, grouping commits by change type. Use when preparing release notes or maintaining a changelog for a version bump. Do NOT use for the project README (use readme-gen) or for deployment/rollback procedures (use runbook)."
 ---
 # Changelog Generation — Keep a Changelog Format
 

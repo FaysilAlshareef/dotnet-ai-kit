@@ -1,6 +1,6 @@
 ---
 name: performance-testing
-description: "Use when benchmarking with BenchmarkDotNet or running load/throughput tests."
+description: "Measures runtime performance with BenchmarkDotNet micro-benchmarks and load/throughput tests to quantify latency, allocations, and scaling. Use when profiling hot paths or validating throughput and latency targets. Do NOT use for correctness assertions (use unit-testing), HTTP behaviour tests (use integration-testing), or test-suite fault-detection scoring (use mutation-testing)."
 ---
 # Performance Testing — Benchmarks & Load Tests
 

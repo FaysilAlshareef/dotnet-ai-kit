@@ -1,6 +1,6 @@
 ---
 name: grpc-client
-description: "Use when calling external gRPC services from a processor with retry and client factory."
+description: "Call external gRPC services from a processor by registering typed clients with AddGrpcClient<T>, resolving URLs from IOptions<ExternalServicesOptions>, and wrapping calls in a custom RetryCallerService that retries RpcException and treats AlreadyExists as idempotent success. Use when a processor must invoke another service over gRPC. Do NOT use for registering client factories in the gateway (use endpoint-registration) or for routing inbound events (use event-routing)."
 metadata:
   category: "microservice/processor"
   agent: "processor-architect"

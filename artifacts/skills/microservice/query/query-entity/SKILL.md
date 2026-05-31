@@ -1,6 +1,6 @@
 ---
 name: query-entity
-description: "Use when designing query-side entities with private setters and event-based state updates."
+description: "Design query-side read-model entities as event projections with private setters, an event-data constructor, behavior methods that take (data, sequence), and a Sequence field for idempotency plus a private EF Core constructor. Use when modeling a read model populated from command-side events. Do NOT use for the handler that applies events (use event-handler) or for querying these entities (use query-handler)."
 metadata:
   category: "microservice/query"
   agent: "query-architect"

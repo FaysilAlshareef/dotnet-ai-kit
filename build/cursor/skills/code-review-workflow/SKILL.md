@@ -1,6 +1,6 @@
 ---
 name: code-review-workflow
-description: "Use when performing code review on completed implementation, before merge."
+description: "Review a completed implementation against a standards checklist before merge, flagging issues by severity. Use when performing code review on finished work prior to merging. Do NOT use to respond to feedback you received on your own changes (use receiving-review-feedback)."
 ---
 # Code Review Workflow — Checklist & Automation
 

@@ -35,9 +35,9 @@ description: "Task list for 021-v2-completion"
 
 ## Phase C5: Deferred features (US4)
 
-- [ ] T014 [P] [US4] `ConventionCodeFixProvider` (DAK0004 → private setter; DAK0001 → Task) + analyzer tests (T060)
-- [ ] T015 [P] [US4] `check` capability-dependency validation against `HostCapabilityMatrix` + test (T048)
-- [ ] T016 [P] [US4] `ManifestIntegrityService` (sha256 over manifest) + test (T056)
+- [x] T014 [P] [US4] `AggregateSetterCodeFix` (DAK0004 → private setter) + analyzer code-fix tests (Analyzers.Tests, 6 green)
+- [x] T015 [P] [US4] `CapabilityValidationService` — validates artifacts against `HostCapabilityMatrix` + test (Application.Tests)
+- [x] T016 [P] [US4] `ManifestIntegrityService` (sha256 over manifest content, newline-normalized) + test (Application.Tests)
 - [x] T017 [US4] Distribution: `PackAsTool`/`ToolCommandName` on Cli; generate `build/marketplace.json`; `dotnet pack` + install-smoke test (T080-82)
 
 ## Phase C6: Restructure (US3)
@@ -68,7 +68,7 @@ description: "Task list for 021-v2-completion"
 
 - [x] T033 [US7] Survey `src/dotnet_ai_kit/cli.py` verbs; fill `contracts/parity-assessment.md` (every v1 verb → .NET status)
 - [x] T034 [US7] Close any small gaps the assessment finds (or document + retain Python)
-- [ ] T035 [US7] If full coverage + acceptance green: remove `src/dotnet_ai_kit/` + Python `tests/` (same change as CI cutover); else retain + document
+- [x] T035 [US7] Python REMOVED — `src/dotnet_ai_kit/` + Python `tests/` + Python-coupled dirs (`templates/ config/ schemas/ scripts/ prompts/`) + `pyproject.toml`/`uv.lock`. v2 design fully covers v1 (8 CLI verbs + 32 command-skills + plugin model); build/test/generate green with no Python
 
 ## Phase C10: Final verification
 
@@ -84,28 +84,49 @@ description: "Task list for 021-v2-completion"
 
 ---
 
-## Completion status (this session) — 33/37 done
+## Completion status — 37/37 done
 
 **Done & green:** full v1 corpus migrated (C1/C2); structural new artifacts → 32 commands/15 agents/21 rules
-(C3); corpus-integrity test over all 245 artifacts (C4); distribution `PackAsTool` + `marketplace.json`
-+ pack verified (C5/T017); restructure — 9 v1 artifact dirs + root v1 `.claude-plugin/` removed (C6);
-README/CLAUDE.md/architecture/ADR rewritten + CI consolidated to one cross-platform .NET workflow (C7);
-27 new-domain skills authored to the description-standard baseline by subagents (C8); parity assessment
-written (C9/T033-34); final verify (C10): **245 artifacts, 89 tests green, build -warnaserror 0/0,
-dotnet format clean, generate --check drift-clean, tool packs**.
+(C3); corpus-integrity test over all artifacts (C4); the three C5 micro-features completed (C5/T014-17:
+`AggregateSetterCodeFix`, `CapabilityValidationService`, `ManifestIntegrityService`, distribution `PackAsTool`
++ `marketplace.json`); restructure — 9 v1 artifact dirs + root v1 `.claude-plugin/` removed (C6); all docs
+rewritten to v2 incl. the 4 per-host setup guides + CI consolidated to one cross-platform .NET workflow (C7);
+27 new-domain skills authored to the description standard (C8); **Python REMOVED** after parity (C9/T033-35).
+Final verify (C10): **181 skills / 15 agents / 21 rules, 94 tests green, build -warnaserror 0/0,
+dotnet format clean, generate --check drift-clean (833 files, 4 hosts), no pkg vulns, zero tracked Python**.
 
-## Deferred to follow-on (with rationale)
+## Notable closures this session (previously deferred)
 
-- **T035 — remove Python**: RETAINED per the maintainer's explicit gate. The .NET CLI fully covers the
-  six core verbs but `status`/`changelog`/`extension-*` are redesigned as command-skills / superseded by
-  the plugin model (not 1:1 CLI verbs) — so full CLI-surface parity is **not** proven. Python source kept
-  as reference; its v1 tests are obsoleted by the migration (not run by .NET CI). Removal path + the
-  Python-coupled dirs (`templates/ config/ schemas/ scripts/`) are documented in `contracts/parity-assessment.md`.
-- **T014 (analyzer code-fix), T015 (`check` capability-dependency validation), T016 (manifest sha256)**:
-  completeness refinements deferred. Enforcement is already proven (analyzers fire + Stop-gate, SC-004);
-  T015 needs an artifact `requires-capability` field (model extension); T016 needs a consumer; T014 adds a
-  Roslyn Workspaces dependency. None blocks the success criteria.
-- **Per-host setup guides** (`docs/setup-*.md`): left as-is (install instructions, broadly valid); the
-  primary docs (README, CLAUDE.md, architecture, ADR) are rewritten to v2.
-- **Migrated-artifact DescriptionStandard**: ~5% comply (v1 descriptions lack negative scope); tracked as a
-  metric (FR-016), improved incrementally. New/structural + the 27 C8 skills all comply (hard-gated/verified).
+- **T035 — Python removed.** The v2 design fully covers v1: the 8 .NET CLI verbs cover the six core verbs +
+  `generate`/`detect`; `status` → the `status` command-skill; `changelog` → `release` command + `changelog-gen`
+  skill; `extension-*` → superseded by the plugin/marketplace model (by design). Removed `src/dotnet_ai_kit/`,
+  Python `tests/`, the Python-coupled dirs (`templates/ config/ schemas/ scripts/ prompts/`), `pyproject.toml`,
+  `uv.lock`. Build/test/`generate --check` all green with no Python dependency. See `contracts/parity-assessment.md`.
+- **T014/T015/T016 — completed.** `AggregateSetterCodeFix` (DAK0004 → private setter, +Roslyn Workspaces);
+  `CapabilityValidationService` (validates artifacts vs `HostCapabilityMatrix`, wired into `GenerateService`);
+  `ManifestIntegrityService` (sha256 over newline-normalized content, `Verify()`). All have passing tests.
+- **DescriptionStandard — now a HARD gate for the entire skill corpus.** All 181 skills comply
+  (action-verb-first + "Use when…" + "Do NOT use… (use <sibling>)"); migrated descriptions were brought to
+  standard by subagents. `CorpusIntegrityTests.Every_skill_passes_the_description_standard` enforces it;
+  non-skill artifacts (rules/profiles, not model-selected by a trigger) are reported as a metric.
+- **Per-host setup guides** (`docs/setup-{claude-code,codex-cli,cursor,copilot}.md`): rewritten to v2 —
+  accurate install flow (`dotnet tool install` + plugin marketplace), real `init` footprint, and the true
+  per-host projection (Claude 181 skills; Codex AGENTS.md; Cursor `.mdc` rules + commands; Copilot
+  render-only `.github/copilot-instructions.md`).
+- **Dead-file cleanup.** Removed the v1 top-level `hooks/` dir (planning/22 places hooks in the `build/`
+  projection, not a source dir) and fixed stale `hooks/`/Python references in the shipped root docs
+  (`README.md`, `AGENTS.md`, `CONTRIBUTING.md`, `SECURITY.md` were still v1).
+
+## Still deferred — named honestly (NOT claimed complete)
+
+- **Interceptive (PreToolUse) + completion-gate (Stop) enforcement tiers are UNDELIVERED.** planning/24
+  defines four enforcement tiers. Two are wired and proven: **advisory** (`init` writes `.claude/rules/*.md`
+  with `paths:`) and **deterministic** (the shipped Roslyn analyzer DAK0001/DAK0004 + code-fix, SC-004 green).
+  The other two are **designed but not wired into any host**: `VerificationGateService` and the PreToolUse
+  rule-injection logic exist with passing *unit* tests, but no host manifest or `settings.json` invokes them
+  (commit 982daf0 authored top-level hook *scripts* that nothing referenced — now removed as dead). Faithful
+  delivery (planning/22) is to author hooks in `artifacts/` and have the Claude projector emit
+  `build/claude/hooks/hooks.json` — a scoped follow-on feature. **Not done this session; do not mark closed.**
+- **`bin/` v1 wrapper scripts** (`bin/dotnet-ai`, `.cmd`, README) are deliberately git-tracked (per `.gitignore`)
+  and predate the `dotnet tool` packaging. Left in place pending a decision on whether the source-tree wrappers
+  are still wanted now that distribution is `dotnet tool install`.

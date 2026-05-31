@@ -1,6 +1,6 @@
 ---
 name: serilog-structured
-description: "Use when setting up Serilog structured logging with enrichers and Seq sink."
+description: "Configures Serilog structured logging with enrichers, message templates, and sinks such as Seq for queryable, property-rich log events. Use when setting up application logging, adding contextual enrichers, or shipping logs to a sink. Do NOT use for traces and metrics export (use opentelemetry) or for health probe endpoints (use health-checks)."
 ---
 # Serilog Structured Logging
 

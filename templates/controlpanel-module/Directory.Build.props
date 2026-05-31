@@ -1,8 +1,0 @@
-<Project>
-  <PropertyGroup>
-    <TargetFramework>{{ dotnet_version }}</TargetFramework>
-    <ImplicitUsings>enable</ImplicitUsings>
-    <Nullable>enable</Nullable>
-    <TreatWarningsAsErrors>true</TreatWarningsAsErrors>
-  </PropertyGroup>
-</Project>

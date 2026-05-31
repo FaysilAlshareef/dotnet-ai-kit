@@ -1,6 +1,6 @@
 ---
 name: unit-testing
-description: "Use when writing unit tests with xUnit, NSubstitute/Moq, or FluentAssertions."
+description: "Writes isolated unit tests with xUnit, NSubstitute/Moq mocks, and FluentAssertions following Arrange-Act-Assert. Use when testing a single class or method's logic in isolation. Do NOT use for the TUnit framework specifically (use tunit-testing), tests that hit real infrastructure (use integration-testing), or shared faker/assertion helpers (use test-fixtures)."
 ---
 # Unit Testing — xUnit, Mocking, Assertions
 

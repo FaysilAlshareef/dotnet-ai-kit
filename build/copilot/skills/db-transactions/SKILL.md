@@ -1,6 +1,6 @@
 ---
 name: db-transactions
-description: "Use when managing database transactions, isolation levels, or cross-context coordination."
+description: "Manages explicit database transactions, isolation levels, and cross-context coordination beyond the implicit SaveChanges transaction. Use when multiple operations must commit or roll back atomically. Do NOT use for general DbContext configuration and resiliency setup (use ef-core-basics)."
 ---
 # Database Transactions
 

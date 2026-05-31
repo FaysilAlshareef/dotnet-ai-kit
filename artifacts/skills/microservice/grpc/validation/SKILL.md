@@ -1,6 +1,6 @@
 ---
 name: validation
-description: "Use when adding FluentValidation to gRPC requests with Calzolari integration."
+description: "Validate gRPC requests before handlers run using FluentValidation AbstractValidator<TRequest> integrated through Calzolari, returning StatusCode.InvalidArgument with localized Phrases resource messages and auto-registering validators via AddAppValidators. Use when enforcing input rules on a gRPC request. Do NOT use for defining the service or proto contract (use service-definition) or for pipeline-wide interceptors (use interceptors)."
 metadata:
   category: "microservice/grpc"
   agent: "command-architect"

@@ -1,6 +1,6 @@
 ---
 name: git-worktree-isolation
-description: "Use when starting feature work that needs isolation from the current workspace, or before executing implementation plans with multiple tasks."
+description: "Create an isolated git worktree with a verified baseline so feature work cannot disturb the current workspace. Use when starting feature work that needs isolation, or before executing a multi-task implementation plan. Do NOT use to checkpoint or hand off an in-progress session (use session-management)."
 ---
 # Git Worktree Isolation — Safe Workspaces for Features
 

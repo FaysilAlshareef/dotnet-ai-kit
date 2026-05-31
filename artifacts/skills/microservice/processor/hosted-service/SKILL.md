@@ -1,6 +1,6 @@
 ---
 name: hosted-service
-description: "Use when implementing IHostedService with ServiceBusSessionProcessor and DLQ handling."
+description: "Implement a processor listener as IHostedService that constructs both a ServiceBusSessionProcessor and a paired DLQ ServiceBusProcessor with AutoCompleteMessages off, starts and stops both in StartAsync/StopAsync, and logs failures via ProcessErrorAsync. Use when wiring ordered per-session message intake and lifecycle. Do NOT use for bulk concurrent batching (use batch-processing) or for outbound gRPC calls (use grpc-client)."
 metadata:
   category: "microservice/processor"
   agent: "processor-architect"

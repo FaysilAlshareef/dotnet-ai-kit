@@ -1,6 +1,6 @@
 ---
 name: polly-resilience
-description: "Use when building Polly v8 resilience pipelines with retry, timeout, or fallback."
+description: "Builds Polly v8 ResiliencePipeline composing retry, timeout, fallback, hedging, and rate-limit strategies wired through AddResilienceHandler. Use when combining multiple resilience strategies on an HttpClient or operation. Do NOT use for a standalone circuit breaker only (use circuit-breaker) or for backoff/jitter retry guidance in isolation (use retry-patterns)."
 metadata:
   category: "resilience"
   agent: "api-designer"

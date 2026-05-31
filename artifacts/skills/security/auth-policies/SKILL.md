@@ -1,6 +1,6 @@
 ---
 name: auth-policies
-description: "Use when implementing policy-based authorization with custom requirements or permissions."
+description: "Implements ASP.NET Core policy-based authorization with custom IAuthorizationRequirement handlers, claims/role checks, and permission policies. Use when gating endpoints or resources by authorization rules after a user is authenticated. Do NOT use for issuing or validating the authentication tokens themselves (use auth-jwt) or for cross-origin browser access rules (use cors-configuration)."
 metadata:
   category: "security"
   agent: "api-designer"

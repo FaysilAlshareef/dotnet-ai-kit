@@ -1,6 +1,6 @@
 ---
 name: feature-tracking
-description: "Use when tracking feature status, managing feature directories, or coordinating multi-service features."
+description: "Manage a feature's numbered directory and status under .dotnet-ai-kit/features/, keeping its phase and artifacts current. Use when tracking feature status, managing feature directories, or coordinating multi-service features. Do NOT use to coordinate the same change across separate repositories (use multi-repo-workflow)."
 metadata:
   category: "workflow"
   agent: "dotnet-architect"

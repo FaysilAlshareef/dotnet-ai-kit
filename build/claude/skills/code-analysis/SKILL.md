@@ -1,6 +1,6 @@
 ---
 name: code-analysis
-description: "Use when configuring Roslyn analyzers, StyleCop, or EditorConfig for static analysis."
+description: "Configures built-in Roslyn analyzers, StyleCop, and .editorconfig severities to enforce static-analysis and style rules across a solution. Use when tuning analyzer rule severities, enabling .NET code-quality rules, or standardizing EditorConfig. Do NOT use for authoring a custom analyzer/code-fix (use roslyn-analyzer) or for runtime architecture assertions (use architectural-fitness)."
 ---
 # Code Analysis — Roslyn Analyzers & EditorConfig
 

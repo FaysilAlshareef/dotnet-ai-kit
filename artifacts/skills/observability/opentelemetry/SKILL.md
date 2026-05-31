@@ -1,6 +1,6 @@
 ---
 name: opentelemetry
-description: "Use when integrating OpenTelemetry for distributed tracing, metrics, or OTLP exporters."
+description: "Instruments a .NET app with OpenTelemetry distributed tracing and metrics, wiring ActivitySource, Meter, and OTLP exporters to a collector or backend. Use when adding spans, custom metrics, or trace/metric export across services. Do NOT use for structured log events and sinks (use serilog-structured) or for liveness/readiness probe endpoints (use health-checks)."
 metadata:
   category: "observability"
   agent: "devops-engineer"

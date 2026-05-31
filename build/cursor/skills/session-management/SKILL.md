@@ -1,6 +1,6 @@
 ---
 name: session-management
-description: "Use when checkpointing, wrapping up, or handing off an AI-assisted development session."
+description: "Bound an AI-assisted development session with clean start, checkpoint, and handoff notes so work can resume later without loss. Use when checkpointing, wrapping up, or handing off a session. Do NOT use to track a feature's directory and lifecycle status (use feature-tracking)."
 ---
 # Session Management — Checkpoint, Wrap-Up, Handoff
 

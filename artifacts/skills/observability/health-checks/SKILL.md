@@ -1,6 +1,6 @@
 ---
 name: health-checks
-description: "Use when adding health check endpoints, Kubernetes probes, or health check UI."
+description: "Adds ASP.NET Core health checks with liveness/readiness endpoints, Kubernetes probe wiring, and a health-check UI dashboard. Use when exposing /health endpoints, configuring container or orchestrator probes, or surfacing dependency health. Do NOT use for distributed traces and metrics (use opentelemetry) or structured application logging (use serilog-structured)."
 metadata:
   category: "observability"
   agent: "devops-engineer"

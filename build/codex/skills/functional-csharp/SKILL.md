@@ -1,6 +1,6 @@
 ---
 name: functional-csharp
-description: "Use when applying functional patterns in C# — Result types, railway-oriented programming, or immutability."
+description: "Applies functional patterns in C# — Result types, railway-oriented programming, and immutability. Use when applying functional patterns in C#. Do NOT use for general idiomatic style guidance (use csharp-idioms)."
 ---
 # Functional Programming in C#
 

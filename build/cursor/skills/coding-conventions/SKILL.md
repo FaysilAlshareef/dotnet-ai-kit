@@ -1,6 +1,6 @@
 ---
 name: coding-conventions
-description: "Use when applying or enforcing C# coding style — namespaces, sealed classes, var usage, XML docs."
+description: "Applies and enforces C# coding style — namespaces, sealed classes, var usage, XML docs. Use when applying or enforcing C# coding style. Do NOT use for adopting new language-version capabilities (use modern-csharp)."
 ---
 # Coding Conventions
 

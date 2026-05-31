@@ -1,6 +1,6 @@
 ---
 name: smart-detect
-description: "Use when detecting .NET project type, architecture pattern, or solution structure."
+description: "Detects a .NET project's type, architecture pattern, and solution structure through behavioral analysis of its files. Use when classifying an existing codebase before working in it. Do NOT use for scaffolding or implementing an architecture from scratch (use clean-architecture)."
 ---
 # Smart Detection Skill
 

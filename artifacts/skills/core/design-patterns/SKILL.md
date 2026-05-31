@@ -1,6 +1,6 @@
 ---
 name: design-patterns
-description: "Use when selecting or implementing design patterns in C# — factory, builder, strategy, decorator, or mediator."
+description: "Selects and implements design patterns in C# — factory, builder, strategy, decorator, or mediator. Use when selecting or implementing design patterns in C#. Do NOT use for evaluating code against design principles (use solid-principles)."
 metadata:
   category: "core"
   agent: "dotnet-architect"

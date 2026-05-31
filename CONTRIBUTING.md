@@ -1,119 +1,93 @@
 # Contributing to dotnet-ai-kit
 
+dotnet-ai-kit is a **.NET 10** tool. Every assistant-facing artifact is authored once
+in `artifacts/` and projected per host into `build/`, CI-gated against drift.
+
 ## Project Structure
 
 ```
 dotnet-ai-kit/
-├── .claude-plugin/           # Claude Code plugin manifest
-├── .codex-plugin/            # Codex CLI plugin manifest
-├── .cursor-plugin/           # Cursor plugin manifest
-├── .mcp.json                 # MCP server config (codebase-memory-mcp)
-├── src/                      # CLI tool (Python 3.10+, typer + pydantic + jinja2 + rich)
-├── hooks/                    # 7 hooks (bash-guard, edit-format, scaffold-restore,
-│                             #   commit-lint, session-start, pretooluse-arch-profile,
-│                             #   + hooks.json config)
-├── rules/
-│   ├── conventions/          # 5 universal rules (always active, ≤100 lines each)
-│   ├── domain/               # 11 path-scoped rules (≤100 lines each, carry paths:)
-│   └── cursor/               # Cursor-format .mdc copies (auto-generated)
-├── agents-source/            # 14 source-of-truth agent definitions
-├── agents-claude/            # 13 Claude-rendered agents (with allow-lists)
-├── agents-copilot-templates/ # Jinja2 templates for Copilot agent render
-├── agents/                   # 14 Cursor sub-agent files (A-005 PASS branch)
-├── skills/                   # 124 skills by domain (≤400 lines each)
-├── commands/                 # 27 command templates (≤200 lines each)
-├── knowledge/                # 16 reference documents
-├── templates/                # 12 architecture profiles (7 microservice + 5 generic)
-├── config/                   # 4 permission config templates
-├── tests/                    # pytest test suite
-└── planning/                 # Design specs (not shipped)
+├── artifacts/                # ◀ SINGLE SOURCE OF TRUTH (tool-agnostic, human-authored)
+│   ├── skills/               #   149 skills + 32 command-skills (commands/) by category
+│   ├── agents/               #   15 specialist agents (reference skills)
+│   ├── rules/                #   21 rules — conventions/ (5 universal) + domain/ (16 path-scoped)
+│   ├── profiles/             #   12 architecture profiles
+│   └── knowledge/            #   reference documents
+├── src/                      # .NET 10 solution (clean/hexagonal)
+│   ├── DotnetAiKit.Core/         #   pure domain — artifacts, value objects, policies, graph
+│   ├── DotnetAiKit.Application/  #   use-case services + ports
+│   ├── DotnetAiKit.Hosts/        #   one IHostProjector per assistant + plugin manifests
+│   ├── DotnetAiKit.Infrastructure/  # filesystem, YAML, detection, manifest integrity
+│   ├── DotnetAiKit.Cli/          #   System.CommandLine verbs; packs as the `dotnet-ai` tool
+│   └── DotnetAiKit.Analyzers/    #   Roslyn analyzers (netstandard2.0) — shipped as NuGet
+├── tests/                    # xUnit suites (Core/Application/Hosts/Cli/Analyzers/Acceptance/Triggering.Evals)
+├── build/                    # GENERATED per-host outputs + plugin manifests (CI drift-gated)
+├── docs/                     # setup + architecture + ADRs
+├── specs/                    # SDD features (NNN-name)
+└── planning/                 # design record (20–26; 26 authoritative) — not shipped
 ```
 
 ## Development Setup
 
 ```bash
-# Clone the repo
 git clone https://github.com/FaysilAlshareef/dotnet-ai-kit.git
 cd dotnet-ai-kit
-
-# Install in development mode
-pip install -e ".[dev]"
-
-# Run tests
-pytest
-
-# Run tests with coverage
-pytest --cov=dotnet_ai_kit
-
-# Lint
-ruff check src/ tests/
-
-# Format check
-ruff format --check src/ tests/
+dotnet restore dotnet-ai-kit.slnx
 ```
 
-## File Formats
+Requires the **.NET 10 SDK** (10.0.300+).
 
-### Skills (`skills/{category}/{name}/SKILL.md`, max 400 lines)
+```bash
+dotnet build dotnet-ai-kit.slnx -warnaserror          # build engine + analyzer
+dotnet test  dotnet-ai-kit.slnx                        # full suite
+dotnet format dotnet-ai-kit.slnx --verify-no-changes   # format gate
+dotnet run --project src/DotnetAiKit.Cli -- generate --check   # drift gate (exit 0 = clean)
+```
+
+## Authoring artifacts
+
+Author under `artifacts/`, then regenerate `build/` and confirm no drift.
+
+### Skills (`artifacts/skills/<category>/<name>/SKILL.md`, ≤500 lines)
 
 ```markdown
 ---
-name: dotnet-ai-skill-name
-description: One-line description
-category: category-name
-agent: agent-that-loads-this
+name: skill-name
+description: Verb-first summary. Use when <trigger>. Do NOT use <case> (use <sibling-skill>).
 ---
 
-# Skill content (patterns, code examples, anti-patterns)
+# Skill content (patterns, compilable examples, anti-patterns)
 ```
 
-**Note**: All skill `name` fields must start with `dotnet-ai-` prefix per the [Agent Skills specification](https://agentskills.io/specification).
+The **description standard is a hard gate**: action-verb-first + an explicit
+"Use when…" trigger + an explicit negative scope ("Do NOT use… (use <sibling>)").
+`DotnetAiKit.Acceptance.Tests` fails the build if any skill violates it.
 
-### Commands (`commands/{name}.md`, max 200 lines)
+### Command-skills (`artifacts/skills/commands/<name>/SKILL.md`)
 
-```markdown
----
-description: One-line description
----
+Same shape as skills, plus `disable-model-invocation` so they stay off the
+always-loaded listing and are invoked explicitly as `/dai.*`.
 
-# Command instructions
-```
+### Rules (`artifacts/rules/{conventions,domain}/<name>.md`, ≤100 lines)
 
-### Rules
-
-Rules live in two directories (constitution v1.0.8):
-
-- `rules/conventions/<name>.md` — 5 universal rules, max 100 lines each.
-  Always active; no `paths:` field.
-- `rules/domain/<name>.md` — 11 path-scoped rules, max 100 lines each.
-  Carry a top-level `paths:` list so they load only when a matching file
-  is touched.
-
-```markdown
----
-description: One-line description
-paths:                   # path-scoped rules only; omit for universal
-  - "**/*.cs"
----
-
-# Rule content
-```
-
-Cursor-format copies live in `rules/cursor/*.mdc` (universal rules carry
-`alwaysApply: true`; path-scoped rules carry `globs:` instead).
+- `conventions/<name>.md` — universal, always-on, no `paths:`.
+- `domain/<name>.md` — path-scoped; carry a `paths:` list so they load only when a
+  matching file is touched. `init` writes these to `.claude/rules/*.md` (the v1
+  rule-delivery defect, fixed). Cursor projection emits `.mdc` with glob scoping.
 
 ## How to Contribute
 
-1. Read the relevant planning doc in `planning/` for the area you want to work on
-2. Follow existing patterns in the codebase
-3. Run `pytest --cov=dotnet_ai_kit` and `ruff check src/ tests/` before submitting
-4. Maintain overall test coverage at 90% or above; new modules should target 95%+
-5. Submit a PR with a clear description of what changed and why
+1. Read the relevant `planning/` doc (20–26) and the active `specs/NNN-*/` feature.
+2. Follow existing patterns; keep `DotnetAiKit.Core` pure (no I/O).
+3. Before submitting, all four gates must pass: `build -warnaserror`, `test`,
+   `format --verify-no-changes`, `generate --check`.
+4. Add/extend tests — new policies and projectors need acceptance coverage.
+5. Submit a PR with a clear description of what changed and why.
 
 ## Key Conventions
 
-- Use `pathlib.Path` for all file paths (never `os.path.join`)
-- Use `encoding="utf-8"` for all file reads/writes
-- All code must work cross-platform (Windows, macOS, Linux)
-- Use `subprocess.run()` with list args (never `shell=True`)
-- Use pydantic v2 BaseModel with field_validator decorators
+- Use `System.IO.Path`/`Path.Combine` for paths — never string concatenation.
+- All code must work cross-platform (Windows, macOS, Linux).
+- No network in `init`/`check`/`migrate`/`render`/`generate` (enforced by acceptance test).
+- Prefer deterministic, reflection-free serialization (keeps a future Native-AOT path open).
+- Specify `encoding`/UTF-8 on all file I/O.

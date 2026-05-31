@@ -14,13 +14,13 @@
 
 **dotnet-ai-kit** equips AI coding assistants — **Claude Code, Codex CLI, Cursor, and GitHub Copilot** — with the skills, agents, commands, rules, and guardrails for the full .NET development lifecycle. Every artifact is authored **once** in a tool-agnostic source tree and **projected** into each assistant's native shape, CI-gated so the four assistants never drift apart.
 
-> **v2 (this branch)** is a ground-up rewrite in **.NET 10** (clean/hexagonal architecture). It replaces the v1 Python CLI with a single-source → projection engine, fixes the v1 defect where domain rules never reached the assistant, and adds deterministic enforcement (a Roslyn analyzer + completion-gate hooks). The v1 Python implementation is retained as a runnable reference until the .NET CLI reaches full parity.
+> **v2** is a ground-up rewrite in **.NET 10** (clean/hexagonal architecture). A single authored source (`artifacts/`) is projected into each assistant's native shape, CI-gated against drift. It fixes the v1 defect where domain rules never reached the assistant and adds deterministic enforcement (a shipped Roslyn analyzer). The .NET 10 CLI is the **sole implementation** — the v1 Python CLI has been removed.
 
 ## What it gives you
 
 - **One source, four assistants** — author a skill/agent/rule/command once in `artifacts/`; `dotnet-ai generate` projects it to Claude, Codex, Cursor, and Copilot. A CI drift gate (`git diff --exit-code`) makes divergence impossible to merge.
 - **Rules that actually arrive** — `dotnet-ai init` writes your domain rules to `.claude/rules/*.md` with `paths:` scoping, so the right conventions load when the relevant file is touched (the v1 bug, fixed).
-- **Deterministic enforcement** — a shipped `Dotnet.Ai.Kit.Analyzers` Roslyn package turns mechanical conventions into build errors; a Stop-hook blocks "done" until build + tests are green.
+- **Deterministic enforcement** — a shipped `DotnetAiKit.Analyzers` Roslyn package turns mechanical conventions into build errors with code-fixes (`DAK0001` no `async void`; `DAK0004` aggregates expose no public setters). Advisory rules + the analyzer are the two wired enforcement tiers; the interceptive (PreToolUse) and completion-gate (Stop) hook tiers are designed in `planning/24` and slated for a follow-on.
 - **A full SDD lifecycle** — 32 commands from `constitution` → `specify` → … → `verify` → `pr` → `release`, plus code-generation commands.
 - **Token-frugal** — commands are off the always-loaded listing; selection is sharp descriptions + an artifact graph, gated by a triggering eval — not a heavyweight router.
 
@@ -28,7 +28,7 @@
 
 | Kind | Count | Where |
 |---|---|---|
-| Skills | ~160 | `artifacts/skills/` |
+| Skills | 149 | `artifacts/skills/` |
 | Command-skills | 32 | `artifacts/skills/commands/` |
 | Agents | 15 | `artifacts/agents/` |
 | Rules | 21 (5 universal + 16 path-scoped) | `artifacts/rules/` |

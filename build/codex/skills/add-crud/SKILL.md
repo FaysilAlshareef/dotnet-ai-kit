@@ -1,6 +1,6 @@
 ---
 name: add-crud
-description: "Generates full CRUD stack for an entity. Use when adding complete create/read/update/delete operations."
+description: "Generates full CRUD stack for an entity. Use when adding complete create/read/update/delete operations. Do NOT use to add a single query-side read model only (use add-entity)."
 ---
 # Add CRUD
 

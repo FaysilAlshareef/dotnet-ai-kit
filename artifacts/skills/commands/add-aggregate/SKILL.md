@@ -1,6 +1,6 @@
 ---
 name: add-aggregate
-description: "Generates an event-sourced aggregate with events. Use when adding a new command-side domain entity."
+description: "Generates an event-sourced aggregate with events. Use when adding a new command-side domain entity. Do NOT use to add a query-side read model (use add-entity)."
 metadata:
   kind: "command"
   invocation: "disable-model-invocation"

@@ -1,6 +1,6 @@
 ---
 name: mudblazor-patterns
-description: "Use when applying MudBlazor theming, dialog patterns, or snackbar integration."
+description: "Apply cross-cutting MudBlazor patterns: a custom theme for consistent control-panel branding, the dialog service for modal forms and confirmations, Snackbar notifications, and MudExpansionPanels for collapsible sections. Use when setting up shared theming, dialogs, or notifications across pages. Do NOT use for building a specific data-grid page (use blazor-component) or for choosing a component's render mode (use blazor-render-modes)."
 metadata:
   category: "microservice/controlpanel"
   agent: "controlpanel-architect"

@@ -1,6 +1,6 @@
 ---
 name: status
-description: "Shows current feature progress and phase. Use when checking where you are in the SDD lifecycle."
+description: "Shows current feature progress and phase. Use when checking where you are in the SDD lifecycle. Do NOT use to save a resumable progress snapshot (use checkpoint)."
 ---
 # Status
 

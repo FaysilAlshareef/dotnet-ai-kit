@@ -1,6 +1,6 @@
 ---
 name: blazor-component
-description: "Use when building MudBlazor data grids, dialogs, or forms for the control panel."
+description: "Build control-panel page components with MudBlazor, using MudDataGrid<T> with a ServerData callback for server-side pagination, MudDialog for create/edit forms, and Snackbar for loading and error states. Use when assembling a data-driven control-panel page. Do NOT use for shared theming and dialog-service setup (use mudblazor-patterns) or for choosing the component's render mode (use blazor-render-modes)."
 metadata:
   category: "microservice/controlpanel"
   agent: "controlpanel-architect"

@@ -1,6 +1,6 @@
 ---
 name: verify
-description: "Verifies build, tests, and formatting pass. Use when validating implementation before creating a PR."
+description: "Verifies build, tests, and formatting pass. Use when validating implementation before creating a PR. Do NOT use to review code against standards and conventions (use review)."
 disable-model-invocation: true
 ---
 # /dotnet-ai.verify — Verification Pipeline

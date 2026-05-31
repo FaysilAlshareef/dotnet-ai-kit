@@ -1,6 +1,6 @@
 ---
 name: endpoint-registration
-description: "Use when registering gRPC client factories and service URLs in the gateway."
+description: "Register the gateway's backend gRPC clients via an AddGrpcClients extension, binding and validating ServicesURLsOptions on start and attaching a GlobalMetadataInterceptor for culture/claims forwarding through RegisterUrl/RegisterInterceptors. Use when wiring which backend services the gateway can call. Do NOT use for the REST controllers that consume these clients (use gateway-endpoint) or for auth configuration (use gateway-security)."
 metadata:
   category: "microservice/gateway"
   agent: "gateway-architect"

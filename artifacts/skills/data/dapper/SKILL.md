@@ -1,6 +1,6 @@
 ---
 name: dapper
-description: "Use when writing read-optimized queries with Dapper alongside EF Core."
+description: "Writes read-optimized raw-SQL queries with Dapper for complex joins, reporting, and bulk operations alongside EF Core. Use when LINQ is too slow or expressive for a hot read path. Do NOT use for LINQ, change tracking, or compiled EF queries (use ef-queries)."
 metadata:
   category: "data"
   agent: "ef-specialist"

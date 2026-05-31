@@ -1,6 +1,6 @@
 ---
 name: query-generator
-description: "Use when creating a new CQRS query with handler, response DTO, and pagination support."
+description: "Generates a new CQRS query with its handler, response DTO, and pagination support. Use when scaffolding a read-only data retrieval operation on the query side. Do NOT use for state-changing commands with validators (use command-generator)."
 metadata:
   category: "cqrs"
   agent: "ef-specialist"

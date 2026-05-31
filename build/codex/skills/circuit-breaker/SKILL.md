@@ -1,6 +1,6 @@
 ---
 name: circuit-breaker
-description: "Use when adding circuit breaker protection against cascading failures."
+description: "Adds a circuit-breaker strategy that trips after a failure threshold to stop cascading failures and shed load from an unhealthy dependency. Use when a downstream service is failing and you need fast-fail plus recovery half-open probing. Do NOT use for retrying transient faults with backoff (use retry-patterns) or for composing a full resilience pipeline of strategies (use polly-resilience)."
 ---
 # Circuit Breaker Pattern
 

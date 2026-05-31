@@ -1,5 +1,5 @@
 ---
-description: "Generates an implementation plan from the spec. Use when ready to design the technical approach."
+description: "Generates an implementation plan from the spec. Use when ready to design the technical approach. Do NOT use to break the plan into executable work items (use tasks)."
 ---
 # /dotnet-ai.plan — Implementation Planning
 

@@ -1,6 +1,6 @@
 ---
 name: interceptors
-description: "Use when adding gRPC interceptors for exception mapping, culture switching, or claims extraction."
+description: "Add server and client gRPC interceptors for cross-cutting concerns: ApplicationExceptionInterceptor maps domain exceptions to RpcException with ProblemDetails, ThreadCultureInterceptor sets culture from a header, and claims are read from access-claims-bin, with culture registered before exception. Use when wiring pipeline-wide gRPC behavior. Do NOT use for the service contract and handlers (use service-definition) or for per-request input validation (use validation)."
 ---
 # Interceptors — Cross-Cutting gRPC Concerns
 

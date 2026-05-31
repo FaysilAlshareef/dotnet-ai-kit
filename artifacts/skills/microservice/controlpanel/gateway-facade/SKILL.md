@@ -1,6 +1,6 @@
 ---
 name: gateway-facade
-description: "Use when creating typed HttpClient wrappers for control panel API calls."
+description: "Create typed HttpClient facade classes that wrap control-panel calls to gateway REST endpoints, organizing nested management classes per domain entity with lazy ??= initialization, shared HttpExtensions serialization, and ResponseResult<T> returns. Use when adding an API client method the UI calls. Do NOT use for handling the returned result in components (use response-result) or for building the page UI (use blazor-component)."
 metadata:
   category: "microservice/controlpanel"
   agent: "controlpanel-architect"

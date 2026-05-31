@@ -1,6 +1,6 @@
 ---
 name: transactional-batch
-description: "Use when performing atomic multi-document operations with Cosmos DB TransactionalBatch."
+description: "Perform all-or-nothing Cosmos DB writes with TransactionalBatch, where every operation shares one partition key, batches cap at 100 operations, and IfMatchEtag enforces optimistic concurrency. Use when coordinating multiple document changes atomically within a single partition. Do NOT use for single-document reads and queries (use cosmos-repository) or for picking the shared partition key (use partition-strategy)."
 metadata:
   category: "microservice/cosmos"
   agent: "cosmos-architect"

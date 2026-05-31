@@ -1,6 +1,6 @@
 ---
 name: cosmos-entity
-description: "Use when designing Cosmos DB document entities with partition keys and discriminators."
+description: "Design Cosmos DB document entities implementing IContainerDocument with a lowercase id, a string discriminator for polymorphic containers, an ETag for optimistic concurrency, and hierarchical partition keys built via PartitionKeyBuilder. Use when modeling a new document type stored in Cosmos. Do NOT use for choosing the partition key scheme (use partition-strategy) or for reading and querying documents (use cosmos-repository)."
 paths:
   - "${detected_paths.cosmos_entities}/**/*.cs"
 ---

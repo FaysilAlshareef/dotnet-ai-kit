@@ -1,6 +1,6 @@
 ---
 name: vertical-slice
-description: "Use when implementing Vertical Slice Architecture with feature folders and co-located code."
+description: "Implements Vertical Slice Architecture with feature folders and co-located code. Use when implementing Vertical Slice Architecture with feature folders and co-located code. Do NOT use for horizontal 4-layer separation (use clean-architecture)."
 ---
 # Vertical Slice Architecture
 

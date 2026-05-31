@@ -1,6 +1,6 @@
 ---
 name: mapping-strategies
-description: "Use when mapping between DTOs and domain objects — manual mapping, LINQ projections, or AutoMapper."
+description: "Maps between DTOs and domain objects — manual mapping, LINQ projections, or AutoMapper. Use when mapping between DTOs and domain objects. Do NOT use for validating the mapped DTOs (use fluent-validation)."
 metadata:
   category: "core"
   agent: "dotnet-architect"

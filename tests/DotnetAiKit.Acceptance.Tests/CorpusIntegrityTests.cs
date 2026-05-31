@@ -15,19 +15,11 @@ namespace DotnetAiKit.Acceptance.Tests;
 /// <summary>
 /// SC-002 / FR-013: the high-coverage gate over the FULL authored corpus. Every artifact must load,
 /// the graph must build with zero broken edges, and the corpus must project to all four hosts with no
-/// per-host path collisions. DescriptionStandard is a hard gate for new/structural artifacts and a
-/// reported (non-failing) metric for migrated artifacts (FR-016).
+/// per-host path collisions. DescriptionStandard is a HARD gate for the entire skill corpus (021/C9:
+/// every migrated description was brought to standard) and a reported metric for non-skill artifacts.
 /// </summary>
 public class CorpusIntegrityTests(ITestOutputHelper output)
 {
-    // Artifacts authored to the v2 standard this cycle (020 + 021/C3) — held to the hard DescriptionStandard gate.
-    private static readonly HashSet<string> NewStructural = new(StringComparer.Ordinal)
-    {
-        "constitution", "checklist", "orchestrate", "release", "fix",
-        "aspire-architect", "ai-engineer",
-        "mediator-abstraction", "messaging-bus-selection", "testing-platform", "ai-integration",
-        "deterministic-enforcement", "minimal-api-patterns",
-    };
 
     private static string ArtifactsRoot()
     {
@@ -88,24 +80,34 @@ public class CorpusIntegrityTests(ITestOutputHelper output)
     }
 
     [Fact]
-    public void New_and_structural_artifacts_pass_the_description_standard()
+    public void Every_skill_passes_the_description_standard()
     {
+        // FR-026 / SC-012: skills are model-selected by their description, so the ENTIRE skill corpus
+        // is a hard gate (action-verb-first + "Use when…" + "Do NOT use… (use <sibling>)").
         var corpus = LoadCorpus();
-        foreach (var artifact in corpus.AllArtifacts().Where(a => NewStructural.Contains(a.Name.Value)))
+        var failures = new List<string>();
+        foreach (var skill in corpus.Skills)
         {
-            var violations = DescriptionStandard.Validate(artifact.Description.Value);
-            Assert.True(violations.Count == 0, $"{artifact.Name}: {string.Join("; ", violations)}");
+            var violations = DescriptionStandard.Validate(skill.Description.Value);
+            if (violations.Count > 0)
+                failures.Add($"{skill.Name}: {string.Join("; ", violations)}");
         }
+
+        Assert.True(
+            failures.Count == 0,
+            $"{failures.Count}/{corpus.Skills.Count} skills violate the description standard:\n"
+                + string.Join("\n", failures));
     }
 
     [Fact]
-    public void Migrated_description_standard_compliance_is_reported_as_a_metric()
+    public void Non_skill_description_compliance_is_reported_as_a_metric()
     {
+        // Rules (path-scoped/always-loaded) and profiles are not model-selected by a "Use when…" trigger,
+        // so the standard is reported for them, not gated.
         var corpus = LoadCorpus();
         var all = corpus.AllArtifacts().ToList();
         var compliant = all.Count(a => DescriptionStandard.IsValid(a.Description.Value));
-        var pct = 100.0 * compliant / all.Count;
-        output.WriteLine($"DescriptionStandard compliance: {compliant}/{all.Count} ({pct:F1}%) — new/structural hard-gated, migrated tracked.");
-        Assert.True(compliant >= NewStructural.Count, "at least the new/structural artifacts must comply");
+        output.WriteLine(
+            $"DescriptionStandard: skills hard-gated; full-corpus compliance {compliant}/{all.Count}.");
     }
 }

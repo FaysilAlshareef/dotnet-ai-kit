@@ -1,6 +1,6 @@
 ---
 name: azure-resources
-description: "Use when provisioning Azure resources — Service Bus, Cosmos DB, SQL Server — for microservices."
+description: "Provisions Azure cloud resources — Service Bus, Cosmos DB, SQL Server — with naming and partitioning conventions for microservices. Use when defining the managed backing services a solution depends on. Do NOT use for deploying the workloads that consume them (use kubernetes)."
 ---
 # Azure Resources — Service Bus, Cosmos DB, SQL Server
 

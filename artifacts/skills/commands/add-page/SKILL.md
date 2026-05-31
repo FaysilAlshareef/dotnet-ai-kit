@@ -1,6 +1,6 @@
 ---
 name: add-page
-description: "Generates a Blazor page with data grid. Use when adding a new control panel UI page."
+description: "Generates a Blazor page with data grid. Use when adding a new control panel UI page. Do NOT use to add a backend API route (use add-endpoint)."
 metadata:
   kind: "command"
   invocation: "disable-model-invocation"

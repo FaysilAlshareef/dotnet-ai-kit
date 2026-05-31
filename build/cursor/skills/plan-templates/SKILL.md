@@ -1,6 +1,6 @@
 ---
 name: plan-templates
-description: "Use when creating implementation plans that need mode-specific templates."
+description: "Generate the plan.md structure from a mode-specific template matched to the project's architecture. Use when creating an implementation plan that needs a mode-specific layout. Do NOT use to generate the plan's supporting artifacts like briefs or service maps (use plan-artifacts)."
 ---
 # Plan Templates Skill
 

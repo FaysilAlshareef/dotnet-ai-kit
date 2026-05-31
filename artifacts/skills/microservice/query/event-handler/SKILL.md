@@ -1,6 +1,6 @@
 ---
 name: event-handler
-description: "Use when implementing query-side event handlers with sequence checking and idempotency."
+description: "Implement query-side event handlers as IRequestHandler<Event<TData>, bool> that project events into read models idempotently, returning true to complete or false to abandon for retry. Use when consuming a command-side event to update the query store via IUnitOfWork repositories. Do NOT use for the listener that dispatches messages (use listener-pattern) or for the entity being projected (use query-entity)."
 metadata:
   category: "microservice/query"
   agent: "query-architect"

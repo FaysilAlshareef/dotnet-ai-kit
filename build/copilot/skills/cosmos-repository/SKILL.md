@@ -1,6 +1,6 @@
 ---
 name: cosmos-repository
-description: "Use when implementing Cosmos DB repository with LINQ queries and FeedIterator pagination."
+description: "Implement a per-container Cosmos DB repository using point reads (ReadItemAsync), discriminator-filtered LINQ via GetItemLinqQueryable<T>, FeedIterator pagination, and RU-charge monitoring. Use when reading, querying, or paginating documents in a container. Do NOT use for designing the document shape (use cosmos-entity) or for atomic multi-document writes (use transactional-batch)."
 ---
 # Cosmos Repository — LINQ Queries & Data Access
 

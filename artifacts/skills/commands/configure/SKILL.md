@@ -1,6 +1,6 @@
 ---
 name: configure
-description: "Opens interactive configuration wizard. Use when changing company name, repos, permissions, command style, or any setting."
+description: "Opens interactive configuration wizard. Use when changing company name, repos, permissions, command style, or any setting. Do NOT use for first-time setup of an uninitialized project (use init)."
 metadata:
   kind: "command"
   invocation: "disable-model-invocation"

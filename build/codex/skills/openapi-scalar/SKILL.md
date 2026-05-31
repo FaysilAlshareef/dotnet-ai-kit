@@ -1,6 +1,6 @@
 ---
 name: openapi-scalar
-description: "Use when setting up OpenAPI spec generation or Scalar API documentation UI."
+description: "Sets up OpenAPI spec generation and the Scalar API documentation UI. Use when setting up OpenAPI spec generation or Scalar API documentation UI. Do NOT use for building the API endpoints themselves (use minimal-api)."
 ---
 # OpenAPI & Scalar API Documentation
 

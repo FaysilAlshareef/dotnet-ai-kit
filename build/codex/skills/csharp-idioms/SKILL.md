@@ -1,6 +1,6 @@
 ---
 name: csharp-idioms
-description: "Use when applying modern C# idioms — records, pattern matching, primary constructors, collection expressions."
+description: "Applies idiomatic modern C# style — records, pattern matching, primary constructors, collection expressions. Use when applying modern C# idioms. Do NOT use for the language-version availability matrix and framework gating (use modern-csharp)."
 ---
 # Modern C# Idioms
 

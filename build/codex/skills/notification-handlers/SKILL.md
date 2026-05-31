@@ -1,6 +1,6 @@
 ---
 name: notification-handlers
-description: "Use when dispatching domain events via MediatR notifications with multiple handlers."
+description: "Dispatches domain events via MediatR notifications to multiple one-to-many handlers after persistence. Use when fanning out a past-tense domain event to several independent reactions. Do NOT use for single-response request/command handlers (use mediatr-handlers)."
 ---
 # Notification Handlers (Domain Events)
 

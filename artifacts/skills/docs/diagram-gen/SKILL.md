@@ -1,6 +1,6 @@
 ---
 name: diagram-gen
-description: "Use when creating Mermaid diagrams for architecture, event flows, or sequence diagrams."
+description: "Authors focused, version-controlled Mermaid diagrams — service topology graphs, event flows, and sequence diagrams that render in GitHub. Use when you need a standalone diagram of a flow or structure. Do NOT use for a full architecture narrative document (use architecture-docs) or for decision rationale (use adr)."
 metadata:
   category: "docs"
   agent: "docs-engineer"

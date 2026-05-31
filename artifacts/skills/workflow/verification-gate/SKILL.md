@@ -1,6 +1,6 @@
 ---
 name: verification-gate
-description: "Use when about to claim work is complete, fixed, passing, or ready — before committing, creating PRs, or moving to the next task. Requires running verification commands and confirming output before making any success claims."
+description: "Gate completion claims behind fresh verification evidence — run the build, tests, and formatting commands and confirm their output before asserting success. Use when about to claim work is complete, fixed, passing, or ready, or before committing, creating PRs, or moving to the next task. Do NOT use to diagnose a failure's root cause (use systematic-debugging)."
 metadata:
   category: "workflow"
 ---

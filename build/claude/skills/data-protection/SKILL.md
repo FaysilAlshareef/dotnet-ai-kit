@@ -1,6 +1,6 @@
 ---
 name: data-protection
-description: "Use when encrypting data at rest with ASP.NET Core Data Protection API."
+description: "Encrypts and protects data at rest with the ASP.NET Core Data Protection API — IDataProtector, key-ring persistence, and key rotation for secrets, tokens, and cookies. Use when symmetrically protecting payloads or persisting keys across instances. Do NOT use for validating bearer tokens (use auth-jwt) or for input/XSS hardening (use input-sanitization)."
 ---
 # Data Protection API
 

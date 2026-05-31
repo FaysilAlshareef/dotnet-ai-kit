@@ -1,6 +1,6 @@
 ---
 name: init
-description: "Initializes dotnet-ai-kit in a .NET project. Use when setting up a new project for AI-assisted development."
+description: "Initializes dotnet-ai-kit in a .NET project. Use when setting up a new project for AI-assisted development. Do NOT use to change settings on an already-initialized project (use configure)."
 ---
 # /dotnet-ai.init
 

@@ -1,5 +1,5 @@
 ---
-description: "Executes all planned implementation tasks. Use when ready to generate code from the task list."
+description: "Executes all planned implementation tasks. Use when ready to generate code from the task list. Do NOT use to produce the task list being executed (use tasks)."
 ---
 # /dotnet-ai.implement — Execute Implementation
 

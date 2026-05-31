@@ -1,6 +1,6 @@
 ---
 name: retry-patterns
-description: "Use when implementing retry logic with exponential backoff and jitter."
+description: "Implements retry logic for transient faults using exponential backoff with jitter and bounded attempts, including idempotency considerations. Use when retrying flaky network or transient I/O failures. Do NOT use for fast-failing on a failing dependency (use circuit-breaker) or for composing retry with timeout/fallback into one pipeline (use polly-resilience)."
 ---
 # Retry Patterns
 

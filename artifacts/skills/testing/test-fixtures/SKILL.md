@@ -1,6 +1,6 @@
 ---
 name: test-fixtures
-description: "Use when generating test data with Bogus fakers, assertion extensions, or test helpers."
+description: "Builds reusable test infrastructure — Bogus fakers for test data, custom assertion extensions, and shared fixtures/helpers. Use when standardizing test data generation or extracting common setup and assertions across a suite. Do NOT use for writing the unit tests themselves (use unit-testing) or for spinning up real dependencies in integration tests (use integration-testing)."
 metadata:
   category: "testing"
   agent: "test-engineer"

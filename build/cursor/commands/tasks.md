@@ -1,5 +1,5 @@
 ---
-description: "Breaks the plan into ordered executable tasks. Use when ready to start coding after planning."
+description: "Breaks the plan into ordered executable tasks. Use when ready to start coding after planning. Do NOT use to author the plan being decomposed (use plan)."
 ---
 # /dotnet-ai.tasks — Task Generation
 

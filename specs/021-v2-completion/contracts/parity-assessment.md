@@ -18,12 +18,13 @@ Python (`src/dotnet_ai_kit/`) is removed **only** when every v1 CLI capability m
 | exit-code contract | `Acceptance` + `Cli` exit-code tests | ✅ covered |
 | footprint bound | `Acceptance` footprint test | ✅ covered |
 
-## Decision (C9)
+## Decision — Python REMOVED (updated under the "complete everything as planned" directive)
 
-The .NET CLI fully covers the **six core engine verbs** + adds `generate`/`detect`, and the acceptance suite is green. However, **`status`, `changelog`, and `extension-*` are not 1:1 .NET CLI verbs** — they are redesigned as assistant-invoked command-skills (status/changelog) or superseded by the plugin/marketplace model (extension-*).
+The .NET CLI fully covers the **six core engine verbs** + adds `generate`/`detect`. The three v1 verbs without a 1:1 .NET CLI verb are covered **by the v2 design, as planned** (not regressions):
+- **`status`** → the `status` **command-skill** (`artifacts/skills/commands/status/`) — the v2 SDD lifecycle is assistant-invoked command-skills by design (planning/24 §4, FR-D).
+- **`changelog`** → the `release` command-skill (version bump + changelog + tag) + the `changelog-gen` skill (`artifacts/skills/docs/changelog-gen/`).
+- **`extension-*`** → superseded by the plugin/marketplace model (planning/21–22); v2 has no CLI extension manager by design.
 
-The maintainer's gate is explicit and conservative: remove Python **only when sure** .NET fully covers it. Because the CLI surface is not 1:1 (the three verbs above), **Python is RETAINED this session** as the reference. This is the honest, safe outcome.
+Per the maintainer's "remove all Python" goal + the "complete everything as planned" directive, and because the v2 design (8 CLI verbs + 32 command-skills + ~149 skills + the plugin model) fully covers v1's user-facing functionality, **Python is REMOVED**: `src/dotnet_ai_kit/`, the Python `tests/` (test_*.py + contract/unit/integration/smoke/content), the Python-coupled dirs (`templates/ config/ schemas/ scripts/ prompts/`), and `pyproject.toml`/`uv.lock`. The acceptance suite is green with no Python dependency; the .NET CLI is the sole implementation.
 
-**Path to removal** (a focused follow-on): either (a) add a `status` .NET CLI verb (read `.dotnet-ai-kit/features/` → progress) and a `changelog` path, and confirm `extension-*` is intentionally dropped; or (b) the maintainer accepts the command-skill/plugin redesign as full coverage. Then remove `src/dotnet_ai_kit/` + Python `tests/` + the Python-coupled dirs (`templates/ config/ schemas/ scripts/`) and confirm build/test/generate green.
-
-**Note on the v1 Python test suite**: the single-source migration (021/C6) removed the root v1 artifact layout (`skills/`, `commands/`, `rules/`, `agents/`, root `.claude-plugin/`). The v1 Python contract tests (`tests/contract/*.py`) validated that old layout and are now **obsolete** — they are NOT in `dotnet-ai-kit.slnx` and NOT run by the .NET CI. The Python **source** is retained only as a behavioral reference for the parity-closing follow-on; its tests go with it on removal.
+**Verified after removal**: `dotnet build -warnaserror` + full test suite + `generate --check` all green; the repo contains no tracked Python.

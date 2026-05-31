@@ -1,6 +1,6 @@
 ---
 name: outbox
-description: "Use when implementing reliable event publishing with the outbox pattern and Service Bus."
+description: "Implement reliable at-least-once event publishing with the transactional outbox pattern, committing events and OutboxMessages in one IUnitOfWork save and draining them to Service Bus via a singleton ServiceBusPublisher. Use when wiring CommitEventService, batch publishing, or fire-and-forget StartPublish. Do NOT use for the EF Core store schema (use event-store) or for consumer-side idempotent handling (use sequence-checking)."
 metadata:
   category: "microservice/command"
   agent: "command-architect"

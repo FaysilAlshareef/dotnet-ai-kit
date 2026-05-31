@@ -1,6 +1,6 @@
 ---
 name: add-tests
-description: "Generates test suite for existing code. Use when adding unit or integration tests to untested code."
+description: "Generates test suite for existing code. Use when adding unit or integration tests to untested code. Do NOT use to run the existing build and tests for a pass/fail check (use verify)."
 metadata:
   kind: "command"
   invocation: "disable-model-invocation"

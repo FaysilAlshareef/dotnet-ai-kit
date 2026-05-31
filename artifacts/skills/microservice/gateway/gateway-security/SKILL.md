@@ -1,6 +1,6 @@
 ---
 name: gateway-security
-description: "Use when configuring JWT auth, authorization policies, or role-based access on gateway endpoints."
+description: "Configure gateway authentication and authorization with AddJwtAuthentication, scope-based AddPolicies(ApiScope), Policy/Roles constants for [Authorize], and custom IAuthorizationRequirement handlers. Use when securing gateway endpoints with JWT, scopes, roles, or policy-based access. Do NOT use for building the REST endpoints themselves (use gateway-endpoint) or for documenting and protecting the API docs UI (use scalar-docs)."
 metadata:
   category: "microservice/gateway"
   agent: "gateway-architect"

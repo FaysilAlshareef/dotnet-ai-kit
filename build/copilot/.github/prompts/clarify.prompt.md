@@ -1,5 +1,5 @@
 ---
-description: "Resolves ambiguities in a feature specification. Use when the spec has unclear or conflicting requirements."
+description: "Resolves ambiguities in a feature specification. Use when the spec has unclear or conflicting requirements. Do NOT use to author the specification from scratch (use specify)."
 ---
 # /dotnet-ai.clarify — Resolve Specification Ambiguities
 

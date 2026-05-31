@@ -1,5 +1,5 @@
 ---
-description: "Generates project documentation. Use when creating README, API docs, ADRs, or deployment guides."
+description: "Generates project documentation. Use when creating README, API docs, ADRs, or deployment guides. Do NOT use to cut a versioned release with changelog and tag (use release)."
 ---
 # Docs
 

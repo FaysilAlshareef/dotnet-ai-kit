@@ -1,6 +1,6 @@
 ---
 name: cors-configuration
-description: "Use when configuring CORS policies for .NET APIs."
+description: "Configures Cross-Origin Resource Sharing (CORS) policies for .NET APIs — allowed origins, methods, headers, credentials, and named policies. Use when a browser frontend on a different origin must call your API. Do NOT use for authorization rules on endpoints (use auth-policies) or for XSS/CSP and input hardening (use input-sanitization)."
 ---
 # CORS Configuration
 

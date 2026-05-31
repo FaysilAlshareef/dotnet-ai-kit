@@ -1,6 +1,6 @@
 ---
 name: response-result
-description: "Use when handling API responses with ResponseResult<T> and Switch pattern in the UI."
+description: "Handle gateway call outcomes in the UI with ResponseResult<T>, routing success and failure through Switch/SwitchAsync, surfacing ProblemDetails on failure, and showing Snackbar messages. Use when consuming a facade result and branching on success or error in a component. Do NOT use for defining the typed HttpClient that produces the result (use gateway-facade) or for the page layout (use blazor-component)."
 ---
 # ResponseResult<T> — Switch Pattern
 

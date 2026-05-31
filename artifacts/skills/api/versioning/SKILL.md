@@ -1,6 +1,6 @@
 ---
 name: versioning
-description: "Use when adding API versioning or managing multiple API versions in a .NET project."
+description: "Adds API versioning and manages multiple API versions in a .NET project. Use when adding API versioning or managing multiple API versions in a .NET project. Do NOT use for choosing response formats or formatters (use content-negotiation)."
 metadata:
   category: "api"
   agent: "api-designer"

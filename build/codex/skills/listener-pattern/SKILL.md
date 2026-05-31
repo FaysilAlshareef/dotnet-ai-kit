@@ -1,6 +1,6 @@
 ---
 name: listener-pattern
-description: "Use when building Service Bus session-based listeners as IHostedService."
+description: "Build a query-side Service Bus listener as an IHostedService that pairs a ServiceBusSessionProcessor for ordered processing with a DLQ ServiceBusProcessor, deserializes typed events, and dispatches them via scoped MediatR. Use when wiring message intake, subject-based routing, or complete/abandon semantics for a query service. Do NOT use for the handler logic that processes each event (use event-handler) or the idempotency guard (use sequence-checking)."
 ---
 # Listener Pattern — ServiceBusSessionProcessor + DLQ Processor
 

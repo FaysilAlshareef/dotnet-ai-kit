@@ -1,5 +1,5 @@
 ---
-description: "Analyzes plan consistency before coding. Use when validating spec-plan-task alignment."
+description: "Analyzes plan consistency before coding. Use when validating spec-plan-task alignment. Do NOT use to verify the build and tests pass (use verify)."
 ---
 # /dotnet-ai.analyze — Consistency Check
 

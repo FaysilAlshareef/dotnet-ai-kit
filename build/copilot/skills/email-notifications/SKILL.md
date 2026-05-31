@@ -1,6 +1,6 @@
 ---
 name: email-notifications
-description: "Use when implementing email sending with templates, SendGrid, or SES integration."
+description: "Implements email sending behind an IEmailService abstraction with HTML templates over SendGrid, AWS SES, or SMTP. Use when delivering transactional or notification emails to users. Do NOT use for storing or serving uploaded files (use file-storage)."
 ---
 # Email Notifications — Service Abstraction & Templates
 

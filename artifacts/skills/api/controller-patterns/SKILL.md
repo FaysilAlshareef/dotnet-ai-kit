@@ -1,6 +1,6 @@
 ---
 name: controller-patterns
-description: "Use when building controller-based REST APIs with action results, model binding, or MediatR integration."
+description: "Builds controller-based REST APIs with action results, model binding, and MediatR integration. Use when building controller-based REST APIs with action results, model binding, or MediatR integration. Do NOT use for lightweight route-based endpoints (use minimal-api)."
 metadata:
   category: "api"
   agent: "api-designer"

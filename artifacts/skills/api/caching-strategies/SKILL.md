@@ -1,6 +1,6 @@
 ---
 name: caching-strategies
-description: "Use when adding caching to .NET APIs or optimizing response times with distributed cache, output cache, or ETags."
+description: "Adds caching to .NET APIs with distributed cache, output cache, and ETags to optimize response times. Use when adding caching to .NET APIs or optimizing response times with distributed cache, output cache, or ETags. Do NOT use for throttling or limiting request volume (use rate-limiting)."
 metadata:
   category: "api"
   agent: "api-designer"

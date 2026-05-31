@@ -15,8 +15,8 @@ Rewrite as a **.NET 10 clean/hexagonal CLI** with a **single authored source (`a
 - **+** One source of truth; drift is structurally impossible; the rule-delivery defect is fixed and locked by tests.
 - **+** Quality is deterministic (analyzers/CI/Stop-hook cost zero model tokens).
 - **+** Reflection-free serialization keeps a future Native-AOT path open.
-- **−** A large corpus migration (v1 → `artifacts/`) and a transition period where the Python v1 coexists as a reference.
-- **Gate**: the Python v1 is removed only once the .NET CLI fully covers it (parity assessment + green acceptance suite).
+- **−** A large corpus migration (v1 → `artifacts/`) and a transition period where the Python v1 coexisted as a reference.
+- **Gate (met)**: the Python v1 was removed once the .NET CLI fully covered it — the parity assessment confirmed coverage and the acceptance suite is green. The .NET CLI is now the **sole implementation**; no Python remains.
 
 ## Distribution
 

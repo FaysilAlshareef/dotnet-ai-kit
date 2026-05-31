@@ -1,6 +1,6 @@
 ---
 name: plan-artifacts
-description: "Use when generating supporting artifacts (briefs, service maps) during implementation planning."
+description: "Generate the supporting artifacts (research notes, briefs, service maps) that accompany a Complex feature's implementation plan. Use when producing those supplementary planning documents during implementation planning. Do NOT use to build the plan.md structure itself (use plan-templates)."
 ---
 # Plan Artifacts Skill
 

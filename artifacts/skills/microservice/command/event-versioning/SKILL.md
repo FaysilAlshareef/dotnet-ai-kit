@@ -1,6 +1,6 @@
 ---
 name: event-versioning
-description: "Use when evolving event schemas, adding fields, or migrating event data versions."
+description: "Evolve published event schemas safely by adding nullable fields, bumping the Version field, and applying lazy upcasters at read time instead of mutating existing events. Use when changing an event's shape without breaking existing consumers or stored history. Do NOT use for creating brand-new event types (use event-design) or for configuring how events persist (use event-store)."
 metadata:
   category: "microservice/command"
   agent: "command-architect"

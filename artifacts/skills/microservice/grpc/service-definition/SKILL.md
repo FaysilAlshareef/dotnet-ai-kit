@@ -1,6 +1,6 @@
 ---
 name: service-definition
-description: "Use when designing proto files or implementing gRPC service classes with MediatR."
+description: "Define gRPC service contracts in .proto files and implement service classes that inherit the generated *Base, dispatch to MediatR handlers, and map between proto and domain types using StringValue/Timestamp and PageRequest/PageResponse. Use when adding a gRPC method or its proto contract. Do NOT use for cross-cutting pipeline behavior (use interceptors) or for request validation rules (use validation)."
 metadata:
   category: "microservice/grpc"
   agent: "command-architect"

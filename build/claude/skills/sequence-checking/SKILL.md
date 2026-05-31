@@ -1,6 +1,6 @@
 ---
 name: sequence-checking
-description: "Use when adding inline sequence validation for idempotent event processing."
+description: "Add the inline per-aggregate sequence guard (entity.Sequence != event.Sequence - 1) inside a query handler so out-of-order or duplicate events are abandoned and retried, then advance Sequence after applying. Use when enforcing idempotent, ordered event processing without a helper class. Do NOT use for the broader handler implementation (use event-handler) or the message listener wiring (use listener-pattern)."
 ---
 # Sequence Checking — Inline Idempotent Guard
 

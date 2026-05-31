@@ -1,6 +1,6 @@
 ---
 name: ef-migrations
-description: "Use when creating, applying, or managing EF Core database migrations."
+description: "Creates, applies, and manages source-controlled EF Core database migrations with idempotent scripts and seed data. Use when evolving the database schema across versions and environments. Do NOT use for initial DbContext and entity mapping setup (use ef-core-basics)."
 ---
 # EF Core Migrations
 

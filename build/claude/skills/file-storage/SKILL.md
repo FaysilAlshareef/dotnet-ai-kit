@@ -1,6 +1,6 @@
 ---
 name: file-storage
-description: "Use when implementing file upload/download with Azure Blob Storage or local file system."
+description: "Implements file upload/download behind an IFileStorage abstraction over Azure Blob Storage or the local file system, with SAS tokens. Use when storing or serving binary files and documents. Do NOT use for sending templated email messages (use email-notifications)."
 ---
 # File Storage — Azure Blob & Local Abstraction
 

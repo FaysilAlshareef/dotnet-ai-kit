@@ -1,6 +1,6 @@
 ---
 name: add-entity
-description: "Generates a query-side entity with handler. Use when adding a new read model for projections."
+description: "Generates a query-side entity with handler. Use when adding a new read model for projections. Do NOT use to add a command-side event-sourced aggregate (use add-aggregate)."
 disable-model-invocation: true
 ---
 # Add Entity

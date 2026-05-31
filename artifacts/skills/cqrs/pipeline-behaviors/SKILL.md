@@ -1,6 +1,6 @@
 ---
 name: pipeline-behaviors
-description: "Use when adding cross-cutting MediatR pipeline behaviors for validation, logging, or transactions."
+description: "Adds cross-cutting MediatR pipeline behaviors that wrap every request for validation, logging, or transactions. Use when applying middleware-style concerns across all handlers via open generic registration. Do NOT use for per-request handler logic itself (use mediatr-handlers)."
 metadata:
   category: "cqrs"
   agent: "ef-specialist"

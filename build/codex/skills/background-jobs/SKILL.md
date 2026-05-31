@@ -1,6 +1,6 @@
 ---
 name: background-jobs
-description: "Use when adding background jobs, recurring tasks, or Hangfire scheduled work."
+description: "Adds background processing with Hangfire jobs, BackgroundService loops, and IHostedService for recurring, fire-and-forget, or startup work. Use when running tasks outside the HTTP request path. Do NOT use for toggling functionality at runtime (use feature-flags)."
 ---
 # Background Jobs — Hangfire & Hosted Services
 

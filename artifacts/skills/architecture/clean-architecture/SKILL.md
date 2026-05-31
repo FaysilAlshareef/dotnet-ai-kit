@@ -1,6 +1,6 @@
 ---
 name: clean-architecture
-description: "Use when implementing or enforcing Clean Architecture with 4-layer separation and dependency inversion."
+description: "Implements and enforces Clean Architecture with 4-layer separation and dependency inversion. Use when implementing or enforcing Clean Architecture with 4-layer separation and dependency inversion. Do NOT use for feature-folder co-located structuring (use vertical-slice)."
 metadata:
   category: "architecture"
   agent: "dotnet-architect"

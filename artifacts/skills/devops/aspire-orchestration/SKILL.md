@@ -1,6 +1,6 @@
 ---
 name: aspire-orchestration
-description: "Use when setting up .NET Aspire for local development orchestration and service discovery."
+description: "Sets up the .NET Aspire AppHost topology, ServiceDefaults, and service discovery for local development orchestration. Use when defining how services run and find each other locally. Do NOT use for wiring backing-service integration packages via WithReference (use aspire-integrations)."
 metadata:
   category: "devops"
   agent: "devops-engineer"

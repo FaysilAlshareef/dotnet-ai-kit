@@ -1,6 +1,6 @@
 ---
 name: configuration
-description: "Use when setting up IConfiguration, Options pattern, appsettings layering, or user secrets."
+description: "Sets up IConfiguration, the Options pattern, appsettings layering, and user secrets. Use when setting up IConfiguration, Options pattern, appsettings layering, or user secrets. Do NOT use for registering services and choosing lifetimes (use dependency-injection)."
 ---
 # Configuration & Options Pattern
 

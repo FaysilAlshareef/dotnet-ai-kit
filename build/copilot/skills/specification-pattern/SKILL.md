@@ -1,6 +1,6 @@
 ---
 name: specification-pattern
-description: "Use when building composable query criteria with the specification pattern."
+description: "Builds composable, reusable query criteria as ISpecification<T> objects with includes and ordering. Use when encapsulating filter logic so it can be combined and shared across queries. Do NOT use for the repository abstraction that executes specifications (use repository-patterns)."
 ---
 # Specification Pattern
 

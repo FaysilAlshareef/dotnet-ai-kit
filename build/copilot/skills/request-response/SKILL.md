@@ -1,6 +1,6 @@
 ---
 name: request-response
-description: "Use when designing CQRS request/response contracts with FluentValidation and Result types."
+description: "Designs CQRS request/response contracts as immutable records with FluentValidation and Result<T> types. Use when shaping the message and DTO contracts that handlers consume and return. Do NOT use for scaffolding the full command handler and validator (use command-generator)."
 ---
 # Request/Response Patterns
 

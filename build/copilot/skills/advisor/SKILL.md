@@ -1,6 +1,6 @@
 ---
 name: advisor
-description: "Use when choosing between architecture patterns (VSA, Clean Architecture, DDD, Modular Monolith, Microservices) for a new project."
+description: "Recommends an architecture pattern (VSA, Clean Architecture, DDD, Modular Monolith, Microservices) from team size, domain complexity, and scale factors. Use when choosing between architecture patterns for a new project. Do NOT use for implementing a pattern once chosen (use clean-architecture)."
 ---
 # Architecture Advisor
 

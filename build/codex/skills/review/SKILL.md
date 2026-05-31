@@ -1,6 +1,6 @@
 ---
 name: review
-description: "Reviews code against standards and conventions. Use when implementation is complete and ready for quality check."
+description: "Reviews code against standards and conventions. Use when implementation is complete and ready for quality check. Do NOT use to check cross-artifact spec-plan-task consistency (use analyze)."
 ---
 # /dotnet-ai.review — Standards Review
 

@@ -1,6 +1,6 @@
 ---
 name: runbook
-description: "Use when creating deployment runbooks, troubleshooting guides, or rollback procedures."
+description: "Writes operational runbooks — deployment steps, troubleshooting playbooks, and rollback procedures for running and recovering a service. Use when documenting how to deploy, diagnose incidents, or roll back. Do NOT use for new-developer setup guides (use onboarding) or for release notes/changelogs (use changelog-gen)."
 ---
 # Runbook — Deployment & Troubleshooting
 

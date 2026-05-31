@@ -1,6 +1,6 @@
 ---
 name: architectural-fitness
-description: "Use when adding NetArchTest architecture tests to enforce dependency rules."
+description: "Writes NetArchTest architecture fitness tests that assert layering and dependency rules (e.g. Domain must not reference Infrastructure) as executable unit tests. Use when enforcing module boundaries or naming/dependency conventions at test time. Do NOT use for compile-time custom diagnostics with auto-fix (use roslyn-analyzer) or for configuring built-in analyzer severity (use code-analysis)."
 metadata:
   category: "quality"
   agent: "reviewer"

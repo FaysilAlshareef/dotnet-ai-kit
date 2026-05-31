@@ -1,6 +1,6 @@
 ---
 name: signalr-realtime
-description: "Use when adding real-time communication with SignalR hubs, WebSocket connections, or push notifications."
+description: "Adds real-time bidirectional communication with SignalR hubs, WebSocket connections, and push notifications. Use when adding real-time communication with SignalR hubs, WebSocket connections, or push notifications. Do NOT use for one-way server-to-client event streaming (use server-sent-events)."
 metadata:
   category: "api"
   agent: "api-designer"

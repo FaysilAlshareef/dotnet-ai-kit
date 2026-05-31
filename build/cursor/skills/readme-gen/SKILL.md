@@ -1,6 +1,6 @@
 ---
 name: readme-gen
-description: "Use when generating README files from project analysis."
+description: "Generates a project README from codebase analysis — overview, features, install/build steps, usage, and structure. Use when creating or refreshing the top-level README for a repository. Do NOT use for new-contributor setup walkthroughs (use onboarding) or for endpoint reference docs (use api-docs)."
 ---
 # README Generation — Project Analysis
 

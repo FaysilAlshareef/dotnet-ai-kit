@@ -1,6 +1,6 @@
 ---
 name: event-design
-description: "Use when designing domain events with Event<TData> hierarchy for event sourcing."
+description: "Design domain events using the abstract Event base, generic Event<TData>, IEventData records, and an EventType enum that drives the discriminator. Use when adding a new event type, shaping its immutable data payload, or defining the event hierarchy for an aggregate. Do NOT use for persisting or mapping events in EF Core (use event-store) or for evolving an existing event schema (use event-versioning)."
 ---
 # Event Design -- Event Hierarchy Pattern
 

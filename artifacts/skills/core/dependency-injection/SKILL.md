@@ -1,6 +1,6 @@
 ---
 name: dependency-injection
-description: "Use when registering services, choosing lifetimes, or implementing DI patterns like decorator or keyed services."
+description: "Registers services, chooses lifetimes, and implements DI patterns like decorator or keyed services. Use when registering services, choosing lifetimes, or implementing DI patterns like decorator or keyed services. Do NOT use for binding settings and the Options pattern (use configuration)."
 metadata:
   category: "core"
   agent: "dotnet-architect"

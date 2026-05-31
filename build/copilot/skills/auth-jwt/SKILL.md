@@ -1,6 +1,6 @@
 ---
 name: auth-jwt
-description: "Use when setting up JWT authentication, token generation, or refresh token flows."
+description: "Configures JWT bearer authentication in ASP.NET Core — token validation parameters, signing keys, and access/refresh token issuance and rotation. Use when validating or issuing your own JWTs for API authentication. Do NOT use for authorization rules on top of identity (use auth-policies), for federating to an external Entra tenant (use entra-id-auth), or for running an OAuth server (use openiddict-server)."
 ---
 # JWT Authentication
 

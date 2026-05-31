@@ -1,6 +1,6 @@
 ---
 name: event-catalogue
-description: "Use when documenting cross-service event schemas or generating an event registry."
+description: "Generate a discoverable cross-service event catalogue from the C# Event<TData> types as the single source of truth, tracking versioned, past-tense, domain-scoped schemas that consuming services reference as contracts. Use when documenting or publishing the event registry for CQRS microservices. Do NOT use for defining a new event type in code (use event-design) or for evolving an existing event's schema (use event-versioning)."
 ---
 # Event Catalogue -- Schema Registry for CQRS Microservices
 

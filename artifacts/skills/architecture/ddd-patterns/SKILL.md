@@ -1,6 +1,6 @@
 ---
 name: ddd-patterns
-description: "Use when modeling domain logic with aggregates, value objects, domain events, or bounded contexts."
+description: "Models domain logic with aggregates, value objects, domain events, and bounded contexts. Use when modeling domain logic with aggregates, value objects, domain events, or bounded contexts. Do NOT use for overall layer separation and dependency direction (use clean-architecture)."
 metadata:
   category: "architecture"
   agent: "dotnet-architect"

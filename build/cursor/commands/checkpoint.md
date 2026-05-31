@@ -1,5 +1,5 @@
 ---
-description: "Saves a progress checkpoint for session handoff. Use when pausing work to resume in a later session."
+description: "Saves a progress checkpoint for session handoff. Use when pausing work to resume in a later session. Do NOT use to end the session with a final summary (use wrap-up)."
 ---
 # Checkpoint
 
