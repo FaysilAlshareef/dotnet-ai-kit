@@ -137,9 +137,17 @@ dotnet format clean, generate --check drift-clean (833 files, 4 hosts), no pkg v
   `hooks/hooks.json` already sit and are auto-discovered (the manifest moved to
   `build/claude/.claude-plugin/plugin.json`; `author` + marketplace `description` added). **Verified with the
   real `claude` CLI v2.1.154: `claude plugin validate build/claude --strict` and `claude plugin validate
-  build --strict` both PASS.** So the four enforcement tiers (incl. the PreToolUse/Stop hooks) actually load
-  and fire when installed — not just generated. Codex/Cursor plugin loadability (different host specs) is the
-  remaining parity item, tracked as a follow-on.
+  build --strict` both PASS.** Verification ceiling: this proves the plugin is *structurally loadable* and the
+  hooks.json is discovered at the resolved root, and the `dotnet-ai hook` backend is verified end-to-end
+  (stdin→protocol); a *live in-session* PreToolUse/Stop firing test needs an interactive Claude instance and is
+  the one step not runnable headlessly.
+- **Codex/Cursor loadability is a separate mechanism, not a pending copy of this fix.** planning/21 (§ "Plugin
+  manifest", ~line 185) notes Codex reads `.agents/skills/` and Cursor uses its own discovery path — *not*
+  Claude's marketplace/`source` model — so the marketplace fix above doesn't transfer to them, and `claude
+  plugin validate` cannot check them. (Open tension to resolve with Codex's own tooling: the projector emits
+  `build/codex/skills/` + `build/.codex-plugin/plugin.json`, which doesn't obviously match planning/21's
+  `.agents/skills/` claim.) The enforcement tiers don't depend on this — T2/T4 are Claude-scoped (planning/26),
+  Codex/Cursor fall back to the analyzer + CI.
 - **Dead-file cleanup + CI.** Removed the v1 top-level `hooks/` source dir (planning/22 projects hooks into
   `build/`) and the dead v1 `bin/` python wrappers; fixed `.github/dependabot.yml` (pip → nuget) and
   `pull_request_template.md` (pytest/ruff → dotnet gates); fixed stale v1 references in the root docs.

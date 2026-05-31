@@ -93,8 +93,9 @@ red build can't wedge the session in a block loop.
 > marketplace — both pass `claude plugin validate … --strict`. The marketplace
 > (`build/.claude-plugin/marketplace.json`) points the plugin `source` at `./claude`, so the
 > plugin root is `build/claude/` and its `skills/`, `agents/`, and `hooks/hooks.json` are
-> auto-discovered. With the plugin installed, the PreToolUse/Stop hooks fire from
-> `build/claude/hooks/hooks.json`; the `dotnet-ai hook` backend is verified end-to-end.
+> auto-discovered. The `dotnet-ai hook` backend is verified end-to-end (stdin→protocol). The
+> one step not runnable headlessly is a *live* in-session PreToolUse/Stop firing test, which
+> needs an interactive Claude instance.
 
 ---
 
