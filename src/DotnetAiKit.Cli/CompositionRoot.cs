@@ -51,7 +51,7 @@ internal static class CompositionRoot
         IDetectionProvider detector = BuildDetector();
         IHostAdapter adapter = host switch
         {
-            HostName.Claude => new ClaudeHostAdapter(FileSystem),
+            HostName.Claude => new ClaudeHostAdapter(FileSystem, new BackupRotationService(FileSystem)),
             _ => throw new NotSupportedException($"init for host '{host}' is not implemented yet."),
         };
         return new InitService(detector, BuildRepository(), adapter);

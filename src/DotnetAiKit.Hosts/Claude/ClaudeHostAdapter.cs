@@ -1,5 +1,6 @@
 using System.Text;
 using DotnetAiKit.Application.Ports;
+using DotnetAiKit.Application.UseCases;
 using DotnetAiKit.Core.Artifacts;
 using DotnetAiKit.Core.Policies;
 using DotnetAiKit.Core.Project;
@@ -12,7 +13,7 @@ namespace DotnetAiKit.Hosts.Claude;
 /// <c>.claude/settings.json</c>, and — the v1 defect fix — <c>.claude/rules/*.md</c> with
 /// <c>paths:</c> frontmatter so domain rules load JIT and universal rules are always-on (FR-019, SC-002).
 /// </summary>
-public sealed class ClaudeHostAdapter(IFileSystem fileSystem) : IHostAdapter
+public sealed class ClaudeHostAdapter(IFileSystem fileSystem, IBackupService backupService) : IHostAdapter
 {
     public HostName Host => HostName.Claude;
 
@@ -20,6 +21,9 @@ public sealed class ClaudeHostAdapter(IFileSystem fileSystem) : IHostAdapter
         string solutionRoot, ArtifactCorpus corpus, ProjectMetadata metadata, bool dryRun)
     {
         var written = new List<string>();
+        var refreshed = new List<string>();
+        var merged = new List<string>();
+        var pending = new List<string>();
         var tokens = metadata.ToTokenMap();
 
         void Write(string relativePath, string content)
@@ -29,18 +33,54 @@ public sealed class ClaudeHostAdapter(IFileSystem fileSystem) : IHostAdapter
             written.Add(relativePath);
         }
 
+        // FR-022-13/14: a user-owned file is merged / preserved / backed-up — never silently clobbered.
+        void WriteUserOwned(string relativePath, string managed, bool isJson)
+        {
+            var full = Path.Combine(solutionRoot, relativePath);
+            var existing = fileSystem.FileExists(full) ? fileSystem.ReadAllText(full) : null;
+            var (action, content) = UserFilePolicy.Decide(existing, managed, isJson);
+            switch (action)
+            {
+                case UserFileAction.Written:
+                    if (!dryRun) fileSystem.WriteAllText(full, content);
+                    written.Add(relativePath);
+                    break;
+                case UserFileAction.Refreshed:
+                    if (!dryRun) fileSystem.WriteAllText(full, content);
+                    refreshed.Add(relativePath);
+                    break;
+                case UserFileAction.Merged:
+                    if (!dryRun) { backupService.BackupAndRotate(full, 3); fileSystem.WriteAllText(full, content); }
+                    merged.Add(relativePath);
+                    break;
+                case UserFileAction.PendingConsent:
+                    if (!dryRun) backupService.BackupAndRotate(full, 3);
+                    pending.Add(relativePath);
+                    break;
+            }
+        }
+
         // The rule-delivery fix: domain rules carry paths: (JIT); universal rules are always-on.
         foreach (var rule in corpus.Rules)
             Write($".claude/rules/{rule.Name.Value}.md", RenderRule(rule, tokens));
 
-        Write(".claude/settings.json", "{\n  \"$schema\": \"https://json.schemastore.org/claude-code-settings.json\"\n}\n");
+        WriteUserOwned(
+            ".claude/settings.json",
+            "{\n  \"$schema\": \"https://json.schemastore.org/claude-code-settings.json\"\n}\n",
+            isJson: true);
 
         Write(".dotnet-ai-kit/version.txt", corpus.Manifest?.Version.ToString() ?? "2.0.0");
         Write(".dotnet-ai-kit/config.yml", RenderConfig(metadata));
         Write(".dotnet-ai-kit/project.yml", RenderProject(metadata));
         Write(".dotnet-ai-kit/manifest.json", "{\n  \"host\": \"claude\",\n  \"rules\": " + corpus.Rules.Count + "\n}\n");
 
-        return new HostWriteResult { Written = written };
+        return new HostWriteResult
+        {
+            Written = written,
+            ForceRendered = refreshed,
+            Preserved = merged,
+            PendingConsent = pending,
+        };
     }
 
     private static string RenderRule(Rule rule, IReadOnlyDictionary<string, string> tokens)

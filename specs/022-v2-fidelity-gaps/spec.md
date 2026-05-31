@@ -158,7 +158,7 @@ The host-capability matrix (already in Core) is backed by per-host install smoke
 
 **Resources (FR-A2 / FR-D33 / AR-5 / planning/23 §368)**
 - **FR-022-01**: The 4 new command-skills (`constitution`, `checklist`, `fix`, `release`) MUST each bundle their workflow `scripts/` (and `examples/` where the workflow produces artifacts), populated into `SkillResourceSet`.
-- **FR-022-02**: The `add-*` code-gen command-skills MUST bundle compilable C# `examples/` and/or template `assets/` representing what they generate.
+- **FR-022-02**: The `add-*` code-gen command-skills MUST bundle illustrative C# `examples/` (and/or template `assets/`) representing what they generate. **Validation ceiling**: examples are **Roslyn-parse-validated** (syntactically valid — a test parses each and asserts no error-severity syntax diagnostics), NOT semantically compiled (they reference ASP.NET/EF types not in `dotnet-ai-kit.slnx`; a full reference-closure compile is out of scope). The word "compilable" in planning/23 is read as "syntactically-valid, illustrative" here.
 - **FR-022-03**: Resource authoring is opt-in per AR-5; a skill whose `SKILL.md` is self-sufficient MAY remain resource-free, but the corpus-integrity test MUST assert the required resource set for the FR-022-01/02 skill kinds.
 - **FR-022-04**: The projectors MUST copy each skill's resource set into every host's skill directory, byte-stable, and `generate --check` MUST stay drift-clean.
 - **FR-022-05 (FR-J)**: A trust/security model MUST govern bundled executable scripts — declared, never auto-run without consent, with provenance recorded; cross-platform (`.py` default + `.ps1`/`.sh` siblings, NFR-3).
@@ -206,7 +206,7 @@ The host-capability matrix (already in Core) is backed by per-host install smoke
 
 ### Measurable Outcomes
 
-- **SC-022-1**: The FR-D33 command-skills and the `add-*` skills each carry their required resources; the corpus-integrity test asserts it; `generate --check` is drift-clean with resources present in every host's skill dir.
+- **SC-022-1**: The FR-D33 command-skills and the `add-*` skills each carry their required resources; the corpus-integrity test asserts it; each `add-*` example is Roslyn-parse-validated (no error-severity syntax diagnostics); `generate --check` is drift-clean with resources present in every host's skill dir.
 - **SC-022-2**: Executing the generated `hooks.json` command with a sample payload runs the v2 backend and emits valid protocol (no shim error) — proven by a smoke test.
 - **SC-022-3**: Ambiguous-cluster `evals/cases.jsonl` exist and the confusion-matrix gate passes (and fails on an induced collision).
 - **SC-022-4**: A Verify golden baseline exists for every artifact-type × host shape + manifests/marketplace/hooks/AGENTS/copilot-instructions; an induced format change fails its golden test.

@@ -29,7 +29,7 @@ public class RuleDeliveryTests
         return new InitService(
             new DotnetProjectDetector(fs),
             new FileSystemArtifactRepository(fs, new YamlFrontmatterParser()),
-            new ClaudeHostAdapter(fs));
+            new ClaudeHostAdapter(fs, new BackupRotationService(fs)));
     }
 
     [Fact]
@@ -60,6 +60,33 @@ public class RuleDeliveryTests
             Assert.True(configFootprint <= FootprintBound, $"config footprint of {configFootprint} exceeds {FootprintBound}");
             Assert.False(Directory.Exists(Path.Combine(temp, ".claude", "skills")), "the skill corpus must NOT be copied per project");
             Assert.False(Directory.Exists(Path.Combine(temp, ".claude", "agents")), "the agent corpus must NOT be copied per project");
+        }
+        finally
+        {
+            if (Directory.Exists(temp))
+                Directory.Delete(temp, recursive: true);
+        }
+    }
+
+    [Fact]
+    public void Init_preserves_a_user_edited_settings_json()
+    {
+        // SC-022-5 / FR-022-13/14: a pre-existing user-edited .claude/settings.json is merged (managed
+        // keys added, user keys kept), never silently clobbered, and the action is reported.
+        var temp = Path.Combine(Path.GetTempPath(), "dak-userfile-" + Guid.NewGuid().ToString("N"));
+        try
+        {
+            var settings = Path.Combine(temp, ".claude", "settings.json");
+            Directory.CreateDirectory(Path.GetDirectoryName(settings)!);
+            File.WriteAllText(settings, "{\n  \"permissions\": { \"allow\": [\"Bash\"] },\n  \"my\": \"edit\"\n}\n");
+
+            var result = BuildInit().Run(temp, Path.Combine(RepoRoot(), "artifacts"), dryRun: false);
+            Assert.True(result.Ok, string.Join("; ", result.Errors));
+
+            var content = File.ReadAllText(settings);
+            Assert.Contains("\"my\"", content, StringComparison.Ordinal);   // user key survives
+            Assert.Contains("$schema", content, StringComparison.Ordinal);   // managed key merged in
+            Assert.Contains(".claude/settings.json", result.Write!.Preserved); // reported, not silently written
         }
         finally
         {

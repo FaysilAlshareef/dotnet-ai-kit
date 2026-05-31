@@ -30,7 +30,7 @@ public class PerformanceTests
         var temp = Path.Combine(Path.GetTempPath(), "dak-perf-" + Guid.NewGuid().ToString("N"));
         try
         {
-            new InitService(new DotnetProjectDetector(fs), new FileSystemArtifactRepository(fs, new YamlFrontmatterParser()), new ClaudeHostAdapter(fs))
+            new InitService(new DotnetProjectDetector(fs), new FileSystemArtifactRepository(fs, new YamlFrontmatterParser()), new ClaudeHostAdapter(fs, new BackupRotationService(fs)))
                 .Run(temp, artifacts, dryRun: false);
 
             var checkSw = Stopwatch.StartNew();

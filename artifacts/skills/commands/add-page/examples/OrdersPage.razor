@@ -1,0 +1,38 @@
+@page "/orders"
+@using Sample.ControlPanel.Services
+@inject IOrdersGateway Orders
+
+<PageTitle>Orders</PageTitle>
+
+<MudText Typo="Typo.h5" Class="mb-4">Orders</MudText>
+
+<MudTable Items="@_orders" Hover="true" Loading="@_loading" Dense="true">
+    <HeaderContent>
+        <MudTh>Customer</MudTh>
+        <MudTh>Total</MudTh>
+        <MudTh>Status</MudTh>
+    </HeaderContent>
+    <RowTemplate>
+        <MudTd DataLabel="Customer">@context.CustomerName</MudTd>
+        <MudTd DataLabel="Total">@context.Total.ToString("C")</MudTd>
+        <MudTd DataLabel="Status">
+            <MudChip T="string" Size="Size.Small">@context.Status</MudChip>
+        </MudTd>
+    </RowTemplate>
+    <NoRecordsContent>
+        <MudText>No orders yet.</MudText>
+    </NoRecordsContent>
+</MudTable>
+
+@code {
+    private IReadOnlyList<OrderRow> _orders = Array.Empty<OrderRow>();
+    private bool _loading = true;
+
+    protected override async Task OnInitializedAsync()
+    {
+        _orders = await Orders.GetAllAsync();
+        _loading = false;
+    }
+
+    public sealed record OrderRow(Guid Id, string CustomerName, decimal Total, string Status);
+}

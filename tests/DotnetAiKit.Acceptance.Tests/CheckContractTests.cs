@@ -32,7 +32,7 @@ public class CheckContractTests
         try
         {
             var fs = new PhysicalFileSystem();
-            new InitService(new DotnetProjectDetector(fs), new FileSystemArtifactRepository(fs, new YamlFrontmatterParser()), new ClaudeHostAdapter(fs))
+            new InitService(new DotnetProjectDetector(fs), new FileSystemArtifactRepository(fs, new YamlFrontmatterParser()), new ClaudeHostAdapter(fs, new BackupRotationService(fs)))
                 .Run(temp, Path.Combine(RepoRoot(), "artifacts"), dryRun: false);
 
             var result = new CheckService(fs).Run(temp);
@@ -85,7 +85,7 @@ public class CheckContractTests
 
             new GenerateService(repo, new ProjectionEngine(new HostRegistry(new IHostProjector[] { new ClaudeProjector() })), fs)
                 .Run(artifacts, buildOut, checkOnly: false);
-            new InitService(new DotnetProjectDetector(fs), repo, new ClaudeHostAdapter(fs))
+            new InitService(new DotnetProjectDetector(fs), repo, new ClaudeHostAdapter(fs, new BackupRotationService(fs)))
                 .Run(temp, artifacts, dryRun: false);
             var check = new CheckService(fs).Run(temp);
 
