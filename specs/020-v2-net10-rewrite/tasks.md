@@ -188,9 +188,9 @@ description: "Task list for 020-v2-net10-rewrite"
 **Goal**: feature-brief projection to every affected repo + awareness contract test.
 **Independent Test**: specify/orchestrate leaves a matching brief in every service-map repo.
 
-- [ ] T077 [US8] `OrchestrateService` + `orchestrate` command: init affected repos, project feature-briefs, sequential dependency order (`--parallel` opt-in) (FR-033)
-- [ ] T078 [US8] Cross-repo `analyze` contract checks (event producer/consumer; client/server) (FR-034)
-- [ ] T079 [US8] [Tests] awareness contract test: every service-map repo has a brief with matching feature id (SC-009 / FR-035)
+- [x] T077 [US8] `OrchestrateService` + `orchestrate` command: init affected repos, project feature-briefs, sequential dependency order (`--parallel` opt-in) (FR-033)
+- [x] T078 [US8] Cross-repo `analyze` contract checks (event producer/consumer; client/server) (FR-034)
+- [x] T079 [US8] [Tests] awareness contract test: every service-map repo has a brief with matching feature id (SC-009 / FR-035)
 
 **Checkpoint**: SC-009 green.
 
