@@ -21,4 +21,8 @@
     <PackageReference Include="Spectre.Console" />
   </ItemGroup>
 
+  <ItemGroup>
+    <InternalsVisibleTo Include="DotnetAiKit.Cli.Tests" />
+  </ItemGroup>
+
 </Project>

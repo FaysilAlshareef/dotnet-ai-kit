@@ -27,13 +27,18 @@ internal static class CheckCommand
 
             if (json)
             {
+                // Machine-readable: raw stdout, no markup.
                 Console.WriteLine($"{{ \"exitCode\": {result.ExitCode}, \"checks\": {result.Checks.Count} }}");
             }
             else
             {
+                var reporter = CompositionRoot.Reporter;
                 foreach (var check in result.Checks)
-                    Console.WriteLine($"  [{check.Status}] {check.Name} {check.Details}".TrimEnd());
-                Console.WriteLine(result.Healthy ? "check: all checks pass (exit 0)." : $"check: exit {result.ExitCode}.");
+                    reporter.Info($"  [{check.Status}] {check.Name} {check.Details}".TrimEnd());
+                if (result.Healthy)
+                    reporter.Success("check: all checks pass (exit 0).");
+                else
+                    reporter.Error($"check: exit {result.ExitCode}.");
             }
 
             return result.ExitCode;

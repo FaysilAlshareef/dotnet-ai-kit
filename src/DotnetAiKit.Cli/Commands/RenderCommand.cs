@@ -29,13 +29,14 @@ internal static class RenderCommand
             if (!result.Ok)
             {
                 foreach (var error in result.Errors)
-                    Console.Error.WriteLine($"error: {error}");
+                    CompositionRoot.Reporter.Error(error);
                 return 1;
             }
 
+            // The rendered body goes to raw stdout (no markup) so it can be piped/redirected.
             Console.Write(result.Body);
             if (result.UnresolvedTokens.Count > 0)
-                Console.Error.WriteLine($"warning: unresolved tokens: {string.Join(", ", result.UnresolvedTokens)}");
+                CompositionRoot.Reporter.Warn($"unresolved tokens: {string.Join(", ", result.UnresolvedTokens)}");
             return 0;
         });
 

@@ -20,13 +20,14 @@ internal static class DetectCommand
         command.SetAction(parseResult =>
         {
             var path = parseResult.GetValue(pathArgument)!;
+            var reporter = CompositionRoot.Reporter;
             var metadata = CompositionRoot.BuildDetectService().Run(path);
 
-            Console.WriteLine($"architecture:   {(metadata.Architecture.Length > 0 ? metadata.Architecture : "(unknown)")}");
-            Console.WriteLine($"dotnet_version: {(metadata.DotnetVersion.Length > 0 ? metadata.DotnetVersion : "(unknown)")}");
-            Console.WriteLine($"detected_paths: {metadata.DetectedPaths.Paths.Count}");
+            reporter.Info($"architecture:   {(metadata.Architecture.Length > 0 ? metadata.Architecture : "(unknown)")}");
+            reporter.Info($"dotnet_version: {(metadata.DotnetVersion.Length > 0 ? metadata.DotnetVersion : "(unknown)")}");
+            reporter.Info($"detected_paths: {metadata.DetectedPaths.Paths.Count}");
             foreach (var (key, value) in metadata.DetectedPaths.Paths.OrderBy(p => p.Key, StringComparer.Ordinal))
-                Console.WriteLine($"  {key} -> {value}");
+                reporter.Info($"  {key} -> {value}");
             return 0;
         });
 

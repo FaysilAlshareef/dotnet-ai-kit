@@ -1,5 +1,6 @@
 using DotnetAiKit.Application.Ports;
 using DotnetAiKit.Application.UseCases;
+using DotnetAiKit.Cli.Output;
 using DotnetAiKit.Core.Values;
 using DotnetAiKit.Hosts;
 using DotnetAiKit.Hosts.Claude;
@@ -14,6 +15,8 @@ namespace DotnetAiKit.Cli;
 internal static class CompositionRoot
 {
     public static IFileSystem FileSystem { get; } = new PhysicalFileSystem();
+
+    public static IConsoleReporter Reporter { get; } = new SpectreConsoleReporter();
 
     public static HostRegistry HostRegistry { get; } = new(
     [
@@ -36,6 +39,10 @@ internal static class CompositionRoot
     public static RenderService BuildRenderService() => new(BuildRepository(), BuildDetector());
 
     public static DetectService BuildDetectService() => new(BuildDetector());
+
+    public static MigrateService BuildMigrateService() => new(FileSystem, new BackupRotationService(FileSystem));
+
+    public static ConfigureService BuildConfigureService() => new(FileSystem);
 
     public static InitService BuildInitService(HostName host)
     {

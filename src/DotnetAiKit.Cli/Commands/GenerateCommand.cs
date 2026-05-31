@@ -33,12 +33,13 @@ internal static class GenerateCommand
             var output = parseResult.GetValue(outOption)!;
             var checkOnly = parseResult.GetValue(checkOption);
 
+            var reporter = CompositionRoot.Reporter;
             var result = CompositionRoot.BuildGenerateService().Run(artifacts, output, checkOnly);
 
             if (result.Errors.Count > 0)
             {
                 foreach (var error in result.Errors)
-                    Console.Error.WriteLine($"error: {error}");
+                    reporter.Error(error);
                 return 1;
             }
 
@@ -47,16 +48,16 @@ internal static class GenerateCommand
                 if (result.Drifts.Count > 0)
                 {
                     foreach (var drift in result.Drifts)
-                        Console.Error.WriteLine($"drift: {drift}");
-                    Console.Error.WriteLine($"{result.Drifts.Count} generated file(s) drifted from the committed baseline.");
+                        reporter.Warn($"drift: {drift}");
+                    reporter.Error($"{result.Drifts.Count} generated file(s) drifted from the committed baseline.");
                     return 3;
                 }
 
-                Console.WriteLine("generate --check: no drift.");
+                reporter.Success("generate --check: no drift.");
                 return 0;
             }
 
-            Console.WriteLine($"generate: wrote {result.FilesWritten} file(s) to {output}/.");
+            reporter.Success($"generate: wrote {result.FilesWritten} file(s) to {output}/.");
             return 0;
         });
 

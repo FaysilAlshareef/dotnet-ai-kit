@@ -42,22 +42,24 @@ internal static class InitCommand
             var artifacts = parseResult.GetValue(artifactsOption)!;
             var dryRun = parseResult.GetValue(dryRunOption);
 
+            var reporter = CompositionRoot.Reporter;
+
             HostName host;
             try { host = HostNames.Parse(parseResult.GetValue(hostOption)!); }
-            catch (DomainException ex) { Console.Error.WriteLine($"error: {ex.Message}"); return 2; }
+            catch (DomainException ex) { reporter.Error(ex.Message); return 2; }
 
             var result = CompositionRoot.BuildInitService(host).Run(path, artifacts, dryRun);
             if (!result.Ok)
             {
                 foreach (var error in result.Errors)
-                    Console.Error.WriteLine($"error: {error}");
+                    reporter.Error(error);
                 return 1;
             }
 
             var verb = dryRun ? "would write" : "wrote";
-            Console.WriteLine($"init: {verb} {result.Write!.Written.Count} file(s){(dryRun ? " (dry-run)" : "")}.");
+            reporter.Success($"init: {verb} {result.Write!.Written.Count} file(s){(dryRun ? " (dry-run)" : "")}.");
             foreach (var file in result.Write.Written)
-                Console.WriteLine($"  {file}");
+                reporter.Info($"  {file}");
             return 0;
         });
 
