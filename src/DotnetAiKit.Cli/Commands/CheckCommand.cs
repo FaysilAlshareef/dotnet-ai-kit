@@ -35,6 +35,15 @@ internal static class CheckCommand
                 var reporter = CompositionRoot.Reporter;
                 foreach (var check in result.Checks)
                     reporter.Info($"  [{check.Status}] {check.Name} {check.Details}".TrimEnd());
+
+                // FR-022-10: the Claude hooks invoke bare `dotnet-ai`; warn if it resolves to a stale
+                // v1 shim or is absent (the hooks would load/validate but error on fire). Non-failing.
+                var pathDirs = (Environment.GetEnvironmentVariable("PATH") ?? string.Empty)
+                    .Split(Path.PathSeparator);
+                var (resolution, foundIn) = Application.UseCases.HookToolDiagnostics.Diagnose(pathDirs, File.Exists);
+                if (Application.UseCases.HookToolDiagnostics.Warning(resolution, foundIn) is { } warning)
+                    reporter.Warn($"  [warn] hook-tool: {warning}");
+
                 if (result.Healthy)
                     reporter.Success("check: all checks pass (exit 0).");
                 else

@@ -55,4 +55,32 @@ public class CliExitCodeTests
         }
         finally { if (Directory.Exists(temp)) Directory.Delete(temp, recursive: true); }
     }
+
+    [Fact]
+    public async Task Hook_pretooluse_runs_the_v2_backend_and_emits_deny_protocol()
+    {
+        // FR-022-11: prove the `hook` verb actually runs end-to-end (stdin → Claude hook protocol),
+        // not just that hooks.json is discovered. A generated/build-output path → permissionDecision: deny.
+        var origIn = Console.In;
+        var origOut = Console.Out;
+        var captured = new StringWriter();
+        try
+        {
+            Console.SetIn(new StringReader("{\"tool_input\":{\"file_path\":\"src/obj/Debug/App.g.cs\"}}"));
+            Console.SetOut(captured);
+            var root = new RootCommand();
+            root.Subcommands.Add(HookCommand.Create());
+            var exit = await root.Parse(["hook", "pretooluse"]).InvokeAsync();
+            Assert.Equal(0, exit);
+        }
+        finally
+        {
+            Console.SetIn(origIn);
+            Console.SetOut(origOut);
+        }
+
+        var output = captured.ToString();
+        Assert.Contains("\"hookEventName\":\"PreToolUse\"", output, StringComparison.Ordinal);
+        Assert.Contains("\"permissionDecision\":\"deny\"", output, StringComparison.Ordinal);
+    }
 }

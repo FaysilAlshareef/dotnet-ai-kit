@@ -82,4 +82,33 @@ public class HookTests
     [InlineData("a/b/c.razor", "**/*.razor", true)]
     public void Glob_matching_is_deterministic(string rel, string glob, bool expected) =>
         Assert.Equal(expected, PreToolUseHookService.Matches(rel, glob));
+
+    // ---- HookToolDiagnostics (FR-022-10): bare `dotnet-ai` resolution ----
+
+    [Fact]
+    public void Diagnose_flags_a_python_scripts_shim_as_shadowed()
+    {
+        string[] path = ["C:/Users/x/AppData/Local/Programs/Python/Python312/Scripts", "C:/Users/x/.dotnet/tools"];
+        var (resolution, foundIn) = HookToolDiagnostics.Diagnose(
+            path, p => p.Replace('\\', '/').Contains("/Python312/Scripts/dotnet-ai"));
+        Assert.Equal(HookToolResolution.ShadowedByShim, resolution);
+        Assert.NotNull(HookToolDiagnostics.Warning(resolution, foundIn));
+    }
+
+    [Fact]
+    public void Diagnose_accepts_a_dotnet_tools_launcher()
+    {
+        string[] path = ["/home/x/.dotnet/tools"];
+        var (resolution, _) = HookToolDiagnostics.Diagnose(
+            path, p => p.Replace('\\', '/').EndsWith("/.dotnet/tools/dotnet-ai", StringComparison.Ordinal));
+        Assert.Equal(HookToolResolution.Ok, resolution);
+    }
+
+    [Fact]
+    public void Diagnose_reports_not_installed_when_absent()
+    {
+        var (resolution, _) = HookToolDiagnostics.Diagnose(["/usr/bin"], _ => false);
+        Assert.Equal(HookToolResolution.NotInstalled, resolution);
+        Assert.NotNull(HookToolDiagnostics.Warning(resolution, null));
+    }
 }
