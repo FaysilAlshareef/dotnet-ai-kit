@@ -32,6 +32,9 @@ public sealed class ClaudeProjector : IHostProjector
 
         // Claude-scoped enforcement hooks (planning/24 T1/T2/T4): PreToolUse injection/deny + Stop gate.
         yield return ClaudeHooksWriter.Write();
+
+        // Forced output-style channel (AR-10 / FR-022-16): always-on conventions while the plugin is enabled.
+        yield return ClaudeOutputStyleWriter.Write();
     }
 
     private static ProjectedFile ProjectSkill(Skill skill)

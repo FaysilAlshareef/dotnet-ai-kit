@@ -4,7 +4,8 @@
       {
         "matcher": "Edit|Write|MultiEdit",
         "hooks": [
-          { "type": "command", "command": "dotnet-ai hook pretooluse" }
+          { "type": "command", "command": "dotnet-ai hook pretooluse" },
+          { "type": "prompt", "prompt": "Review the pending file Write/Edit in $ARGUMENTS for a clear architecture-boundary or banned-API violation that a build-time analyzer cannot catch. Only if there is a clear, high-confidence violation, deny it with a one-sentence reason; otherwise allow." }
         ]
       }
     ],

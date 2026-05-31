@@ -21,6 +21,14 @@ internal static class ClaudeHooksWriter
     private const string PreToolUseCommand = "dotnet-ai hook pretooluse";
     private const string StopCommand = "dotnet-ai hook stop";
 
+    // T2 judgment hook (planning/24): the command hook does mechanical checks (inject rules + deny
+    // generated files); this fast-model prompt hook judges violations the analyzer cannot. Defaults to a
+    // fast model (no explicit model field). $ARGUMENTS is the PreToolUse payload. Claude-scoped (AR-3).
+    private const string PromptHook =
+        "Review the pending file Write/Edit in $ARGUMENTS for a clear architecture-boundary or "
+        + "banned-API violation that a build-time analyzer cannot catch. Only if there is a clear, "
+        + "high-confidence violation, deny it with a one-sentence reason; otherwise allow.";
+
     public static ProjectedFile Write()
     {
         const string json =
@@ -30,7 +38,8 @@ internal static class ClaudeHooksWriter
             + "      {\n"
             + "        \"matcher\": \"Edit|Write|MultiEdit\",\n"
             + "        \"hooks\": [\n"
-            + "          { \"type\": \"command\", \"command\": \"" + PreToolUseCommand + "\" }\n"
+            + "          { \"type\": \"command\", \"command\": \"" + PreToolUseCommand + "\" },\n"
+            + "          { \"type\": \"prompt\", \"prompt\": \"" + PromptHook + "\" }\n"
             + "        ]\n"
             + "      }\n"
             + "    ],\n"
