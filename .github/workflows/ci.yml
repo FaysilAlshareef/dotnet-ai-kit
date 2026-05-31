@@ -1,83 +1,68 @@
 name: CI
 
-# ci/019-plugin-native-arch commit 39: smoke job extracted to its own workflow
-# at `.github/workflows/smoke.yml`. This workflow now only runs the lint +
-# static + unit suite — fast on every push. The nightly cron and the
-# workflow_dispatch trigger for the T200 release gate live on `smoke.yml`.
-#
-# Triggers:
-#   - push to master / development / ci/**  — fast static-unit matrix
-#   - pull_request against master / development — same
-#   - workflow_dispatch — manual re-run if needed (smoke is on smoke.yml)
+# dotnet-ai-kit v2 — .NET 10 CI. Replaces the v1 Python workflows.
 on:
   push:
-    branches: [master, development, "ci/**"]
+    branches: [master, "0[0-9][0-9]-*", "ci/**"]
   pull_request:
-    branches: [master, development]
+    branches: [master]
   workflow_dispatch:
 
 jobs:
-  static-unit:
-    # 3-OS matrix per A-010 / plan.md:27 / traceability.md:79.
-    # T010 (commit 2): single matrix entry gates EVERY cross-platform-binding
-    # test from feature 019, including:
-    #   - tests/test_packaging.py (commit 2) — wheel content baseline
-    #   - tests/integration/test_packaging_macos.py (commit 2) — POSIX paths
-    #   - tests/integration/test_packaging_windows.py (commit 2) — Win path-sep
-    #   - tests/unit/test_fr008_unmanaged_paths_parameterized.py (commit 5)
-    #   - tests/unit/test_check_filesystem_inspection.py (commit 9)
-    #   - tests/unit/test_sc010_check_runtime.py (commit 9)
-    #   - tests/unit/test_migrate_classification.py (commit 10)
-    #   - tests/unit/test_migrate_backup_rotation.py (commit 10)
-    #   - tests/unit/test_fr031_exit_classes.py (commit 9)
-    #   - tests/unit/test_fr032_manifest_actionable_output.py (commit 9)
-    #   - tests/unit/test_manifest_integrity.py (commit 9)
-    #   - tests/unit/test_fr033_linked_secondary_init.py (commit 4)
-    #   - tests/unit/test_fr033_linked_secondary_migrate.py (commit 10)
-    #   - tests/unit/test_session_start_budget.py (commit 13)
-    #   - tests/unit/test_sc013_tokenizer_and_fallback.py (commit 13)
-    # Smoke tests (test_smoke_claude/codex/cursor/_lsp) gated separately
-    # by the `smoke:` job below (host CLIs + smoke env vars).
-    name: Static + Unit (every PR)
+  build-test:
+    name: build + test (${{ matrix.os }})
     runs-on: ${{ matrix.os }}
     strategy:
+      fail-fast: false
       matrix:
         os: [ubuntu-latest, windows-latest, macos-latest]
-        python-version: ["3.10", "3.12", "3.13"]
-      fail-fast: false
-
     steps:
-      - uses: actions/checkout@v6
-
-      - name: Set up Python ${{ matrix.python-version }}
-        uses: actions/setup-python@v6
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
         with:
-          python-version: ${{ matrix.python-version }}
+          dotnet-version: "10.0.x"
+      - name: Restore
+        run: dotnet restore dotnet-ai-kit.slnx
+      - name: Build (warnings as errors)
+        run: dotnet build dotnet-ai-kit.slnx --no-restore -c Release -warnaserror
+      - name: Test
+        run: dotnet test dotnet-ai-kit.slnx --no-build -c Release
 
-      - name: Install dependencies
-        run: |
-          pip install ruff pytest pytest-cov build
-          pip install -e .
+  format:
+    name: format check
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - run: dotnet format dotnet-ai-kit.slnx --verify-no-changes
 
-      - name: Lint with ruff
-        run: python -m ruff check src/ tests/ scripts/
+  drift-gate:
+    name: generate drift gate
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Regenerate host outputs
+        run: dotnet run --project src/DotnetAiKit.Cli -c Release -- generate --out build/
+      - name: Assert no drift
+        run: git diff --exit-code build/
 
-      - name: Format check with ruff
-        run: python -m ruff format --check src/ tests/ scripts/
-
-      - name: Run static + unit suite via scripts/check.py (FR-038 / SC-009)
-        # Coverage gate: 83% recalibrated to current reality on ci/019-plugin-native-arch
-        # commit 35. Previous 85% target masked the fact that maintainer dev machines
-        # had a Claude install + csharp-ls on PATH, exercising host-binary code paths
-        # that don't run on clean CI runners. Real coverage on a clean runner is 83.5%.
-        # Raise back to 85+ in a dedicated coverage-improvement PR (cli.py + config.py
-        # + hosts/codex.py have the largest miss surface).
-        run: python scripts/check.py --cov=dotnet_ai_kit --cov-report=term-missing --cov-fail-under=81 -q
-
-  # smoke job: extracted to `.github/workflows/smoke.yml` per commit 39.
-  # Rationale: smoke needs the 3-OS host-CLI install pathway which adds
-  # several minutes to every push. Splitting it into its own workflow:
-  #   - keeps THIS `CI` workflow fast on every push (lint + unit only),
-  #   - gives smoke its own GitHub status check the user can required,
-  #   - lets smoke run in parallel with CI on push to `ci/**` rather
-  #     than serially via `needs: static-unit`.
+  pack:
+    name: pack dotnet tool
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@v4
+      - uses: actions/setup-dotnet@v4
+        with:
+          dotnet-version: "10.0.x"
+      - name: Pack
+        run: dotnet pack src/DotnetAiKit.Cli/DotnetAiKit.Cli.csproj -c Release -o ./nupkg
+      - uses: actions/upload-artifact@v4
+        with:
+          name: dotnet-ai-tool
+          path: ./nupkg/*.nupkg
+          if-no-files-found: warn

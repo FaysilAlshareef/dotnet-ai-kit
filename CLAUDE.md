@@ -1,142 +1,73 @@
-﻿# dotnet-ai-kit
+# dotnet-ai-kit
 
-AI dev tool plugin for the full .NET development lifecycle. Provides slash commands, rules, skills, agents, and project templates for AI coding assistants (Claude Code, Cursor, GitHub Copilot, Codex CLI).
+AI dev tool for the full .NET development lifecycle. Authors every artifact (skills, agents, commands, rules, profiles) **once** in a tool-agnostic source tree and **projects** it to Claude Code, Codex CLI, Cursor, and GitHub Copilot.
 
-## Tech Stack
+> **v2 = a .NET 10 rewrite.** The CLI and engine are C# (.NET 10). The v1 Python implementation in `src/dotnet_ai_kit/` is kept as a runnable reference until the .NET CLI reaches full parity (then removed). When working here, the **.NET solution is the product** — do not extend the Python code.
 
-- **Language**: Python 3.10+
-- **CLI Framework**: typer
-- **Config Validation**: pydantic v2
-- **Template Rendering**: jinja2
-- **Terminal Output**: rich (tables, panels, progress)
-- **Config Parsing**: pyyaml
-- **Build System**: hatchling (pyproject.toml)
-- **Testing**: pytest, pytest-cov
-- **Linting**: ruff
+## Tech Stack (v2)
 
-## Project Structure
+- **Language**: C# 13 on **.NET 10** (SDK 10.0.300); the Roslyn analyzer targets `netstandard2.0`.
+- **CLI**: System.CommandLine 2.0.8 (`SetAction`); manual DI (no Generic Host / keyed DI).
+- **Output**: Spectre.Console behind an `IConsoleReporter` port (never `Spectre.Console.Cli`).
+- **Serialization**: System.Text.Json source-gen (tool config) + YamlDotNet (artifact frontmatter).
+- **Tokenizer**: Microsoft.ML.Tokenizers (`TiktokenTokenizer`) for the budget check.
+- **Tests**: xUnit + Verify (golden output). **Analyzer**: Microsoft.CodeAnalysis.
+- **Build**: central package management (`Directory.Packages.props`), `global.json` pins 10.0.300.
+
+## Project Structure (v2)
 
 ```
-src/dotnet_ai_kit/       # Python package
-  __init__.py             # Package version (__version__)
-  cli.py                  # Typer CLI commands (init, check, upgrade, configure, extension-*)
-  models.py               # Pydantic v2 models (DotnetAiConfig, DetectedProject, etc.)
-  config.py               # YAML config load/save with pydantic validation
-  agents.py               # AGENT_CONFIG per AI tool + detection
-  detection.py            # Detection helpers (grep, architecture descriptions)
-  copier.py               # File copy + Jinja2 template rendering
-  extensions.py           # Extension install/remove/list
-
-.claude-plugin/           # Claude Code plugin manifest (plugin.json)
-.mcp.json                 # MCP server config (codebase-memory-mcp for memory + retrieval)
-hooks/                    # Claude Code hooks (bash-guard, edit-format, scaffold-restore, commit-lint)
-commands/                 # Slash command templates (max 200 lines each)
-rules/                    # Always-loaded convention rules (max 100 lines each)
-agents/                   # Specialist agent definitions
-skills/                   # 124 skills organized by category (Agent Skills spec compliant)
-templates/                # Project scaffolding templates + config-template.yml
-config/                   # Permission JSON configs (minimal, standard, full, mcp)
-knowledge/                # Reference documents
-tests/                    # pytest test suite
-planning/                 # Planning documents (not shipped)
+artifacts/                   # SINGLE SOURCE OF TRUTH (authored once)
+  skills/<cat>/<name>/SKILL.md   skills/commands/<name>/SKILL.md (command-skills)
+  agents/<name>.md  rules/{conventions,domain}/<name>.md  profiles/<name>.md
+  knowledge/<topic>.md  manifest.yml
+src/
+  DotnetAiKit.Core/          # pure domain (no I/O, no third-party deps)
+  DotnetAiKit.Application/   # use-cases + ports (→ Core only)
+  DotnetAiKit.Hosts/         # IHostProjector per assistant (→ Application, Core)
+  DotnetAiKit.Infrastructure/# adapter impls (FS, git, serializers, tokenizer, detector)
+  DotnetAiKit.Cli/           # composition root + System.CommandLine verbs
+  DotnetAiKit.Analyzers/     # Roslyn analyzers (netstandard2.0) → Dotnet.Ai.Kit.Analyzers NuGet
+  dotnet_ai_kit/             # v1 Python — REFERENCE ONLY (removed at parity)
+tests/                       # Core/Application/Hosts/Cli/Analyzers/Acceptance.Tests + Triggering.Evals
+build/                       # GENERATED per-assistant outputs (committed; drift baseline)
+dotnet-ai-kit.slnx  Directory.Build.props  Directory.Packages.props  global.json
 ```
 
-## Build and Test Commands
+## Build / Test / Generate
 
 ```bash
-# Run all tests
-pytest
-
-# Run tests with coverage
-pytest --cov=dotnet_ai_kit
-
-# Run a specific test file
-pytest tests/test_detection.py
-
-# Lint
-ruff check src/ tests/
-
-# Format check
-ruff format --check src/ tests/
-
-# Install in development mode
-pip install -e ".[dev]"
+dotnet build dotnet-ai-kit.slnx -warnaserror      # 0 warnings expected
+dotnet test  dotnet-ai-kit.slnx                   # incl. the corpus-integrity test
+dotnet format dotnet-ai-kit.slnx --verify-no-changes
+dotnet run --project src/DotnetAiKit.Cli -- generate --out build/
+dotnet run --project src/DotnetAiKit.Cli -- generate --check --out build/   # drift gate
 ```
 
 ## Key Conventions
 
-1. **Paths**: Always use `pathlib.Path` -- never `os.path.join()` or string concatenation with `/` or `\\`
-2. **Cross-platform**: All code must work on Windows, macOS, and Linux
-3. **Subprocess calls**: Use `subprocess.run()` with list args -- never `shell=True`
-4. **Home directory**: Use `Path.home()` -- never hardcode `~`, `$HOME`, or `%USERPROFILE%`
-5. **Temp files**: Use `tempfile` module -- never hardcode `/tmp` or `%TEMP%`
-6. **Config files**: YAML for dotnet-ai-kit config, JSON for Claude Code permission settings
-7. **Token budgets**: Rules <= 100 lines, commands <= 200 lines, skills <= 400 lines
-8. **File encoding**: Always specify `encoding="utf-8"` when reading/writing files
-9. **Models**: Use pydantic v2 BaseModel with field_validator decorators
-10. **Type hints**: Use `from __future__ import annotations` for modern syntax in Python 3.10+
+1. **Clean architecture**: dependencies point inward; `Core` is pure. Use-cases depend only on ports.
+2. **Single source → projection**: never hand-author a per-assistant file; author in `artifacts/`, run `generate`. The CI drift gate enforces this.
+3. **Determinism**: generated output is byte-stable (sorted, fixed LF newline). `generate --check` must be drift-clean.
+4. **No-network** for local verbs (`init`/`check`/`render`/`migrate`/`generate`); cross-platform (FS port, list-arg subprocess, never a shell).
+5. **Description standard** (CI-gated for new artifacts): action-verb-first · explicit "Use when…" · explicit "Do NOT use… (use X)".
+6. **Token discipline**: command-skills are `disable-model-invocation` (off the always-loaded listing); skill body ≤500 lines, rule ≤100, agent ≤120, profile ≤100.
+7. **Paths**: `System.IO.Path`; UTF-8; LF newlines. **Encoding**: always specify UTF-8.
 
-## Feature 019 architecture (v1.0+)
+## Corpus (counts)
 
-**Plugin-native architecture** (Claude/Codex/Cursor plugin-native; Copilot render-only):
+32 commands · 15 agents · 21 rules (5 universal + 16 path-scoped) · 12 profiles · ~160 skills · knowledge docs. The catalog is `planning/23`; the structure is `planning/22`; the requirements baseline is `planning/25`; locked decisions are `planning/26` (authoritative).
 
-- `dotnet-ai init` writes ≤18 per-solution files (`.dotnet-ai-kit/{config,project,manifest,version}.yml|json|txt` + `.claude/settings.json`). Commands, skills, agents come from the **plugin install path**.
-- `dotnet-ai upgrade` is a no-op for plugin-native hosts (per FR-015). `dotnet-ai upgrade --copilot` re-renders Copilot files only.
-- `dotnet-ai migrate` cleans up legacy pre-019 layout artifacts (3-keep backup rotation). Use `--include-linked` to recurse into linked secondaries (FR-033).
-- `dotnet-ai check` validates the install (6 check classes, 8 exit codes).
-- `dotnet-ai render skill|rule <name>` renders a skill or rule body with current project metadata substituted (FR-019 / SC-012).
+## CLI verbs
 
-**Rule classification** (constitution v1.0.8):
+`init` · `check` · `render` · `generate` · `detect` · `migrate` · `configure` · `upgrade` — each a thin `*Command` delegating to an Application use-case.
 
-- `rules/conventions/` — **5 universal rules** (always loaded): `async-concurrency`, `coding-style`, `existing-projects`, `security`, `tool-calls`
-- `rules/domain/` — **11 path-scoped rules** (loaded only when a matching file is touched): `api-design`, `architecture`, `configuration`, `data-access`, `error-handling`, `localization`, `multi-repo`, `naming`, `observability`, `performance`, `testing`
+## SDD
 
-**No-network invariant** (A-011): `dotnet-ai init/check/migrate/render` MUST NOT make network calls. Verified by `tests/unit/test_no_network_invariant.py`.
-
-## Commands (27 total)
-
-| Full Name | Short Alias | Category |
-|-----------|-------------|----------|
-| `/dotnet-ai.do` | `/dai.do` | Smart |
-| `/dotnet-ai.detect` | `/dai.detect` | Project |
-| `/dotnet-ai.learn` | `/dai.learn` | Project |
-| `/dotnet-ai.specify` | `/dai.spec` | SDD Lifecycle |
-| `/dotnet-ai.clarify` | `/dai.clarify` | SDD Lifecycle |
-| `/dotnet-ai.plan` | `/dai.plan` | SDD Lifecycle |
-| `/dotnet-ai.tasks` | `/dai.tasks` | SDD Lifecycle |
-| `/dotnet-ai.analyze` | `/dai.check` | SDD Lifecycle |
-| `/dotnet-ai.implement` | `/dai.go` | SDD Lifecycle |
-| `/dotnet-ai.review` | `/dai.review` | SDD Lifecycle |
-| `/dotnet-ai.verify` | `/dai.verify` | SDD Lifecycle |
-| `/dotnet-ai.pr` | `/dai.pr` | SDD Lifecycle |
-| `/dotnet-ai.init` | `/dai.init` | Project |
-| `/dotnet-ai.configure` | `/dai.config` | Project |
-| `/dotnet-ai.add-aggregate` | `/dai.agg` | Code Gen |
-| `/dotnet-ai.add-entity` | `/dai.entity` | Code Gen |
-| `/dotnet-ai.add-event` | `/dai.event` | Code Gen |
-| `/dotnet-ai.add-endpoint` | `/dai.ep` | Code Gen |
-| `/dotnet-ai.add-page` | `/dai.page` | Code Gen |
-| `/dotnet-ai.add-crud` | `/dai.crud` | Code Gen |
-| `/dotnet-ai.add-tests` | `/dai.tests` | Code Gen |
-| `/dotnet-ai.docs [sub]` | `/dai.docs` | Documentation (readme, api, adr, deploy, release, service, code, feature, all) |
-| `/dotnet-ai.status` | `/dai.status` | Smart |
-| `/dotnet-ai.undo` | `/dai.undo` | Smart |
-| `/dotnet-ai.explain` | `/dai.explain` | Smart |
-| `/dotnet-ai.checkpoint` | `/dai.save` | Session |
-| `/dotnet-ai.wrap-up` | `/dai.done` | Session |
-
-## CLI Entry Point
-
-The CLI is registered as `dotnet-ai` in pyproject.toml:
-```
-[project.scripts]
-dotnet-ai = "dotnet_ai_kit.cli:app"
-```
+The kit ships the spec-driven lifecycle as command-skills: `constitution → specify → clarify → checklist → plan → tasks → analyze → orchestrate → implement → review → verify → fix → pr → release` (+ `status`/`undo`/`checkpoint`/`wrap-up`).
 
 ## Testing Guidelines
 
-- Use pytest with `tmp_path` fixture for filesystem tests
-- Mock external calls (subprocess, network) -- never hit real services
-- Test cross-platform path handling
-- Each test file should have 5-10 focused test functions
-- Test both success paths and error cases
+- xUnit; use `tmp_path`-style temp dirs for filesystem tests; mock external calls (no real network).
+- The `Acceptance.Tests` project carries the cross-cutting contract (no-network, exit codes, footprint, drift, corpus integrity).
+- Verify golden baselines are red on first authoring — accept (`*.verified.*`) then commit.
