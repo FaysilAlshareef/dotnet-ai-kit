@@ -127,6 +127,8 @@ dotnet format clean, generate --check drift-clean (833 files, 4 hosts), no pkg v
   (commit 982daf0 authored top-level hook *scripts* that nothing referenced — now removed as dead). Faithful
   delivery (planning/22) is to author hooks in `artifacts/` and have the Claude projector emit
   `build/claude/hooks/hooks.json` — a scoped follow-on feature. **Not done this session; do not mark closed.**
-- **`bin/` v1 wrapper scripts** (`bin/dotnet-ai`, `.cmd`, README) are deliberately git-tracked (per `.gitignore`)
-  and predate the `dotnet tool` packaging. Left in place pending a decision on whether the source-tree wrappers
-  are still wanted now that distribution is `dotnet tool install`.
+  Also fixed CI stragglers: `.github/dependabot.yml` (pip → nuget ecosystem) and `pull_request_template.md`
+  (pytest/ruff gates → dotnet build/test/format/generate gates).
+- **`bin/` removed (dead v1).** `bin/dotnet-ai`/`.cmd` were `exec python -m dotnet_ai_kit.cli` wrappers —
+  broken once Python was deleted — and `bin/README.md` documented pip/uv install. Removed the dir and the
+  now-pointless `!/bin/` `.gitignore` exception. Distribution is `dotnet tool install --global DotnetAiKit.Tool`.

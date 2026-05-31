@@ -1,6 +1,6 @@
 version: 2
 updates:
-  - package-ecosystem: "pip"
+  - package-ecosystem: "nuget"
     directory: "/"
     schedule:
       interval: "weekly"

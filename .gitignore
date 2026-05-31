@@ -28,10 +28,6 @@ x86/
 [Aa][Rr][Mm]64/
 bld/
 [Bb]in/
-# Feature 019 / OOS-003 / commit 27: source-tree wrappers in bin/ MUST
-# be tracked. They are scripts, not .NET build output.
-!/bin/
-!/bin/**
 [Oo]bj/
 [Oo]ut/
 [Ll]og/
