@@ -1,0 +1,2 @@
+{"query": "scaffold a state-changing command with its handler and FluentValidation validator on the write side", "expect": "command-generator", "topk": 1}
+{"query": "apply cross-cutting middleware concerns across every handler via open generic registration", "expect": "pipeline-behaviors", "topk": 1}

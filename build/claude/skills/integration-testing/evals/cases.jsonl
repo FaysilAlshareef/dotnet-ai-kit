@@ -1,0 +1,2 @@
+{"query": "verify end-to-end backend behaviour with WebApplicationFactory and Testcontainers against real containerized databases", "expect": "integration-testing", "topk": 1}
+{"query": "test a single class logic in isolation with mocks following arrange act assert", "expect": "unit-testing", "topk": 1}

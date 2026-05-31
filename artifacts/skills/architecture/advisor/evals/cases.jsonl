@@ -1,0 +1,2 @@
+{"query": "recommend an architecture pattern from team size domain complexity and scale for a brand new project", "expect": "advisor", "topk": 1}
+{"query": "implement and enforce four layer separation with dependency inversion", "expect": "clean-architecture", "topk": 1}
