@@ -1,0 +1,18 @@
+---
+name: messaging-bus-selection
+description: "Chooses and abstracts a message bus behind an IMessageBus port given the MassTransit v9 license change. Use when adding cross-service messaging in C# files. Do NOT use for in-process CQRS dispatch (use mediator-abstraction)."
+metadata:
+  paths: "**/*.cs"
+---
+# Messaging Bus Selection (domain)
+
+MassTransit v9 is commercial; v8 is Apache-2.0 but loses support end-2026.
+
+## MUST
+- Abstract publish/consume behind an `IMessageBus` port; keep handlers transport-agnostic.
+- Default to a license-safe option (Wolverine, MIT) or pin MassTransit v8 with a documented support horizon; MassTransit v9 is opt-in with a license note.
+- Use the outbox pattern for reliable publishing.
+
+## MUST NOT
+- Hard-code a commercial bus client across the codebase.
+- Mix transport concerns into domain/application logic.

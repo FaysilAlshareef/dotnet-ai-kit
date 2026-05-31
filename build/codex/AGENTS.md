@@ -257,6 +257,22 @@ If a tool is not available, inform the user and suggest installation:
 
 - `skills/workflow/systematic-debugging/`
 
+## ai-integration
+
+# AI Integration (domain)
+
+Standardize LLM integration on Microsoft.Extensions.AI behind a provider abstraction.
+
+## MUST
+- Use `IChatClient` / `IEmbeddingGenerator` behind a provider port; never bind app code to a single vendor SDK.
+- Pin provider/preview package versions explicitly (the surface is moving).
+- Route tool/function calling, caching, and telemetry through the middleware pipeline.
+- Keep prompts/evals versioned alongside the code.
+
+## MUST NOT
+- Leak provider-specific types into domain/application layers.
+- Depend on unpinned preview packages.
+
 ## api-design
 
 # API Design Rules
@@ -595,6 +611,36 @@ After editing a `.resx` file:
 - `skills/controlpanel/blazor-pages/` — Blazor pages that consume localized resources
 - `skills/workflow/sdd-lifecycle/` — describe localization scope in the spec phase
 
+## mediator-abstraction
+
+# Mediator Abstraction (domain)
+
+MediatR and AutoMapper are now commercial. Default to license-safe dispatch.
+
+## MUST
+- Dispatch commands/queries through a thin `ISender`/`IMediator` **port** owned by the app, not a direct MediatR dependency.
+- Default to a source-generated mediator (Mediator, MIT) or hand-written dispatch; MediatR is opt-in only, with a license note.
+- Keep handlers free of the concrete mediator type.
+
+## MUST NOT
+- Reference `MediatR` types directly from domain/application code.
+- Introduce a commercial package by default without an explicit opt-in profile.
+
+## messaging-bus-selection
+
+# Messaging Bus Selection (domain)
+
+MassTransit v9 is commercial; v8 is Apache-2.0 but loses support end-2026.
+
+## MUST
+- Abstract publish/consume behind an `IMessageBus` port; keep handlers transport-agnostic.
+- Default to a license-safe option (Wolverine, MIT) or pin MassTransit v8 with a documented support horizon; MassTransit v9 is opt-in with a license note.
+- Use the outbox pattern for reliable publishing.
+
+## MUST NOT
+- Hard-code a commercial bus client across the codebase.
+- Mix transport concerns into domain/application logic.
+
 ## multi-repo
 
 # Multi-Repo Conventions
@@ -804,6 +850,20 @@ Fast by default. Measure before optimizing, but avoid known anti-patterns from t
 - `skills/api/caching-strategies/SKILL.md` — output cache, distributed cache, ETag
 - `skills/core/async-patterns/SKILL.md` — efficient async patterns
 - `skills/data/ef-queries/SKILL.md` — query optimization
+
+## testing-platform
+
+# Testing Platform (domain)
+
+Standardize how tests run (the platform), distinct from how tests are written (see `testing`).
+
+## MUST
+- Use Microsoft.Testing.Platform (MTP) for new test projects where supported; configure consistently across the solution.
+- Keep runner configuration in the test project / Directory.Build.props, not ad hoc.
+- Ensure `dotnet test` and CI use the same runner config.
+
+## SHOULD
+- Prefer MTP-native frameworks (xUnit v3 / TUnit) when adopting MTP; flag pre-1.0 maturity.
 
 ## testing
 
