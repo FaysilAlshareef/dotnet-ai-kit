@@ -2,7 +2,7 @@
 name: aspire-architect
 description: "Owns .NET Aspire AppHost topology, ServiceDefaults, hosting integrations, and deployment. Use when wiring an Aspire app graph, service discovery, or `aspire deploy`. Do NOT use for raw Kubernetes manifests (use devops-engineer) or non-Aspire microservice topology (use dotnet-architect)."
 metadata:
-  skills: "aspire-orchestration"
+  skills: "aspire-orchestration,aspire-integrations,aspire-deployment,aspire-testing"
   routing-intents: "aspire apphost; service defaults; aspire integrations; aspire deploy"
 ---
 # Aspire Architect

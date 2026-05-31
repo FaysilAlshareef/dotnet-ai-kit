@@ -7,6 +7,14 @@
     <RootNamespace>DotnetAiKit.Cli</RootNamespace>
     <AssemblyName>dotnet-ai</AssemblyName>
     <InvariantGlobalization>true</InvariantGlobalization>
+
+    <!-- Distribution: framework-dependent .NET tool (BD-3; Native AOT deferred). -->
+    <PackAsTool>true</PackAsTool>
+    <ToolCommandName>dotnet-ai</ToolCommandName>
+    <PackageId>DotnetAiKit.Tool</PackageId>
+    <Version>2.0.0</Version>
+    <Description>dotnet-ai-kit — single-source artifact engine projecting .NET dev knowledge to Claude Code, Codex, Cursor, and Copilot.</Description>
+    <PackageLicenseExpression>MIT</PackageLicenseExpression>
   </PropertyGroup>
 
   <ItemGroup>

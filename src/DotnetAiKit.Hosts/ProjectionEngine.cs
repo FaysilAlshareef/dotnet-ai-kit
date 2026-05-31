@@ -26,6 +26,9 @@ public sealed class ProjectionEngine(HostRegistry registry) : IProjectionEngine
         foreach (var projector in registry.Projectors.OrderBy(p => p.Host))
             files.AddRange(projector.Project(corpus));
 
+        if (corpus.Manifest is { } manifest)
+            files.Add(MarketplaceWriter.Write(manifest));
+
         files.Sort((a, b) => string.CompareOrdinal(a.RelativePath, b.RelativePath));
         return files;
     }

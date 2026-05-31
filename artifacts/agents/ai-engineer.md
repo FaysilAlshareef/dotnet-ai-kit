@@ -2,6 +2,7 @@
 name: ai-engineer
 description: "Owns LLM integration via Microsoft.Extensions.AI — chat/embeddings clients, tool/function calling, evaluation, and provider abstraction. Use when adding AI features (chat, RAG, tool use) to a .NET app. Do NOT use for general API design (use api-designer) or non-AI background processing (use processor-architect)."
 metadata:
+  skills: "extensions-ai-chat,extensions-ai-embeddings"
   routing-intents: "extensions.ai; ichatclient; embeddings; rag; tool calling; provider abstraction"
 ---
 # AI Engineer
