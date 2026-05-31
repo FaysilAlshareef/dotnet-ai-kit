@@ -2,6 +2,9 @@ using DotnetAiKit.Application.Ports;
 using DotnetAiKit.Application.UseCases;
 using DotnetAiKit.Hosts;
 using DotnetAiKit.Hosts.Claude;
+using DotnetAiKit.Hosts.Codex;
+using DotnetAiKit.Hosts.Copilot;
+using DotnetAiKit.Hosts.Cursor;
 using DotnetAiKit.Infrastructure;
 using Xunit;
 
@@ -16,7 +19,9 @@ public class GenerationDriftTests
         IFileSystem fs = new PhysicalFileSystem();
         IArtifactSerializer serializer = new YamlFrontmatterParser();
         IArtifactRepository repository = new FileSystemArtifactRepository(fs, serializer);
-        IProjectionEngine engine = new ProjectionEngine(new HostRegistry([new ClaudeProjector()]));
+        // All four projectors — must match the committed build/ baseline (orphan detection is exact).
+        IProjectionEngine engine = new ProjectionEngine(new HostRegistry(
+            [new ClaudeProjector(), new CodexProjector(), new CursorProjector(), new CopilotProjector()]));
         return new GenerateService(repository, engine, fs);
     }
 
