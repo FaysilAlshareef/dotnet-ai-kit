@@ -63,7 +63,8 @@ dotnet-ai init . --host claude   # host is claude by default
 | `.dotnet-ai-kit/manifest.json` | Host + rule count for `check` |
 
 Skills, agents, and command-skills are **not** copied — they are served from the
-plugin install path on every session.
+plugin install path on every session, including each skill's bundled resources
+(`scripts/`, `examples/`, `references/`, `assets/`, `evals/`) where present.
 
 ---
 
@@ -76,7 +77,8 @@ All four enforcement tiers (planning/24) are wired and active for Claude Code:
   PreToolUse hook injecting the matching rule bodies as `additionalContext` on every
   Write/Edit (the runtime half of the rule-delivery fix).
 - **T2 Interceptive** — the PreToolUse hook **denies** edits to generated/build-output
-  files (`obj/`, `bin/`, `*.g.cs`, `*.Designer.cs`, `*.AssemblyInfo.cs`) before they reach disk.
+  files (`obj/`, `bin/`, `*.g.cs`, `*.Designer.cs`, `*.AssemblyInfo.cs`) before they reach disk,
+  plus a fast-model `prompt` hook for architecture/banned-API judgment the analyzer can't make.
 - **T3 Deterministic** — the Roslyn analyzer: `DAK0001` (no `async void`) and `DAK0004`
   (aggregates expose no public setters, with a code-fix). Zero model tokens; fails the build.
 - **T4 Completion gate** — the Stop / SubagentStop hook runs `dotnet build` + `dotnet test`

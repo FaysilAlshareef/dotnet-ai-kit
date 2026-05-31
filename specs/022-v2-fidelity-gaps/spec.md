@@ -2,7 +2,7 @@
 
 **Feature Branch**: `022-v2-fidelity-gaps`
 **Created**: 2026-05-31
-**Status**: Draft
+**Status**: Implemented — all user stories delivered; build -warnaserror 0/0, 142 tests green, `dotnet format` clean, `generate --check` drift-clean, `claude plugin validate --strict` passes. The only out-of-scope item remains a *live* in-session hook-firing test (interactive-only).
 **Input**: User description: "Scan planning/20–26 + HANDOFF against the codebase, find features specified in planning that don't exist (or are stubs) in the code — e.g. skills are still just `SKILL.md` with no bundled resources — collect them all, and open a new spec to work on them."
 
 ## Overview

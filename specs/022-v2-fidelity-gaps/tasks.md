@@ -116,3 +116,22 @@
 
 - **Out of scope** (spec §Out of scope): live in-session hook firing (interactive-only), full ≥20-queries/skill evals, Native-AOT packaging, the per-RID release/rollback matrix.
 - Do NOT add resource dirs to all 181 skills — only the FR-D33 set, `add-*`, and eval-bearing clusters (AR-5).
+
+---
+
+## Implementation status — COMPLETE (all phases green)
+
+Implemented across 7 commits on `022-v2-fidelity-gaps`:
+- **Foundational [T001-T007]**: `SkillResourceSet`→`ResourceFile{RelativePath,Content}` (content-in-model so pure projectors emit resources); `ScanResources` loads skill-dir-relative + sorted + LF; all 4 projectors emit resources; `ArtifactSchema` load guard (FR-022-19).
+- **US2 hooks runnable [T008-T012]**: `HookToolDiagnostics` (shim shadow-detection in `check`) + hook-execution smoke; launcher stays `dotnet-ai hook`.
+- **US1 resources [T013-T018]**: workflow scripts for constitution/checklist/fix/release + one C# example per `add-*` (subagent-authored); corpus-integrity required-set + Roslyn parse-check.
+- **US5 user-file policy [T025-T027]**: `UserFilePolicy` (JSON deep-merge/preserve/consent/backup) wired into `ClaudeHostAdapter`; `HostWriteResult` buckets populated.
+- **US3 eval cases [T022-T024]**: cluster `evals/cases.jsonl` + discriminating confusion-matrix gate (strict outrank).
+- **US4 goldens [T019-T021]**: Verify baseline over the full projection (manifests/marketplace/hooks/AGENTS/copilot-instructions).
+- **US7 install smoke [T028-T029]**: `claude plugin validate --strict` (skip-if-absent) + codex/cursor structure.
+- **US6 channels [T030-T031]**: T2 `prompt` judgment hook + forced output-style; validate passes with both.
+- **Polish [T032-T035]**: `blazor-hybrid` authored (name-parity with 23 §5.2 closed — 182 skills); docs/memory; final gate.
+
+**Final gate**: build -warnaserror 0/0 · 142 tests green · `dotnet format` clean · `generate --check` drift-clean (885 files, 4 hosts) · `claude plugin validate build/claude --strict` + `build --strict` pass.
+
+**Remaining (out of scope / follow-on)**: a *live* in-session PreToolUse/Stop firing test (interactive-only); full ≥20-queries/skill LLM eval (AR-6); Codex/Cursor plugin-load parity (different discovery model); Native-AOT packaging.
