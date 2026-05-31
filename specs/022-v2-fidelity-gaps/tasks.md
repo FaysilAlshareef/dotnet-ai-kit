@@ -1,72 +1,118 @@
 # Tasks: dotnet-ai-kit v2 — Planning-Fidelity Gaps
 
-**Branch**: `022-v2-fidelity-gaps` · **Spec**: [spec.md](spec.md) · **Plan**: [plan.md](plan.md)
-**Convention**: `[P]` = parallelizable (different files, no ordering dep). Each phase ends green (build `-warnaserror` 0/0 · full test suite · `dotnet format` · `generate --check` drift-clean).
+**Input**: Design documents from `specs/022-v2-fidelity-gaps/` (spec.md, plan.md, research.md, data-model.md, contracts/, quickstart.md)
+**Prerequisites**: plan.md ✓, spec.md ✓, research.md ✓, data-model.md ✓, contracts/ ✓
 
-> Baseline (start state, verified 2026-05-31): 020+021 complete; 112 tests green; all four enforcement tiers wired; Claude plugin + marketplace pass `claude plugin validate --strict`. Gaps below are what planning specifies that the code lacks.
+**Tests**: INCLUDED — this feature's success criteria are test/gate-defined (corpus-integrity, hook smoke, golden output, confusion matrix, install validate), so test tasks are first-class.
 
-## Phase F1 — Make the wired hooks runnable (US2, P1)
+**Organization**: by user story (spec.md priorities). Format: `- [ ] T### [P?] [US?] Description with file path`. `[P]` = parallelizable (different files). Each phase ends green: build `-warnaserror` 0/0 · `dotnet test` · `dotnet format` · `generate --check` drift-clean.
 
-- [ ] T001 [US2] Decide the launcher mechanism for `hooks.json` (resolve FR-022-10 clarification): plugin-root-relative launcher vs. required global tool vs. `dotnet <dll>`. Record in `contracts/hook-launcher.md`.
-- [ ] T002 [US2] Update `ClaudeHooksWriter` to emit the resolved launcher command (e.g. `${CLAUDE_PLUGIN_ROOT}`-relative) instead of bare `dotnet-ai`; regenerate `build/`.
-- [ ] T003 [US2] `HookCommand` fail-safe: if the backend can't be resolved, exit without a spurious block + clear stderr (FR-022-12).
-- [ ] T004 [US2] Acceptance smoke test: execute the *generated* hook command string with a sample PreToolUse + Stop payload; assert valid hook protocol (FR-022-11). Document/remove the stale v1 `dotnet-ai` PATH shim.
-- [ ] T005 [US2] Re-run `claude plugin validate build/claude --strict` after the hooks.json change; update `docs/setup-claude-code.md` + the `dotnet-ai-path-shim` memory.
+> Baseline (start state, 2026-05-31): 020+021 complete; 112 tests green; four enforcement tiers wired; Claude plugin + marketplace pass `claude plugin validate --strict`.
 
-## Phase F2 — Populate + project skill resources (US1, P1)
+## Phase 1: Setup (Shared Infrastructure)
 
-- [ ] T006 [US1] Confirm `FileSystemArtifactRepository` loads `scripts/examples/references/assets/evals` into `SkillResourceSet` (add if missing) + a broken-resource load error (edge case).
-- [ ] T007 [US1] Each host projector copies a skill's resource set into `build/<host>/skills/<name>/` byte-stable (FR-022-04); extend `GenerationDriftTests`.
-- [ ] T008 [P] [US1] Author `scripts/` (+`examples/` where applicable) for `constitution`, `checklist`, `fix`, `release` command-skills (FR-022-01).
-- [ ] T009 [P] [US1] Author compilable `examples/` (and/or template `assets/`) for the `add-*` code-gen command-skills (FR-022-02).
-- [ ] T010 [US1] Trust/security model for executable scripts: declared + never auto-run + provenance; `.py` default + `.ps1`/`.sh` siblings (FR-022-05, NFR-3). Spec in `contracts/script-trust.md`.
-- [ ] T011 [US1] Corpus-integrity test asserts the required resource set per skill-kind (FR-022-03); regenerate + drift-clean.
+- [ ] T001 Confirm baseline gates green on `022-v2-fidelity-gaps` (build -warnaserror, test, format, `generate --check`) before changes.
+- [ ] T002 [P] Wire Verify into `tests/DotnetAiKit.Hosts.Tests/` (a `ModuleInitializer` / `VerifyXunit.Verifier` settings file; `Verify.Xunit` is already referenced) so golden tests can land in Phase US4.
+- [ ] T003 [P] Add a `tests/DotnetAiKit.Acceptance.Tests/` skip-if-absent helper for the external `claude` CLI (used by US7 smoke).
 
-## Phase F3 — Golden-output baselines (US4, P2)
+## Phase 2: Foundational (Blocking Prerequisites)
 
-- [ ] T012 [P] [US4] Wire Verify (`Verifier.Verify`) into `Hosts.Tests`; add a golden per artifact-type × host (skill/agent/rule/command).
-- [ ] T013 [P] [US4] Goldens for the manifests, `marketplace.json`, `hooks.json`, `AGENTS.md`, `copilot-instructions.md` (FR-022-08). Accept initial `*.verified.*`.
-- [ ] T014 [US4] Prove independence: a deliberate frontmatter-order change fails its golden (FR-022-09); revert.
+**⚠️ Blocks US1 (resources) + US4 (goldens). No resource projection until done.**
 
-## Phase F4 — Eval cases + confusion matrix (US3, P2)
+- [ ] T004 Load `SkillResourceSet` from disk in `src/DotnetAiKit.Infrastructure/FileSystemArtifactRepository.cs` (scripts/examples/references/assets/evals → `Skill.Resources`); empty-declared/missing-file → broken-resource load error (per contracts/skill-resource-set.md).
+- [ ] T005 [P] Add executable-script `ScriptTrust` (AutoRun=false, interpreter from extension) in `src/DotnetAiKit.Core/Artifacts/` (or Application) per data-model.md (FR-022-05).
+- [ ] T006 Project a skill's resource set into `build/<host>/skills/<name>/` byte-stable in each `src/DotnetAiKit.Hosts/**/<Host>Projector.cs` (FR-022-04); extend `tests/DotnetAiKit.Hosts.Tests/GenerationDriftTests` (or add) to cover a resourced skill.
+- [ ] T007 [P] Enforce `SchemaVersion` compatibility on load in `src/DotnetAiKit.Core/Artifacts/Skill.cs` + `FileSystemArtifactRepository` (out-of-range → clear "unsupported schema version" load error) (FR-022-19).
 
-- [ ] T015 [P] [US3] Author `evals/cases.jsonl` (query + expected top-k) for the ambiguous clusters: mediator, CQRS, eventing, testing, architecture, gateway/control-panel (FR-022-06).
-- [ ] T016 [US3] `Triggering.Evals` loads the cases + runs a confusion matrix (correct fires, siblings silent); wire into CI (FR-022-07, SC-D). Augment/replace the 3-case lexical stub.
-- [ ] T017 [US3] Negative test: an induced description collision fails the matrix.
+**Checkpoint**: corpus still loads + projects + drift-clean with the resource pipeline in place.
 
-## Phase F5 — User-owned-file policy (US5, P2)
+## Phase 3: User Story 2 — Hooks actually run when fired (Priority: P1) 🎯 MVP
 
-- [ ] T018 [US5] `ClaudeHostAdapter` (+ shared policy): for user-owned files (`.claude/settings.json`, `AGENTS.md`, `.cursor/rules`, `.github/*`) merge or back-up-with-diff-preview + consent; never clobber (FR-022-13). Invalid-JSON → back up + warn.
-- [ ] T019 [US5] Populate `HostWriteResult.Preserved/ForceRendered/PendingConsent` accurately (FR-022-14); surface in the `init` reporter.
-- [ ] T020 [US5] Tests: pre-existing user `settings.json` survives `init` (SC-022-5); managed-no-edit file refreshes.
+**Goal**: the wired hooks resolve the v2 backend at fire time, not the v1 shim. **Independent test**: execute the generated `hooks.json` command with a payload → valid protocol.
 
-## Phase F6 — Install smoke + cross-host loadability (US7, P3)
+- [ ] T008 [US2] Confirm/adjust the launcher command in `src/DotnetAiKit.Hosts/Claude/ClaudeHooksWriter.cs` per contracts/hook-launcher.md; regenerate `build/`.
+- [ ] T009 [P] [US2] Shadow-detection: `src/DotnetAiKit.Application/UseCases/CheckService.cs` (+ `InitService`) warn when a `dotnet-ai` on PATH is not the v2 tool (e.g. `…/Python*/Scripts/dotnet-ai*`) (FR-022-10), via `IProcessRunner`/PATH probe.
+- [ ] T010 [US2] Keep `HookCommand` fail-safe on unresolved backend (no spurious block, clear stderr) in `src/DotnetAiKit.Cli/Commands/HookCommand.cs` (FR-022-12); add a unit test.
+- [ ] T011 [US2] Acceptance smoke in `tests/DotnetAiKit.Acceptance.Tests/HookExecutionSmokeTests.cs`: run the *generated* command string with PreToolUse + Stop payloads; assert protocol (FR-022-11, SC-022-2).
+- [ ] T012 [US2] Update `docs/setup-claude-code.md` (explicit v2-tool prereq + shim removal) + the `dotnet-ai-path-shim` memory.
 
-- [ ] T021 [US7] Codify `claude plugin validate build/claude --strict` + `build --strict` as an acceptance/CI smoke (skip-if-CLI-absent) (FR-022-17).
-- [ ] T022 [US7] Verify Codex + Cursor loadability against their documented discovery; resolve the `build/codex/skills` vs planning/21 `.agents/skills/` tension, or record it (FR-022-18).
+**Checkpoint**: hooks run end-to-end against the v2 backend; smoke green.
 
-## Phase F7 — Remaining enforcement channels (US6, P3)
+## Phase 4: User Story 1 — Skills carry bundled resources (Priority: P1)
 
-- [ ] T023 [US6] T2 PreToolUse `prompt` (Haiku) hook for judgment-class violations the analyzer can't catch → deny + reason (FR-022-15, Claude-scoped AR-3).
-- [ ] T024 [US6] Forced-output-style channel: author + project the Claude output-style artifact (FR-022-16, AR-10).
+**Goal**: FR-D33 + `add-*` skills ship resources; projector copies them. **Independent test**: the resourced skills assert + project + drift-clean.
 
-## Phase F8 — Schema-version migration + corpus name-parity
+- [ ] T013 [P] [US1] Author `scripts/` (+`examples/`) for `artifacts/skills/commands/constitution/` (FR-022-01).
+- [ ] T014 [P] [US1] Author `scripts/` (+`examples/`) for `artifacts/skills/commands/checklist/`.
+- [ ] T015 [P] [US1] Author `scripts/` (+`examples/`) for `artifacts/skills/commands/fix/` (failing-test→fix→verify workflow).
+- [ ] T016 [P] [US1] Author `scripts/` (+`examples/`) for `artifacts/skills/commands/release/` (version bump + changelog).
+- [ ] T017 [P] [US1] Author one compilable C# `examples/` for each `artifacts/skills/commands/add-*/` (add-aggregate/entity/event/endpoint/page/crud/tests) (+ template `assets/` where the generator fills a template) (FR-022-02).
+- [ ] T018 [US1] Corpus-integrity test in `tests/DotnetAiKit.Acceptance.Tests/CorpusIntegrityTests.cs` asserts the required resource set per skill-kind (FR-022-03); regenerate + `generate --check` drift-clean (SC-022-1).
 
-- [ ] T025 [P] Enforce `SchemaVersion` compatibility on load; out-of-range fails with migration guidance (FR-022-19).
-- [ ] T025b [P] Close the `blazor-hybrid` name-parity gap (FR-022-20): author the skill to the description standard, or record a deliberate de-scope note in planning/23 §5.2 so the corpus and catalog agree. (Only named NEW skill currently absent.)
+**Checkpoint**: resourced skills load, project to all four hosts, drift-clean.
 
-## Phase F9 — Final verification
+## Phase 5: User Story 4 — Golden-output baselines (Priority: P2)
 
-- [ ] T026 Full gate: build `-warnaserror` 0/0 · `dotnet test` · `dotnet format --verify-no-changes` · `generate --check` drift-clean · `claude plugin validate --strict`.
-- [ ] T027 Update docs (setup guides, README enforcement section), memory, and the spec `Status` → done; record any item that remains a tracked follow-on.
+**Goal**: every projection shape pinned. **Independent test**: an induced format change fails a golden.
 
-## Dependencies & parallelism
+- [ ] T019 [P] [US4] Golden per artifact-type × host (skill/agent/rule/command) in `tests/DotnetAiKit.Hosts.Tests/` via Verify; accept initial `*.verified.*` (FR-022-08).
+- [ ] T020 [P] [US4] Golden for each manifest (`build/.../plugin.json` ×3), `marketplace.json`, `claude/hooks/hooks.json`, `codex/AGENTS.md`, `copilot/.github/copilot-instructions.md`.
+- [ ] T021 [US4] Negative test: a deliberate frontmatter-order change fails its golden independently of the drift gate (FR-022-09); revert (SC-022-4).
 
-- F1 (hooks runnable) is independent and highest-value — do first. F2 (resources) gates F3/F4 (goldens + evals reference projected resources). F5/F6/F7/F8 are independent of each other (different files) and can interleave.
-- Parallel: T008/T009 (different skill dirs); T012/T013 (different golden files); T015 (independent eval files); T025 (Core, isolated).
+## Phase 6: User Story 3 — Eval cases + confusion matrix (Priority: P2)
+
+**Goal**: selection gated by authored cases. **Independent test**: matrix passes; induced collision fails.
+
+- [ ] T022 [P] [US3] Author `evals/cases.jsonl` for the cluster skills (mediator, CQRS, eventing, testing, architecture, gateway/control-panel) per contracts/eval-cases.schema.md (FR-022-06).
+- [ ] T023 [US3] Generalize `tests/DotnetAiKit.Triggering.Evals/TriggeringOracleTests.cs` to load cluster `cases.jsonl` + run a confusion matrix (correct fires, siblings silent); validate `expect` names exist (FR-022-07, SC-022-3).
+- [ ] T024 [US3] Negative test: an induced description collision flips a case to fail.
+
+## Phase 7: User Story 5 — User-owned-file policy (Priority: P2)
+
+**Goal**: never clobber user files. **Independent test**: a pre-existing user `settings.json` survives `init`.
+
+- [ ] T025 [US5] `UserFilePolicy` (Application) classifying Managed vs UserOwned + the decision table in contracts/user-file-policy.md (merge/preserve/consent/backup); invalid-JSON → back up + warn (FR-022-13).
+- [ ] T026 [US5] `ClaudeHostAdapter` routes user-owned writes (`.claude/settings.json`, `AGENTS.md`, …) through `UserFilePolicy`; populate `HostWriteResult.{Preserved,ForceRendered,PendingConsent}`; surface in the `init` reporter (FR-022-14).
+- [ ] T027 [US5] Tests in `tests/DotnetAiKit.Application.Tests/`: pre-existing user `settings.json` is merged/preserved + reported; managed-no-edit refreshes (SC-022-5).
+
+## Phase 8: User Story 7 — Install smoke + cross-host loadability (Priority: P3)
+
+**Goal**: loadability is gated. **Independent test**: `claude plugin validate --strict` in CI; codex/cursor asserted-or-recorded.
+
+- [ ] T028 [US7] `tests/DotnetAiKit.Acceptance.Tests/PluginInstallSmokeTests.cs`: run `claude plugin validate build/claude --strict` + `build --strict` (skip-if-CLI-absent, via T003) (FR-022-17, SC-022-6).
+- [ ] T029 [P] [US7] Assert Codex/Cursor projected layout against their documented discovery; resolve or record the `build/codex/skills/` vs `.agents/skills/` tension (FR-022-18) in `research.md`/`docs/`.
+
+## Phase 9: User Story 6 — Remaining enforcement channels (Priority: P3)
+
+**Goal**: judgment hook + output-style channel. **Independent test**: judgment-deny works; output-style projects.
+
+- [ ] T030 [US6] Add a T2 PreToolUse `prompt`-type entry (Haiku, Claude-scoped) in `ClaudeHooksWriter` for judgment-class checks → deny+reason (FR-022-15); golden + smoke.
+- [ ] T031 [P] [US6] Author + project a forced-output-style artifact for Claude (`build/claude/output-styles/…`) (FR-022-16, AR-10); drift-clean.
+
+## Phase 10: Polish & Cross-Cutting
+
+- [ ] T032 [P] Close `blazor-hybrid` name-parity (FR-022-20): author `artifacts/skills/microservice/controlpanel/blazor-hybrid/SKILL.md` to the description standard, OR record a de-scope note in `planning/23` §5.2 (corpus == catalog).
+- [ ] T033 [P] Update docs (`README.md` enforcement section, `docs/setup-*.md`) + memory for the delivered gaps.
+- [ ] T034 Run `/speckit.analyze` (re-check) + the full gate: build -warnaserror 0/0 · `dotnet test` · `dotnet format --verify-no-changes` · `generate --check` drift-clean · `claude plugin validate --strict` (SC-022-7).
+- [ ] T035 Update `spec.md` Status → done; record any item still a tracked follow-on (live in-session hook firing; full ≥20/skill evals; Native-AOT).
+
+## Dependencies & Execution Order
+
+- **Setup (P1)** → **Foundational (P2, blocks US1/US4)** → user stories.
+- **US2 (Phase 3)** is independent of Foundational (hook launcher) — can run in parallel with Phase 2; it is the highest-value MVP slice (makes wired hooks runnable).
+- **US1 (Phase 4)** depends on Foundational (T004/T006). **US4 (Phase 5)** depends on Foundational + US1 (goldens cover resourced skills). **US3/US5/US6/US7** are mutually independent (different files) once Foundational is done.
+- **Polish (Phase 10)** last.
+
+### Parallel opportunities
+- T002/T003 (setup); T005/T007 (foundational, different files); T013–T017 (different skill dirs); T019/T020 (different golden files); T022 (eval files); T029/T031/T032/T033 (independent).
+
+## Implementation Strategy
+
+- **MVP** = Phase 1 + Phase 2 + **Phase 3 (US2, hooks runnable)** + **Phase 4 (US1, resources)** — the two P1 stories; stop & validate (`quickstart.md` F1/F2).
+- **Incremental**: add US4 → US3 → US5 → US7 → US6 → Polish, each an independently testable green increment.
+- Commit per green phase (no push / no PR unless asked). Honor AR-5 (resources only where required), NFR-1 (no-network), NFR-3 (cross-platform).
 
 ## Notes / scope guards
 
-- Per **AR-5**, resources are opt-in — do NOT add boilerplate dirs to all 181 skills; only the FR-D33 set, `add-*`, and eval-bearing clusters (the spec's firm subset).
-- **Out of scope** (spec §Out of scope): live in-session hook firing (interactive-only), full ≥20-queries/skill eval coverage, Native-AOT packaging.
-- Keep every phase green; commit per green phase (no push / no PR unless asked).
+- **Out of scope** (spec §Out of scope): live in-session hook firing (interactive-only), full ≥20-queries/skill evals, Native-AOT packaging, the per-RID release/rollback matrix.
+- Do NOT add resource dirs to all 181 skills — only the FR-D33 set, `add-*`, and eval-bearing clusters (AR-5).
