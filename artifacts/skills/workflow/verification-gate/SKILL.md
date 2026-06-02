@@ -39,7 +39,7 @@ Skip any step = false claim, not efficiency.
 | "Build succeeds" | `dotnet build` exit 0 | "Linter passed", "code looks right" |
 | "Tests pass" | `dotnet test` with 0 failures | Previous run, "should pass" |
 | "No warnings" | `dotnet build -warnaserror` exit 0 | Build passing (warnings hidden) |
-| "Lint clean" | `ruff check` or analyzer output: 0 errors | Partial check, extrapolation |
+| "Lint clean" | analyzer or formatter output: 0 errors | Partial check, extrapolation |
 | "Bug fixed" | Test reproducing the original symptom passes | "Code changed, assumed fixed" |
 | "Migration works" | `dotnet ef database update` exit 0 | "Schema looks correct" |
 | "Endpoint works" | HTTP request + response validation | "Controller compiles" |

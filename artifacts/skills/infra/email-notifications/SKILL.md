@@ -85,7 +85,9 @@ public sealed class SendGridEmailService(
         foreach (var prop in model.GetType().GetProperties())
         {
             var value = prop.GetValue(model)?.ToString() ?? "";
-            result = result.Replace($"{{{{{prop.Name}}}}}", value);
+            result = result.Replace(
+                $"{{{{{prop.Name}}}}}",
+                WebUtility.HtmlEncode(value));
         }
         return result;
     }

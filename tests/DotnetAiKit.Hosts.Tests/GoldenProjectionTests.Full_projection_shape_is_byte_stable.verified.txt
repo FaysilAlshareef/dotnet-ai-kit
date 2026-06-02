@@ -22,14 +22,6 @@
   "keywords": ["dotnet"]
 }
 
-=== .cursor-plugin/plugin.json ===
-{
-  "name": "dotnet-ai-kit",
-  "version": "2.0.0",
-  "description": "d",
-  "agents": ["./agents/dotnet-architect.md"]
-}
-
 === claude/.claude-plugin/plugin.json ===
 {
   "name": "dotnet-ai-kit",
@@ -188,6 +180,21 @@ name: minimal-api-patterns
 description: "Generates endpoints. Use when adding routes. Do NOT use for MVC (use controller-patterns)."
 ---
 # skill
+
+=== cursor/.cursor-plugin/agents/dotnet-architect.md ===
+---
+name: dotnet-architect
+description: "Leads architecture. Use when designing. Do NOT use for read models (use query-architect)."
+---
+# agent
+
+=== cursor/.cursor-plugin/plugin.json ===
+{
+  "name": "dotnet-ai-kit",
+  "version": "2.0.0",
+  "description": "d",
+  "agents": ["./agents/dotnet-architect.md"]
+}
 
 === cursor/commands/specify.md ===
 ---

@@ -9,6 +9,8 @@ metadata:
 
 ## Core Principles
 
+> Dispatch policy: MediatR is opt-in; default CQRS dispatch goes through a project-owned sender port (see mediator-abstraction).
+
 - Each module is a self-contained unit with its own domain, data, and API surface
 - Modules communicate through well-defined contracts — never share database tables
 - Each module owns its data: separate DbContext per module, potentially separate schemas

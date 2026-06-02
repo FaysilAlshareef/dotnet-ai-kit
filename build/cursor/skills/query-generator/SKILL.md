@@ -4,6 +4,8 @@ description: "Generates a new CQRS query with its handler, response DTO, and pag
 ---
 # CQRS Query Generator
 
+> Dispatch policy: MediatR is opt-in; default CQRS dispatch goes through a project-owned sender port (see mediator-abstraction).
+
 ## Query Record
 
 ```csharp

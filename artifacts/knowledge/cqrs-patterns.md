@@ -6,6 +6,7 @@ description: "cqrs patterns (migrated artifact)."
 
 Command Query Responsibility Segregation reference for .NET applications.
 Covers command/query separation, MediatR handlers, pipeline behaviors, event sourcing integration, and decision criteria.
+Default command/query dispatch goes through a project-owned sender port. MediatR is opt-in only when the project has selected and licensed it; see mediator-abstraction.
 
 ---
 

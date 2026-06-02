@@ -7,6 +7,7 @@ alwaysApply: false
 
 DETECT the architecture from the existing project structure before applying rules.
 If the project uses a different pattern than expected, follow what exists.
+Default in-process dispatch goes through a project-owned sender port. MediatR is opt-in only when the project has selected and licensed it; see mediator-abstraction.
 
 ## Microservice Mode
 

@@ -63,7 +63,10 @@ public sealed class OrderManagement(HttpClient http)
         => await http.PutAsJsonAsync<OrderResponse>($"{BaseRoute}/{id}", request);
 
     public async Task<ResponseResult<bool>> DeleteAsync(Guid id)
-        => await http.DeleteAsync<bool>($"{BaseRoute}/{id}");
+    {
+        var result = await http.DeleteAndReadAsync<object>($"{BaseRoute}/{id}");
+        return result.Map(_ => true);
+    }
 }
 ```
 
@@ -74,6 +77,20 @@ namespace {Company}.{Domain}.ControlPanel.Extensions;
 
 public static class HttpExtensions
 {
+    public static async Task<ResponseResult<T>> DeleteAndReadAsync<T>(
+        this HttpClient http, string url)
+    {
+        try
+        {
+            var response = await http.DeleteAsync(url);
+            return await HandleResponse<T>(response);
+        }
+        catch (Exception ex)
+        {
+            return ResponseResult<T>.Failure(ex.Message);
+        }
+    }
+
     public static async Task<ResponseResult<T>> GetAsync<T>(
         this HttpClient http, string url)
     {

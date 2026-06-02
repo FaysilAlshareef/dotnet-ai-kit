@@ -109,7 +109,7 @@ public sealed class RequestService(IOptionsSnapshot<DatabaseOptions> options)
 }
 
 // Singleton — reloads and notifies on change
-public sealed class MonitorService(IOptionsMonitor<DatabaseOptions> options)
+public sealed class MonitorService
 {
     public MonitorService(IOptionsMonitor<DatabaseOptions> options)
     {

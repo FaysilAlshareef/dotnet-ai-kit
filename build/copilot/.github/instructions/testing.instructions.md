@@ -1,5 +1,5 @@
 ---
-applyTo: "tests/**/*.cs,**/*.Tests/**/*.cs,tests/**/*.py"
+applyTo: "tests/**/*.cs,**/*.Tests/**/*.cs"
 ---
 # Testing Rules
 
@@ -12,7 +12,6 @@ Match the existing test style. Never introduce a different test framework.
   - Example: `CreateOrder_WithValidData_ReturnsSuccess`
   - Example: `Handle_WhenEntityNotFound_ReturnsFalse`
   - Example: `Apply_DuplicateEvent_ThrowsConcurrencyException`
-- Python test functions: `test_{scenario}_{expected}` (snake_case)
 
 ## Structure
 
@@ -38,12 +37,9 @@ Match the existing test style. Never introduce a different test framework.
 - Never share database state between tests
 - Clean up or use unique IDs to avoid cross-test interference
 
-## Python Test Patterns
 
-- Use `tmp_path` fixture for all filesystem tests
 - Use `tempfile` module — never hardcode `/tmp` or `%TEMP%`
 - Mock external calls (`subprocess`, network) — never hit real services
-- Each test file should have 5-10 focused test functions
 
 ## MUST NOT
 
@@ -56,7 +52,7 @@ Match the existing test style. Never introduce a different test framework.
 ## Detection Instructions
 
 1. Check for existing test projects and their naming patterns
-2. Identify the test framework (xUnit, NUnit, MSTest, pytest)
+2. Identify the test framework (xUnit, NUnit, MSTest)
 3. Look for existing test utilities (Fakers, Asserts, Fixtures)
 4. Follow the established patterns for all new tests
 

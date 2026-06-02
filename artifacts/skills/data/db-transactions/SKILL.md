@@ -9,6 +9,8 @@ metadata:
 
 ## Core Principles
 
+> Dispatch policy: MediatR is opt-in; default CQRS dispatch goes through a project-owned sender port (see mediator-abstraction).
+
 - EF Core `SaveChanges` is already a transaction — one call saves atomically
 - Use explicit transactions only when coordinating multiple SaveChanges or operations
 - Choose isolation levels based on consistency vs performance tradeoffs

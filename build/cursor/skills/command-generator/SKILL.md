@@ -4,6 +4,8 @@ description: "Generates a new CQRS command with its handler and FluentValidation
 ---
 # CQRS Command Generator
 
+> Dispatch policy: MediatR is opt-in; default CQRS dispatch goes through a project-owned sender port (see mediator-abstraction).
+
 ## Command Record
 
 ```csharp

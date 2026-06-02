@@ -169,9 +169,16 @@ public class OrdersListener : IHostedService
                 // Skip known but unhandled event types
                 EventType.OrderViewed => Task.FromResult(true),
                 // Unknown events — return false
-                _ => Task.FromResult(false)
+                _ => LogAndSkipUnknownAsync(subject)
             };
         }
+    }
+
+    private Task<bool> LogAndSkipUnknownAsync(string subject)
+    {
+        _logger.LogWarning(
+            "Skipping unknown event subject {Subject}", subject);
+        return Task.FromResult(true);
     }
 
     // --- Typed deserialization + MediatR dispatch ---
@@ -211,18 +218,16 @@ public class OrdersListener : IHostedService
 
     // --- Lifecycle ---
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
-        _processor.StartProcessingAsync(cancellationToken);
-        _deadLetterProcessor.StartProcessingAsync(cancellationToken);
-        return Task.CompletedTask;
+        await _processor.StartProcessingAsync(cancellationToken);
+        await _deadLetterProcessor.StartProcessingAsync(cancellationToken);
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
-        _processor.CloseAsync(cancellationToken);
-        _deadLetterProcessor.CloseAsync(cancellationToken);
-        return Task.CompletedTask;
+        await _processor.CloseAsync(cancellationToken);
+        await _deadLetterProcessor.CloseAsync(cancellationToken);
     }
 }
 ```

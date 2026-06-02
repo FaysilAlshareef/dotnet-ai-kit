@@ -6,6 +6,7 @@ description: "event sourcing flow (migrated artifact)."
 
 Complete end-to-end event sourcing flow for CQRS microservice architecture.
 Covers the full lifecycle: Command Handler -> Aggregate -> Event -> CommitEventService -> Outbox -> ServiceBusPublisher -> Query Handler.
+Default command/query dispatch goes through a project-owned sender port. MediatR is opt-in only when the project has selected and licensed it; see mediator-abstraction.
 
 ---
 
@@ -358,13 +359,13 @@ Key flow:
 4. Add outbox messages to the OutboxMessages repository
 5. `SaveChangesAsync` persists both events and outbox messages atomically
 6. Clear uncommitted events from the aggregate
-7. Signal `StartPublish()` (fire-and-forget)
+7. Signal `StartPublishAsync()` so the hosted publisher drains the outbox
 
 ---
 
-## Step 5: ServiceBusPublisher (Fire-and-Forget)
+## Step 5: ServiceBusPublisher (Recoverable Background Drain)
 
-A singleton service that publishes outbox messages to Azure Service Bus. Uses `Task.Run` (fire-and-forget), `lock` for thread safety, and creates its own DI scope for database access.
+A hosted publisher drains outbox messages to Azure Service Bus. Use a `SemaphoreSlim` guard and a scheduled recovery poller so a process crash after commit can still publish pending rows.
 
 ```csharp
 public class ServiceBusPublisher : IServiceBusPublisher
@@ -373,8 +374,7 @@ public class ServiceBusPublisher : IServiceBusPublisher
     private readonly ServiceBusSender _sender;
     private readonly ILogger<ServiceBusPublisher> _logger;
 
-    private static readonly object _lockObject = new();
-    private int lockedScopes;
+    private readonly SemaphoreSlim publishGate = new(1, 1);
 
     public ServiceBusPublisher(
         IServiceProvider serviceProvider,
@@ -387,42 +387,39 @@ public class ServiceBusPublisher : IServiceBusPublisher
         _logger = logger;
     }
 
-    public void StartPublish()
+    public async Task StartPublishAsync(CancellationToken ct = default)
     {
-        Task.Run(PublishNonPublishedMessages);
-    }
-
-    private void PublishNonPublishedMessages()
-    {
-        if (lockedScopes > 2)
+        if (!await publishGate.WaitAsync(0, ct))
             return;
-
-        lockedScopes++;
 
         try
         {
-            lock (_lockObject)
+            await PublishNonPublishedMessagesAsync(ct);
+        }
+        finally
+        {
+            publishGate.Release();
+        }
+    }
+
+    private async Task PublishNonPublishedMessagesAsync(CancellationToken ct)
+    {
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+
+            while (await unitOfWork.OutboxMessages.AnyAsync(ct))
             {
-                using var scope = _serviceProvider.CreateScope();
-                var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+                var messages = await unitOfWork.OutboxMessages
+                    .GetOutboxMessagesAsync(200, ct);
 
-                while (unitOfWork.OutboxMessages.AnyAsync().GetAwaiter().GetResult())
-                {
-                    var messages = unitOfWork.OutboxMessages
-                        .GeOutboxMessageAsync(200).GetAwaiter().GetResult();
-
-                    PublishAndRemoveMessagesAsync(messages, unitOfWork)
-                        .GetAwaiter().GetResult();
-                }
+                await PublishAndRemoveMessagesAsync(messages, unitOfWork, ct);
             }
         }
         catch (Exception e)
         {
             _logger.LogCritical(e, "Message published failed while attempting to send messages");
-        }
-        finally
-        {
-            lockedScopes--;
         }
     }
 
@@ -474,11 +471,11 @@ public class ServiceBusPublisher : IServiceBusPublisher
 
 Key details:
 - **Singleton** -- persists across requests, holds lock state
-- `StartPublish()` calls `Task.Run(PublishNonPublishedMessages)` -- fire-and-forget
-- `lockedScopes > 2` guard prevents too many queued threads
+- `StartPublishAsync()` drains synchronously behind a `SemaphoreSlim` gate
+- A hosted recovery poller periodically calls `StartPublishAsync()` for crash safety
 - `lock (_lockObject)` ensures only one thread publishes at a time
 - Creates its own scope for `IUnitOfWork` access (singleton cannot inject scoped services)
-- Reads outbox in batches of 200 via `GeOutboxMessageAsync(200)`
+- Reads outbox in batches of 200 via `GetOutboxMessagesAsync(200)`
 - For each message: send to Service Bus, remove from outbox, save -- one at a time
 - The `MessageBody` wrapper extracts event metadata and `((dynamic)@event).Data` for the body
 - `SessionId` and `PartitionKey` are set to `AggregateId` for ordered processing

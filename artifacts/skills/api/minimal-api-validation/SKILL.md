@@ -11,8 +11,8 @@ metadata:
 
 ## Conventions
 - Register once in DI: `builder.Services.AddValidation();` — it hooks the endpoint filter pipeline for all Minimal API endpoints.
-- Mark validatable request records with `[ValidatableType]` so the source generator emits the validator at build time (AOT/trim-safe, no reflection at runtime).
-- Use standard `System.ComponentModel.DataAnnotations` attributes (`[Required]`, `[Range]`, `[EmailAddress]`, `[StringLength]`); nested complex properties marked `[ValidatableType]` validate recursively.
+- Mark validatable request records with `[ValidatableType]` so the source generator emits the validator at build time (AOT/trim-safe, no reflection at runtime). In current .NET 10 previews the attribute is experimental (`ASP0029`), so keep the warning visible instead of suppressing it silently.
+- Use standard `System.ComponentModel.DataAnnotations` attributes (`[Required]`, `[Range]`, `[EmailAddress]`, `[StringLength]`); mark nested complex types with `[ValidatableType]` on the nested type declaration, not on the property.
 - Invalid requests are rejected before the handler runs and return a `ValidationProblemDetails` body — handlers can assume valid input.
 - This covers DataAnnotations-style rules; for cross-field or DB-backed rules, layer a FluentValidation check inside the use-case (keep it license-light/OSS) rather than overloading attributes.
 - Pair with `TypedResults` so the success/`ValidationProblem` contract is explicit in the signature.
@@ -22,6 +22,7 @@ metadata:
 // Program.cs
 builder.Services.AddValidation();
 
+[Experimental("ASP0029")]
 [ValidatableType]
 public sealed record CreateOrderRequest
 {
@@ -31,8 +32,19 @@ public sealed record CreateOrderRequest
     [Range(1, 1000)]
     public int Quantity { get; init; }
 
-    [Required, ValidatableType]          // nested type validated recursively
+    [Required]
     public AddressDto ShipTo { get; init; } = new();
+}
+
+[Experimental("ASP0029")]
+[ValidatableType]
+public sealed record AddressDto
+{
+    [Required, StringLength(160)]
+    public string Street { get; init; } = "";
+
+    [Required, StringLength(80)]
+    public string City { get; init; } = "";
 }
 
 // Handler runs only if the request is valid; otherwise auto-400 ValidationProblem

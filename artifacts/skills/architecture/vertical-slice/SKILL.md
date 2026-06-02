@@ -9,6 +9,8 @@ metadata:
 
 ## Core Principles
 
+> Dispatch policy: MediatR is opt-in; default CQRS dispatch goes through a project-owned sender port (see mediator-abstraction).
+
 - Organize by feature, not by layer — each slice is self-contained
 - Minimize abstractions: handler talks to DbContext directly, no repository layer
 - One file per operation containing Request, Response, Handler, Validator

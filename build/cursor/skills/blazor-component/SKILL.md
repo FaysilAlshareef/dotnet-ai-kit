@@ -21,6 +21,7 @@ description: "Build control-panel page components with MudBlazor, using MudDataG
 @page "/orders"
 @inject OrdersGateway Gateway
 @inject ISnackbar Snackbar
+@inject IDialogService DialogService
 @inject NavigationManager NavigationManager
 
 <MudText Typo="Typo.h4" Class="mb-4">Orders</MudText>
@@ -99,6 +100,20 @@ description: "Build control-panel page components with MudBlazor, using MudDataG
     private async Task OpenCreateDialog()
     {
         var dialog = await DialogService.ShowAsync<CreateOrderDialog>("New Order");
+        var result = await dialog.Result;
+        if (!result.Canceled && _dataGrid is not null)
+            await _dataGrid.ReloadServerData();
+    }
+
+    private async Task OpenEditDialog(OrderSummaryResponse order)
+    {
+        var parameters = new DialogParameters<EditOrderDialog>
+        {
+            { x => x.OrderId, order.Id }
+        };
+
+        var dialog = await DialogService.ShowAsync<EditOrderDialog>(
+            "Edit Order", parameters);
         var result = await dialog.Result;
         if (!result.Canceled && _dataGrid is not null)
             await _dataGrid.ReloadServerData();

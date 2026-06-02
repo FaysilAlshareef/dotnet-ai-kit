@@ -84,7 +84,8 @@ public class MultiHostProjectorTests
         Assert.Contains("globs: \"**/*.cs\"", domain, StringComparison.Ordinal);
         Assert.Contains("alwaysApply: false", domain, StringComparison.Ordinal);
         Assert.True(files.ContainsKey("cursor/commands/specify.md"));
-        Assert.Contains("\"agents\"", files[".cursor-plugin/plugin.json"].Content, StringComparison.Ordinal);
+        Assert.Contains("\"agents\"", files["cursor/.cursor-plugin/plugin.json"].Content, StringComparison.Ordinal);
+        Assert.True(files.ContainsKey("cursor/.cursor-plugin/agents/dotnet-architect.md"));
     }
 
     [Fact]

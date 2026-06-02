@@ -6,6 +6,8 @@ description: "Adds cross-cutting MediatR pipeline behaviors that wrap every requ
 
 ## Core Principles
 
+> Dispatch policy: MediatR is opt-in; default CQRS dispatch goes through a project-owned sender port (see mediator-abstraction).
+
 - Pipeline behaviors wrap every MediatR request like middleware
 - Registration order matters: first registered = outermost in the pipeline
 - Use open generic registration so behaviors apply to all requests

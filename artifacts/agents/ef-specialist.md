@@ -12,7 +12,7 @@ metadata:
 - Design DbContext with proper entity configurations
 - Implement repository pattern with EF Core
 - Set up Dapper for read-optimized queries
-- Configure MediatR pipeline behaviors
+- Configure pipeline behaviors behind a project-owned sender port; MediatR is opt-in when licensed and selected
 - Implement audit trail and domain events
 
 ## Boundaries

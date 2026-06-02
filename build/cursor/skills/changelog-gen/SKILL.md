@@ -98,21 +98,21 @@ RANGE="${LAST_TAG:+$LAST_TAG..}HEAD"
 echo "## [Unreleased]"
 echo ""
 
-ADDED=$(git log $RANGE --oneline | grep -i "^feat:" | sed 's/^feat: /- /')
+ADDED=$(git log $RANGE --pretty=format:%s | grep -i "^feat:" | sed 's/^feat: /- /')
 if [ -n "$ADDED" ]; then
     echo "### Added"
     echo "$ADDED"
     echo ""
 fi
 
-FIXED=$(git log $RANGE --oneline | grep -i "^fix:" | sed 's/^fix: /- /')
+FIXED=$(git log $RANGE --pretty=format:%s | grep -i "^fix:" | sed 's/^fix: /- /')
 if [ -n "$FIXED" ]; then
     echo "### Fixed"
     echo "$FIXED"
     echo ""
 fi
 
-CHANGED=$(git log $RANGE --oneline | grep -i "^refactor:\|^perf:" | sed 's/^[^:]*: /- /')
+CHANGED=$(git log $RANGE --pretty=format:%s | grep -i "^refactor:\|^perf:" | sed 's/^[^:]*: /- /')
 if [ -n "$CHANGED" ]; then
     echo "### Changed"
     echo "$CHANGED"

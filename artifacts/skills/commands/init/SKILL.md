@@ -42,7 +42,7 @@ After the command completes, verify:
 3. `.dotnet-ai-kit/version.txt` exists
 4. `.claude/settings.json` exists and has permission entries
 
-If `dotnet-ai` is not installed, tell the user: "dotnet-ai CLI not found. Install: `pip install dotnet-ai-kit`"
+If `dotnet-ai` is not installed, tell the user: "dotnet-ai CLI not found. Install: `dotnet tool install --global DotnetAiKit.Tool`"
 
 **Plugin-native mode (feature 019)**: For Claude/Codex/Cursor, commands/skills/agents/rules are served entirely by the plugin install path. The per-solution `.claude/`, `.codex/`, and `.cursor/` directories receive ONLY the manifest-tracked metadata files (settings.json for Claude). Copilot is the lone render-only host: it gets `.github/copilot-instructions.md` + `.github/instructions/*.instructions.md` + `.github/agents/*.agent.md` rendered into the repo per FR-007.
 

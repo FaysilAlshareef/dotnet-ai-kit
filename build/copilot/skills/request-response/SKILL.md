@@ -6,6 +6,8 @@ description: "Designs CQRS request/response contracts as immutable records with 
 
 ## Core Principles
 
+> Dispatch policy: MediatR is opt-in; default CQRS dispatch goes through a project-owned sender port (see mediator-abstraction).
+
 - Requests are immutable records with all required data for the operation
 - Responses are DTOs — no domain logic, no entity references
 - Validate all commands with FluentValidation before handler execution

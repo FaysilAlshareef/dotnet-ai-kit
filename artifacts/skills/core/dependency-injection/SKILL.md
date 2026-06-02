@@ -9,6 +9,8 @@ metadata:
 
 ## Core Principles
 
+> Dispatch policy: MediatR is opt-in; default CQRS dispatch goes through a project-owned sender port (see mediator-abstraction).
+
 - Use constructor injection exclusively — avoid service locator pattern
 - Choose the correct lifetime: Singleton, Scoped, or Transient
 - Organize registrations in `IServiceCollection` extension methods

@@ -42,6 +42,7 @@ public sealed class SaleInvoice : IContainerDocument
     public string InvoiceNumber { get; private set; } = string.Empty;
     public decimal TotalAmount { get; private set; }
     public DateTime CreatedAt { get; private set; }
+    public string PartitionMonth { get; private set; } = string.Empty;
     public List<SoldItem> Items { get; private set; } = [];
     public int Sequence { get; private set; }
 
@@ -52,7 +53,7 @@ public sealed class SaleInvoice : IContainerDocument
 
     public PartitionKey PartitionKeys => new PartitionKeyBuilder()
         .Add(MerchantId)
-        .Add(CreatedAt.ToString("yyyy-MM"))
+        .Add(PartitionMonth)
         .Add(Discriminator)
         .Build();
 
@@ -66,6 +67,7 @@ public sealed class SaleInvoice : IContainerDocument
             InvoiceNumber = @event.Data.InvoiceNumber,
             TotalAmount = @event.Data.TotalAmount,
             CreatedAt = @event.DateTime,
+            PartitionMonth = @event.DateTime.ToString("yyyy-MM"),
             Items = @event.Data.Items.Select(i => new SoldItem
             {
                 ProductId = i.ProductId,

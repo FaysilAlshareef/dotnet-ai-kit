@@ -122,9 +122,9 @@ public static class OrderMappingExtensions
 {
     // Request → Command
     public static CreateOrderCommand ToCommand(this CreateOrderRequest r) =>
-        new(r.CustomerName, (decimal)r.Total,
+        new(r.CustomerName, r.TotalCents / 100m,
             r.Items.Select(i => new OrderItemInput(
-                Guid.Parse(i.ProductId), i.Quantity, (decimal)i.UnitPrice
+                Guid.Parse(i.ProductId), i.Quantity, i.UnitPriceCents / 100m
             )).ToList());
 
     // Output → Response

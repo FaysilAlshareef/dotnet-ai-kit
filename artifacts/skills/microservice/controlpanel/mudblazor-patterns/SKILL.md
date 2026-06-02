@@ -125,8 +125,8 @@ private async Task DeleteOrder(Guid orderId)
     if (!result.Canceled)
     {
         var response = await Gateway.Orders.DeleteAsync(orderId);
-        response.Switch(
-            onSuccess: _ =>
+        await response.SwitchAsync(
+            onSuccess: async _ =>
             {
                 Snackbar.Add("Order deleted", Severity.Success);
                 await _dataGrid!.ReloadServerData();

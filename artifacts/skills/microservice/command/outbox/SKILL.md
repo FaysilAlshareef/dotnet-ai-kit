@@ -91,7 +91,9 @@ public class CommitEventService(IUnitOfWork unitOfWork, IServiceBusPublisher ser
         _serviceBusPublisher.StartPublish();
     }
 
-    private async Task SaveToDatabase(IReadOnlyList<Event> newEvents)
+    private async Task SaveToDatabase(
+        IReadOnlyList<Event> newEvents,
+        CancellationToken cancellationToken = default)
     {
         await _unitOfWork.Events.AddRangeAsync(newEvents);
 
@@ -145,8 +147,7 @@ public class ServiceBusPublisher : IServiceBusPublisher
     private readonly ServiceBusSender _sender;
     private readonly ILogger<ServiceBusPublisher> _logger;
 
-    private static readonly object _lockObject = new();
-    private int lockedScopes;
+    private readonly SemaphoreSlim publishGate = new(1, 1);
 
     public ServiceBusPublisher(
         IServiceProvider serviceProvider,
@@ -159,59 +160,52 @@ public class ServiceBusPublisher : IServiceBusPublisher
         _logger = logger;
     }
 
-    public void StartPublish()
+    public async Task StartPublishAsync(CancellationToken cancellationToken = default)
     {
-        // Don't wait.
-        Task.Run(PublishNonPublishedMessages);
-    }
-
-    private void PublishNonPublishedMessages()
-    {
-        _logger.LogInformation("Publishing to service bus requested.");
-
-        if (lockedScopes > 2)
+        if (!await publishGate.WaitAsync(0, cancellationToken))
             return;
-
-        lockedScopes++;
-
-        _logger.LogWarning(
-            "Thread attempting to lock a scope in publisher with locked scopes = {LockedScopes}",
-            lockedScopes);
 
         try
         {
-            lock (_lockObject)
+            await PublishNonPublishedMessagesAsync(cancellationToken);
+        }
+        finally
+        {
+            publishGate.Release();
+        }
+    }
+
+    private async Task PublishNonPublishedMessagesAsync(
+        CancellationToken cancellationToken)
+    {
+        _logger.LogInformation("Publishing to service bus requested.");
+
+        try
+        {
+            using var scope = _serviceProvider.CreateScope();
+            var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+
+            while (await unitOfWork.OutboxMessages.AnyAsync(cancellationToken))
             {
-                using var scope = _serviceProvider.CreateScope();
+                var messages = await unitOfWork.OutboxMessages
+                    .GetOutboxMessagesAsync(200, cancellationToken);
 
-                var unitOfWork = scope.ServiceProvider.GetRequiredService<IUnitOfWork>();
+                _logger.LogInformation(
+                    "Fetched message from outbox {Count}", messages.Count);
 
-                while (unitOfWork.OutboxMessages.AnyAsync().GetAwaiter().GetResult())
-                {
-                    var messages = unitOfWork.OutboxMessages
-                        .GeOutboxMessageAsync(200).GetAwaiter().GetResult();
-
-                    _logger.LogInformation("Fetched Message From outbox {Count}", messages.Count);
-
-                    PublishAndRemoveMessagesAsync(messages, unitOfWork).GetAwaiter().GetResult();
-                }
+                await PublishAndRemoveMessagesAsync(
+                    messages, unitOfWork, cancellationToken);
             }
         }
         catch (Exception e)
         {
-            _logger.LogCritical(e, "Message published failed while attempting to send messages");
-        }
-        finally
-        {
-            lockedScopes--;
-            _logger.LogWarning(
-                "Thread let go of the lock in publisher with locked scopes = {LockedScopes}",
-                lockedScopes);
+            _logger.LogCritical(e, "Message publish failed while attempting to send messages");
         }
     }
 
     private async Task PublishAndRemoveMessagesAsync(
-        IEnumerable<OutboxMessage> messages, IUnitOfWork unitOfWork)
+        IEnumerable<OutboxMessage> messages, IUnitOfWork unitOfWork,
+        CancellationToken cancellationToken)
     {
         foreach (var message in messages)
         {
@@ -314,9 +308,9 @@ Key registration details:
 | Anti-Pattern | Correct Approach |
 |---|---|
 | Serializing event body into OutboxMessage | OutboxMessage wraps Event via FK (navigation property) |
-| Using BackgroundService for publisher | Use singleton with `Task.Run` fire-and-forget |
+| No recovery poller | Use a hosted service to retry unpublished rows after process restart |
 | Publishing before DB save | Save events + outbox first, then StartPublish |
-| Using SemaphoreSlim for concurrency | Use `lock` + `lockedScopes` counter (max 2 pending) |
+| Overlapping publisher drains | Use `SemaphoreSlim` to prevent concurrent drains |
 | Creating new ServiceBusClient per publish | Inject singleton ServiceBusClient, create sender in constructor |
 | Batch-saving after all publishes | Remove each message individually after publish, save each time |
 
@@ -342,5 +336,5 @@ grep -r "AddSingleton.*ServiceBusPublisher" --include="*.cs" src/
 2. **Verify IUnitOfWork** has both `Events` and `OutboxMessages` repositories
 3. **Match CommitEventService pattern** -- AddRangeAsync events, ToManyMessages outbox, SaveChangesAsync
 4. **Check publisher is singleton** with lock + Task.Run pattern
-5. **Verify batch size** is 200 in `GeOutboxMessageAsync`
+5. **Verify batch size** is 200 in `GetOutboxMessagesAsync`
 6. **Ensure publisher creates its own scope** for database access

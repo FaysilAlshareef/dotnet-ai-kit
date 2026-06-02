@@ -199,6 +199,8 @@ internal sealed class AppDbContext(
     DbContextOptions<AppDbContext> options,
     ITenantProvider tenantProvider) : DbContext(options)
 {
+    public string TenantId => tenantProvider.TenantId;
+
     public DbSet<Order> Orders => Set<Order>();
     public DbSet<Product> Products => Set<Product>();
 
@@ -209,14 +211,26 @@ internal sealed class AppDbContext(
 
         // Global query filter — every query is automatically tenant-scoped
         modelBuilder.Entity<Order>()
-            .HasQueryFilter(e => e.TenantId == tenantProvider.TenantId);
+            .HasQueryFilter(e => e.TenantId == TenantId);
 
         modelBuilder.Entity<Product>()
-            .HasQueryFilter(e => e.TenantId == tenantProvider.TenantId);
+            .HasQueryFilter(e => e.TenantId == TenantId);
+    }
+
+    public override int SaveChanges()
+    {
+        StampTenantId();
+        return base.SaveChanges();
     }
 
     public override Task<int> SaveChangesAsync(
         CancellationToken cancellationToken = default)
+    {
+        StampTenantId();
+        return base.SaveChangesAsync(cancellationToken);
+    }
+
+    private void StampTenantId()
     {
         // Stamp TenantId on new entities automatically
         foreach (var entry in ChangeTracker.Entries<ITenantEntity>()
@@ -226,9 +240,15 @@ internal sealed class AppDbContext(
                 .GetProperty(nameof(ITenantEntity.TenantId))!
                 .SetValue(entry.Entity, tenantProvider.TenantId);
         }
-
-        return base.SaveChangesAsync(cancellationToken);
     }
+}
+
+public sealed class TenantModelCacheKeyFactory : IModelCacheKeyFactory
+{
+    public object Create(DbContext context, bool designTime) =>
+        context is AppDbContext tenantContext
+            ? (context.GetType(), tenantContext.TenantId, designTime)
+            : (context.GetType(), designTime);
 }
 ```
 

@@ -16,7 +16,7 @@ skills:
 - Configure session-based and batch processing
 - Set up gRPC client factories for command redirection
 - Implement dead letter handling
-- Design event routing with MediatR
+- Design event routing behind a project-owned sender port; MediatR is opt-in when licensed and selected
 - Detect existing listeners and routing in existing projects
 
 ## Boundaries

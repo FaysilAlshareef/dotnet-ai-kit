@@ -6,6 +6,8 @@ description: "Models domain logic with aggregates, value objects, domain events,
 
 ## Core Principles
 
+> Dispatch policy: MediatR is opt-in; default CQRS dispatch goes through a project-owned sender port (see mediator-abstraction).
+
 - Aggregate roots are consistency boundaries — all changes go through the root
 - Value objects are immutable and compared by structural equality
 - Domain events communicate side effects across aggregates
@@ -83,7 +85,7 @@ public abstract class AggregateRoot<TId> where TId : struct
 
 public interface IAggregateRoot { }
 
-public interface IDomainEvent : INotification
+public interface IDomainEvent
 {
     DateTimeOffset OccurredAt { get; }
 }

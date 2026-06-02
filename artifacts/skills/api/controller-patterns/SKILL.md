@@ -9,6 +9,8 @@ metadata:
 
 ## Core Principles
 
+> Dispatch policy: MediatR is opt-in; default controller dispatch goes through a project-owned sender port (see mediator-abstraction).
+
 - Use `[ApiController]` for automatic model validation and binding behavior
 - Follow RESTful route conventions with resource-based URLs
 - Return `ActionResult<T>` with explicit `[ProducesResponseType]` attributes

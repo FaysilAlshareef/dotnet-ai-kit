@@ -98,8 +98,9 @@ public class PluginInstallSmokeTests(ITestOutputHelper output)
         Assert.True(File.Exists(Path.Combine(build, "codex", "AGENTS.md")));
         Assert.True(Directory.Exists(Path.Combine(build, "codex", "skills")));
 
-        // Cursor: plugin manifest + rules (.mdc) + commands + skills.
-        Assert.True(File.Exists(Path.Combine(build, ".cursor-plugin", "plugin.json")));
+        // Cursor: plugin manifest + agents + rules (.mdc) + commands + skills.
+        Assert.True(File.Exists(Path.Combine(build, "cursor", ".cursor-plugin", "plugin.json")));
+        Assert.True(Directory.Exists(Path.Combine(build, "cursor", ".cursor-plugin", "agents")));
         Assert.True(Directory.Exists(Path.Combine(build, "cursor", "rules")));
         Assert.True(Directory.Exists(Path.Combine(build, "cursor", "commands")));
         Assert.True(Directory.Exists(Path.Combine(build, "cursor", "skills")));

@@ -101,6 +101,17 @@ public sealed class CosmosUnitOfWork(Container container)
                 await container.UpsertItemAsync(item.Doc, pk,
                     new ItemRequestOptions { IfMatchEtag = item.Doc.ETag }, ct);
                 break;
+            case BatchOperation.Replace:
+                await container.ReplaceItemAsync(item.Doc, item.Doc.Id, pk,
+                    new ItemRequestOptions { IfMatchEtag = item.Doc.ETag }, ct);
+                break;
+            case BatchOperation.Delete:
+                await container.DeleteItemAsync<IContainerDocument>(item.Doc.Id, pk,
+                    new ItemRequestOptions { IfMatchEtag = item.Doc.ETag }, ct);
+                break;
+            default:
+                throw new NotSupportedException(
+                    $"Unsupported batch operation: {item.Op}");
         }
         _operations.Clear();
     }

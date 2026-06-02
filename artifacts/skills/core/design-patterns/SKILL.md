@@ -9,6 +9,8 @@ metadata:
 
 ## Core Principles
 
+> Dispatch policy: MediatR is opt-in; default CQRS dispatch goes through a project-owned sender port (see mediator-abstraction).
+
 - Patterns solve recurring design problems — don't force them where none exist
 - Always ask: "Does modern C# already solve this with a language feature or framework API?"
 - Don't blindly apply GoF. Half of the original 23 patterns are obsoleted by delegates, generics, records, and DI containers

@@ -68,6 +68,12 @@ public interface IArtifactRepository
     CorpusLoadResult Load(string artifactsRoot);
 }
 
+public interface IManifestIntegrity
+{
+    string ComputeFootprintSha256(string host, int rules);
+    bool TryVerifyFootprintManifest(string manifestJson, out string details);
+}
+
 // ---- Detection ------------------------------------------------------------------
 
 public interface IDetectionProvider

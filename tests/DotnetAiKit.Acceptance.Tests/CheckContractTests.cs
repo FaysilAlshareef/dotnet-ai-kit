@@ -32,10 +32,10 @@ public class CheckContractTests
         try
         {
             var fs = new PhysicalFileSystem();
-            new InitService(new DotnetProjectDetector(fs), new FileSystemArtifactRepository(fs, new YamlFrontmatterParser()), new ClaudeHostAdapter(fs, new BackupRotationService(fs)))
+            new InitService(new DotnetProjectDetector(fs), new FileSystemArtifactRepository(fs, new YamlFrontmatterParser()), new ClaudeHostAdapter(fs, new BackupRotationService(fs), new ManifestIntegrityService()))
                 .Run(temp, Path.Combine(RepoRoot(), "artifacts"), dryRun: false);
 
-            var result = new CheckService(fs).Run(temp);
+            var result = new CheckService(fs, new ManifestIntegrityService()).Run(temp);
             Assert.Equal(CheckService.Ok, result.ExitCode);
         }
         finally { if (Directory.Exists(temp)) Directory.Delete(temp, true); }
@@ -48,7 +48,7 @@ public class CheckContractTests
         Directory.CreateDirectory(temp);
         try
         {
-            var result = new CheckService(new PhysicalFileSystem()).Run(temp);
+            var result = new CheckService(new PhysicalFileSystem(), new ManifestIntegrityService()).Run(temp);
             Assert.Equal(CheckService.PluginInstallMissing, result.ExitCode);
         }
         finally { Directory.Delete(temp, true); }
@@ -63,10 +63,57 @@ public class CheckContractTests
         Directory.CreateDirectory(Path.Combine(temp, ".dotnet-ai-kit"));
         try
         {
-            var result = new CheckService(new PhysicalFileSystem()).Run(temp);
+            var result = new CheckService(new PhysicalFileSystem(), new ManifestIntegrityService()).Run(temp);
             Assert.Equal(CheckService.ProjectSchemaInvalid, result.ExitCode);
         }
         finally { Directory.Delete(temp, true); }
+    }
+
+    [Fact]
+    public void Missing_manifest_fails_manifest_integrity_with_clear_details()
+    {
+        var temp = TempDir();
+        try
+        {
+            var fs = new PhysicalFileSystem();
+            new InitService(new DotnetProjectDetector(fs), new FileSystemArtifactRepository(fs, new YamlFrontmatterParser()), new ClaudeHostAdapter(fs, new BackupRotationService(fs), new ManifestIntegrityService()))
+                .Run(temp, Path.Combine(RepoRoot(), "artifacts"), dryRun: false);
+            File.Delete(Path.Combine(temp, ".dotnet-ai-kit", "manifest.json"));
+
+            var result = new CheckService(fs, new ManifestIntegrityService()).Run(temp);
+
+            Assert.Equal(CheckService.ManifestIntegrity, result.ExitCode);
+            Assert.Contains(result.Checks, c =>
+                c.Name == "manifest-integrity"
+                && c.Status == "fail"
+                && c.Details.Contains("manifest.json is missing", StringComparison.Ordinal));
+        }
+        finally { if (Directory.Exists(temp)) Directory.Delete(temp, true); }
+    }
+
+    [Fact]
+    public void Tampered_manifest_fails_manifest_integrity_with_hash_mismatch()
+    {
+        var temp = TempDir();
+        try
+        {
+            var fs = new PhysicalFileSystem();
+            new InitService(new DotnetProjectDetector(fs), new FileSystemArtifactRepository(fs, new YamlFrontmatterParser()), new ClaudeHostAdapter(fs, new BackupRotationService(fs), new ManifestIntegrityService()))
+                .Run(temp, Path.Combine(RepoRoot(), "artifacts"), dryRun: false);
+            var manifestPath = Path.Combine(temp, ".dotnet-ai-kit", "manifest.json");
+            var manifest = File.ReadAllText(manifestPath)
+                .Replace("\"rules\": 21", "\"rules\": 999", StringComparison.Ordinal);
+            File.WriteAllText(manifestPath, manifest);
+
+            var result = new CheckService(fs, new ManifestIntegrityService()).Run(temp);
+
+            Assert.Equal(CheckService.ManifestIntegrity, result.ExitCode);
+            Assert.Contains(result.Checks, c =>
+                c.Name == "manifest-integrity"
+                && c.Status == "fail"
+                && c.Details.Contains("manifest hash mismatch", StringComparison.Ordinal));
+        }
+        finally { if (Directory.Exists(temp)) Directory.Delete(temp, true); }
     }
 
     [Fact]
@@ -85,9 +132,9 @@ public class CheckContractTests
 
             new GenerateService(repo, new ProjectionEngine(new HostRegistry(new IHostProjector[] { new ClaudeProjector() })), fs)
                 .Run(artifacts, buildOut, checkOnly: false);
-            new InitService(new DotnetProjectDetector(fs), repo, new ClaudeHostAdapter(fs, new BackupRotationService(fs)))
+            new InitService(new DotnetProjectDetector(fs), repo, new ClaudeHostAdapter(fs, new BackupRotationService(fs), new ManifestIntegrityService()))
                 .Run(temp, artifacts, dryRun: false);
-            var check = new CheckService(fs).Run(temp);
+            var check = new CheckService(fs, new ManifestIntegrityService()).Run(temp);
 
             Assert.True(Directory.Exists(Path.Combine(buildOut, "claude")));
             Assert.Equal(CheckService.Ok, check.ExitCode);

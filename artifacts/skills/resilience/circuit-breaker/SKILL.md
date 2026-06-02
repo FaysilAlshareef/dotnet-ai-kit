@@ -157,27 +157,17 @@ public sealed class PaymentService(
 ```csharp
 // Custom health check that reflects circuit state
 public sealed class PaymentServiceHealthCheck(
-    ResiliencePipelineProvider<string> pipelineProvider)
+    CircuitBreakerStateProvider breakerStateProvider)
     : IHealthCheck
 {
     public Task<HealthCheckResult> CheckHealthAsync(
         HealthCheckContext context, CancellationToken ct = default)
     {
-        // The circuit breaker state indicates downstream health
-        // If the circuit is open, report degraded
-        try
-        {
-            var pipeline = pipelineProvider
-                .GetPipeline("external-service");
-            // If we can get the pipeline, the circuit state is managed
-            return Task.FromResult(
-                HealthCheckResult.Healthy("Payment service reachable"));
-        }
-        catch
-        {
-            return Task.FromResult(
-                HealthCheckResult.Degraded("Payment service circuit open"));
-        }
+        return breakerStateProvider.CircuitState == CircuitState.Open
+            ? Task.FromResult(
+                HealthCheckResult.Degraded("Payment service circuit open"))
+            : Task.FromResult(
+                HealthCheckResult.Healthy("Payment service circuit closed"));
     }
 }
 ```

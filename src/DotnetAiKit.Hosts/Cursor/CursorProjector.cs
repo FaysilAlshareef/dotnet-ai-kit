@@ -38,6 +38,9 @@ public sealed class CursorProjector : IHostProjector
         foreach (var rule in corpus.Rules)
             yield return ProjectRule(rule);
 
+        foreach (var agent in corpus.Agents)
+            yield return ProjectAgent(agent);
+
         if (corpus.Manifest is { } manifest)
             yield return ProjectManifest(manifest, corpus.Agents);
     }
@@ -53,6 +56,14 @@ public sealed class CursorProjector : IHostProjector
         return new ProjectedFile($"cursor/rules/{rule.Name.Value}.mdc", fm.Compose(rule.Body));
     }
 
+    private static ProjectedFile ProjectAgent(Agent agent) =>
+        new(
+            $"cursor/.cursor-plugin/agents/{agent.Name.Value}.md",
+            new FrontmatterWriter()
+                .Scalar("name", agent.Name.Value)
+                .Quoted("description", agent.Description.Value)
+                .Compose(agent.Body));
+
     private static ProjectedFile ProjectManifest(Core.Manifest.PluginManifest manifest, IReadOnlyList<Agent> agents)
     {
         var sb = new StringBuilder();
@@ -62,7 +73,7 @@ public sealed class CursorProjector : IHostProjector
         sb.Append("  \"description\": ").Append(Json(manifest.Description)).Append(",\n");
         sb.Append("  \"agents\": ").Append(JsonArray(agents.Select(a => $"./agents/{a.Name.Value}.md").ToList())).Append('\n');
         sb.Append("}\n");
-        return new ProjectedFile(".cursor-plugin/plugin.json", sb.ToString());
+        return new ProjectedFile("cursor/.cursor-plugin/plugin.json", sb.ToString());
     }
 
     private static string Json(string value) => JsonSerializer.Serialize(value);

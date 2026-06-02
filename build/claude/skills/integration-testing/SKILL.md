@@ -28,10 +28,10 @@ public sealed class TestWebAppFactory : WebApplicationFactory<Program>
     {
         builder.ConfigureTestServices(services =>
         {
-            // Replace real DB with in-memory
+            // Replace real DB with SQLite in-memory, not EF InMemory.
             services.RemoveAll<DbContextOptions<ApplicationDbContext>>();
             services.AddDbContext<ApplicationDbContext>(options =>
-                options.UseInMemoryDatabase("TestDb_" + Guid.NewGuid()));
+                options.UseSqlite("Data Source=:memory:"));
 
             // Replace external services with fakes
             services.RemoveAll<IServiceBusPublisher>();
@@ -100,7 +100,7 @@ public sealed class SqlServerFixture : IAsyncLifetime
 }
 
 public sealed class RealDbWebAppFactory(SqlServerFixture sqlFixture)
-    : WebApplicationFactory<Program>, IClassFixture<SqlServerFixture>
+    : WebApplicationFactory<Program>
 {
     protected override void ConfigureWebHost(IWebHostBuilder builder)
     {

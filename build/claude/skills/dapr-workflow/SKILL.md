@@ -29,7 +29,16 @@ public sealed class OrderWorkflow : Workflow<OrderInput, OrderResult>
         await ctx.CreateTimer(TimeSpan.FromMinutes(5));
 
         // Pause until an external "PaymentApproved" event arrives (with timeout).
-        var approval = await ctx.WaitForExternalEventAsync<bool>("PaymentApproved", TimeSpan.FromHours(1));
+        bool approval;
+        try
+        {
+            approval = await ctx.WaitForExternalEventAsync<bool>(
+                "PaymentApproved", TimeSpan.FromHours(1));
+        }
+        catch (TaskCanceledException)
+        {
+            approval = false;
+        }
         if (!approval)
         {
             await ctx.CallActivityAsync(nameof(ReleaseStock), input.OrderId);

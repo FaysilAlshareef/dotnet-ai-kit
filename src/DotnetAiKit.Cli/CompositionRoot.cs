@@ -34,7 +34,7 @@ internal static class CompositionRoot
     public static GenerateService BuildGenerateService() =>
         new(BuildRepository(), new ProjectionEngine(HostRegistry), FileSystem);
 
-    public static CheckService BuildCheckService() => new(FileSystem);
+    public static CheckService BuildCheckService() => new(FileSystem, new ManifestIntegrityService());
 
     public static RenderService BuildRenderService() => new(BuildRepository(), BuildDetector());
 
@@ -51,7 +51,7 @@ internal static class CompositionRoot
         IDetectionProvider detector = BuildDetector();
         IHostAdapter adapter = host switch
         {
-            HostName.Claude => new ClaudeHostAdapter(FileSystem, new BackupRotationService(FileSystem)),
+            HostName.Claude => new ClaudeHostAdapter(FileSystem, new BackupRotationService(FileSystem), new ManifestIntegrityService()),
             _ => throw new NotSupportedException($"init for host '{host}' is not implemented yet."),
         };
         return new InitService(detector, BuildRepository(), adapter);

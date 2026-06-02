@@ -1,4 +1,4 @@
-# dotnet-ai-kit
+﻿# dotnet-ai-kit
 
 AI dev tool for the full .NET development lifecycle. Authors every artifact (skills, agents, commands, rules, profiles) **once** in a tool-agnostic source tree and **projects** it to Claude Code, Codex CLI, Cursor, and GitHub Copilot.
 

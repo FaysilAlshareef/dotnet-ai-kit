@@ -21,7 +21,7 @@ description: "Measures runtime performance with BenchmarkDotNet micro-benchmarks
 namespace {Company}.{Domain}.Benchmarks;
 
 [MemoryDiagnoser]
-[SimpleJob(RuntimeMoniker.Net90)]
+[SimpleJob(RuntimeMoniker.Net10_0)]
 public class EventSerializationBenchmarks
 {
     private Event<OrderCreatedData> _event = null!;

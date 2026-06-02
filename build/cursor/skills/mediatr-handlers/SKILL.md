@@ -6,6 +6,8 @@ description: "Implements MediatR request and notification handler bodies for com
 
 ## Core Principles
 
+> Dispatch policy: MediatR is opt-in; default CQRS dispatch goes through a project-owned sender port (see mediator-abstraction).
+
 - One handler per request — single responsibility
 - Commands use `IRequest<TResponse>` for operations that change state
 - Queries use `IRequest<TResponse>` for read-only data retrieval

@@ -76,4 +76,19 @@ public class CapabilityAndIntegrityTests
         Assert.True(svc.Verify("name: k\nversion: 2.0.0\n", hash));
         Assert.False(svc.Verify("tampered", hash));
     }
+
+    [Fact]
+    public void Footprint_manifest_hash_verifies_stable_fields()
+    {
+        var svc = new ManifestIntegrityService();
+        var hash = svc.ComputeFootprintSha256("claude", 21);
+        var manifest = "{\n  \"host\": \"claude\",\n  \"rules\": 21,\n  \"sha256\": \"" + hash + "\"\n}\n";
+
+        Assert.True(svc.TryVerifyFootprintManifest(manifest, out var details));
+        Assert.Equal(string.Empty, details);
+
+        var tampered = manifest.Replace("\"rules\": 21", "\"rules\": 22", StringComparison.Ordinal);
+        Assert.False(svc.TryVerifyFootprintManifest(tampered, out details));
+        Assert.Contains("manifest hash mismatch", details);
+    }
 }

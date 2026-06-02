@@ -11,6 +11,8 @@ SOLID is a refactoring guide, not a starting requirement. Write simply first. Ex
 
 ## Core Principles
 
+> Dispatch policy: MediatR and AutoMapper are opt-in commercial dependencies; default CQRS dispatch goes through a project-owned sender port and mapping stays manual or source-generated unless a license is selected.
+
 - **S — Single Responsibility**: A class should have one reason to change. One actor, one job.
 - **O — Open/Closed**: Open for extension, closed for modification. Add behavior without editing existing code.
 - **L — Liskov Substitution**: Subtypes must be substitutable for their base types without breaking correctness.

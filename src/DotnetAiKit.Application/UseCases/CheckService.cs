@@ -14,7 +14,7 @@ public sealed record CheckResult(int ExitCode, IReadOnlyList<CheckEntry> Checks)
 /// (contracts/exit-codes.md); lowest non-zero code wins on multiple failures (FR-014, SC-007).
 /// Makes no network calls (FR-015).
 /// </summary>
-public sealed class CheckService(IFileSystem fileSystem)
+public sealed class CheckService(IFileSystem fileSystem, IManifestIntegrity manifestIntegrity)
 {
     public const int Ok = 0;
     public const int PluginInstallMissing = 10;
@@ -51,6 +51,8 @@ public sealed class CheckService(IFileSystem fileSystem)
         var manifestJson = Path.Combine(footprint, "manifest.json");
         if (!fileSystem.FileExists(manifestJson))
             Fail("manifest-integrity", ".dotnet-ai-kit/manifest.json is missing.", ManifestIntegrity);
+        else if (!manifestIntegrity.TryVerifyFootprintManifest(fileSystem.ReadAllText(manifestJson), out var manifestDetails))
+            Fail("manifest-integrity", manifestDetails, ManifestIntegrity);
         else
             Pass("manifest-integrity");
 

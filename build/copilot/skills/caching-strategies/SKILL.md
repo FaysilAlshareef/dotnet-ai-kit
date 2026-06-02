@@ -6,6 +6,8 @@ description: "Adds caching to .NET APIs with distributed cache, output cache, an
 
 ## Core Principles
 
+> Dispatch policy: MediatR is opt-in; default CQRS dispatch goes through a project-owned sender port (see mediator-abstraction).
+
 - Cache as close to the consumer as possible (browser > CDN > reverse proxy > app)
 - Always set an explicit TTL — unbounded caches lead to stale data and memory pressure
 - Invalidate explicitly when underlying data changes — do not rely solely on expiry

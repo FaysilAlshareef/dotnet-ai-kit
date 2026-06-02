@@ -22,6 +22,7 @@ builder.Services.AddAuthentication(
     JwtBearerDefaults.AuthenticationScheme)
     .AddJwtBearer(options =>
     {
+        options.MapInboundClaims = false;
         options.TokenValidationParameters =
             new TokenValidationParameters
         {
@@ -97,7 +98,7 @@ public sealed class TokenService(IOptions<JwtOptions> options)
             new(JwtRegisteredClaimNames.Email, user.Email),
             new(JwtRegisteredClaimNames.Jti,
                 Guid.NewGuid().ToString()),
-            new("permissions", string.Join(",", permissions))
+            new("permissions", JsonSerializer.Serialize(permissions))
         };
 
         foreach (var role in user.Roles)
@@ -110,17 +111,25 @@ public sealed class TokenService(IOptions<JwtOptions> options)
         var expiry = DateTime.UtcNow.AddMinutes(
             options.Value.AccessTokenExpiryMinutes);
 
-        var token = new JwtSecurityToken(
-            issuer: options.Value.Issuer,
-            audience: options.Value.Audience,
-            claims: claims,
-            expires: expiry,
-            signingCredentials: credentials);
+        var token = new SecurityTokenDescriptor
+        {
+            Subject = new ClaimsIdentity(claims),
+            Issuer = options.Value.Issuer,
+            Audience = options.Value.Audience,
+            Expires = expiry,
+            SigningCredentials = credentials
+        };
+
+        var refreshExpiresAt = DateTime.UtcNow.AddMinutes(
+            options.Value.RefreshTokenExpiryMinutes);
+
+        var handler = new JsonWebTokenHandler();
 
         return new TokenResponse(
-            AccessToken: new JwtSecurityTokenHandler().WriteToken(token),
+            AccessToken: handler.CreateToken(token),
             ExpiresAt: expiry,
-            RefreshToken: GenerateRefreshToken());
+            RefreshToken: GenerateRefreshToken(),
+            RefreshTokenExpiresAt: refreshExpiresAt);
     }
 
     private static string GenerateRefreshToken()
@@ -130,7 +139,8 @@ public sealed class TokenService(IOptions<JwtOptions> options)
 public sealed record TokenResponse(
     string AccessToken,
     DateTime ExpiresAt,
-    string RefreshToken);
+    string RefreshToken,
+    DateTime RefreshTokenExpiresAt);
 ```
 
 ### Refresh Token Flow
@@ -160,16 +170,21 @@ internal sealed class RefreshTokenHandler(
         stored.Revoke();
 
         var user = await userRepo.FindAsync(stored.UserId, ct);
+        if (user is null)
+            return Result<TokenResponse>.Failure(
+                Error.Unauthorized("User.Missing",
+                    "The refresh token user no longer exists"));
+
         var permissions = await userRepo
-            .GetPermissionsAsync(user!.Id, ct);
+            .GetPermissionsAsync(user.Id, ct);
 
         var newToken = tokenService.GenerateTokens(
-            user!, permissions);
+            user, permissions);
 
         // Store new refresh token
         await refreshTokenRepo.StoreAsync(
-            new RefreshToken(user!.Id, newToken.RefreshToken,
-                DateTime.UtcNow.AddDays(7)),
+            new RefreshToken(user.Id, newToken.RefreshToken,
+                newToken.RefreshTokenExpiresAt),
             ct);
 
         await refreshTokenRepo.SaveChangesAsync(ct);
@@ -227,7 +242,8 @@ internal sealed class CurrentUserService(
         ?? throw new UnauthorizedAccessException();
 
     public Guid UserId => Guid.Parse(
-        User.FindFirstValue(JwtRegisteredClaimNames.Sub)!);
+        User.FindFirstValue(JwtRegisteredClaimNames.Sub)
+            ?? throw new UnauthorizedAccessException());
 
     public string Email =>
         User.FindFirstValue(JwtRegisteredClaimNames.Email)!;
@@ -237,9 +253,8 @@ internal sealed class CurrentUserService(
             .Select(c => c.Value).ToList();
 
     public IReadOnlyList<string> Permissions =>
-        (User.FindFirstValue("permissions") ?? "")
-            .Split(',', StringSplitOptions.RemoveEmptyEntries)
-            .ToList();
+        JsonSerializer.Deserialize<IReadOnlyList<string>>(
+            User.FindFirstValue("permissions") ?? "[]") ?? [];
 }
 ```
 

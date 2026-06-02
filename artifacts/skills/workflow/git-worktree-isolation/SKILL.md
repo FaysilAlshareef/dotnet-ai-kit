@@ -87,11 +87,6 @@ if ls *.sln 1>/dev/null 2>&1; then
     dotnet restore
 fi
 
-# Python (for tools like this one)
-if [ -f pyproject.toml ]; then
-    pip install -e ".[dev]"
-fi
-
 # Node.js (for frontend projects in the solution)
 if [ -f package.json ]; then
     npm install
@@ -107,8 +102,6 @@ Run tests to confirm the worktree starts clean:
 dotnet build
 dotnet test
 
-# Python
-pytest
 ```
 
 **If tests fail:** Report failures. Ask whether to proceed or investigate.

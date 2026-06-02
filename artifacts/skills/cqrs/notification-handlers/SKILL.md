@@ -9,6 +9,8 @@ metadata:
 
 ## Core Principles
 
+> Dispatch policy: MediatR is opt-in; default CQRS dispatch goes through a project-owned sender port (see mediator-abstraction). Domain events remain pure domain contracts; map them to notifications in the application layer if MediatR is licensed and selected.
+
 - Domain events represent something that happened in the domain
 - Multiple handlers can react to a single event (one-to-many)
 - Dispatch events after successful persistence (not before SaveChanges)
@@ -20,7 +22,7 @@ metadata:
 ### Domain Event Interface
 
 ```csharp
-public interface IDomainEvent : INotification
+public interface IDomainEvent
 {
     DateTimeOffset OccurredAt { get; }
 }
@@ -262,7 +264,7 @@ internal sealed class SubmitOrderHandler(
 
 ## Adding to Existing Project
 
-1. **Define `IDomainEvent`** interface extending `INotification`
+1. **Define `IDomainEvent`** as a pure domain interface; adapt to `INotification` only in the application layer if MediatR is licensed and selected
 2. **Add event collection** to aggregate root base class
 3. **Create concrete events** for key domain state changes
 4. **Add dispatch interceptor** to DbContext configuration

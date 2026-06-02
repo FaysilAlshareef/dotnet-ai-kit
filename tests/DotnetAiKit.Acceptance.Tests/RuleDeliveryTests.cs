@@ -29,7 +29,7 @@ public class RuleDeliveryTests
         return new InitService(
             new DotnetProjectDetector(fs),
             new FileSystemArtifactRepository(fs, new YamlFrontmatterParser()),
-            new ClaudeHostAdapter(fs, new BackupRotationService(fs)));
+            new ClaudeHostAdapter(fs, new BackupRotationService(fs), new ManifestIntegrityService()));
     }
 
     [Fact]

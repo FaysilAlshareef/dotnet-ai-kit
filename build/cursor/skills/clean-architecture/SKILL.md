@@ -6,6 +6,8 @@ description: "Implements and enforces Clean Architecture with 4-layer separation
 
 ## Core Principles
 
+> Dispatch policy: MediatR is opt-in; default CQRS dispatch goes through a project-owned sender port (see mediator-abstraction).
+
 - Dependencies point inward: outer layers depend on inner layers, never the reverse
 - Domain layer has zero external dependencies — pure C#
 - Application layer defines interfaces that Infrastructure implements

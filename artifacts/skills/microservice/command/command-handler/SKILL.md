@@ -10,6 +10,8 @@ metadata:
 
 ## Core Principles
 
+> Dispatch policy: MediatR is opt-in; default command dispatch goes through a project-owned sender port (see mediator-abstraction).
+
 - Handlers implement `IRequestHandler<TCommand>` (void) or `IRequestHandler<TCommand, TResponse>` via MediatR
 - The handler orchestrates: validate existence, load/create aggregate, call domain method, commit
 - Inject `ICommitEventService` and `IUnitOfWork` (for event loading and saving)

@@ -149,7 +149,8 @@ public static class DbContextHelper
     }
 
     public static async Task InsertAsync<T>(
-        IServiceProvider sp, T entity) where T : class
+        IServiceProvider sp, T entity,
+        CancellationToken cancellationToken = default) where T : class
     {
         var db = sp.GetRequiredService<ApplicationDbContext>();
         db.Set<T>().Add(entity);

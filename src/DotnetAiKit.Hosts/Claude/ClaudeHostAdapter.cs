@@ -13,7 +13,10 @@ namespace DotnetAiKit.Hosts.Claude;
 /// <c>.claude/settings.json</c>, and — the v1 defect fix — <c>.claude/rules/*.md</c> with
 /// <c>paths:</c> frontmatter so domain rules load JIT and universal rules are always-on (FR-019, SC-002).
 /// </summary>
-public sealed class ClaudeHostAdapter(IFileSystem fileSystem, IBackupService backupService) : IHostAdapter
+public sealed class ClaudeHostAdapter(
+    IFileSystem fileSystem,
+    IBackupService backupService,
+    IManifestIntegrity manifestIntegrity) : IHostAdapter
 {
     public HostName Host => HostName.Claude;
 
@@ -72,7 +75,7 @@ public sealed class ClaudeHostAdapter(IFileSystem fileSystem, IBackupService bac
         Write(".dotnet-ai-kit/version.txt", corpus.Manifest?.Version.ToString() ?? "2.0.0");
         Write(".dotnet-ai-kit/config.yml", RenderConfig(metadata));
         Write(".dotnet-ai-kit/project.yml", RenderProject(metadata));
-        Write(".dotnet-ai-kit/manifest.json", "{\n  \"host\": \"claude\",\n  \"rules\": " + corpus.Rules.Count + "\n}\n");
+        Write(".dotnet-ai-kit/manifest.json", RenderManifest(corpus.Rules.Count));
 
         return new HostWriteResult
         {
@@ -111,6 +114,16 @@ public sealed class ClaudeHostAdapter(IFileSystem fileSystem, IBackupService bac
         sb.Append("permission_profile: standard\n");
         sb.Append("plugin_version: 2.0.0\n");
         return sb.ToString();
+    }
+
+    private string RenderManifest(int ruleCount)
+    {
+        var hash = manifestIntegrity.ComputeFootprintSha256("claude", ruleCount);
+        return "{\n"
+            + "  \"host\": \"claude\",\n"
+            + "  \"rules\": " + ruleCount + ",\n"
+            + "  \"sha256\": \"" + hash + "\"\n"
+            + "}\n";
     }
 
     private static string RenderProject(ProjectMetadata metadata)

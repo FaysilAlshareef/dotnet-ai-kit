@@ -138,20 +138,16 @@ public class OrderListener : IHostedService
 
     private async Task<bool> HandleAsync<T>(ServiceBusReceivedMessage message) { /* see event-routing */ return true; }
 
-    public Task StartAsync(CancellationToken cancellationToken)
+    public async Task StartAsync(CancellationToken cancellationToken)
     {
-        _processor.StartProcessingAsync(cancellationToken);
-        _deadLetterProcessor.StartProcessingAsync(cancellationToken);
-
-        return Task.CompletedTask;
+        await _processor.StartProcessingAsync(cancellationToken);
+        await _deadLetterProcessor.StartProcessingAsync(cancellationToken);
     }
 
-    public Task StopAsync(CancellationToken cancellationToken)
+    public async Task StopAsync(CancellationToken cancellationToken)
     {
-        _processor.CloseAsync(cancellationToken);
-        _deadLetterProcessor.CloseAsync(cancellationToken);
-
-        return Task.CompletedTask;
+        await _processor.CloseAsync(cancellationToken);
+        await _deadLetterProcessor.CloseAsync(cancellationToken);
     }
 }
 ```
