@@ -59,12 +59,12 @@ Phase 0 decisions. Each is **Decision / Rationale / Alternatives considered**, g
 
 ## R6: MCP/LSP descriptor projection (D3)
 
-**Decision**: Project **LSP now** from the root `.lsp.json` (`csharp` → `csharp-ls`, target-relevant). **MCP payload is an open decision (D-MCP)** — the root `.mcp.json` (`mcpServers.codebase-memory-mcp`) is the kit's OWN dev config for working on this repo and MUST NOT be projected into users' repos (it would wire `codebase-memory-mcp` into their Claude, pointed at their code). Per host:
+**Decision**: Project **LSP now** from the root `.lsp.json` (`csharp` → `csharp-ls`, target-relevant), and project **MCP from a new target-facing descriptor** (D-MCP resolved 2026-06-02 → option (a)). The root `.mcp.json` (`mcpServers.codebase-memory-mcp`) is the kit's OWN dev config and MUST NOT be projected into users' repos (it would wire `codebase-memory-mcp` into their Claude, pointed at their code); instead 024 authors a not-yet-available descriptor for the future `dotnet-ai mcp serve`. Per host:
 - **LSP**: Claude `build/claude/.lsp.json` (GA); Copilot (Preview); **Codex/Cursor explicitly marked unsupported** (agent-facing LSP not available) rather than silently omitted.
-- **MCP** (GA ×4 — the *mechanism* is in scope): the per-host writer (Claude `.mcp.json`, Codex `[mcp_servers]`, Cursor `mcpServers`, Copilot form) is built, but its **payload awaits D-MCP**: (a) author a target-facing `artifacts/` descriptor for the future `dotnet-ai mcp serve`, marked not-yet-available; (b) build the mechanism with a documented placeholder; or (c) descope MCP to `029` (where the kit's own server exists) and ship only LSP now.
+- **MCP** (GA ×4): author a target-facing descriptor in `artifacts/` for the future `dotnet-ai mcp serve`, **marked not-yet-available** (never the kit's dev `codebase-memory-mcp`), and project it per host via the writer (Claude `.mcp.json`, Codex `[mcp_servers]`, Cursor `mcpServers`, Copilot form). `029` activates the descriptor when the kit's server exists. *(D-MCP resolved → option (a); rejected: (b) inert placeholder, (c) descope MCP to 029.)*
 - **Agent wiring (FR-017)**: update `reviewer`, `dotnet-architect`, `ef-specialist` to prefer symbol-precise navigation (`goToDefinition`/`findReferences`) over text search when LSP is available.
 
-The MCP track is the install mechanism `029` K4 depends on; until `029` ships the kit's server there is no correct target-facing MCP payload — hence D-MCP is surfaced to the maintainer rather than silently projecting the dev descriptor.
+The MCP track is the install mechanism `029` K4 depends on; 024 ships the mechanism plus a not-yet-available target-facing descriptor (option a), and `029` activates it. The kit's dev `.mcp.json` is never projected.
 
 **Rationale**: `planning/29` D3 / `planning/28` W1.3 + the capability matrix (MCP GA ×4; LSP Claude GA, Copilot Preview, Codex/Cursor unsupported). The descriptors already exist at the repo root; projecting them from one source preserves single-source + determinism.
 

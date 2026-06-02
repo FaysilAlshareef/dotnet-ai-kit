@@ -4,9 +4,9 @@ Covers FR-015..FR-018. Verifiable by `Acceptance.Tests` (+ `generate --check` dr
 
 ## C-ML-1 — MCP config projected per host from one descriptor
 
-> **Open decision D-MCP**: the *payload* is pending — the root `.mcp.json` (`codebase-memory-mcp`) is the kit's dev config and must not be projected to users. This contract governs the projection *mechanism*; the descriptor source is resolved by D-MCP (target-facing `artifacts/` descriptor / placeholder / descope to 029).
+> **D-MCP resolved (2026-06-02 → option a)**: project a NEW target-facing descriptor authored in `artifacts/` for the future `dotnet-ai mcp serve`, **marked not-yet-available** — never the kit's dev `.mcp.json` (`codebase-memory-mcp`). Feature `029` activates it.
 
-- **Given** the single MCP descriptor (the D-MCP-resolved target-facing source),
+- **Given** the target-facing MCP descriptor (authored in `artifacts/`, marked not-yet-available),
 - **Then** each supported host receives its MCP configuration in the native shape from that one source:
   - Claude: `build/claude/.mcp.json` (`mcpServers`)
   - Codex: `[mcp_servers]` in its config form
