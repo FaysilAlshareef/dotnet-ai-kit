@@ -36,7 +36,7 @@ jobs:
           print(f\"SC-004 PASS: {data['total_tokens']} tokens ({data['reduction_pct_vs_baseline']}% reduction)\")
           "
       - name: Upload measurement JSON
-        uses: actions/upload-artifact@v4
+        uses: actions/upload-artifact@v7
         with:
           name: sc004-measurement-${{ github.sha }}
           path: sc004.json
